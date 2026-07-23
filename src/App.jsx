@@ -14,6 +14,10 @@ const NAV = [
   { label: "About", href: "#" },
 ];
 
+// Homepage background: Lake Como (European luxury).
+const BACKGROUND_URL =
+  "https://images.unsplash.com/photo-1534430480872-3498386e7856?auto=format&fit=crop&w=2000&q=80";
+
 function NavItem({ item }) {
   if (!item.items) {
     return (
@@ -54,7 +58,9 @@ export default function App() {
       className="min-h-screen bg-slate-900 bg-cover bg-center relative"
       style={{
         backgroundImage:
-          "linear-gradient(to bottom, rgba(10,15,25,0.55), rgba(10,15,25,0.85)), url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=2000&q=80')",
+          "linear-gradient(to bottom, rgba(10,15,25,0.5), rgba(10,15,25,0.82)), url('" +
+          BACKGROUND_URL +
+          "')",
       }}
     >
       {/* Navigation */}
@@ -86,7 +92,7 @@ export default function App() {
           Wealth, planned with intention.
         </h1>
         <p className="text-white/70 max-w-xl mt-6 text-lg font-light">
-          Considered strategies for the long term — retirement, investments and
+          Considered strategies for the long term – retirement, investments and
           estate, guided by clarity and discretion.
         </p>
         <div className="mt-10 flex gap-4">
