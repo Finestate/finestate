@@ -19,11 +19,10 @@ export default function App() {
       {/* Navigation */}
       <header className="absolute top-0 inset-x-0 z-20">
         <nav className="max-w-7xl mx-auto flex items-center justify-between px-8 py-6">
-          <div className="flex flex-col items-start leading-none">
-            <span className="font-serif text-2xl tracking-[0.3em] text-[#dccba9] pl-[0.3em]">
+          <div className="leading-none">
+            <span className="font-serif text-2xl tracking-tight text-[#dccba9]">
               FI
             </span>
-            <span className="mt-1 h-px w-full bg-gradient-to-r from-[#d9c8a6]/70 to-transparent" />
           </div>
           <div className="hidden md:flex items-center gap-1">
             {NAV.map((label) => (
