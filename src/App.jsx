@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 const NAV = [
@@ -14,9 +15,24 @@ const NAV = [
   { label: "About", href: "#" },
 ];
 
-// Homepage background: Lake Como (European luxury).
-const BACKGROUND_URL =
-  "https://images.unsplash.com/photo-1534430480872-3498386e7856?auto=format&fit=crop&w=2000&q=80";
+// Candidate backgrounds. Look at each and pick by eye – names are not reliable.
+const BACKGROUNDS = [
+  "photo-1600585154340-be6161a56a0c",
+  "photo-1512917774080-9991f1c4c750",
+  "photo-1580587771525-78b9dba3b914",
+  "photo-1613490493576-7fde63acd811",
+  "photo-1583608205776-bfd35f0d9f83",
+  "photo-1568605114967-8130f3a36994",
+  "photo-1449844908441-8829872d2607",
+  "photo-1600596542815-ffad4c1539a9",
+  "photo-1512915922686-57c11dde9b6b",
+  "photo-1600607687939-ce8a6c25118c",
+  "photo-1601760561441-16420502c7e0",
+  "photo-1523217582562-09d0def993a6",
+];
+
+const imgUrl = (id, w) =>
+  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
 
 function NavItem({ item }) {
   if (!item.items) {
@@ -53,13 +69,17 @@ function NavItem({ item }) {
 }
 
 export default function App() {
+  const [bgIndex, setBgIndex] = useState(0);
+  const [open, setOpen] = useState(true);
+  const bg = BACKGROUNDS[bgIndex];
+
   return (
     <div
-      className="min-h-screen bg-slate-900 bg-cover bg-center relative"
+      className="min-h-screen bg-slate-900 bg-cover bg-center relative transition-[background-image] duration-500"
       style={{
         backgroundImage:
           "linear-gradient(to bottom, rgba(10,15,25,0.5), rgba(10,15,25,0.82)), url('" +
-          BACKGROUND_URL +
+          imgUrl(bg, 2000) +
           "')",
       }}
     >
@@ -110,6 +130,48 @@ export default function App() {
           </a>
         </div>
       </main>
+
+      {/* Background picker – temporary. Look at each image and click the one you like. */}
+      {open && (
+        <div className="fixed bottom-0 inset-x-0 z-30 bg-black/80 backdrop-blur-md border-t border-white/10 px-4 py-3">
+          <div className="flex items-center justify-between mb-2 max-w-6xl mx-auto">
+            <p className="text-white/80 text-xs tracking-wide">
+              Look at each picture and click the one you like. You're on option{" "}
+              <span className="text-white font-semibold">#{bgIndex + 1}</span>.
+              Then tell me the number.
+            </p>
+            <button
+              onClick={() => setOpen(false)}
+              className="text-white/60 hover:text-white text-xs underline"
+            >
+              hide
+            </button>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 max-w-6xl mx-auto">
+            {BACKGROUNDS.map((id, i) => (
+              <button
+                key={id}
+                onClick={() => setBgIndex(i)}
+                className={
+                  "relative shrink-0 w-40 h-24 rounded-lg overflow-hidden border-2 transition-all " +
+                  (bgIndex === i
+                    ? "border-white scale-105"
+                    : "border-transparent opacity-70 hover:opacity-100")
+                }
+              >
+                <img
+                  src={imgUrl(id, 320)}
+                  alt={"Option " + (i + 1)}
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute top-1 left-1 bg-black/70 text-white text-xs font-semibold rounded px-1.5">
+                  {i + 1}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
