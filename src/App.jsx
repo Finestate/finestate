@@ -1,4 +1,4 @@
-import bgImage from "../Website Images/Home.webp";
+import bgImage from "../Website Images/Home.png";
 
 const NAV = ["Section 1", "Section 2", "Section 3", "Section 4", "Section 5"];
 
@@ -20,7 +20,7 @@ export default function App() {
       <header className="absolute top-0 inset-x-0 z-20">
         <nav className="max-w-7xl mx-auto flex items-center justify-between px-8 py-6">
           <div className="flex flex-col items-start leading-none">
-            <span className="font-serif text-5xl md:text-6xl font-medium tracking-[0.3em] text-[#dccba9] pl-[0.3em] drop-shadow-sm">
+            <span className="font-serif text-2xl tracking-[0.3em] text-[#dccba9] pl-[0.3em]">
               FI
             </span>
             <span className="mt-1 h-px w-full bg-gradient-to-r from-[#d9c8a6]/70 to-transparent" />
