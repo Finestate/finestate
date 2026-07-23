@@ -1,4 +1,4 @@
-import bgImage from "../Website Images/Home.png";
+import bgImage from "../Website Images/Home.webp";
 
 const NAV = ["Section 1", "Section 2", "Section 3", "Section 4", "Section 5"];
 
