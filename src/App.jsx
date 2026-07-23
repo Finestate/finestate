@@ -1,8 +1,9 @@
+import bgImage from "../Website Images/Home.webp";
+
 const NAV = ["Section 1", "Section 2", "Section 3", "Section 4", "Section 5"];
 
-// Homepage background.
-const BACKGROUND_URL =
-  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80";
+// Homepage background (your own photo in "Website Images/Home.webp").
+const BACKGROUND_URL = bgImage;
 
 export default function App() {
   return (
