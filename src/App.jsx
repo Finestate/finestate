@@ -1,42 +1,43 @@
+import { useState } from "react";
 import bgImage from "../Website Images/Home.webp";
 
-const NAV = ["Section 1"];
-
-// Homepage background (your own photo in "Website Images/Home.webp").
-const BACKGROUND_URL = bgImage;
-
+// Single scrolling page. The pool image is a cover that slides away when FI is
+// clicked, revealing the plain "no-nonsense" page (Says Media's #FAFAF9) below.
 export default function App() {
+  const [revealed, setRevealed] = useState(false);
+
   return (
-    <div
-      className="min-h-screen bg-slate-900 bg-cover bg-center relative"
-      style={{
-        backgroundImage: "url('" + BACKGROUND_URL + "')",
-      }}
-    >
-      {/* Navigation */}
-      <header className="absolute top-0 inset-x-0 z-20">
-        <nav className="max-w-7xl mx-auto flex items-center justify-between px-8 py-6">
-          <div className="leading-none">
-            <span className="font-serif text-2xl tracking-tight text-[#dccba9] [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]">
-              FI
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-1">
-            {NAV.map((label) => (
-              <a
-                key={label}
-                href="#"
-                className="px-4 py-2 text-lg font-medium tracking-wide text-white hover:text-white/80 transition-colors [text-shadow:0_1px_3px_rgba(0,0,0,0.45)] -translate-y-[3px]"
-              >
-                {label}
-              </a>
-            ))}
-          </div>
+    <div className="relative min-h-screen bg-[#FAFAF9]">
+      {/* Top nav – FI on the right, always visible and clickable */}
+      <header className="fixed top-0 inset-x-0 z-30">
+        <nav className="max-w-7xl mx-auto flex items-center justify-end px-8 py-6">
+          <button
+            onClick={() => setRevealed((r) => !r)}
+            aria-label="FI – home"
+            className={
+              "font-serif text-2xl tracking-tight cursor-pointer transition-colors duration-300 " +
+              (revealed
+                ? "text-neutral-900"
+                : "text-[#dccba9] [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]")
+            }
+          >
+            FI
+          </button>
         </nav>
       </header>
 
-      {/* Body (intentionally empty for now) */}
+      {/* No-nonsense page (revealed underneath) – to be built out */}
       <main className="relative z-10 min-h-screen" />
+
+      {/* Cover image – slides up and away when FI is clicked */}
+      <div
+        className={
+          "fixed inset-0 z-20 bg-cover bg-center transition-transform duration-700 ease-in-out " +
+          (revealed ? "-translate-y-full" : "translate-y-0")
+        }
+        style={{ backgroundImage: "url('" + bgImage + "')" }}
+        aria-hidden={revealed}
+      />
     </div>
   );
 }
