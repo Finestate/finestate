@@ -1,6 +1,6 @@
 import bgImage from "../Website Images/Home.webp";
 
-const NAV = ["Section 1", "Section 2", "Section 3", "Section 4", "Section 5"];
+const NAV = ["Section 1"];
 
 // Homepage background (your own photo in "Website Images/Home.webp").
 const BACKGROUND_URL = bgImage;
@@ -26,7 +26,7 @@ export default function App() {
               <a
                 key={label}
                 href="#"
-                className="px-4 py-2 text-sm tracking-wide text-white/90 hover:text-white transition-colors [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]"
+                className="px-4 py-2 text-sm font-medium tracking-wide text-white hover:text-white/80 transition-colors [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]"
               >
                 {label}
               </a>
