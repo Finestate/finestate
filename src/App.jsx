@@ -7,7 +7,7 @@ export default function App() {
   const [revealed, setRevealed] = useState(false);
 
   return (
-    <div className="relative min-h-screen bg-[#FAFAF9]">
+    <div className="relative min-h-screen bg-[#FBF3E4]">
       {/* Top nav – FI on the right, always visible and clickable */}
       <header className="fixed top-0 inset-x-0 z-30">
         <nav className="max-w-7xl mx-auto flex items-center justify-end px-8 py-6">
