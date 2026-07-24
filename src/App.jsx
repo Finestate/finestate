@@ -26,7 +26,7 @@ export default function App() {
               <a
                 key={label}
                 href="#"
-                className="px-4 py-2 text-lg font-medium tracking-wide text-white hover:text-white/80 transition-colors [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]"
+                className="px-4 py-2 text-lg font-medium tracking-wide text-white hover:text-white/80 transition-colors [text-shadow:0_1px_3px_rgba(0,0,0,0.45)] -translate-y-[3px]"
               >
                 {label}
               </a>
