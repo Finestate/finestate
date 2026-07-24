@@ -10,17 +10,14 @@ export default function App() {
     <div
       className="min-h-screen bg-slate-900 bg-cover bg-center relative"
       style={{
-        backgroundImage:
-          "linear-gradient(to bottom, rgba(10,15,25,0.5), rgba(10,15,25,0.82)), url('" +
-          BACKGROUND_URL +
-          "')",
+        backgroundImage: "url('" + BACKGROUND_URL + "')",
       }}
     >
       {/* Navigation */}
       <header className="absolute top-0 inset-x-0 z-20">
         <nav className="max-w-7xl mx-auto flex items-center justify-between px-8 py-6">
           <div className="leading-none">
-            <span className="font-serif text-2xl tracking-tight text-[#dccba9]">
+            <span className="font-serif text-2xl tracking-tight text-[#dccba9] [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]">
               FI
             </span>
           </div>
@@ -29,7 +26,7 @@ export default function App() {
               <a
                 key={label}
                 href="#"
-                className="px-4 py-2 text-sm tracking-wide text-white/90 hover:text-white transition-colors"
+                className="px-4 py-2 text-sm tracking-wide text-white/90 hover:text-white transition-colors [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]"
               >
                 {label}
               </a>

@@ -6,3 +6,7 @@ dist
 # Office/Dropbox temp lock files
 ~$*
 *.tmp
+
+# Source images (large originals) – the optimized .webp is committed instead
+Website Images/*.jpg
+Website Images/*.png
