@@ -2,7 +2,7 @@ import { useState } from "react";
 import bgImage from "../Website Images/Home.webp";
 
 // Placeholder sections – rename freely.
-const SECTIONS = ["Assets", "Income", "Liabilities", "Projections"];
+const SECTIONS = ["Snapshot", "Assets", "Income", "Investing"];
 
 export default function App() {
   const [active, setActive] = useState("Home");
@@ -29,7 +29,7 @@ export default function App() {
           onClick={() => setActive("Home")}
           aria-label="FI – home"
           className={
-            "mb-12 self-start font-serif text-2xl tracking-tight cursor-pointer transition-colors duration-300 " +
+            "mb-12 self-start pl-3 font-serif text-2xl tracking-tight cursor-pointer transition-colors duration-300 " +
             (isHome
               ? "text-[#dccba9] [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]"
               : "text-neutral-900")
@@ -46,7 +46,7 @@ export default function App() {
                 key={s}
                 onClick={() => setActive(s)}
                 className={
-                  "text-left px-3 py-2 text-sm font-medium tracking-wide rounded-md cursor-pointer transition-colors " +
+                  "text-left px-3 py-2.5 text-base font-semibold tracking-wide rounded-md cursor-pointer transition-colors " +
                   (isHome
                     ? "text-white/90 hover:text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]"
                     : activeLink
