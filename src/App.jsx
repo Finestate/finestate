@@ -46,12 +46,13 @@ export default function App() {
                 key={s}
                 onClick={() => setActive(s)}
                 className={
-                  "text-left px-3 py-2.5 text-base font-semibold tracking-wide rounded-md cursor-pointer transition-colors " +
+                  "relative text-left px-3 py-2.5 text-base font-semibold tracking-wide cursor-pointer transition-colors " +
+                  "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-full before:bg-[#c2a15a] before:transition-opacity " +
                   (isHome
-                    ? "text-white/90 hover:text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]"
+                    ? "text-white/90 hover:text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)] before:opacity-0"
                     : activeLink
-                    ? "text-neutral-900 bg-black/5"
-                    : "text-neutral-500 hover:text-neutral-900")
+                    ? "text-neutral-900 before:opacity-100"
+                    : "text-neutral-400 hover:text-neutral-700 before:opacity-0")
                 }
               >
                 {s}
@@ -62,13 +63,7 @@ export default function App() {
       </aside>
 
       {/* Main work area – blank for now (cream shows through on section pages) */}
-      <main className="relative z-10 min-h-screen pl-56 pr-8 py-6">
-        {!isHome && (
-          <h1 className="text-neutral-400 text-sm tracking-widest uppercase">
-            {active}
-          </h1>
-        )}
-      </main>
+      <main className="relative z-10 min-h-screen pl-56 pr-8 py-6" />
     </div>
   );
 }
