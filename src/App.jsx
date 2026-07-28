@@ -1,13 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import bgImage from "../Website Images/Home.webp";
 import Investing from "./Investing.jsx";
 
 // Sidebar sections – rename freely.
 const SECTIONS = ["Snapshot", "Assets", "Income", "Investing"];
 
+// Read the current section from the URL hash (so a refresh stays put).
+function readActive() {
+  const h = decodeURIComponent(
+    (typeof window !== "undefined" ? window.location.hash : "").replace(/^#\/?/, "")
+  ).toLowerCase();
+  return SECTIONS.find((s) => s.toLowerCase() === h) || "Home";
+}
+
 export default function App() {
-  const [active, setActive] = useState("Home");
+  const [active, setActive] = useState(readActive);
   const isHome = active === "Home";
+
+  // Keep state and URL in sync (supports browser back/forward too).
+  useEffect(() => {
+    const onHash = () => setActive(readActive());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  const go = (s) => {
+    setActive(s);
+    const target = s === "Home" ? " " : s.toLowerCase();
+    if (s === "Home") history.replaceState(null, "", window.location.pathname);
+    else window.location.hash = target;
+  };
 
   return (
     <div className="relative min-h-screen bg-[#FBF3E4]">
@@ -27,7 +49,7 @@ export default function App() {
       {/* Left sidebar */}
       <aside className="fixed top-0 left-0 z-20 flex h-full w-56 flex-col px-8 py-6">
         <button
-          onClick={() => setActive("Home")}
+          onClick={() => go("Home")}
           aria-label="FI – home"
           className={
             "mb-12 self-start pl-3 font-serif text-2xl tracking-tight cursor-pointer transition-colors duration-300 " +
@@ -45,7 +67,7 @@ export default function App() {
             return (
               <button
                 key={s}
-                onClick={() => setActive(s)}
+                onClick={() => go(s)}
                 className={
                   "relative text-left px-3 py-2.5 text-base font-semibold tracking-wide cursor-pointer transition-colors " +
                   "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-full before:bg-[#c2a15a] before:transition-opacity " +
