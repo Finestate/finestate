@@ -26,7 +26,7 @@ function Calc({ calc }) {
   }
 
   return (
-    <div className="border-b border-black/10 py-2.5">
+    <div className="px-4 py-2.5">
       {/* Title line */}
       <div className="mb-1.5 flex items-center gap-1.5">
         <span className="text-[13px] font-semibold text-neutral-800">
@@ -98,13 +98,18 @@ export default function Investing() {
         </p>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-5">
         {CALC_GROUPS.map((g) => (
-          <section key={g.group}>
-            <h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-[#c2a15a]">
-              {g.group}
-            </h2>
-            <div className="border-t border-black/10">
+          <section
+            key={g.group}
+            className="overflow-hidden rounded-xl border border-black/10 bg-white/60 shadow-sm"
+          >
+            <div className="border-b border-black/10 bg-black/[0.03] px-4 py-2">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-[#c2a15a]">
+                {g.group}
+              </h2>
+            </div>
+            <div className="divide-y divide-black/10">
               {g.calcs.map((c) => (
                 <Calc key={c.id} calc={c} />
               ))}
