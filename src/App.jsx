@@ -7,6 +7,7 @@ import {
   Calculator,
   ChevronDown,
 } from "lucide-react";
+import bgImage from "../Website Images/Home.webp";
 import Investing from "./Investing.jsx";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
@@ -142,14 +143,16 @@ export default function App() {
     <div className="relative min-h-screen bg-[#FBF3E4]">
       <Sidebar route={route} onGo={go} />
 
+      {/* Home image – only in the main area, right of the toolbar */}
+      {route === "home" && (
+        <div
+          className="fixed inset-y-0 right-0 left-60 z-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('" + bgImage + "')" }}
+          aria-hidden="true"
+        />
+      )}
+
       <main className="relative z-10 min-h-screen pl-60 pr-8 py-8">
-        {route === "home" && (
-          <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-            <span className="select-none font-sans text-[clamp(6rem,20vw,15rem)] font-semibold leading-none tracking-tight text-neutral-900">
-              FI
-            </span>
-          </div>
-        )}
         {route === "investing/ratios-calcs" && <Investing />}
       </main>
     </div>
