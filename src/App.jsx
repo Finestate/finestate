@@ -1,7 +1,8 @@
 import { useState } from "react";
 import bgImage from "../Website Images/Home.webp";
+import Investing from "./Investing.jsx";
 
-// Placeholder sections – rename freely.
+// Sidebar sections – rename freely.
 const SECTIONS = ["Snapshot", "Assets", "Income", "Investing"];
 
 export default function App() {
@@ -23,7 +24,7 @@ export default function App() {
         aria-hidden={!isHome}
       />
 
-      {/* Left sidebar – sits over the image on Home, over cream elsewhere */}
+      {/* Left sidebar */}
       <aside className="fixed top-0 left-0 z-20 flex h-full w-56 flex-col px-8 py-6">
         <button
           onClick={() => setActive("Home")}
@@ -62,8 +63,10 @@ export default function App() {
         </nav>
       </aside>
 
-      {/* Main work area – blank for now (cream shows through on section pages) */}
-      <main className="relative z-10 min-h-screen pl-56 pr-8 py-6" />
+      {/* Main work area */}
+      <main className="relative z-10 min-h-screen pl-56 pr-8 py-8">
+        {active === "Investing" && <Investing />}
+      </main>
     </div>
   );
 }
