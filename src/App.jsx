@@ -7,7 +7,6 @@ import {
   Calculator,
   ChevronDown,
 } from "lucide-react";
-import bgImage from "../Website Images/Home.webp";
 import Investing from "./Investing.jsx";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
@@ -37,7 +36,74 @@ function readRoute() {
   return LEAF_IDS.includes(h) ? h : "home";
 }
 
+// --- Homepage eye-chart (message scrambled so it can't be read) ---
+const MESSAGE =
+  "REAL FORTUNES ARE THE RESULT OF BUILDING NOT STEALING AND REQUIRE CONSISTENT HARD WORK REGARDLESS OF EMOTIONS UNTIL ALL GOALS ARE MET";
+
+function scramble(str, seed) {
+  const a = str.split("");
+  let s = seed;
+  const rand = () => {
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    return s / 0x7fffffff;
+  };
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a.join("");
+}
+
+const ORDERED = MESSAGE.replace(/[^A-Z]/gi, "").toUpperCase();
+const SCRAMBLED = scramble(ORDERED, 20260728);
+
+// Snellen-style rows: letter count grows, font size shrinks. Last row takes the rest.
+const ROW_SPEC = [
+  { n: 1, cls: "text-7xl sm:text-8xl" },
+  { n: 3, cls: "text-6xl" },
+  { n: 5, cls: "text-5xl" },
+  { n: 7, cls: "text-4xl" },
+  { n: 9, cls: "text-3xl" },
+  { n: 11, cls: "text-2xl" },
+  { n: 13, cls: "text-xl" },
+  { n: 15, cls: "text-lg" },
+  { n: 17, cls: "text-base" },
+  { rest: true, cls: "text-sm" },
+];
+
+function buildRows(str) {
+  let idx = 0;
+  const rows = [];
+  for (const r of ROW_SPEC) {
+    const text = r.rest ? str.slice(idx) : str.slice(idx, idx + r.n);
+    idx += text.length;
+    if (text) rows.push({ text, cls: r.cls });
+  }
+  return rows;
+}
+
+function EyeChart() {
+  const [reveal, setReveal] = useState(false);
+  const rows = buildRows(reveal ? ORDERED : SCRAMBLED);
+  return (
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+      <div
+        onMouseEnter={() => setReveal(true)}
+        onMouseLeave={() => setReveal(false)}
+        className="cursor-default select-none text-center font-mono font-bold uppercase leading-[1.25] tracking-[0.25em] text-neutral-800"
+      >
+        {rows.map((row, i) => (
+          <div key={i} className={row.cls}>
+            {row.text}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Sidebar({ route, onGo }) {
+  const isHome = route === "home";
   const [open, setOpen] = useState(() => {
     const parent = NAV.find((s) => s.children?.some((c) => c.id === route));
     return [parent ? parent.id : "investing"];
@@ -60,11 +126,15 @@ function Sidebar({ route, onGo }) {
   return (
     <aside
       className={
-        "fixed top-0 left-0 z-20 flex h-full w-60 flex-col border-r border-neutral-200 " +
-        (route === "home" ? "bg-[#FBF3E4]" : "bg-white")
+        "fixed top-0 left-0 z-20 flex h-full w-60 flex-col " +
+        (isHome ? "bg-[#FBF3E4]" : "border-r border-neutral-200 bg-white")
       }
     >
-      <div className="flex items-center border-b border-neutral-200 px-6 py-5">
+      <div
+        className={
+          "flex items-center px-6 py-5 " + (isHome ? "" : "border-b border-neutral-200")
+        }
+      >
         <button
           onClick={() => onGo("home")}
           aria-label="FI – home"
@@ -131,6 +201,7 @@ function Sidebar({ route, onGo }) {
 
 export default function App() {
   const [route, setRoute] = useState(readRoute);
+  const isHome = route === "home";
 
   useEffect(() => {
     const onHash = () => setRoute(readRoute());
@@ -148,16 +219,8 @@ export default function App() {
     <div className="relative min-h-screen bg-[#FBF3E4]">
       <Sidebar route={route} onGo={go} />
 
-      {/* Home image – only in the main area, right of the toolbar */}
-      {route === "home" && (
-        <div
-          className="fixed inset-y-0 right-0 left-60 z-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('" + bgImage + "')" }}
-          aria-hidden="true"
-        />
-      )}
-
       <main className="relative z-10 min-h-screen pl-60 pr-8 py-8">
+        {isHome && <EyeChart />}
         {route === "investing/ratios-calcs" && <Investing />}
       </main>
     </div>
