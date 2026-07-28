@@ -8,6 +8,18 @@ function parseVal(type, raw) {
   return Number.isFinite(n) ? n : NaN;
 }
 
+// Add thousand separators for display in money/num inputs (kept editable).
+function withCommas(s) {
+  const str = String(s ?? "");
+  const neg = str.trim().startsWith("-");
+  const cleaned = str.replace(/[^0-9.]/g, "");
+  if (cleaned === "") return neg ? "-" : "";
+  const [intPart, ...rest] = cleaned.split(".");
+  const intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const hasDot = cleaned.includes(".");
+  return (neg ? "-" : "") + intFmt + (hasDot ? "." + rest.join("") : "");
+}
+
 function Calc({ calc }) {
   const [raw, setRaw] = useState(() => {
     const o = {};
@@ -53,9 +65,19 @@ function Calc({ calc }) {
             <input
               type={f.type === "date" ? "date" : "text"}
               inputMode={f.type === "date" ? undefined : "decimal"}
-              value={raw[f.key]}
+              value={
+                f.type === "money" || f.type === "num"
+                  ? withCommas(raw[f.key])
+                  : raw[f.key]
+              }
               onChange={(e) =>
-                setRaw((s) => ({ ...s, [f.key]: e.target.value }))
+                setRaw((s) => ({
+                  ...s,
+                  [f.key]:
+                    f.type === "money" || f.type === "num"
+                      ? e.target.value.replace(/,/g, "")
+                      : e.target.value,
+                }))
               }
               className={
                 "rounded-md border border-black/10 bg-white px-2 py-1 text-sm text-neutral-800 outline-none focus:border-[#c2a15a] " +
@@ -91,13 +113,6 @@ function Calc({ calc }) {
 export default function Investing() {
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-semibold text-neutral-900">Tools</h1>
-        <p className="mt-1 text-neutral-500">
-          Live calculators – edit any input and the result updates instantly.
-        </p>
-      </div>
-
       <div className="space-y-5">
         {CALC_GROUPS.map((g) => (
           <section
