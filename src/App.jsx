@@ -57,27 +57,34 @@ function scramble(str, seed) {
 const ORDERED = MESSAGE.replace(/[^A-Z]/gi, "").toUpperCase();
 const SCRAMBLED = scramble(ORDERED, 20260728);
 
-// Snellen-style rows: letter count grows, font size shrinks. Last row takes the rest.
-const ROW_SPEC = [
-  { n: 1, cls: "text-7xl sm:text-8xl" },
-  { n: 3, cls: "text-6xl" },
-  { n: 5, cls: "text-5xl" },
-  { n: 7, cls: "text-4xl" },
-  { n: 9, cls: "text-3xl" },
-  { n: 11, cls: "text-2xl" },
-  { n: 13, cls: "text-xl" },
-  { n: 15, cls: "text-lg" },
-  { n: 17, cls: "text-base" },
-  { rest: true, cls: "text-sm" },
+// Font scale, large (top) to small (bottom).
+const SIZES = [
+  "text-6xl",
+  "text-5xl",
+  "text-4xl",
+  "text-3xl",
+  "text-3xl",
+  "text-2xl",
+  "text-2xl",
+  "text-xl",
+  "text-lg",
+  "text-base",
+  "text-sm",
+  "text-xs",
 ];
 
+// Rows grow by one letter each (2,3,4,…) so it fans out like an eye chart.
 function buildRows(str) {
-  let idx = 0;
   const rows = [];
-  for (const r of ROW_SPEC) {
-    const text = r.rest ? str.slice(idx) : str.slice(idx, idx + r.n);
-    idx += text.length;
-    if (text) rows.push({ text, cls: r.cls });
+  let idx = 0;
+  let count = 2;
+  let i = 0;
+  while (idx < str.length) {
+    const text = str.slice(idx, idx + count);
+    rows.push({ text, cls: SIZES[Math.min(i, SIZES.length - 1)] });
+    idx += count;
+    count += 1;
+    i += 1;
   }
   return rows;
 }
@@ -90,11 +97,24 @@ function EyeChart() {
       <div
         onMouseEnter={() => setReveal(true)}
         onMouseLeave={() => setReveal(false)}
-        className="cursor-default select-none text-center font-mono font-bold uppercase leading-[1.25] tracking-[0.25em] text-neutral-800"
+        className="w-full max-w-4xl cursor-default select-none divide-y divide-neutral-300 rounded-lg border border-neutral-300 font-mono font-bold uppercase text-neutral-800"
       >
         {rows.map((row, i) => (
-          <div key={i} className={row.cls}>
-            {row.text}
+          <div
+            key={i}
+            className="grid divide-x divide-neutral-300"
+            style={{
+              gridTemplateColumns: `repeat(${row.text.length}, minmax(0, 1fr))`,
+            }}
+          >
+            {[...row.text].map((ch, j) => (
+              <div
+                key={j}
+                className={"flex items-center justify-center py-3 " + row.cls}
+              >
+                {ch}
+              </div>
+            ))}
           </div>
         ))}
       </div>
