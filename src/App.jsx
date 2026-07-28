@@ -58,7 +58,12 @@ function Sidebar({ route, onGo }) {
       : "text-neutral-500 hover:text-neutral-900 hover:bg-black/[0.04]");
 
   return (
-    <aside className="fixed top-0 left-0 z-20 flex h-full w-60 flex-col border-r border-neutral-200 bg-white">
+    <aside
+      className={
+        "fixed top-0 left-0 z-20 flex h-full w-60 flex-col border-r border-neutral-200 " +
+        (route === "home" ? "bg-[#FBF3E4]" : "bg-white")
+      }
+    >
       <div className="flex items-center border-b border-neutral-200 px-6 py-5">
         <button
           onClick={() => onGo("home")}
