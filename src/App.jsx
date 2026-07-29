@@ -36,76 +36,6 @@ function readRoute() {
   return LEAF_IDS.includes(h) ? h : "home";
 }
 
-// --- Homepage eye-chart (message scrambled so it can't be read) ---
-const MESSAGE =
-  "REAL FORTUNES ARE THE RESULT OF BUILDING NOT STEALING AND REQUIRE CONSISTENT HARD WORK REGARDLESS OF EMOTIONS UNTIL ALL GOALS ARE MET";
-
-function scramble(str, seed) {
-  const a = str.split("");
-  let s = seed;
-  const rand = () => {
-    s = (s * 1103515245 + 12345) & 0x7fffffff;
-    return s / 0x7fffffff;
-  };
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a.join("");
-}
-
-const ORDERED = MESSAGE.replace(/[^A-Z]/gi, "").toUpperCase();
-const SCRAMBLED = scramble(ORDERED, 20260728);
-
-// Target chart width (px) and monospace advance factor. Because font size is
-// set to width / (letters * ADV), every row renders the same width — the real
-// Snellen look (letters shrink as they multiply). Top rows: fewer, larger.
-const CHART_W = 340;
-const ADV = 0.66;
-
-// Rows grow by one letter each (6,7,8,…); trailing short row folds up.
-function buildRows(str) {
-  const rows = [];
-  let idx = 0;
-  let count = 8;
-  while (idx < str.length) {
-    rows.push(str.slice(idx, idx + count));
-    idx += count;
-    count += 1;
-  }
-  if (
-    rows.length >= 2 &&
-    rows[rows.length - 1].length < rows[rows.length - 2].length
-  ) {
-    rows[rows.length - 2] += rows[rows.length - 1];
-    rows.pop();
-  }
-  return rows;
-}
-
-function EyeChart() {
-  const [reveal, setReveal] = useState(false);
-  const rows = buildRows(reveal ? ORDERED : SCRAMBLED);
-  return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-      <div
-        onMouseEnter={() => setReveal(true)}
-        onMouseLeave={() => setReveal(false)}
-        className="cursor-default select-none text-center font-mono font-bold uppercase leading-[1.25] text-neutral-800"
-      >
-        {rows.map((text, i) => (
-          <div
-            key={i}
-            style={{ fontSize: CHART_W / (text.length * ADV) + "px", letterSpacing: "0.05em" }}
-          >
-            {text}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function Sidebar({ route, onGo }) {
   const isHome = route === "home";
   const [open, setOpen] = useState(() => {
@@ -205,7 +135,6 @@ function Sidebar({ route, onGo }) {
 
 export default function App() {
   const [route, setRoute] = useState(readRoute);
-  const isHome = route === "home";
 
   useEffect(() => {
     const onHash = () => setRoute(readRoute());
@@ -224,7 +153,6 @@ export default function App() {
       <Sidebar route={route} onGo={go} />
 
       <main className="relative z-10 min-h-screen pl-60 pr-8 py-8">
-        {isHome && <EyeChart />}
         {route === "investing/ratios-calcs" && <Investing />}
       </main>
     </div>
