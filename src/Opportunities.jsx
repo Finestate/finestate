@@ -1,11 +1,7 @@
 const COLUMNS = [
   "General Knowledge",
   "Mapping: Industry Summary",
-  "Mapping: Micro+Macro",
-  "Mapping: Geopolitics",
   "Mapping: Daily News",
-  "Mapping: Other",
-  "Income:",
   "ETFs: Common Popular",
   "ETFs: Leveraged",
   "ETFs: Top Performers",
@@ -31,17 +27,23 @@ const INDUSTRIES = [
 
 export default function Opportunities() {
   return (
-    <div className="overflow-x-auto rounded-lg border border-neutral-300">
-      <table className="w-max border-collapse text-sm">
+    <div className="overflow-hidden rounded-lg border border-[#c2a15a]/40">
+      <table className="w-full table-fixed border-collapse text-sm">
+        <colgroup>
+          <col style={{ width: "19%" }} />
+          {COLUMNS.map((c) => (
+            <col key={c} />
+          ))}
+        </colgroup>
         <thead>
           <tr>
-            <th className="sticky left-0 z-10 border border-[#6f6f6f] bg-[#595959] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-white">
+            <th className="border border-[#8a6d2c] bg-[#9c7c33] px-2 py-2 text-left align-middle text-[10px] font-semibold uppercase tracking-wide leading-tight text-white">
               Industry
             </th>
             {COLUMNS.map((c) => (
               <th
                 key={c}
-                className="min-w-[150px] whitespace-nowrap border border-[#6f6f6f] bg-[#595959] px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-white"
+                className="border border-[#8a6d2c] bg-[#9c7c33] px-2 py-2 text-center align-middle text-[10px] font-semibold uppercase tracking-wide leading-tight text-white"
               >
                 {c}
               </th>
@@ -53,15 +55,12 @@ export default function Opportunities() {
             <tr key={ind}>
               <th
                 scope="row"
-                className="sticky left-0 z-10 whitespace-nowrap border border-neutral-300 bg-white px-3 py-1.5 text-left text-[13px] font-medium text-neutral-800"
+                className="border border-neutral-200 bg-white px-2 py-1.5 text-left align-middle text-[12px] font-medium leading-tight text-neutral-800"
               >
                 {ind}
               </th>
               {COLUMNS.map((c) => (
-                <td
-                  key={c}
-                  className="min-w-[150px] border border-neutral-200 bg-white px-3 py-1.5"
-                />
+                <td key={c} className="border border-neutral-200 bg-white px-2 py-1.5" />
               ))}
             </tr>
           ))}
