@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Info, Lightbulb, X } from "lucide-react";
+import { Lightbulb, X } from "lucide-react";
 import { CALC_GROUPS, RATIO_FORMULAS } from "./investingData.js";
 import { RATIO_ABOUT } from "./ratioDefinitions.js";
 
@@ -27,7 +27,6 @@ function Calc({ calc }) {
     for (const f of calc.fields) o[f.key] = String(calc.defaults[f.key] ?? "");
     return o;
   });
-  const [showFormula, setShowFormula] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
 
   const formula = RATIO_FORMULAS[calc.id];
@@ -49,16 +48,6 @@ function Calc({ calc }) {
         <span className="text-[12px] font-semibold uppercase tracking-wide text-neutral-800">
           {calc.title}
         </span>
-        {formula && (
-          <button
-            onClick={() => setShowFormula((s) => !s)}
-            title="Calculation"
-            className="shrink-0 cursor-pointer text-neutral-400 hover:text-[#c2a15a]"
-            aria-label="Calculation"
-          >
-            <Info className="h-3.5 w-3.5" />
-          </button>
-        )}
         {about && (
           <button
             onClick={() => setAboutOpen(true)}
@@ -70,12 +59,6 @@ function Calc({ calc }) {
           </button>
         )}
       </div>
-
-      {showFormula && formula && (
-        <p className="mb-2 inline-block rounded-md bg-black/[0.03] px-2 py-1 text-xs text-neutral-600">
-          {formula}
-        </p>
-      )}
 
       {/* Inputs + outputs */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -148,6 +131,11 @@ function Calc({ calc }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
+            {formula && (
+              <p className="mb-4 rounded-md bg-black/[0.04] px-3 py-2 text-sm font-medium tabular-nums text-neutral-700">
+                {formula}
+              </p>
+            )}
             <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-700">
               {about}
             </p>

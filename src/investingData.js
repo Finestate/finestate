@@ -40,8 +40,20 @@ const excelFV = (rate, nper, pmt, pv) =>
     : pv * Math.pow(1 + rate, nper) +
       (pmt * (Math.pow(1 + rate, nper) - 1)) / rate;
 
-// Calculation details (shown behind the ℹ️ icon on each ratio).
+// Calculation shown at the top of each lightbulb popup.
 export const RATIO_FORMULAS = {
+  // Custom calculations
+  "fv-annual": "FV = PV × (1+r)ⁿ + PMT × [((1+r)ⁿ − 1) ÷ r]  ·  r = annual return, n = years",
+  "fv-quarterly": "FV = PV × (1+r/4)⁴ⁿ + PMT × [((1+r/4)⁴ⁿ − 1) ÷ (r/4)]  ·  quarterly compounding",
+  cagr: "(Ending ÷ Beginning)^(1 ÷ Years) − 1",
+  "cagr-period": "(1 + % change)^(365 ÷ days between dates) − 1",
+  "pct-change": "(New − Starting) ÷ Starting",
+  "pct-change-value": "Starting × (1 + % change)",
+  "rule-72": "72 ÷ Rate of return (%)",
+  "future-price-mktcap": "Future price = Current price × (Future market cap ÷ Current market cap)  ·  Holdings = Shares × Future price",
+  "future-price-growth": "Future price = Current price × (1 + growth)^Years  ·  Holdings = Shares × Future price",
+  "holding-scenario": "Total = Shares × Purchase  ·  Sell target = Purchase × (1 + gain%)  ·  Gain = Shares × (Current − Purchase)  ·  % = Current ÷ Purchase − 1",
+  // Ratios
   "gross-margin": "(Revenue − COGS) ÷ Revenue",
   "operating-margin": "Operating income (EBIT) ÷ Revenue",
   "net-profit-margin": "Net profit ÷ Revenue",
