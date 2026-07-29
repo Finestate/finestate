@@ -136,7 +136,7 @@ function Calc({ calc }) {
             <div className="mb-3 flex items-start justify-between gap-4">
               <div className="flex items-center gap-2">
                 <Lightbulb className="h-5 w-5 text-amber-500" />
-                <h3 className="text-lg font-semibold text-neutral-900">
+                <h3 className="text-base font-semibold uppercase tracking-wide text-neutral-900">
                   {calc.title}
                 </h3>
               </div>
