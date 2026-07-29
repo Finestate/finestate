@@ -40,6 +40,32 @@ const excelFV = (rate, nper, pmt, pv) =>
     : pv * Math.pow(1 + rate, nper) +
       (pmt * (Math.pow(1 + rate, nper) - 1)) / rate;
 
+// Calculation details (shown behind the ℹ️ icon on each ratio).
+export const RATIO_FORMULAS = {
+  "gross-margin": "(Revenue − COGS) ÷ Revenue",
+  "operating-margin": "Operating income (EBIT) ÷ Revenue",
+  "net-profit-margin": "Net profit ÷ Revenue",
+  roe: "Net income ÷ Shareholders' equity",
+  roa: "Net income ÷ Total assets",
+  roic: "NOPAT ÷ Invested capital",
+  "current-ratio": "Current assets ÷ Current liabilities",
+  "quick-ratio": "(Current assets − Inventory − Prepaid) ÷ Current liabilities",
+  de: "Total debt ÷ Shareholders' equity",
+  icr: "EBIT ÷ Interest expense",
+  "debt-ebitda": "Total debt ÷ EBITDA",
+  "asset-turnover": "Net sales ÷ Average total assets  ·  avg = (beginning + ending) ÷ 2",
+  "inventory-turnover": "COGS ÷ Average inventory  ·  avg = (beginning + ending) ÷ 2",
+  "receivables-turnover": "Net credit sales ÷ Average receivables  ·  avg = (beginning + ending) ÷ 2",
+  eps: "(Net income − Preferred dividends) ÷ Weighted-avg shares",
+  pe: "Price ÷ EPS  ·  EPS = (Net income − Preferred div) ÷ Shares",
+  peg: "P/E ÷ (EPS growth %)  ·  growth = (Expected EPS − EPS) ÷ EPS",
+  pb: "Price ÷ Book value/share  ·  BVPS = (Assets − Liabilities) ÷ Shares",
+  ps: "Market cap ÷ Total revenue",
+  "div-yield": "Dividend/share ÷ Price  ·  DPS = Total dividends ÷ Shares",
+  "fcf-yield": "(Operating CF − Capex) ÷ Market cap",
+  "ev-ebitda": "EV ÷ EBITDA  ·  EV = Market cap + Total debt − Cash  ·  EBITDA = Net income + Interest + Taxes + Depreciation + Amortisation",
+};
+
 export const CALC_GROUPS = [
   {
     group: "Custom Calculations",

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Info } from "lucide-react";
-import { CALC_GROUPS } from "./investingData.js";
+import { Info, Lightbulb, X } from "lucide-react";
+import { CALC_GROUPS, RATIO_FORMULAS } from "./investingData.js";
+import { RATIO_ABOUT } from "./ratioDefinitions.js";
 
 function parseVal(type, raw) {
   if (type === "date") return raw;
@@ -26,7 +27,11 @@ function Calc({ calc }) {
     for (const f of calc.fields) o[f.key] = String(calc.defaults[f.key] ?? "");
     return o;
   });
-  const [showInfo, setShowInfo] = useState(false);
+  const [showFormula, setShowFormula] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+
+  const formula = RATIO_FORMULAS[calc.id];
+  const about = RATIO_ABOUT[calc.id];
 
   const v = {};
   for (const f of calc.fields) v[f.key] = parseVal(f.type, raw[f.key]);
@@ -39,23 +44,40 @@ function Calc({ calc }) {
 
   return (
     <div className="px-4 py-2.5">
-      {/* Title line */}
-      <div className="mb-1.5 flex items-center gap-1.5">
+      {/* Title line + icons */}
+      <div className="mb-1.5 flex items-center gap-2">
         <span className="text-[13px] font-semibold text-neutral-800">
           {calc.title}
         </span>
-        {calc.blurb && (
+        {formula && (
           <button
-            onClick={() => setShowInfo((s) => !s)}
+            onClick={() => setShowFormula((s) => !s)}
+            title="Calculation"
             className="shrink-0 cursor-pointer text-neutral-400 hover:text-[#c2a15a]"
-            aria-label="Definition"
+            aria-label="Calculation"
           >
             <Info className="h-3.5 w-3.5" />
           </button>
         )}
+        {about && (
+          <button
+            onClick={() => setAboutOpen(true)}
+            title="What it's for"
+            className="shrink-0 cursor-pointer text-neutral-400 hover:text-amber-500"
+            aria-label="What it's for"
+          >
+            <Lightbulb className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
-      {/* Inputs + outputs flow on one line (results pushed right) */}
+      {showFormula && formula && (
+        <p className="mb-2 inline-block rounded-md bg-black/[0.03] px-2 py-1 text-xs text-neutral-600">
+          {formula}
+        </p>
+      )}
+
+      {/* Inputs + outputs */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         {calc.fields.map((f) => (
           <div key={f.key} className="flex items-center gap-1.5">
@@ -101,10 +123,36 @@ function Calc({ calc }) {
         </div>
       </div>
 
-      {showInfo && calc.blurb && (
-        <p className="mt-2 max-w-3xl rounded-md bg-black/[0.03] p-2 text-xs leading-relaxed text-neutral-500">
-          {calc.blurb}
-        </p>
+      {/* Definition popup (lightbulb) */}
+      {aboutOpen && about && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setAboutOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[82vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-2xl"
+          >
+            <div className="mb-3 flex items-start justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-amber-500" />
+                <h3 className="text-lg font-semibold text-neutral-900">
+                  {calc.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setAboutOpen(false)}
+                className="shrink-0 cursor-pointer text-neutral-400 hover:text-neutral-700"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-700">
+              {about}
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );
