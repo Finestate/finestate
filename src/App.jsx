@@ -84,6 +84,14 @@ function buildRows(str) {
     count += 2;
     i += 1;
   }
+  // Avoid a lonely short final row – fold it into the row above.
+  if (
+    rows.length >= 2 &&
+    rows[rows.length - 1].text.length < rows[rows.length - 2].text.length
+  ) {
+    rows[rows.length - 2].text += rows[rows.length - 1].text;
+    rows.pop();
+  }
   return rows;
 }
 
