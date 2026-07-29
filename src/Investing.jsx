@@ -46,7 +46,7 @@ function Calc({ calc }) {
     <div className="px-4 py-2.5">
       {/* Title line + icons */}
       <div className="mb-1.5 flex items-center gap-2">
-        <span className="text-[13px] font-semibold text-neutral-800">
+        <span className="text-[12px] font-semibold uppercase tracking-wide text-neutral-800">
           {calc.title}
         </span>
         {formula && (
@@ -102,8 +102,8 @@ function Calc({ calc }) {
                 }))
               }
               className={
-                "rounded-md border border-black/10 bg-white px-2 py-1 text-sm text-neutral-800 outline-none focus:border-[#c2a15a] " +
-                (f.type === "date" ? "w-36" : "w-24")
+                "rounded-none border-0 border-b border-black/15 bg-transparent px-1 py-0.5 text-sm text-neutral-800 outline-none transition-colors focus:border-[#c2a15a] " +
+                (f.type === "date" ? "w-32" : "w-20")
               }
             />
           </div>
