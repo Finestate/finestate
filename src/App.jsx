@@ -163,7 +163,7 @@ export default function App() {
         </div>
       )}
 
-      <main className="relative z-10 min-h-screen pl-60 pr-8 py-8">
+      <main className="relative z-10 min-h-screen pl-[17rem] pr-8 py-8">
         {route === "investing/opportunities" && <Opportunities />}
         {route === "investing/ratios-calcs" && <Investing />}
       </main>
