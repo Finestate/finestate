@@ -5,9 +5,11 @@ import {
   Banknote,
   TrendingUp,
   Calculator,
+  Target,
   ChevronDown,
 } from "lucide-react";
 import Investing from "./Investing.jsx";
+import Opportunities from "./Opportunities.jsx";
 import infinityImg from "../Website Images/Infinity.webp";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
@@ -20,6 +22,7 @@ const NAV = [
     name: "Investing",
     icon: TrendingUp,
     children: [
+      { id: "investing/opportunities", name: "Opportunities", icon: Target },
       { id: "investing/ratios-calcs", name: "Ratios + Calculations", icon: Calculator },
     ],
   },
@@ -161,6 +164,7 @@ export default function App() {
       )}
 
       <main className="relative z-10 min-h-screen pl-60 pr-8 py-8">
+        {route === "investing/opportunities" && <Opportunities />}
         {route === "investing/ratios-calcs" && <Investing />}
       </main>
     </div>
