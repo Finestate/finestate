@@ -8,6 +8,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Investing from "./Investing.jsx";
+import infinityImg from "../Website Images/Infinity.webp";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
 const NAV = [
@@ -61,7 +62,7 @@ function Sidebar({ route, onGo }) {
     <aside
       className={
         "fixed top-0 left-0 z-20 flex h-full w-60 flex-col " +
-        (isHome ? "bg-[#FBF3E4]" : "border-r border-neutral-200 bg-white")
+        (isHome ? "bg-transparent" : "border-r border-neutral-200 bg-white")
       }
     >
       <div
@@ -151,6 +152,13 @@ export default function App() {
   return (
     <div className="relative min-h-screen bg-[#FBF3E4]">
       <Sidebar route={route} onGo={go} />
+
+      {/* Infinity mark – centered on the whole page (Home only) */}
+      {route === "home" && (
+        <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center">
+          <img src={infinityImg} alt="" className="w-[36vw] max-w-[480px]" />
+        </div>
+      )}
 
       <main className="relative z-10 min-h-screen pl-60 pr-8 py-8">
         {route === "investing/ratios-calcs" && <Investing />}

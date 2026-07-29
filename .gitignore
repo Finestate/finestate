@@ -10,3 +10,4 @@ dist
 # Source images (large originals) – the optimized .webp is committed instead
 Website Images/*.jpg
 Website Images/*.png
+Website Images/*.eps
