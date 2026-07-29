@@ -57,39 +57,27 @@ function scramble(str, seed) {
 const ORDERED = MESSAGE.replace(/[^A-Z]/gi, "").toUpperCase();
 const SCRAMBLED = scramble(ORDERED, 20260728);
 
-// Font scale, large (top) to small (bottom).
-const SIZES = [
-  "text-5xl",
-  "text-4xl",
-  "text-3xl",
-  "text-2xl",
-  "text-2xl",
-  "text-xl",
-  "text-lg",
-  "text-base",
-  "text-sm",
-  "text-sm",
-];
+// Target chart width (px) and monospace advance factor. Because font size is
+// set to width / (letters * ADV), every row renders the same width — the real
+// Snellen look (letters shrink as they multiply). Top rows: fewer, larger.
+const CHART_W = 340;
+const ADV = 0.66;
 
-// Rows grow by one letter each (2,3,4,…) so it fans out like an eye chart.
+// Rows grow by one letter each (6,7,8,…); trailing short row folds up.
 function buildRows(str) {
   const rows = [];
   let idx = 0;
-  let count = 2;
-  let i = 0;
+  let count = 8;
   while (idx < str.length) {
-    const text = str.slice(idx, idx + count);
-    rows.push({ text, cls: SIZES[Math.min(i, SIZES.length - 1)] });
+    rows.push(str.slice(idx, idx + count));
     idx += count;
-    count += 2;
-    i += 1;
+    count += 1;
   }
-  // Avoid a lonely short final row – fold it into the row above.
   if (
     rows.length >= 2 &&
-    rows[rows.length - 1].text.length < rows[rows.length - 2].text.length
+    rows[rows.length - 1].length < rows[rows.length - 2].length
   ) {
-    rows[rows.length - 2].text += rows[rows.length - 1].text;
+    rows[rows.length - 2] += rows[rows.length - 1];
     rows.pop();
   }
   return rows;
@@ -103,11 +91,14 @@ function EyeChart() {
       <div
         onMouseEnter={() => setReveal(true)}
         onMouseLeave={() => setReveal(false)}
-        className="cursor-default select-none text-center font-mono font-bold uppercase leading-[1.5] tracking-[0.3em] text-neutral-800"
+        className="cursor-default select-none text-center font-mono font-bold uppercase leading-[1.25] text-neutral-800"
       >
-        {rows.map((row, i) => (
-          <div key={i} className={row.cls}>
-            {row.text}
+        {rows.map((text, i) => (
+          <div
+            key={i}
+            style={{ fontSize: CHART_W / (text.length * ADV) + "px", letterSpacing: "0.05em" }}
+          >
+            {text}
           </div>
         ))}
       </div>
