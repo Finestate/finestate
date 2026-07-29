@@ -59,10 +59,8 @@ const SCRAMBLED = scramble(ORDERED, 20260728);
 
 // Font scale, large (top) to small (bottom).
 const SIZES = [
-  "text-6xl",
   "text-5xl",
   "text-4xl",
-  "text-3xl",
   "text-3xl",
   "text-2xl",
   "text-2xl",
@@ -70,7 +68,7 @@ const SIZES = [
   "text-lg",
   "text-base",
   "text-sm",
-  "text-xs",
+  "text-sm",
 ];
 
 // Rows grow by one letter each (2,3,4,…) so it fans out like an eye chart.
@@ -83,7 +81,7 @@ function buildRows(str) {
     const text = str.slice(idx, idx + count);
     rows.push({ text, cls: SIZES[Math.min(i, SIZES.length - 1)] });
     idx += count;
-    count += 1;
+    count += 2;
     i += 1;
   }
   return rows;
@@ -97,24 +95,11 @@ function EyeChart() {
       <div
         onMouseEnter={() => setReveal(true)}
         onMouseLeave={() => setReveal(false)}
-        className="w-full max-w-4xl cursor-default select-none divide-y divide-neutral-300 rounded-lg border border-neutral-300 font-mono font-bold uppercase text-neutral-800"
+        className="cursor-default select-none text-center font-mono font-bold uppercase leading-[1.5] tracking-[0.3em] text-neutral-800"
       >
         {rows.map((row, i) => (
-          <div
-            key={i}
-            className="grid divide-x divide-neutral-300"
-            style={{
-              gridTemplateColumns: `repeat(${row.text.length}, minmax(0, 1fr))`,
-            }}
-          >
-            {[...row.text].map((ch, j) => (
-              <div
-                key={j}
-                className={"flex items-center justify-center py-3 " + row.cls}
-              >
-                {ch}
-              </div>
-            ))}
+          <div key={i} className={row.cls}>
+            {row.text}
           </div>
         ))}
       </div>
