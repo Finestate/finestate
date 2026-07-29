@@ -156,7 +156,7 @@ export default function App() {
       {/* Infinity mark – centered on the whole page (Home only) */}
       {route === "home" && (
         <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center">
-          <img src={infinityImg} alt="" className="w-[24vw] max-w-[330px]" />
+          <img src={infinityImg} alt="" className="w-[19vw] max-w-[260px]" />
         </div>
       )}
 
