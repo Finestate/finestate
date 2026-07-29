@@ -1,7 +1,7 @@
 const COLUMNS = [
   "General Knowledge",
-  "Mapping: Industry Summary",
-  "Mapping: Daily News",
+  "Industry Summary",
+  "Daily News",
   "ETFs: Common Popular",
   "ETFs: Leveraged",
   "ETFs: Top Performers",
