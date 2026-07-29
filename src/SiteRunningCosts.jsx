@@ -12,7 +12,7 @@ const COST_ITEMS = [
 export default function SiteRunningCosts() {
   const total = COST_ITEMS.reduce((sum, c) => sum + c.monthly, 0);
   return (
-    <div className="max-w-4xl">
+    <div>
       <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-neutral-700">
         Monthly Running Costs
       </h2>
