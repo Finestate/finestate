@@ -92,9 +92,9 @@ function Calc({ calc }) {
           </div>
         ))}
 
-        <div className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-1 border-l border-black/10 pl-4">
+        <div className="ml-auto flex flex-wrap items-center gap-x-6 gap-y-1 rounded-md border-l-2 border-[#c2a15a]/60 bg-[#c2a15a]/[0.07] py-1.5 pl-4 pr-3">
           {outputs.map((o) => (
-            <div key={o.label} className="flex items-center gap-1.5">
+            <div key={o.label} className="flex items-center gap-2">
               <span className="text-[10px] uppercase tracking-wide text-neutral-400">
                 {o.label}
               </span>
