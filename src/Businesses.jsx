@@ -51,23 +51,23 @@ export default function Businesses() {
 
   return (
     <div>
-      <h2 className="mb-3 text-base font-semibold uppercase tracking-wide text-neutral-800">
+      <h2 className="mb-3 pl-[13px] text-base font-semibold uppercase tracking-wide text-neutral-800">
         Priorities
       </h2>
 
       <div className="overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
         <table className="w-full table-fixed border-collapse text-sm">
           <colgroup>
-            <col style={{ width: "28%" }} />
+            <col style={{ width: "16%" }} />
             <col />
             <col style={{ width: "44px" }} />
           </colgroup>
           <thead>
             <tr className="border-b-2 border-[#c2a15a]/40 bg-[#c2a15a]/10">
-              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-[#8a6d2c]">
+              <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-[#7a5f26]">
                 Company
               </th>
-              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-[#8a6d2c]">
+              <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-[#7a5f26]">
                 Focus
               </th>
               <th className="px-2 py-2.5" aria-label="Actions" />
