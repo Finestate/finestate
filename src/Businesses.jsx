@@ -97,7 +97,7 @@ export default function Businesses() {
   const dataRow = (r, i) => (
     <tr key={r.id} className={"border-b border-black/[0.06] last:border-b-0 " + (i % 2 ? "bg-[#faf7ef]" : "bg-white")}>
       <td className="border-r border-black/[0.06] p-0 align-top">
-        <input value={r.company} onChange={(e) => update(r.id, "company", e.target.value)} className={CELL + " font-medium text-neutral-800"} />
+        <textarea value={r.company} onChange={(e) => update(r.id, "company", e.target.value)} ref={(el) => autoGrow(el)} onInput={(e) => autoGrow(e.target)} rows={1} className={CELL + " resize-none font-medium text-neutral-800"} />
       </td>
       <td className="p-0 align-top">
         <textarea value={r.focus} onChange={(e) => update(r.id, "focus", e.target.value)} ref={(el) => autoGrow(el)} onInput={(e) => autoGrow(e.target)} rows={1} className={CELL + " resize-none"} />
