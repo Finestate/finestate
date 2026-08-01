@@ -81,7 +81,7 @@ export default function Businesses() {
 
   const headerRow = (r, i) => (
     <tr key={r.id} className="border-y border-[#c2a15a]/40 bg-[#c2a15a]/15">
-      <td colSpan={editing ? 3 : 2} className="px-4 py-2">
+      <td colSpan={editing ? 3 : 2} className="px-3 py-2">
         <div className="flex items-center gap-2">
           {editing ? (
             <input value={r.label} onChange={(e) => update(r.id, "label", e.target.value)} placeholder="Header…" className="flex-1 bg-transparent text-lg font-bold uppercase tracking-wide text-[#7a5f26] outline-none placeholder:text-[#7a5f26]/30" />
