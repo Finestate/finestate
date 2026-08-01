@@ -18,7 +18,7 @@ import infinityImg from "../Website Images/Infinity.webp";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
 const NAV = [
-  { id: "businesses", name: "Businesses", icon: Briefcase },
+  { id: "priorities", name: "Priorities", icon: Briefcase },
   { id: "site-running-costs", name: "Site running costs", icon: Receipt },
   { id: "snapshot", name: "Snapshot", icon: LayoutDashboard },
   { id: "assets", name: "Assets", icon: Wallet },
@@ -170,7 +170,7 @@ export default function App() {
       )}
 
       <main className="relative z-10 min-h-screen pl-[17rem] pr-8 py-8">
-        {route === "businesses" && <Businesses />}
+        {route === "priorities" && <Businesses />}
         {route === "site-running-costs" && <SiteRunningCosts />}
         {route === "investing/opportunities" && <Opportunities />}
         {route === "investing/ratios-calcs" && <Investing />}
