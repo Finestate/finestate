@@ -13,6 +13,7 @@ import {
 import Investing from "./Investing.jsx";
 import Opportunities from "./Opportunities.jsx";
 import SiteRunningCosts from "./SiteRunningCosts.jsx";
+import Businesses from "./Businesses.jsx";
 import infinityImg from "../Website Images/Infinity.webp";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
@@ -169,6 +170,7 @@ export default function App() {
       )}
 
       <main className="relative z-10 min-h-screen pl-[17rem] pr-8 py-8">
+        {route === "businesses" && <Businesses />}
         {route === "site-running-costs" && <SiteRunningCosts />}
         {route === "investing/opportunities" && <Opportunities />}
         {route === "investing/ratios-calcs" && <Investing />}
