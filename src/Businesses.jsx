@@ -108,10 +108,6 @@ export default function Businesses() {
 
   const renderRow = (r, i) => (r.type === "header" ? headerRow(r, i) : dataRow(r, i));
 
-  // Any header rows at the very top render ABOVE the column-label row.
-  let lead = 0;
-  while (lead < rows.length && rows[lead].type === "header") lead++;
-
   return (
     <div>
       {/* Edit controls (right side) */}
@@ -138,15 +134,7 @@ export default function Businesses() {
             <col />
             {editing && <col style={{ width: "84px" }} />}
           </colgroup>
-          <thead>
-            {rows.slice(0, lead).map((r, k) => renderRow(r, k))}
-            <tr className="border-b-2 border-[#c2a15a]/30 bg-[#faf7ef]">
-              <th className={HDR}>Priority</th>
-              <th className={HDR}>Goals</th>
-              {editing && <th className="px-2 py-2" aria-label="Actions" />}
-            </tr>
-          </thead>
-          <tbody>{rows.slice(lead).map((r, k) => renderRow(r, lead + k))}</tbody>
+          <tbody>{rows.map((r, i) => renderRow(r, i))}</tbody>
         </table>
       </div>
     </div>
