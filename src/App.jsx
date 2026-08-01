@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import {
+  Briefcase,
   Receipt,
   LayoutDashboard,
   Wallet,
@@ -16,6 +17,7 @@ import infinityImg from "../Website Images/Infinity.webp";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
 const NAV = [
+  { id: "businesses", name: "Businesses", icon: Briefcase },
   { id: "site-running-costs", name: "Site running costs", icon: Receipt },
   { id: "snapshot", name: "Snapshot", icon: LayoutDashboard },
   { id: "assets", name: "Assets", icon: Wallet },
