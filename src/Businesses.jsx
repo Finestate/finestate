@@ -39,7 +39,7 @@ const ADD_BTN =
 const HDR =
   "px-3 py-2 text-left text-[12px] font-bold uppercase tracking-wide text-[#8a6d2c]";
 const CELL =
-  "w-full bg-transparent px-3 py-2 text-[14px] leading-relaxed text-neutral-700 outline-none placeholder:text-neutral-300 focus:bg-[#c2a15a]/[0.06]";
+  "block w-full resize-none overflow-hidden bg-transparent px-3 py-2 text-[14px] leading-relaxed text-neutral-700 outline-none placeholder:text-neutral-300 focus:bg-[#c2a15a]/[0.06]";
 
 export default function Businesses() {
   const [rows, setRows] = useState(load);
