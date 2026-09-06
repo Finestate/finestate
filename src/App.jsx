@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Receipt,
-  LayoutDashboard,
   Wallet,
   Banknote,
   TrendingUp,
@@ -17,7 +16,6 @@ import infinityImg from "../Website Images/Infinity.webp";
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
 const NAV = [
   { id: "site-running-costs", name: "Site running costs", icon: Receipt },
-  { id: "snapshot", name: "Snapshot", icon: LayoutDashboard },
   { id: "assets", name: "Assets", icon: Wallet },
   { id: "income", name: "Income", icon: Banknote },
   {
@@ -73,7 +71,7 @@ function Sidebar({ route, onGo }) {
     >
       <div
         className={
-          "flex items-center px-6 py-5 " + (isHome ? "" : "border-b border-neutral-200")
+          "flex items-center gap-2 px-6 py-5 " + (isHome ? "" : "border-b border-neutral-200")
         }
       >
         <button
@@ -83,10 +81,7 @@ function Sidebar({ route, onGo }) {
         >
           FI
         </button>
-      </div>
-
-      <div className="px-6 -mt-3 pb-2">
-        <img src={infinityImg} alt="" className="w-8" />
+        <img src={infinityImg} alt="" className="h-5 w-auto" />
       </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
