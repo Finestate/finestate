@@ -43,12 +43,11 @@ function readRoute() {
 
 function Sidebar({ route, onGo }) {
   const isHome = route === "home";
-  const [open, setOpen] = useState(() => {
+  const [openId, setOpenId] = useState(() => {
     const parent = NAV.find((s) => s.children?.some((c) => c.id === route));
-    return [parent ? parent.id : "investing"];
+    return parent ? parent.id : null;
   });
-  const toggle = (id) =>
-    setOpen((o) => (o.includes(id) ? o.filter((x) => x !== id) : [...o, id]));
+  const toggle = (id) => setOpenId((o) => (o === id ? null : id));
 
   const sectionCls = (active) =>
     "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-semibold uppercase tracking-wide cursor-pointer transition-colors " +
@@ -91,7 +90,10 @@ function Sidebar({ route, onGo }) {
             return (
               <button
                 key={sec.id}
-                onClick={() => onGo(sec.id)}
+                onClick={() => {
+                  setOpenId(null);
+                  onGo(sec.id);
+                }}
                 className={sectionCls(route === sec.id)}
               >
                 <Icon size={16} className="shrink-0" />
@@ -99,7 +101,7 @@ function Sidebar({ route, onGo }) {
               </button>
             );
           }
-          const isOpen = open.includes(sec.id);
+          const isOpen = openId === sec.id;
           const parentActive = sec.children.some((c) => c.id === route);
           return (
             <div key={sec.id}>
@@ -121,7 +123,10 @@ function Sidebar({ route, onGo }) {
                     return (
                       <button
                         key={ch.id}
-                        onClick={() => onGo(ch.id)}
+                        onClick={() => {
+                          setOpenId(sec.id);
+                          onGo(ch.id);
+                        }}
                         className={subCls(route === ch.id)}
                       >
                         {CI && <CI size={14} className="shrink-0" />}
