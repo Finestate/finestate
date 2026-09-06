@@ -85,6 +85,10 @@ function Sidebar({ route, onGo }) {
         </button>
       </div>
 
+      <div className="px-6 -mt-3 pb-2">
+        <img src={infinityImg} alt="" className="w-8" />
+      </div>
+
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
         {NAV.map((sec) => {
           const Icon = sec.icon;
@@ -158,13 +162,6 @@ export default function App() {
   return (
     <div className="relative min-h-screen bg-[#FBF3E4]">
       <Sidebar route={route} onGo={go} />
-
-      {/* Infinity mark – centered on the whole page (Home only) */}
-      {route === "home" && (
-        <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center">
-          <img src={infinityImg} alt="" className="w-[19vw] max-w-[260px]" />
-        </div>
-      )}
 
       <main className="relative z-10 min-h-screen pl-[17rem] pr-8 py-8">
         {route === "site-running-costs" && <SiteRunningCosts />}
