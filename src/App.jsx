@@ -68,22 +68,13 @@ function Sidebar({ route, onGo }) {
         (isHome ? "bg-transparent" : "border-r border-neutral-200 bg-white")
       }
     >
-      <div
-        className={
-          "flex items-center gap-2 px-6 py-5 " + (isHome ? "" : "border-b border-neutral-200")
-        }
-      >
-        <button
-          onClick={() => onGo("home")}
-          aria-label="FI – home"
-          className="font-serif text-2xl tracking-tight text-neutral-900 cursor-pointer"
-        >
-          FI
+      <div className="flex items-center px-6 pt-6 pb-2">
+        <button onClick={() => onGo("home")} aria-label="Home" className="cursor-pointer">
+          <img src={infinityImg} alt="FI" className="h-6 w-auto" />
         </button>
-        <img src={infinityImg} alt="" className="h-5 w-auto" />
       </div>
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 pt-1">
         {NAV.map((sec) => {
           const Icon = sec.icon;
           if (!sec.children) {
