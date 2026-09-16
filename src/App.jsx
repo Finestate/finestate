@@ -6,15 +6,18 @@ import {
   TrendingUp,
   Calculator,
   Target,
+  CalendarDays,
   ChevronDown,
 } from "lucide-react";
 import Investing from "./Investing.jsx";
 import Opportunities from "./Opportunities.jsx";
 import SiteRunningCosts from "./SiteRunningCosts.jsx";
+import Planning from "./Planning.jsx";
 import infinityImg from "../Website Images/Infinity.webp";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
 const NAV = [
+  { id: "planning", name: "Planning", icon: CalendarDays },
   { id: "site-running-costs", name: "Site running costs", icon: Receipt },
   { id: "assets", name: "Assets", icon: Wallet },
   { id: "income", name: "Income", icon: Banknote },
@@ -155,6 +158,7 @@ export default function App() {
       <Sidebar route={route} onGo={go} />
 
       <main className="relative z-10 min-h-screen pl-[17rem] pr-8 py-8">
+        {route === "planning" && <Planning />}
         {route === "site-running-costs" && <SiteRunningCosts />}
         {route === "investing/opportunities" && <Opportunities />}
         {route === "investing/ratios-calcs" && <Investing />}
