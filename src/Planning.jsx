@@ -56,9 +56,14 @@ export default function Planning() {
             ) : (
               <input value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
             );
+            // Strong 2px separator (same as under the title bar) below a header, and above a header
+            // that follows other rows – so each subtitle's items are clearly grouped.
+            const prevHeader = i > 0 && rows[i - 1].type === "header";
+            const topBorder = i === 0 ? "" : r.type === "header" ? "border-t-2 border-neutral-400" : prevHeader ? "" : "border-t border-neutral-300";
+            const botBorder = r.type === "header" ? "border-b-2 border-neutral-400" : "";
             return (
               <div key={r.id}>
-                <div className="flex items-start gap-2 border-t border-neutral-300 first:border-t-0 px-2.5 py-0.5" style={{ backgroundColor: bg }}>
+                <div className={`flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5`} style={{ backgroundColor: bg }}>
                   {field}
                   <div className="flex shrink-0 items-center gap-1 py-0.5">
                     <button onClick={() => move(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-300 hover:text-neutral-600 disabled:opacity-25"><ChevronUp size={12} /></button>
