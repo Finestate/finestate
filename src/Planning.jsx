@@ -78,7 +78,14 @@ function CostsTable() {
             <input value={r.item} onChange={(e) => update(i, "item", e.target.value)} placeholder="Cost item" className="flex-1 bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none placeholder:text-neutral-300" />
             <div className="flex w-24 shrink-0 items-center justify-end gap-1">
               <span className="text-[12px] leading-snug text-neutral-900">USD</span>
-              <input value={r.price} onChange={(e) => update(i, "price", e.target.value)} placeholder="0.00" className="w-14 bg-transparent py-0.5 text-right text-[12px] leading-snug tabular-nums text-neutral-900 outline-none placeholder:text-neutral-300" />
+              {/* Width follows the value so "USD" always sits right next to the number. */}
+              <input
+                value={r.price}
+                onChange={(e) => update(i, "price", e.target.value)}
+                placeholder="0.00"
+                style={{ width: `${Math.max(4, String(r.price || "").length)}ch` }}
+                className="bg-transparent py-0.5 text-right text-[12px] leading-snug tabular-nums text-neutral-900 outline-none placeholder:text-neutral-300"
+              />
             </div>
             <div className="flex w-[54px] shrink-0 items-center justify-end gap-1">
               <span
