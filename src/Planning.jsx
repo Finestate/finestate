@@ -5,7 +5,7 @@ import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell, L
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
 const BAR_BG = "#FFE4B3";     // title bar – brightest
 const HEADER_BG = "#FCEFCF";  // header row – mid
-const SUBHEAD_BG = "#FFE4B3"; // headings all read as main headers
+const SUBHEAD_BG = HEADER_BG; // sub-titles sit one shade below a main header
 const GOLD = "#9c7c33";
 const ROWS_KEY = "finestate.planning.rows";
 const TITLE_KEY = "finestate.planning.title";
@@ -579,7 +579,7 @@ export default function Planning() {
 
         <div>
           {rows.map((r, i) => {
-            const bg = r.type === "text" ? "#fff" : BAR_BG;
+            const bg = r.type === "header" ? BAR_BG : r.type === "subheader" ? SUBHEAD_BG : "#fff";
             // The heading the checklist hangs under is locked: no typing, no bin, no dragging.
             const locked = isTodoHeader(r);
             const field = locked ? (
