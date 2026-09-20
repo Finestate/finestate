@@ -251,38 +251,30 @@ export default function Planning() {
               <div className="border-t border-[#C1440E] bg-white px-2.5 py-2">
                 <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
                   {meetings.map((m, mi) => (
-                    <label
+                    <div
                       key={m.id}
                       draggable
                       onDragStart={() => setDrag({ from: "pool", index: mi, id: m.id })}
                       onDragEnd={() => setDrag(null)}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => { if (drag?.from === "pool") moveMeeting(drag.index, mi); setDrag(null); }}
-                      className={`group flex h-full w-full cursor-grab items-start gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 active:cursor-grabbing ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.index === mi ? "opacity-40" : ""}`}
+                      className={`flex h-full w-full cursor-grab items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 active:cursor-grabbing ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.index === mi ? "opacity-40" : ""}`}
                     >
-                      <input
-                        type="checkbox"
-                        checked={line.meetings.some((x) => x.id === m.id)}
-                        onChange={() => pickMeeting(idx, m)}
-                        className="h-3.5 w-3.5 shrink-0"
-                        title={m.permanent ? "Permanent – stays here after use" : "One-off – leaves here once used"}
-                        style={{ accentColor: m.permanent ? "#C1440E" : GOLD }}
-                      />
                       <span
-                        onClick={(e) => { e.preventDefault(); togglePermanent(m.id); }}
-                        title={m.permanent ? "Permanent – click the name to make it a one-off" : "One-off – click the name to keep it permanently"}
+                        onClick={() => togglePermanent(m.id)}
+                        title={m.permanent ? "Permanent – click to make it a one-off" : "One-off – click to keep it permanently"}
                         className="min-w-0 flex-1 break-words leading-snug"
                       >
                         {m.name}
                       </span>
                       <button
-                        onClick={(e) => { e.preventDefault(); saveMeetings(meetings.filter((x) => x.id !== m.id)); }}
+                        onClick={() => saveMeetings(meetings.filter((x) => x.id !== m.id))}
                         title="Remove this meeting"
                         className="shrink-0 text-neutral-300 hover:text-[#C1440E]"
                       >
                         <Trash2 size={11} />
                       </button>
-                    </label>
+                    </div>
                   ))}
 
                   {adding ? (
@@ -297,6 +289,14 @@ export default function Planning() {
                         }}
                         placeholder="Meeting"
                         className="w-full min-w-0 bg-transparent text-[11px] outline-none placeholder:text-neutral-300"
+                      />
+                      <input
+                        type="checkbox"
+                        checked={newPermanent}
+                        onChange={(e) => setNewPermanent(e.target.checked)}
+                        title="Tick to make this a permanent meeting"
+                        className="h-3.5 w-3.5 shrink-0"
+                        style={{ accentColor: "#C1440E" }}
                       />
                       <button onClick={() => { addMeeting(); setAdding(false); }} title="Save" className="text-[#9c7c33] hover:opacity-70">
                         <Plus size={12} />
