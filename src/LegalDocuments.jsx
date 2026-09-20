@@ -171,28 +171,32 @@ export default function LegalDocuments() {
             return r.kind === "section" ? (
               // Each section carries its own column headings underneath it.
               <div key={r.id}>
-                <div className="flex items-center gap-2 border-y-2 border-neutral-400 px-2.5 py-0.5" style={{ backgroundColor: BAR_BG }}>
-                  <input value={r.label || ""} onChange={(e) => update(i, "label", e.target.value)} className={`flex-1 bg-transparent py-0.5 ${head} outline-none`} />
-                  <Bin i={i} remove={remove} />
+                {/* Section bars carry no bin – a section only goes when I remove it. */}
+                <div className="border-y-2 border-neutral-400 px-2.5 py-0.5" style={{ backgroundColor: BAR_BG }}>
+                  <input value={r.label || ""} onChange={(e) => update(i, "label", e.target.value)} className={`block w-full bg-transparent py-0.5 ${head} outline-none`} />
                 </div>
                 <div className="flex items-center gap-2 border-b-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: HEADER_BG }}>
-                  {COLS.map((c) => (
-                    <span key={c.key} style={{ width: c.w }} className={`shrink-0 ${head}`}>{c.label}</span>
-                  ))}
-                  <span className="w-[54px] shrink-0" />
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    {COLS.map((c) => (
+                      <span key={c.key} style={{ width: c.w }} className={`shrink-0 ${head}`}>{c.label}</span>
+                    ))}
+                  </span>
+                  <span className="w-6 shrink-0" />
                 </div>
               </div>
             ) : (
               <div key={r.id} className="flex items-center gap-2 border-t border-neutral-300 px-2.5 py-0.5">
-                {COLS.map((c) => (
-                  <span key={c.key} style={{ width: c.w }} className="shrink-0">
-                    {c.key === "issued" || c.key === "expiry" ? (
-                      <DateCell value={r[c.key] || ""} onChange={(v) => update(i, c.key, v)} />
-                    ) : (
-                      <input value={r[c.key] || ""} onChange={(e) => update(i, c.key, e.target.value)} className={cell} />
-                    )}
-                  </span>
-                ))}
+                <span className="flex min-w-0 flex-1 items-center gap-2">
+                  {COLS.map((c) => (
+                    <span key={c.key} style={{ width: c.w }} className="shrink-0">
+                      {c.key === "issued" || c.key === "expiry" ? (
+                        <DateCell value={r[c.key] || ""} onChange={(v) => update(i, c.key, v)} />
+                      ) : (
+                        <input value={r[c.key] || ""} onChange={(e) => update(i, c.key, e.target.value)} className={cell} />
+                      )}
+                    </span>
+                  ))}
+                </span>
                 <Bin i={i} remove={remove} />
               </div>
             );
@@ -223,7 +227,7 @@ export default function LegalDocuments() {
 
 function Bin({ i, remove }) {
   return (
-    <div className="flex w-[54px] shrink-0 items-center justify-end">
+    <div className="flex w-6 shrink-0 items-center justify-end">
       <button onClick={() => remove(i)} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={12} /></button>
     </div>
   );
