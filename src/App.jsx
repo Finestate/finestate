@@ -100,7 +100,7 @@ function Sidebar({ route, onGo, allowed }) {
     >
       <div className="flex items-center px-6 pt-6 pb-2">
         <button onClick={() => onGo("home")} aria-label="Home" className="cursor-pointer">
-          <img src={infinityImg} alt="FI" className="h-6 w-auto" />
+          <img src={infinityImg} alt="FI" className="h-11 w-auto" />
         </button>
       </div>
 
