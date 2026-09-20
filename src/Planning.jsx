@@ -76,7 +76,7 @@ const escapeHtml = (s) =>
 
 // A row of rich text. Uncontrolled on purpose: React never rewrites the markup while
 // you type, so the caret stays put and part-line bold survives.
-function RichLine({ html, onInput, onFocus, innerRef, className }) {
+function RichLine({ html, onInput, onFocus, onEnter, innerRef, className }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
@@ -155,6 +155,13 @@ export default function Planning() {
   const moveRow = (i, d) => { const j = i + d; if (j < 0 || j >= rows.length) return; const next = rows.slice(); [next[i], next[j]] = [next[j], next[i]]; persistRows(next); };
   const toggleFlag = (i, key) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, [key]: !r[key] } : r)));
   const updateHtml = (i, html) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, html } : r)));
+  // Enter starts a fresh row, so indent and bullets stay per line like in Word.
+  const newRowAfter = (i, r) => {
+    const row = { id: newId(), type: "text", text: "", html: "", indent: r.indent || 0, bullet: !!r.bullet };
+    persistRows([...rows.slice(0, i + 1), row, ...rows.slice(i + 1)]);
+    setActiveRow(row.id);
+    setTimeout(() => lineRefs.current[row.id]?.focus(), 0);
+  };
   // Word style: whatever is highlighted in the active row turns bold, or back again.
   const boldSelection = (i) => {
     const r = rows[i];
@@ -569,6 +576,7 @@ export default function Planning() {
                   innerRef={(el) => { lineRefs.current[r.id] = el; }}
                   onFocus={() => setActiveRow(r.id)}
                   onInput={(html) => updateHtml(i, html)}
+                  onEnter={() => newRowAfter(i, r)}
                   className="min-h-[18px] flex-1 whitespace-pre-wrap break-words bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none"
                 />
               </div>
