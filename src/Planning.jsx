@@ -193,10 +193,10 @@ export default function Planning() {
                   </div>
                 )}
                 {coreCodes.length > 0 && (
-                  <div className="text-[12px] leading-snug text-neutral-900">{coreCodes.join(" · ")}</div>
+                  <div className="text-[12px] leading-snug text-neutral-900">{coreCodes.join(" – ")}</div>
                 )}
                 {restCodes.length > 0 && (
-                  <div className="text-[12px] leading-snug text-neutral-900">{restCodes.join(" · ")}</div>
+                  <div className="text-[12px] leading-snug text-neutral-900">{restCodes.join(" – ")}</div>
                 )}
               </div>
 
