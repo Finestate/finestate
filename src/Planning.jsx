@@ -21,6 +21,32 @@ const TODO_ITEMS = [
   { code: "B-SIDR" },
   { code: "C-SYDR" },
   { code: "D-SFDR" },
+  { code: "GWM(textaudiorecordaitalkwritegrammarongo-perhetab-twicedaily)" },
+  { code: "SC(CCEDB)" },
+  { code: "Safetyaudit" },
+  { code: "Ycfoodmd" },
+  { code: "Hydrateheavily" },
+  { code: "Mailcheck" },
+  { code: "Gardening" },
+  { code: "Houseimprovementsseebelow" },
+  { code: "Garbagerun" },
+  { code: "Personalitemsandofficecleanadminfilesbasketbinders" },
+  { code: "Financesexcelsppocketmoneycoins" },
+  { code: "Photosoffalldevicestodropbox" },
+  { code: "Groom" },
+  { code: "Deepgroom" },
+  { code: "Haircut" },
+  { code: "Socialyfastlft" },
+  { code: "Martinvisit" },
+  { code: "Defensemuaythaigrappling" },
+  { code: "Cmeditatetalkshometherresearchther" },
+  { code: "Passportsexpirychecks" },
+  { code: "Dxbrentpay" },
+  { code: "Csupplementscheck" },
+  { code: "Medssupplementstakeandprep" },
+  { code: "Setupfornextday" },
+  { code: "Errandsprios()" },
+  { code: "Sleepeight" },
 ];
 
 const emptyLine = () => ({ codes: [], meetings: [] });
@@ -210,19 +236,20 @@ export default function Planning() {
                 </div>
 
                 <div className="mt-3 text-[9px] font-bold uppercase tracking-wide text-neutral-400">Daily:</div>
-                <div className="mt-0.5 grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3 lg:grid-cols-4">
+                <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                   {TODO_ITEMS.map((it) => (
-                    <label key={it.code} className="flex min-w-0 cursor-pointer items-start gap-1.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900">
+                    <label
+                      key={it.code}
+                      className="flex cursor-pointer items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
+                    >
                       <input
                         type="checkbox"
                         checked={line.codes.includes(it.code)}
                         onChange={() => toggleTodo(idx, it.code)}
-                        className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                        className="h-3.5 w-3.5 shrink-0"
                         style={{ accentColor: GOLD }}
                       />
-                      <span className="min-w-0 break-words leading-snug">
-                        {it.code}{it.label ? ` (${it.label})` : ""}
-                      </span>
+                      <span className="whitespace-nowrap leading-snug">{it.code}</span>
                     </label>
                   ))}
                 </div>
