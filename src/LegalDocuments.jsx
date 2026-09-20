@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Personal ID numbers live in Supabase, never in this repo.
@@ -44,15 +44,23 @@ function DatePicker({ value, onPick, onClose, anchor }) {
     if (m > 11) { m = 0; y += 1; }
     return { y, m };
   });
+  const shiftYear = (delta) => setView((v) => ({ ...v, y: v.y + delta }));
 
   return (
     <>
       <div className="fixed inset-0 z-[70]" onClick={onClose} />
       <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
+        {/* Double chevrons jump a year at a time, single ones a month. */}
         <div className="flex items-center justify-between px-1 pb-1.5">
-          <button type="button" onClick={() => shift(-1)} aria-label="Previous month" className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><ChevronLeft size={15} /></button>
+          <span className="flex items-center">
+            <button type="button" onClick={() => shiftYear(-1)} aria-label="Previous year" className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><ChevronsLeft size={15} /></button>
+            <button type="button" onClick={() => shift(-1)} aria-label="Previous month" className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><ChevronLeft size={15} /></button>
+          </span>
           <span className="text-[11px] font-bold uppercase tracking-wide text-neutral-700">{MONTHS[view.m]} {view.y}</span>
-          <button type="button" onClick={() => shift(1)} aria-label="Next month" className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><ChevronRight size={15} /></button>
+          <span className="flex items-center">
+            <button type="button" onClick={() => shift(1)} aria-label="Next month" className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><ChevronRight size={15} /></button>
+            <button type="button" onClick={() => shiftYear(1)} aria-label="Next year" className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><ChevronsRight size={15} /></button>
+          </span>
         </div>
         <div className="mb-0.5 grid grid-cols-7 gap-0.5 text-center text-[9px] font-bold uppercase text-neutral-400">
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <div key={i}>{d}</div>)}
