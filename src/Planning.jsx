@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell, List, IndentIncrease, IndentDecrease } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -118,6 +118,8 @@ export default function Planning() {
   const update = (i, text) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, text } : r)));
   const remove = (i) => persistRows(rows.filter((_, idx) => idx !== i));
   const moveRow = (i, d) => { const j = i + d; if (j < 0 || j >= rows.length) return; const next = rows.slice(); [next[i], next[j]] = [next[j], next[i]]; persistRows(next); };
+  const toggleFlag = (i, key) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, [key]: !r[key] } : r)));
+  const bump = (i, d) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, indent: Math.max(0, Math.min(6, (r.indent || 0) + d)) } : r)));
   const insertAt = (i, type) => { persistRows([...rows.slice(0, i), { id: newId(), type, text: "" }, ...rows.slice(i)]); setAddMenu(null); };
 
 
@@ -488,7 +490,15 @@ export default function Planning() {
             const field = locked ? (
               <span className="flex-1 py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">{r.text}</span>
             ) : r.type === "text" ? (
-              <AutoTextarea value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 resize-none overflow-hidden bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none" />
+              // Bold, bullet and indent are per row and never change the text size.
+              <div className="flex flex-1 items-start gap-1" style={{ paddingLeft: (r.indent || 0) * 16 }}>
+                {r.bullet && <span className="py-0.5 text-[12px] leading-snug text-neutral-900">•</span>}
+                <AutoTextarea
+                  value={r.text}
+                  onChange={(e) => update(i, e.target.value)}
+                  className={`flex-1 resize-none overflow-hidden bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none ${r.bold ? "font-bold" : ""}`}
+                />
+              </div>
             ) : (
               <input value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
             );
@@ -508,6 +518,14 @@ export default function Planning() {
                   style={{ backgroundColor: bg }}
                 >
                   {field}
+                  {!locked && r.type === "text" && (
+                    <div className="flex shrink-0 items-center gap-1 py-0.5">
+                      <button onClick={() => toggleFlag(i, "bold")} title="Bold" className={`text-[11px] font-black leading-none ${r.bold ? "text-[#9c7c33]" : "text-neutral-900 hover:text-[#9c7c33]"}`}>B</button>
+                      <button onClick={() => toggleFlag(i, "bullet")} title="Bullet" className={r.bullet ? "text-[#9c7c33]" : "text-neutral-900 hover:text-[#9c7c33]"}><List size={12} /></button>
+                      <button onClick={() => bump(i, -1)} disabled={!(r.indent > 0)} title="Less indent" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><IndentDecrease size={12} /></button>
+                      <button onClick={() => bump(i, 1)} title="More indent" className="text-neutral-900 hover:text-[#9c7c33]"><IndentIncrease size={12} /></button>
+                    </div>
+                  )}
                   {!locked && (
                     <div className="flex shrink-0 items-center gap-1 py-0.5">
                       <button onClick={() => moveRow(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={12} /></button>
