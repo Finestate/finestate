@@ -32,7 +32,7 @@ const NAV = [
     children: [
       { id: "admin/planning", name: "Planning", icon: CalendarDays },
       { id: "admin/legal-documents", name: "Legal documents", icon: FileText },
-      { id: "admin/logins", name: "Logins", icon: Users },
+      { id: "admin/users", name: "Users", icon: Users },
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
     ],
   },
@@ -353,7 +353,7 @@ export default function App() {
             {route === "admin/planning" && <Planning />}
             {route === "admin/legal-documents" && <LegalDocuments />}
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
-            {route === "admin/logins" && isAdmin && <Logins myId={profile.id} />}
+            {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
             {route === "home" && (
               <p className="text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
                 Welcome{eff.full_name ? `, ${eff.full_name}` : ""}.

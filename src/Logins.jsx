@@ -43,15 +43,11 @@ export default function Logins({ myId }) {
   return (
     <div className="w-full">
       <div className="w-full border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
-        <div className="px-2.5 py-1 border-b-2 border-neutral-400" style={{ backgroundColor: BAR_BG }}>
-          <span className="block py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">Logins</span>
-        </div>
-
-        <div className="flex items-center gap-2 border-b-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: HEADER_BG }}>
+        <div className="flex items-center gap-2 border-b-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: BAR_BG }}>
           <span className="flex-1 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Person</span>
-          <span className="w-28 shrink-0 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Role</span>
-          <span className="w-28 shrink-0 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Status</span>
-          <span className="w-16 shrink-0 text-right text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Pages</span>
+          <span className="w-40 shrink-0 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Role</span>
+          <span className="w-40 shrink-0 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Status</span>
+          <span className="w-24 shrink-0 text-right text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Pages</span>
         </div>
 
         {err && <p className="px-2.5 py-1 text-[12px] font-semibold text-[#b91c1c]">{err}</p>}
@@ -68,7 +64,7 @@ export default function Logins({ myId }) {
                 disabled={u.id === myId}
                 title={u.id === myId ? "You cannot change your own role" : "Set role"}
                 onChange={(e) => patch(u.id, { role: e.target.value })}
-                className={`w-28 shrink-0 ${select}`}
+                className={`w-40 shrink-0 ${select}`}
               >
                 <option value="admin">Admin</option>
                 <option value="member">Member</option>
@@ -78,7 +74,7 @@ export default function Logins({ myId }) {
                 value={u.status}
                 disabled={u.id === myId}
                 onChange={(e) => patch(u.id, { status: e.target.value })}
-                className={`w-28 shrink-0 ${select}`}
+                className={`w-40 shrink-0 ${select}`}
               >
                 <option value="active">Active</option>
                 <option value="blocked">Blocked</option>
@@ -87,7 +83,7 @@ export default function Logins({ myId }) {
 
               <button
                 onClick={() => setOpenId(openId === u.id ? null : u.id)}
-                className="w-16 shrink-0 text-right text-[11px] font-bold uppercase tracking-wide text-[#9c7c33] underline underline-offset-2 hover:opacity-70"
+                className="w-24 shrink-0 text-right text-[11px] font-bold uppercase tracking-wide text-[#9c7c33] underline underline-offset-2 hover:opacity-70"
               >
                 {u.role === "admin" ? "All" : "Edit"}
               </button>
