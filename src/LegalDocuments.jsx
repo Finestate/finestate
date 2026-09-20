@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Trash2, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Personal ID numbers live in Supabase, never in this repo.
@@ -14,6 +14,88 @@ const COLS = [
   { key: "expiry", label: "Expiry", w: "15%" },
   { key: "scan", label: "Scan", w: "10%" },
 ];
+
+const GOLD = "#9c7c33";
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const pad = (n) => String(n).padStart(2, "0");
+
+// Dates are kept as plain text like "08 FEB 2034", so entries such as NA or
+// "No expiry" survive untouched. The calendar only writes that same format.
+function parseDate(s) {
+  const m = String(s || "").trim().match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);
+  if (!m) return null;
+  const mon = MONTHS.indexOf(m[2].toUpperCase());
+  return mon < 0 ? null : { d: +m[1], m: mon, y: +m[3] };
+}
+
+// The same picker used on the other sites, in Finestate's gold.
+function DatePicker({ value, onPick, onClose, anchor }) {
+  const sel = parseDate(value);
+  const now = new Date();
+  const [view, setView] = useState(() => (sel ? { y: sel.y, m: sel.m } : { y: now.getFullYear(), m: now.getMonth() }));
+  const daysIn = (y, m) => new Date(y, m + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < new Date(view.y, view.m, 1).getDay(); i++) cells.push(null);
+  for (let d = 1; d <= daysIn(view.y, view.m); d++) cells.push(d);
+  while (cells.length % 7) cells.push(null);
+  const shift = (delta) => setView((v) => {
+    let m = v.m + delta, y = v.y;
+    if (m < 0) { m = 11; y -= 1; }
+    if (m > 11) { m = 0; y += 1; }
+    return { y, m };
+  });
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[70]" onClick={onClose} />
+      <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
+        <div className="flex items-center justify-between px-1 pb-1.5">
+          <button type="button" onClick={() => shift(-1)} aria-label="Previous month" className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><ChevronLeft size={15} /></button>
+          <span className="text-[11px] font-bold uppercase tracking-wide text-neutral-700">{MONTHS[view.m]} {view.y}</span>
+          <button type="button" onClick={() => shift(1)} aria-label="Next month" className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><ChevronRight size={15} /></button>
+        </div>
+        <div className="mb-0.5 grid grid-cols-7 gap-0.5 text-center text-[9px] font-bold uppercase text-neutral-400">
+          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <div key={i}>{d}</div>)}
+        </div>
+        <div className="grid grid-cols-7 gap-0.5">
+          {cells.map((d, i) => {
+            if (!d) return <div key={i} />;
+            const isSel = sel && sel.d === d && sel.m === view.m && sel.y === view.y;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => onPick(`${pad(d)} ${MONTHS[view.m]} ${view.y}`)}
+                className={`h-6 rounded text-[11px] transition-colors ${isSel ? "font-bold text-white" : "text-neutral-700 hover:bg-neutral-100"}`}
+                style={isSel ? { backgroundColor: GOLD } : undefined}
+              >
+                {d}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function DateCell({ value, onChange }) {
+  const [anchor, setAnchor] = useState(null);
+  const btn = useRef(null);
+  const open = () => {
+    const r = btn.current?.getBoundingClientRect();
+    if (r) setAnchor({ top: r.bottom + 4, left: Math.min(r.left, window.innerWidth - 236) });
+  };
+  return (
+    <span className="flex w-full items-center gap-1">
+      <input value={value || ""} onChange={(e) => onChange(e.target.value)} className={cell} />
+      <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} title="Pick a date" className="shrink-0 text-neutral-400 hover:text-[#9c7c33]">
+        <Calendar size={12} />
+      </button>
+      {anchor && <DatePicker value={value} anchor={anchor} onClose={() => setAnchor(null)} onPick={(v) => { onChange(v); setAnchor(null); }} />}
+    </span>
+  );
+}
 
 let _idc = 0;
 const newId = () => "l" + Date.now().toString(36) + "-" + (_idc++);
@@ -73,10 +155,6 @@ export default function LegalDocuments() {
   return (
     <div className="w-full">
       <div spellCheck={false} className="w-full overflow-hidden border-2 border-neutral-400 bg-white shadow-sm">
-        <div className="border-b-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: BAR_BG }}>
-          <span className={`block py-0.5 ${head}`}>Legal documents</span>
-        </div>
-
         {!loaded ? (
           <p className="px-2.5 py-3 text-[12px] italic text-neutral-400">Loading…</p>
         ) : (
@@ -100,7 +178,11 @@ export default function LegalDocuments() {
               <div key={r.id} className="flex items-center gap-2 border-t border-neutral-300 px-2.5 py-0.5">
                 {COLS.map((c) => (
                   <span key={c.key} style={{ width: c.w }} className="shrink-0">
-                    <input value={r[c.key] || ""} onChange={(e) => update(i, c.key, e.target.value)} className={cell} />
+                    {c.key === "issued" || c.key === "expiry" ? (
+                      <DateCell value={r[c.key] || ""} onChange={(v) => update(i, c.key, v)} />
+                    ) : (
+                      <input value={r[c.key] || ""} onChange={(e) => update(i, c.key, e.target.value)} className={cell} />
+                    )}
                   </span>
                 ))}
                 <Bin i={i} remove={remove} />
