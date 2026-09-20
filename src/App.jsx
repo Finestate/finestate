@@ -10,7 +10,6 @@ import {
   Receipt,
   Users,
   ChevronDown,
-  Infinity as InfinityIcon,
 } from "lucide-react";
 import Investing from "./Investing.jsx";
 import Opportunities from "./Opportunities.jsx";
@@ -19,6 +18,7 @@ import SiteRunningCosts from "./SiteRunningCosts.jsx";
 import Logins from "./Logins.jsx";
 import Auth from "./Auth.jsx";
 import { supabase, supabaseReady } from "./lib/supabaseClient.js";
+import infinityImg from "../Website Images/Infinity.webp";
 import { ALL_PAGE_IDS } from "./pages.js";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
@@ -93,7 +93,16 @@ function Sidebar({ route, onGo, allowed }) {
     >
       <div className="flex items-center px-6 pt-6 pb-2">
         <button onClick={() => onGo("home")} aria-label="Home" className="cursor-pointer">
-          <InfinityIcon size={34} strokeWidth={3.25} color="#9c7c33" />
+          {/* The original mark, a touch larger and fattened with matching outlines. */}
+          <img
+            src={infinityImg}
+            alt="FI"
+            className="h-8 w-auto"
+            style={{
+              filter:
+                "drop-shadow(0.7px 0 0 #7f5022) drop-shadow(-0.7px 0 0 #7f5022) drop-shadow(0 0.7px 0 #7f5022) drop-shadow(0 -0.7px 0 #7f5022)",
+            }}
+          />
         </button>
       </div>
 
