@@ -1,10 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
-// The Project URL and the publishable (anon) key are browser-safe by design – access is
-// controlled by Row Level Security in the database, not by hiding these values.
-// Set both in Vercel: VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.
-const url = import.meta.env.VITE_SUPABASE_URL || "";
-const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+// The Project URL and publishable key are browser-safe (public by design): access is
+// controlled by Row Level Security policies, not by hiding these values. Env vars win if set;
+// the fallbacks keep production working without extra config. The SECRET key is never used here.
+const url = import.meta.env.VITE_SUPABASE_URL || "https://ngmjqamqrvqyopqecgcj.supabase.co";
+const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_0FR9a0JsHRqQvOpEN1FCUA_5kqHI1Gf";
 
 export const supabaseReady = Boolean(url && key);
 export const supabase = supabaseReady ? createClient(url, key) : null;
