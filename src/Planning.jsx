@@ -153,6 +153,18 @@ export default function Planning() {
   const isTodoHeader = (r) =>
     r.type !== "text" && /dailyroutine|todo|todos/.test((r.text || "").toLowerCase().replace(/[^a-z]/g, ""));
 
+  // Codes on a line are split by a small solid gold square rather than a dot.
+  const renderCodeLine = (list) => (
+    <div className="flex flex-wrap items-center gap-1.5 text-[12px] leading-snug text-neutral-900">
+      {list.map((c, i) => (
+        <span key={c} className="inline-flex items-center gap-1.5">
+          {i > 0 && <span className="inline-block h-[5px] w-[5px] shrink-0" style={{ backgroundColor: GOLD }} />}
+          {c}
+        </span>
+      ))}
+    </div>
+  );
+
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = () => (
@@ -192,12 +204,8 @@ export default function Planning() {
                     ))}
                   </div>
                 )}
-                {coreCodes.length > 0 && (
-                  <div className="text-[12px] leading-snug text-neutral-900">{coreCodes.join(" – ")}</div>
-                )}
-                {restCodes.length > 0 && (
-                  <div className="text-[12px] leading-snug text-neutral-900">{restCodes.join(" – ")}</div>
-                )}
+                {coreCodes.length > 0 && renderCodeLine(coreCodes)}
+                {restCodes.length > 0 && renderCodeLine(restCodes)}
               </div>
 
               {idx === 1 && (
