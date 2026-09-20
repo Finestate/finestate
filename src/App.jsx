@@ -10,6 +10,7 @@ import {
   Receipt,
   Users,
   ChevronDown,
+  Infinity as InfinityIcon,
 } from "lucide-react";
 import Investing from "./Investing.jsx";
 import Opportunities from "./Opportunities.jsx";
