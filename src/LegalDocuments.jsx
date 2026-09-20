@@ -95,11 +95,11 @@ function DateCell({ value, onChange }) {
     if (r) setAnchor({ top: r.bottom + 4, left: Math.min(r.left, window.innerWidth - 236) });
   };
   return (
-    <span className="flex w-full items-center gap-1">
-      <input value={value || ""} onChange={(e) => onChange(e.target.value)} className={cell} />
+    <span className="flex w-full items-center gap-1.5">
       <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} title="Pick a date" className="shrink-0 text-neutral-400 hover:text-[#9c7c33]">
         <Calendar size={12} />
       </button>
+      <input value={value || ""} onChange={(e) => onChange(e.target.value)} className={cell} />
       {anchor && <DatePicker value={value} anchor={anchor} onClose={() => setAnchor(null)} onPick={(v) => { onChange(v); setAnchor(null); }} />}
     </span>
   );

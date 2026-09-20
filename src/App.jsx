@@ -38,15 +38,7 @@ const NAV = [
   },
   { id: "assets", name: "Assets", icon: Wallet },
   { id: "income", name: "Income", icon: Banknote },
-  {
-    id: "investing",
-    name: "Investing",
-    icon: TrendingUp,
-    children: [
-      { id: "investing/opportunities", name: "Opportunities", icon: Target },
-      { id: "investing/ratios-calcs", name: "Ratios + Calculations", icon: Calculator },
-    ],
-  },
+  { id: "investing", name: "Investing", icon: TrendingUp },
 ];
 
 const VIEW_AS_KEY = "finestate.viewAs";

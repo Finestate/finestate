@@ -7,8 +7,7 @@ export const PAGES = [
   { id: "admin/logins", label: "Admin – Logins" },
   { id: "assets", label: "Assets" },
   { id: "income", label: "Income" },
-  { id: "investing/opportunities", label: "Investing – Opportunities" },
-  { id: "investing/ratios-calcs", label: "Investing – Ratios + Calculations" },
+  { id: "investing", label: "Investing" },
 ];
 
 export const ALL_PAGE_IDS = PAGES.map((p) => p.id);
