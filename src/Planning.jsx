@@ -387,7 +387,7 @@ export default function Planning() {
                     ))}
                   </span>
                 )}
-                {coreCodes.length > 0 && renderCodeLine(coreCodes, "#6b21a8")}
+                {coreCodes.length > 0 && renderCodeLine(coreCodes, "#171717")}
                 {restCodes.length > 0 && renderCodeLine(restCodes, "#171717")}
               </div>
 
