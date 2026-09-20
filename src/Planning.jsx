@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Pin } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -132,6 +132,8 @@ export default function Planning() {
     next.splice(to, 0, moved);
     saveMeetings(next);
   };
+  // A pinned meeting stays in the picker after use; an unpinned one is a one-off.
+  const togglePermanent = (id) => saveMeetings(meetings.map((m) => (m.id === id ? { ...m, permanent: !m.permanent } : m)));
   const dropMeeting = (idx, id) => patchLine(idx, { meetings: todoLines[idx].meetings.filter((x) => x.id !== id) });
   const addMeeting = () => {
     const name = newMeeting.trim();
@@ -210,8 +212,19 @@ export default function Planning() {
                         className="h-3.5 w-3.5 shrink-0"
                         style={{ accentColor: GOLD }}
                       />
-                      <span className="min-w-0 break-words leading-snug">{m.name}</span>
-                      {m.permanent && <span className="shrink-0 text-[9px] uppercase text-neutral-300">fixed</span>}
+                      <span className="min-w-0 flex-1 break-words leading-snug">{m.name}</span>
+                      <button
+                        onClick={(e) => { e.preventDefault(); togglePermanent(m.id); }}
+                        title={m.permanent ? "Permanent – click to make it a one-off" : "One-off – click to keep it permanently"}
+                        className={
+                          "shrink-0 " +
+                          (m.permanent
+                            ? "text-[#9c7c33]"
+                            : "hidden text-neutral-300 hover:text-neutral-600 group-hover:block")
+                        }
+                      >
+                        <Pin size={11} />
+                      </button>
                       <button
                         onClick={(e) => { e.preventDefault(); saveMeetings(meetings.filter((x) => x.id !== m.id)); }}
                         title="Remove this meeting"
