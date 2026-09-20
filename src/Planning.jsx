@@ -529,15 +529,15 @@ export default function Planning() {
       <div className="flex items-center gap-3 border-b border-neutral-300 bg-neutral-50 px-2.5 py-1">
         <button
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => boldSelection(target)}
+          onClick={() => applyCmd(target, "bold")}
           title="Bold the highlighted words"
           className={!r ? off : on}
         >
           <Bold size={15} strokeWidth={2.75} />
         </button>
-        <button disabled={!r} onClick={() => toggleFlag(target, "bullet")} title="Bullet this row" className={!r ? off : r.bullet ? "text-[#9c7c33]" : on}><List size={15} strokeWidth={2.75} /></button>
-        <button disabled={!r || !(r.indent > 0)} onClick={() => bump(target, -1)} title="Decrease indent" className={!r || !(r.indent > 0) ? off : on}><IndentDecrease size={15} strokeWidth={2.75} /></button>
-        <button disabled={!r} onClick={() => bump(target, 1)} title="Increase indent" className={!r ? off : on}><IndentIncrease size={15} strokeWidth={2.75} /></button>
+        <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "insertUnorderedList")} title="Bullet the selected lines" className={!r ? off : on}><List size={15} strokeWidth={2.75} /></button>
+        <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "outdent")} title="Decrease indent" className={!r ? off : on}><IndentDecrease size={15} strokeWidth={2.75} /></button>
+        <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "indent")} title="Increase indent" className={!r ? off : on}><IndentIncrease size={15} strokeWidth={2.75} /></button>
       </div>
     );
   };
@@ -568,16 +568,14 @@ export default function Planning() {
             const field = locked ? (
               <span className="flex-1 py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">{r.text}</span>
             ) : r.type === "text" ? (
-              // Bold, bullet and indent are per row and never change the text size.
-              <div className="flex flex-1 items-start gap-1" style={{ paddingLeft: (r.indent || 0) * 16 }}>
-                {r.bullet && <span className="py-0.5 text-[12px] leading-snug text-neutral-900">•</span>}
+              // One block, formatted line by line exactly as a Word document would be.
+              <div className="flex flex-1 items-start gap-1">
                 <RichLine
                   html={r.html ?? escapeHtml(r.text)}
                   innerRef={(el) => { lineRefs.current[r.id] = el; }}
                   onFocus={() => setActiveRow(r.id)}
                   onInput={(html) => updateHtml(i, html)}
-                  onEnter={() => newRowAfter(i, r)}
-                  className="min-h-[18px] flex-1 whitespace-pre-wrap break-words bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none"
+                  className="rich-line min-h-[18px] flex-1 whitespace-pre-wrap break-words bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none"
                 />
               </div>
             ) : (
