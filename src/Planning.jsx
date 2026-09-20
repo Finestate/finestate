@@ -474,11 +474,11 @@ export default function Planning() {
     const off = "text-neutral-300 cursor-not-allowed";
     const on = "text-neutral-700 hover:text-[#9c7c33]";
     return (
-      <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-2.5 py-0.5">
-        <button disabled={!r} onClick={() => toggleFlag(target, "bold")} title="Bold this row" className={!r ? off : r.bold ? "text-[#9c7c33]" : on}><Bold size={12} /></button>
-        <button disabled={!r} onClick={() => toggleFlag(target, "bullet")} title="Bullet this row" className={!r ? off : r.bullet ? "text-[#9c7c33]" : on}><List size={12} /></button>
-        <button disabled={!r || !(r.indent > 0)} onClick={() => bump(target, -1)} title="Decrease indent" className={!r || !(r.indent > 0) ? off : on}><IndentDecrease size={12} /></button>
-        <button disabled={!r} onClick={() => bump(target, 1)} title="Increase indent" className={!r ? off : on}><IndentIncrease size={12} /></button>
+      <div className="flex items-center gap-3 border-b border-neutral-300 bg-neutral-50 px-2.5 py-1">
+        <button disabled={!r} onClick={() => toggleFlag(target, "bold")} title="Bold this row" className={!r ? off : r.bold ? "text-[#9c7c33]" : on}><Bold size={15} strokeWidth={2.75} /></button>
+        <button disabled={!r} onClick={() => toggleFlag(target, "bullet")} title="Bullet this row" className={!r ? off : r.bullet ? "text-[#9c7c33]" : on}><List size={15} strokeWidth={2.75} /></button>
+        <button disabled={!r || !(r.indent > 0)} onClick={() => bump(target, -1)} title="Decrease indent" className={!r || !(r.indent > 0) ? off : on}><IndentDecrease size={15} strokeWidth={2.75} /></button>
+        <button disabled={!r} onClick={() => bump(target, 1)} title="Increase indent" className={!r ? off : on}><IndentIncrease size={15} strokeWidth={2.75} /></button>
       </div>
     );
   };
