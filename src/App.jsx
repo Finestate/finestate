@@ -32,8 +32,8 @@ const NAV = [
     children: [
       { id: "admin/planning", name: "Planning", icon: CalendarDays },
       { id: "admin/legal-documents", name: "Legal documents", icon: FileText },
-      { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
       { id: "admin/logins", name: "Logins", icon: Users },
+      { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
     ],
   },
   { id: "assets", name: "Assets", icon: Wallet },
