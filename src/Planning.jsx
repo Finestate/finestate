@@ -306,11 +306,11 @@ export default function Planning() {
   const isTodoHeader = (r) => anchorIdx >= 0 && r && rows[anchorIdx] && r.id === rows[anchorIdx].id;
 
   // Codes on a line are split by a small solid gold square rather than a dot.
-  const renderCodeLine = (list) => (
-    <div className="flex flex-wrap items-center gap-1.5 text-[12px] leading-snug text-neutral-900">
+  const renderCodeLine = (list, colour) => (
+    <div className="flex flex-wrap items-center gap-1.5 text-[12px] leading-snug" style={{ color: colour }}>
       {list.map((c, i) => (
         <span key={c} className="inline-flex items-center gap-1.5">
-          {i > 0 && <span className="inline-block h-[5px] w-[5px] shrink-0 bg-neutral-900" />}
+          {i > 0 && <span className="inline-block h-[5px] w-[5px] shrink-0" style={{ backgroundColor: colour }} />}
           {c}
         </span>
       ))}
@@ -353,7 +353,7 @@ export default function Planning() {
                           else dropOnLine(idx);
                           setDrag(null);
                         }}
-                        className={`inline-flex cursor-grab items-center gap-[3px] text-[12px] leading-snug text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
+                        className={`inline-flex cursor-grab items-center gap-[3px] text-[12px] leading-snug text-[#C1440E] active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
                       >
                         {/* Plain text until double clicked, so the bin sits right after the words. */}
                         {editing === m.id ? (
@@ -387,8 +387,8 @@ export default function Planning() {
                     ))}
                   </span>
                 )}
-                {coreCodes.length > 0 && renderCodeLine(coreCodes)}
-                {restCodes.length > 0 && renderCodeLine(restCodes)}
+                {coreCodes.length > 0 && renderCodeLine(coreCodes, "#6b21a8")}
+                {restCodes.length > 0 && renderCodeLine(restCodes, "#171717")}
               </div>
 
               {idx === 1 && (
