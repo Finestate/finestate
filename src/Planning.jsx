@@ -527,7 +527,7 @@ export default function Planning() {
                   html={r.html ?? r.text}
                   innerRef={(el) => { lineRefs.current[r.id] = el; }}
                   onInput={(html) => updateHtml(i, html)}
-                  className="min-h-[18px] flex-1 whitespace-pre-wrap break-words bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none"
+                  className="flex-1 bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none"
                 />
               </div>
             ) : (
