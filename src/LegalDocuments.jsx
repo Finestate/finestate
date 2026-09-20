@@ -77,22 +77,24 @@ export default function LegalDocuments() {
           <span className={`block py-0.5 ${head}`}>Legal documents</span>
         </div>
 
-        <div className="flex items-center gap-2 border-b-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: HEADER_BG }}>
-          {COLS.map((c) => (
-            <span key={c.key} style={{ width: c.w }} className={`shrink-0 ${head}`}>{c.label}</span>
-          ))}
-          <span className="w-[54px] shrink-0" />
-        </div>
-
         {!loaded ? (
           <p className="px-2.5 py-3 text-[12px] italic text-neutral-400">Loading…</p>
         ) : (
           order.map((i) => {
             const r = items[i];
             return r.kind === "section" ? (
-              <div key={r.id} className="flex items-center gap-2 border-y-2 border-neutral-400 px-2.5 py-0.5" style={{ backgroundColor: HEADER_BG }}>
-                <input value={r.label || ""} onChange={(e) => update(i, "label", e.target.value)} className={`flex-1 bg-transparent py-0.5 ${head} outline-none`} />
-                <Bin i={i} remove={remove} />
+              // Each section carries its own column headings underneath it.
+              <div key={r.id}>
+                <div className="flex items-center gap-2 border-y-2 border-neutral-400 px-2.5 py-0.5" style={{ backgroundColor: BAR_BG }}>
+                  <input value={r.label || ""} onChange={(e) => update(i, "label", e.target.value)} className={`flex-1 bg-transparent py-0.5 ${head} outline-none`} />
+                  <Bin i={i} remove={remove} />
+                </div>
+                <div className="flex items-center gap-2 border-b-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: HEADER_BG }}>
+                  {COLS.map((c) => (
+                    <span key={c.key} style={{ width: c.w }} className={`shrink-0 ${head}`}>{c.label}</span>
+                  ))}
+                  <span className="w-[54px] shrink-0" />
+                </div>
               </div>
             ) : (
               <div key={r.id} className="flex items-center gap-2 border-t border-neutral-300 px-2.5 py-0.5">
