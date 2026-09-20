@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+    <meta name="googlebot" content="noindex, nofollow" />
+    <title>Finestate</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        background: #FBF3E4; padding: 0 16px;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      form {
+        width: 100%; max-width: 20rem; background: #fff; padding: 24px;
+        border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      }
+      .brand {
+        margin-bottom: 16px; text-align: center; font-size: 13px; font-weight: 900;
+        text-transform: uppercase; letter-spacing: 0.15em; color: #9c7c33;
+      }
+      input {
+        width: 100%; padding: 8px 12px; font-size: 14px; color: #262626;
+        border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; outline: none; background: #fff;
+      }
+      input:focus { border-color: #c2a15a; }
+      button {
+        margin-top: 12px; width: 100%; padding: 8px; font-size: 14px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.05em; color: #fff; background: #9c7c33;
+        border: 0; border-radius: 6px; cursor: pointer;
+      }
+      button:hover { opacity: 0.9; }
+      .err { margin: 8px 0 0; font-size: 11px; font-weight: 600; color: #b91c1c; }
+      .hide { display: none; }
+    </style>
+  </head>
+  <body>
+    <form id="f" autocomplete="on">
+      <div class="brand">Finestate</div>
+      <input id="pw" type="password" placeholder="Password" autofocus />
+      <p id="err" class="err hide">Wrong password.</p>
+      <button type="submit">Enter</button>
+    </form>
+
+    <script>
+      const form = document.getElementById("f");
+      const pw = document.getElementById("pw");
+      const err = document.getElementById("err");
+
+      pw.addEventListener("input", () => err.classList.add("hide"));
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        err.classList.add("hide");
+        try {
+          const res = await fetch("/api/unlock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: pw.value }),
+          });
+          if (res.ok) {
+            window.location.replace("/");
+            return;
+          }
+          err.textContent = res.status === 500 ? "Site not configured yet." : "Wrong password.";
+        } catch {
+          err.textContent = "Could not reach the server.";
+        }
+        err.classList.remove("hide");
+      });
+    </script>
+  </body>
+</html>
