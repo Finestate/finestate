@@ -51,12 +51,15 @@ export default function SiteRunningCosts() {
               <div className="flex w-24 shrink-0 items-center justify-start gap-1">
                 <span className="text-[12px] leading-snug text-neutral-900">USD</span>
                 {/* Width follows the value so "USD" always sits right next to the number. */}
+                {/* Figures only, and an emptied field falls back to a black 0.00. */}
                 <input
                   value={r.price}
-                  onChange={(e) => update(i, "price", e.target.value)}
+                  inputMode="decimal"
+                  onChange={(e) => update(i, "price", e.target.value.replace(/[^0-9.]/g, ""))}
+                  onBlur={() => { if (!String(r.price).trim()) update(i, "price", "0.00"); }}
                   placeholder="0.00"
                   style={{ width: `${Math.max(4, String(r.price || "").length)}ch` }}
-                  className="bg-transparent py-0.5 text-right text-[12px] leading-snug tabular-nums text-neutral-900 outline-none placeholder:text-neutral-300"
+                  className="bg-transparent py-0.5 text-right text-[12px] leading-snug tabular-nums text-neutral-900 outline-none placeholder:text-neutral-900"
                 />
               </div>
             </div>
