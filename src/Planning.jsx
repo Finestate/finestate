@@ -9,12 +9,13 @@ const SUBHEAD_BG = HEADER_BG;  // sub-title rows read exactly like a section hea
 const GOLD = "#9c7c33";
 const ROWS_KEY = "finestate.planning.rows";
 const TITLE_KEY = "finestate.planning.title";
-const TODO_ITEMS_KEY = "finestate.planning.todoItems";
 const TODO_LINES_KEY = "finestate.planning.todoLines";
 const TODO_OPEN_KEY = "finestate.planning.todoOpen";
 
 // Two identical checklist lines under the Daily routine heading: today, and the
 // next day being planned while today is still in front of you.
+// The points themselves are maintained here in code – ask for changes when they shift.
+const TODO_ITEMS = [];
 
 // Insert options: the bottom of the table can start a new section, a section's own
 // add bar only offers the two row kinds that live inside it.
@@ -34,11 +35,8 @@ export default function Planning() {
   const [title, setTitle] = useState(() => { try { return localStorage.getItem(TITLE_KEY) || "Planning"; } catch { return "Planning"; } });
   const [rows, setRows] = useState(() => { try { const p = JSON.parse(localStorage.getItem(ROWS_KEY) || "null"); return Array.isArray(p) ? p : []; } catch { return []; } });
   const [addMenu, setAddMenu] = useState(null); // row index whose insert menu is open, or "end"
-  const [todoItems, setTodoItems] = useState(() => { try { const p = JSON.parse(localStorage.getItem(TODO_ITEMS_KEY) || "null"); return Array.isArray(p) ? p : []; } catch { return []; } });
   const [todoLines, setTodoLines] = useState(() => { try { const p = JSON.parse(localStorage.getItem(TODO_LINES_KEY) || "null"); return Array.isArray(p) && p.length === 2 ? p : [[], []]; } catch { return [[], []]; } });
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
-  const [newCode, setNewCode] = useState("");
-  const [newLabel, setNewLabel] = useState("");
   const [dragI, setDragI] = useState(null);     // row being dragged
   const [armed, setArmed] = useState(null);     // row whose grip is held, so only the grip starts a drag
 
@@ -51,20 +49,12 @@ export default function Planning() {
   const insertAt = (i, type) => { persistRows([...rows.slice(0, i), { id: newId(), type, text: "" }, ...rows.slice(i)]); setAddMenu(null); };
 
 
-  const saveItems = (next) => { setTodoItems(next); try { localStorage.setItem(TODO_ITEMS_KEY, JSON.stringify(next)); } catch {} };
   const saveLines = (next) => { setTodoLines(next); try { localStorage.setItem(TODO_LINES_KEY, JSON.stringify(next)); } catch {} };
   const openLine = (idx) => { setTodoOpen(idx); try { idx == null ? localStorage.removeItem(TODO_OPEN_KEY) : localStorage.setItem(TODO_OPEN_KEY, String(idx)); } catch {} };
   const toggleTodo = (idx, code) =>
     saveLines(todoLines.map((line, i) => (i !== idx ? line : line.includes(code) ? line.filter((c) => c !== code) : [...line, code])));
   // The up arrow on the second line rolls the next day's plan into today.
   const swapLines = () => { saveLines([todoLines[1], todoLines[0]]); openLine(todoOpen === 0 ? 1 : todoOpen === 1 ? 0 : todoOpen); };
-  const addItem = () => {
-    const code = newCode.trim().toUpperCase();
-    if (!code || todoItems.some((it) => it.code === code)) return;
-    saveItems([...todoItems, { code, label: newLabel.trim() }]);
-    setNewCode("");
-    setNewLabel("");
-  };
 
   // A Daily routine / To-dos heading is what the two checklist lines hang under.
   const isTodoHeader = (r) =>
@@ -74,7 +64,7 @@ export default function Planning() {
     <>
       {todoLines.map((codes, idx) => {
         const open = todoOpen === idx;
-        const chosen = todoItems.filter((it) => codes.includes(it.code)).map((it) => it.code);
+        const chosen = TODO_ITEMS.filter((it) => codes.includes(it.code)).map((it) => it.code);
         return (
           <div key={idx} className="border-t border-neutral-300 bg-white">
             <div className="flex items-center">
@@ -95,38 +85,21 @@ export default function Planning() {
 
             {open && (
               <div className="border-t border-neutral-200 bg-white px-2.5 py-2">
-                {todoItems.length === 0 ? (
-                  <p className="text-[11px] italic text-neutral-400">No to-do points yet – add them below.</p>
-                ) : (
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3 lg:grid-cols-4">
-                    {todoItems.map((it) => (
-                      <label key={it.code} className="group flex min-w-0 cursor-pointer items-start gap-1.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900">
-                        <input
-                          type="checkbox"
-                          checked={codes.includes(it.code)}
-                          onChange={() => toggleTodo(idx, it.code)}
-                          className="mt-0.5 h-3.5 w-3.5 shrink-0"
-                          style={{ accentColor: GOLD }}
-                        />
-                        <span className="min-w-0 break-words leading-snug">
-                          {it.code}{it.label ? ` (${it.label})` : ""}
-                        </span>
-                        <button
-                          onClick={(e) => { e.preventDefault(); saveItems(todoItems.filter((x) => x.code !== it.code)); }}
-                          title="Remove this point"
-                          className="ml-auto hidden shrink-0 text-neutral-300 hover:text-[#C1440E] group-hover:block"
-                        >
-                          <Trash2 size={11} />
-                        </button>
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-2 flex items-center gap-2 border-t border-neutral-200 pt-2">
-                  <input value={newCode} onChange={(e) => setNewCode(e.target.value)} placeholder="Code" className="w-16 rounded border border-neutral-300 px-1.5 py-0.5 text-[11px] uppercase outline-none focus:border-neutral-500 placeholder:text-neutral-300" />
-                  <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="What it means" className="flex-1 rounded border border-neutral-300 px-1.5 py-0.5 text-[11px] outline-none focus:border-neutral-500 placeholder:text-neutral-300" />
-                  <button onClick={addItem} className="rounded border border-neutral-300 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-600 hover:bg-neutral-100">Add point</button>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3 lg:grid-cols-4">
+                  {TODO_ITEMS.map((it) => (
+                    <label key={it.code} className="flex min-w-0 cursor-pointer items-start gap-1.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900">
+                      <input
+                        type="checkbox"
+                        checked={codes.includes(it.code)}
+                        onChange={() => toggleTodo(idx, it.code)}
+                        className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                        style={{ accentColor: GOLD }}
+                      />
+                      <span className="min-w-0 break-words leading-snug">
+                        {it.code}{it.label ? ` (${it.label})` : ""}
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
             )}
