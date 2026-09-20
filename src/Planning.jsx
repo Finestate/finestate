@@ -5,7 +5,7 @@ import { Plus, Trash2, GripVertical } from "lucide-react";
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
 const BAR_BG = "#FFE4B3";     // title bar – brightest
 const HEADER_BG = "#FCEFCF";  // header row – mid
-const SUBHEAD_BG = "#FDF7E8"; // sub-header row – lowest
+const SUBHEAD_BG = HEADER_BG;  // sub-title rows read exactly like a section header
 const ROWS_KEY = "finestate.planning.rows";
 const TITLE_KEY = "finestate.planning.title";
 const COSTS_KEY = "finestate.planning.costs";
@@ -154,11 +154,12 @@ export default function Planning() {
             );
             // Strong 2px separator (same as under the title bar) below a header, and above a header
             // that follows other rows – so each subtitle's items are clearly grouped.
-            const prevHeader = i > 0 && rows[i - 1].type === "header";
-            const topBorder = i === 0 ? "" : r.type === "header" ? "border-t-2 border-neutral-400" : prevHeader ? "" : "border-t border-neutral-300";
-            const botBorder = r.type === "header" ? "border-b-2 border-neutral-400" : "";
+            const isHead = r.type !== "text";
+            const prevHeader = i > 0 && rows[i - 1].type !== "text";
+            const topBorder = i === 0 ? "" : isHead ? "border-t-2 border-neutral-400" : prevHeader ? "" : "border-t border-neutral-300";
+            const botBorder = isHead ? "border-b-2 border-neutral-400" : "";
             // A section ends where the next header starts; the final section uses the bottom Add.
-            const sectionEnd = i < rows.length - 1 && rows[i + 1].type === "header";
+            const sectionEnd = i < rows.length - 1 && rows[i + 1].type !== "text";
             return (
               <div key={r.id}>
                 {i === costsAt && <CostsTable />}
