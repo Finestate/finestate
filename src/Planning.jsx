@@ -5,7 +5,7 @@ import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell, L
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
 const BAR_BG = "#FFE4B3";     // title bar – brightest
 const HEADER_BG = "#FCEFCF";  // header row – mid
-const SUBHEAD_BG = HEADER_BG;  // sub-title rows read exactly like a section header
+const SUBHEAD_BG = "#FFE4B3"; // headings all read as main headers
 const GOLD = "#9c7c33";
 const ROWS_KEY = "finestate.planning.rows";
 const TITLE_KEY = "finestate.planning.title";
@@ -574,17 +574,12 @@ export default function Planning() {
   return (
     <div className="w-full">
       <div spellCheck={false} className="w-full border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
-        {/* Header bar – editable title (brightest) */}
-        <div className="px-2.5 py-1 border-b-2 border-neutral-400" style={{ backgroundColor: BAR_BG }}>
-          <input value={title} onChange={(e) => saveTitle(e.target.value)} className="block w-full bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
-        </div>
-
         {/* With no Daily routine heading to hang under, the checklist sits up here. */}
         {anchorIdx < 0 && renderTodoLines()}
 
         <div>
           {rows.map((r, i) => {
-            const bg = r.type === "header" ? HEADER_BG : r.type === "subheader" ? SUBHEAD_BG : "#fff";
+            const bg = r.type === "text" ? "#fff" : BAR_BG;
             // The heading the checklist hangs under is locked: no typing, no bin, no dragging.
             const locked = isTodoHeader(r);
             const field = locked ? (
