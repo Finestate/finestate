@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell, List, IndentIncrease, IndentDecrease } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell, Bold, List, IndentIncrease, IndentDecrease } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -514,15 +514,16 @@ export default function Planning() {
             return (
               <div key={r.id}>
                 <div
-                  className={`flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5`}
+                  className={`group relative flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5`}
                   style={{ backgroundColor: bg }}
                 >
+                  {/* Floats above the row on hover, so it never shifts the text. */}
                   {!locked && r.type === "text" && (
-                    <div className="flex shrink-0 items-center gap-1 py-0.5">
-                      <button onClick={() => toggleFlag(i, "bold")} title="Bold" className={`text-[11px] font-black leading-none ${r.bold ? "text-[#9c7c33]" : "text-neutral-900 hover:text-[#9c7c33]"}`}>B</button>
-                      <button onClick={() => toggleFlag(i, "bullet")} title="Bullet" className={r.bullet ? "text-[#9c7c33]" : "text-neutral-900 hover:text-[#9c7c33]"}><List size={12} /></button>
-                      <button onClick={() => bump(i, -1)} disabled={!(r.indent > 0)} title="Less indent" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><IndentDecrease size={12} /></button>
-                      <button onClick={() => bump(i, 1)} title="More indent" className="text-neutral-900 hover:text-[#9c7c33]"><IndentIncrease size={12} /></button>
+                    <div className="absolute -top-2.5 left-2 z-10 hidden items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 shadow-sm group-hover:flex">
+                      <button onClick={() => toggleFlag(i, "bold")} title="Bold" className={r.bold ? "text-[#9c7c33]" : "text-neutral-700 hover:text-[#9c7c33]"}><Bold size={12} /></button>
+                      <button onClick={() => toggleFlag(i, "bullet")} title="Bullet list" className={r.bullet ? "text-[#9c7c33]" : "text-neutral-700 hover:text-[#9c7c33]"}><List size={12} /></button>
+                      <button onClick={() => bump(i, -1)} disabled={!(r.indent > 0)} title="Decrease indent" className="text-neutral-700 hover:text-[#9c7c33] disabled:opacity-25"><IndentDecrease size={12} /></button>
+                      <button onClick={() => bump(i, 1)} title="Increase indent" className="text-neutral-700 hover:text-[#9c7c33]"><IndentIncrease size={12} /></button>
                     </div>
                   )}
                   {field}
