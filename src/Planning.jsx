@@ -158,7 +158,7 @@ export default function Planning() {
     <div className="flex flex-wrap items-center gap-1.5 text-[12px] leading-snug text-neutral-900">
       {list.map((c, i) => (
         <span key={c} className="inline-flex items-center gap-1.5">
-          {i > 0 && <span className="inline-block h-[5px] w-[5px] shrink-0" style={{ backgroundColor: GOLD }} />}
+          {i > 0 && <span className="inline-block h-[5px] w-[5px] shrink-0 bg-neutral-900" />}
           {c}
         </span>
       ))}
