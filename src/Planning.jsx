@@ -165,8 +165,6 @@ export default function Planning() {
     saveMeetings(meetings.map((m) => (m.id === id ? { ...m, name } : m)));
     saveLines(todoLines.map((l) => ({ ...l, meetings: l.meetings.map((m) => (m.id === id ? { ...m, name } : m)) })));
   };
-  // A pinned meeting stays in the picker after use; an unpinned one is a one-off.
-  const togglePermanent = (id) => saveMeetings(meetings.map((m) => (m.id === id ? { ...m, permanent: !m.permanent } : m)));
   const dropMeeting = (idx, id) => patchLine(idx, { meetings: todoLines[idx].meetings.filter((x) => x.id !== id) });
   const addMeeting = () => {
     const name = newMeeting.trim();
@@ -287,11 +285,6 @@ export default function Planning() {
                       onDrop={() => { if (drag?.from === "pool") moveMeeting(drag.index, mi); setDrag(null); }}
                       className={`flex h-full w-full cursor-grab items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 active:cursor-grabbing ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.index === mi ? "opacity-40" : ""}`}
                     >
-                      <button
-                        onClick={() => togglePermanent(m.id)}
-                        title={m.permanent ? "Permanent – click to make it a one-off" : "One-off – click to keep it permanent"}
-                        className={`mt-[3px] h-2.5 w-2.5 shrink-0 border ${m.permanent ? "border-[#C1440E] bg-[#C1440E]" : "border-neutral-300 bg-white hover:border-neutral-500"}`}
-                      />
                       <input
                         value={m.name}
                         onChange={(e) => renameMeeting(m.id, e.target.value)}
