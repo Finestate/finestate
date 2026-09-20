@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Pin } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChevronUp, Pin } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -184,22 +184,23 @@ export default function Planning() {
         const restCodes = TODO_REST.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           <div key={idx} className="border-t border-neutral-300 bg-white">
-            <div className="flex items-start">
-              <button
-                onClick={() => openLine(open ? null : idx)}
-                title="Choose to-dos"
-                className="flex shrink-0 items-center px-2.5 py-0.5 hover:bg-neutral-50"
-              >
-                <ChevronDown size={14} className={`text-neutral-500 transition-transform ${open ? "rotate-180" : ""}`} />
-              </button>
-
-              <div className="flex flex-1 flex-col gap-0.5 py-0.5 pr-2">
+            {/* The whole line is the toggle – no chevron. */}
+            <div
+              onClick={() => openLine(open ? null : idx)}
+              title="Choose to-dos"
+              className="flex min-h-[22px] cursor-pointer items-start hover:bg-neutral-50"
+            >
+              <div className="flex flex-1 flex-col gap-0.5 px-2.5 py-0.5">
                 {line.meetings.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2">
                     {lineMeetings.map((m) => (
                       <span key={m.id} className="group inline-flex items-center gap-1 text-[12px] leading-snug text-neutral-900">
                         {m.name}
-                        <button onClick={() => dropMeeting(idx, m.id)} title="Remove" className="text-neutral-300 hover:text-[#C1440E]">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); dropMeeting(idx, m.id); }}
+                          title="Remove"
+                          className="text-neutral-300 hover:text-[#C1440E]"
+                        >
                           <Trash2 size={10} />
                         </button>
                       </span>
@@ -211,7 +212,11 @@ export default function Planning() {
               </div>
 
               {idx === 1 && (
-                <button onClick={swapLines} title="Make this today" className="shrink-0 pr-2 text-neutral-400 hover:text-[#9c7c33]">
+                <button
+                  onClick={(e) => { e.stopPropagation(); swapLines(); }}
+                  title="Make this today"
+                  className="shrink-0 px-2 py-0.5 text-neutral-400 hover:text-[#9c7c33]"
+                >
                   <ChevronUp size={14} />
                 </button>
               )}
