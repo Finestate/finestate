@@ -56,7 +56,7 @@ export default function SiteRunningCosts() {
                   value={r.price}
                   inputMode="decimal"
                   onChange={(e) => update(i, "price", e.target.value.replace(/[^0-9.]/g, ""))}
-                  onBlur={() => { if (!String(r.price).trim()) update(i, "price", "0.00"); }}
+                  onBlur={() => { if (!(parseFloat(r.price) > 0)) update(i, "price", "0.00"); }}
                   placeholder="0.00"
                   style={{ width: `${Math.max(4, String(r.price || "").length)}ch` }}
                   className="bg-transparent py-0.5 text-right text-[12px] leading-snug tabular-nums text-neutral-900 outline-none placeholder:text-neutral-900"
