@@ -110,6 +110,7 @@ export default function Planning() {
     };
   });
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
+  const [activeRow, setActiveRow] = useState(null); // row the ribbon acts on
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
 
 
@@ -464,6 +465,24 @@ export default function Planning() {
     </>
   );
 
+  // The ribbon works on the row that has the caret, as long as it sits in this section.
+  const renderRibbon = (headerIdx) => {
+    let end = headerIdx + 1;
+    while (end < rows.length && rows[end].type === "text") end++;
+    const target = rows.findIndex((r, k) => r.id === activeRow && k > headerIdx && k < end);
+    const r = target >= 0 ? rows[target] : null;
+    const off = "text-neutral-300 cursor-not-allowed";
+    const on = "text-neutral-700 hover:text-[#9c7c33]";
+    return (
+      <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-2.5 py-0.5">
+        <button disabled={!r} onClick={() => toggleFlag(target, "bold")} title="Bold this row" className={!r ? off : r.bold ? "text-[#9c7c33]" : on}><Bold size={12} /></button>
+        <button disabled={!r} onClick={() => toggleFlag(target, "bullet")} title="Bullet this row" className={!r ? off : r.bullet ? "text-[#9c7c33]" : on}><List size={12} /></button>
+        <button disabled={!r || !(r.indent > 0)} onClick={() => bump(target, -1)} title="Decrease indent" className={!r || !(r.indent > 0) ? off : on}><IndentDecrease size={12} /></button>
+        <button disabled={!r} onClick={() => bump(target, 1)} title="Increase indent" className={!r ? off : on}><IndentIncrease size={12} /></button>
+      </div>
+    );
+  };
+
   const TypeMenu = ({ at, opts = ALL_TYPES }) => (
     <div className="flex flex-wrap items-center gap-2 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1">
       <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Insert:</span>
@@ -496,6 +515,7 @@ export default function Planning() {
                 <AutoTextarea
                   value={r.text}
                   onChange={(e) => update(i, e.target.value)}
+                  onFocus={() => setActiveRow(r.id)}
                   className={`flex-1 resize-none overflow-hidden bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none ${r.bold ? "font-bold" : ""}`}
                 />
               </div>
@@ -517,15 +537,6 @@ export default function Planning() {
                   className={`group relative flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5`}
                   style={{ backgroundColor: bg }}
                 >
-                  {/* Floats above the row on hover, so it never shifts the text. */}
-                  {!locked && r.type === "text" && (
-                    <div className="absolute -top-2.5 left-2 z-10 hidden items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 shadow-sm group-hover:flex">
-                      <button onClick={() => toggleFlag(i, "bold")} title="Bold" className={r.bold ? "text-[#9c7c33]" : "text-neutral-700 hover:text-[#9c7c33]"}><Bold size={12} /></button>
-                      <button onClick={() => toggleFlag(i, "bullet")} title="Bullet list" className={r.bullet ? "text-[#9c7c33]" : "text-neutral-700 hover:text-[#9c7c33]"}><List size={12} /></button>
-                      <button onClick={() => bump(i, -1)} disabled={!(r.indent > 0)} title="Decrease indent" className="text-neutral-700 hover:text-[#9c7c33] disabled:opacity-25"><IndentDecrease size={12} /></button>
-                      <button onClick={() => bump(i, 1)} title="Increase indent" className="text-neutral-700 hover:text-[#9c7c33]"><IndentIncrease size={12} /></button>
-                    </div>
-                  )}
                   {field}
                   {!locked && (
                     <div className="flex shrink-0 items-center gap-1 py-0.5">
@@ -535,6 +546,8 @@ export default function Planning() {
                     </div>
                   )}
                 </div>
+                {/* One ribbon per section, always there, acting on the row you last clicked. */}
+                {isHead && !locked && renderRibbon(i)}
                 {isTodoHeader(r) && renderTodoLines()}
                 {addMenu === i ? (
                   <TypeMenu at={i + 1} opts={SECTION_TYPES} />
