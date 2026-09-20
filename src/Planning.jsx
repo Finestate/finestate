@@ -232,23 +232,26 @@ export default function Planning() {
                           else dropOnLine(idx);
                           setDrag(null);
                         }}
-                        className={`inline-flex cursor-grab items-center gap-1 text-[12px] leading-snug text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
+                        className={`inline-flex cursor-grab items-center gap-[3px] text-[12px] leading-snug text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
                       >
-                        {/* Click and drag moves it, double click puts the caret in. */}
-                        <input
-                          ref={(el) => { if (el && editing === m.id && document.activeElement !== el) el.focus(); }}
-                          value={m.name}
-                          readOnly={editing !== m.id}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => renameMeeting(m.id, e.target.value)}
-                          onBlur={() => setEditing(null)}
-                          style={{ width: `${Math.max(2, m.name.length)}ch` }}
-                          className={`bg-transparent leading-snug outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
-                        />
+                        {/* Plain text until double clicked, so the bin sits right after the words. */}
+                        {editing === m.id ? (
+                          <input
+                            ref={(el) => { if (el && document.activeElement !== el) el.focus(); }}
+                            value={m.name}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => renameMeeting(m.id, e.target.value)}
+                            onBlur={() => setEditing(null)}
+                            style={{ width: `${Math.max(2, m.name.length)}ch` }}
+                            className="bg-transparent leading-snug outline-none"
+                          />
+                        ) : (
+                          <span className="leading-snug">{m.name}</span>
+                        )}
                         <button
                           onClick={(e) => { e.stopPropagation(); dropMeeting(idx, m.id); }}
                           title="Remove"
-                          className="text-neutral-300 hover:text-[#C1440E]"
+                          className="flex shrink-0 items-center self-center leading-none text-neutral-300 hover:text-[#C1440E]"
                         >
                           <Trash2 size={10} />
                         </button>
