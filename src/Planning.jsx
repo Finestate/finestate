@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, GripVertical, ChevronUp, Calendar, Briefcase, Sparkles } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChevronUp, Calendar, DollarSign, Sparkles } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -407,7 +407,7 @@ export default function Planning() {
                 {["core", "rest"].map((g) => (
                   <div key={g} className="mt-2 border-t border-[#C1440E] pt-2">
                     <div className="mb-1 flex items-center">
-                      {g === "core" ? <Briefcase size={13} style={{ color: GOLD }} /> : <Sparkles size={13} style={{ color: GOLD }} />}
+                      {g === "core" ? <DollarSign size={13} style={{ color: GOLD }} /> : <Sparkles size={13} style={{ color: GOLD }} />}
                     </div>
                     <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
                       {points[g].map((it, pi) => (
