@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, GripVertical, ChevronUp, Calendar, DollarSign, Dumbbell } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -111,15 +111,13 @@ export default function Planning() {
   });
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
-  const [dragI, setDragI] = useState(null);     // row being dragged
-  const [armed, setArmed] = useState(null);     // row whose grip is held, so only the grip starts a drag
 
 
   const persistRows = (next) => { setRows(next); try { localStorage.setItem(ROWS_KEY, JSON.stringify(next)); } catch {} };
   const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(TITLE_KEY, val); } catch {} };
   const update = (i, text) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, text } : r)));
   const remove = (i) => persistRows(rows.filter((_, idx) => idx !== i));
-  const reorder = (from, to) => { if (from == null || to == null || from === to) return; const next = rows.slice(); const [moved] = next.splice(from, 1); next.splice(to, 0, moved); persistRows(next); };
+  const moveRow = (i, d) => { const j = i + d; if (j < 0 || j >= rows.length) return; const next = rows.slice(); [next[i], next[j]] = [next[j], next[i]]; persistRows(next); };
   const insertAt = (i, type) => { persistRows([...rows.slice(0, i), { id: newId(), type, text: "" }, ...rows.slice(i)]); setAddMenu(null); };
 
 
@@ -506,26 +504,15 @@ export default function Planning() {
             return (
               <div key={r.id}>
                 <div
-                  draggable={armed === i && !locked}
-                  onDragStart={() => setDragI(i)}
-                  onDragEnd={() => { setDragI(null); setArmed(null); }}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => { reorder(dragI, i); setDragI(null); setArmed(null); }}
-                  className={`flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5 ${dragI === i ? "opacity-40" : ""}`}
+                  className={`flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5`}
                   style={{ backgroundColor: bg }}
                 >
                   {field}
                   {!locked && (
                     <div className="flex shrink-0 items-center gap-1 py-0.5">
-                      <span
-                        onMouseDown={() => setArmed(i)}
-                        onMouseUp={() => setArmed(null)}
-                        title="Drag to reorder"
-                        className="cursor-grab text-neutral-300 hover:text-neutral-600 active:cursor-grabbing"
-                      >
-                        <GripVertical size={12} />
-                      </span>
-                      <button onClick={() => remove(i)} title="Delete" className="text-neutral-300 hover:text-[#C1440E]"><Trash2 size={12} /></button>
+                      <button onClick={() => moveRow(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={12} /></button>
+                      <button onClick={() => moveRow(i, 1)} disabled={i === rows.length - 1} title="Move down" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronDown size={12} /></button>
+                      <button onClick={() => remove(i)} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={12} /></button>
                     </div>
                   )}
                 </div>
