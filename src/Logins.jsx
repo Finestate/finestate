@@ -1,0 +1,126 @@
+import { useEffect, useState } from "react";
+import { supabase } from "./lib/supabaseClient.js";
+import { PAGES } from "./pages.js";
+
+// Admin-only console: who can sign in, what role they hold and which pages they may open.
+const BAR_BG = "#FFE4B3";
+const HEADER_BG = "#FCEFCF";
+
+const cell = "px-2.5 py-0.5 text-[12px] leading-snug text-neutral-900";
+const select =
+  "rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[12px] text-neutral-900 outline-none focus:border-neutral-500 disabled:opacity-40";
+
+export default function Logins({ myId }) {
+  const [users, setUsers] = useState([]);
+  const [openId, setOpenId] = useState(null); // whose access list is expanded
+  const [err, setErr] = useState("");
+
+  const load = () =>
+    supabase
+      .from("profiles")
+      .select("id, email, full_name, role, status, access, created_at")
+      .order("created_at", { ascending: true })
+      .then(({ data, error }) => {
+        if (error) setErr(error.message);
+        else setUsers(data || []);
+      });
+
+  useEffect(() => { load(); }, []);
+
+  const patch = (id, fields) => {
+    setUsers((list) => list.map((u) => (u.id === id ? { ...u, ...fields } : u)));
+    supabase.from("profiles").update(fields).eq("id", id).then(({ error }) => {
+      if (error) setErr(error.message);
+    });
+  };
+
+  const toggleAccess = (u, pageId) => {
+    const has = (u.access || []).includes(pageId);
+    const next = has ? u.access.filter((p) => p !== pageId) : [...(u.access || []), pageId];
+    patch(u.id, { access: next });
+  };
+
+  return (
+    <div className="w-full">
+      <div className="w-full border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
+        <div className="px-2.5 py-1 border-b-2 border-neutral-400" style={{ backgroundColor: BAR_BG }}>
+          <span className="block py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">Logins</span>
+        </div>
+
+        <div className="flex items-center gap-2 border-b-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: HEADER_BG }}>
+          <span className="flex-1 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Person</span>
+          <span className="w-28 shrink-0 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Role</span>
+          <span className="w-28 shrink-0 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Status</span>
+          <span className="w-16 shrink-0 text-right text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Pages</span>
+        </div>
+
+        {err && <p className="px-2.5 py-1 text-[12px] font-semibold text-[#b91c1c]">{err}</p>}
+
+        {users.map((u, i) => (
+          <div key={u.id} className={i === 0 ? "" : "border-t border-neutral-300"}>
+            <div className="flex items-center gap-2 px-2.5 py-0.5">
+              <span className="flex-1 truncate text-[12px] leading-snug text-neutral-900">
+                {u.full_name || "—"} <span className="text-neutral-500">{u.email}</span>
+              </span>
+
+              <select
+                value={u.role}
+                disabled={u.id === myId}
+                title={u.id === myId ? "You cannot change your own role" : "Set role"}
+                onChange={(e) => patch(u.id, { role: e.target.value })}
+                className={`w-28 shrink-0 ${select}`}
+              >
+                <option value="admin">Admin</option>
+                <option value="member">Member</option>
+              </select>
+
+              <select
+                value={u.status}
+                disabled={u.id === myId}
+                onChange={(e) => patch(u.id, { status: e.target.value })}
+                className={`w-28 shrink-0 ${select}`}
+              >
+                <option value="active">Active</option>
+                <option value="blocked">Blocked</option>
+                <option value="pending">Pending</option>
+              </select>
+
+              <button
+                onClick={() => setOpenId(openId === u.id ? null : u.id)}
+                className="w-16 shrink-0 text-right text-[11px] font-bold uppercase tracking-wide text-[#9c7c33] underline underline-offset-2 hover:opacity-70"
+              >
+                {u.role === "admin" ? "All" : "Edit"}
+              </button>
+            </div>
+
+            {openId === u.id && (
+              <div className="border-t border-neutral-200 bg-neutral-50 px-2.5 py-1.5">
+                {u.role === "admin" ? (
+                  <p className="text-[12px] text-neutral-600">Admins can open every page.</p>
+                ) : (
+                  <div className="flex flex-col gap-0.5">
+                    {PAGES.map((p) => (
+                      <label key={p.id} className="flex cursor-pointer items-center gap-2 text-[12px] text-neutral-900">
+                        <input
+                          type="checkbox"
+                          checked={(u.access || []).includes(p.id)}
+                          onChange={() => toggleAccess(u, p.id)}
+                          className="h-3 w-3 accent-[#9c7c33]"
+                        />
+                        {p.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {users.length === 0 && !err && (
+          <p className={`${cell} italic text-neutral-400`}>Nobody has signed up yet.</p>
+        )}
+      </div>
+    </div>
+  );
+}

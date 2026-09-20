@@ -8,17 +8,6 @@ const HEADER_BG = "#FCEFCF";  // header row – mid
 const SUBHEAD_BG = HEADER_BG;  // sub-title rows read exactly like a section header
 const ROWS_KEY = "finestate.planning.rows";
 const TITLE_KEY = "finestate.planning.title";
-const COSTS_KEY = "finestate.planning.costs";
-const COSTS_TITLE_KEY = "finestate.planning.costs.title";
-
-// Seeded once; after that the user's edits in localStorage win.
-const COSTS_SEED = [
-  { item: "Anthropic (Claude API)", price: "0.00" },
-  { item: "Domain name", price: "0.00" },
-  { item: "GitHub", price: "0.00" },
-  { item: "Stock data API", price: "0.00" },
-  { item: "Vercel", price: "0.00" },
-];
 
 // Insert options: the bottom of the table can start a new section, a section's own
 // add bar only offers the two row kinds that live inside it.
@@ -32,80 +21,6 @@ function AutoTextarea({ value, onChange, ...props }) {
   const ref = useRef(null);
   useEffect(() => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }, [value]);
   return <textarea ref={ref} value={value} onChange={onChange} rows={1} {...props} />;
-}
-
-// Small two-column costs table – same dimensions/fonts as the planning table above.
-function CostsTable() {
-  const [title, setTitle] = useState(() => { try { return localStorage.getItem(COSTS_TITLE_KEY) || "Site running costs"; } catch { return "Site running costs"; } });
-  const [rows, setRows] = useState(() => {
-    try {
-      const p = JSON.parse(localStorage.getItem(COSTS_KEY) || "null");
-      // Blank prices normalise to 0.00 so the column always reads as a USD amount.
-      if (Array.isArray(p)) return p.map((r) => ({ ...r, price: r.price?.trim() ? r.price : "0.00" }));
-    } catch {}
-    return COSTS_SEED.map((c) => ({ id: newId(), ...c }));
-  });
-
-  const [dragI, setDragI] = useState(null);
-  const [armed, setArmed] = useState(null);
-
-  const persist = (next) => { setRows(next); try { localStorage.setItem(COSTS_KEY, JSON.stringify(next)); } catch {} };
-  const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(COSTS_TITLE_KEY, val); } catch {} };
-  const update = (i, key, val) => persist(rows.map((r, idx) => (idx === i ? { ...r, [key]: val } : r)));
-  const remove = (i) => persist(rows.filter((_, idx) => idx !== i));
-  const reorder = (from, to) => { if (from == null || to == null || from === to) return; const next = rows.slice(); const [moved] = next.splice(from, 1); next.splice(to, 0, moved); persist(next); };
-  const add = () => persist([...rows, { id: newId(), item: "", price: "0.00" }]);
-
-  return (
-    <div className="w-full">
-      <div className="flex items-center gap-2 px-2.5 py-1 border-t-2 border-b-2 border-neutral-400" style={{ backgroundColor: HEADER_BG }}>
-        <input value={title} onChange={(e) => saveTitle(e.target.value)} className="flex-1 bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
-        <span className="w-24 shrink-0 whitespace-nowrap text-right text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">Cost</span>
-        <span className="w-[54px] shrink-0" />
-      </div>
-
-      <div>
-        {rows.map((r, i) => (
-          <div
-            key={r.id}
-            draggable={armed === i}
-            onDragStart={() => setDragI(i)}
-            onDragEnd={() => { setDragI(null); setArmed(null); }}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => { reorder(dragI, i); setDragI(null); setArmed(null); }}
-            className={`flex items-center gap-2 px-2.5 py-0.5 ${i === 0 ? "" : "border-t border-neutral-300"} ${dragI === i ? "opacity-40" : ""}`}
-          >
-            <input value={r.item} onChange={(e) => update(i, "item", e.target.value)} placeholder="Cost item" className="flex-1 bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none placeholder:text-neutral-300" />
-            <div className="flex w-24 shrink-0 items-center justify-end gap-1">
-              <span className="text-[12px] leading-snug text-neutral-900">USD</span>
-              {/* Width follows the value so "USD" always sits right next to the number. */}
-              <input
-                value={r.price}
-                onChange={(e) => update(i, "price", e.target.value)}
-                placeholder="0.00"
-                style={{ width: `${Math.max(4, String(r.price || "").length)}ch` }}
-                className="bg-transparent py-0.5 text-right text-[12px] leading-snug tabular-nums text-neutral-900 outline-none placeholder:text-neutral-300"
-              />
-            </div>
-            <div className="flex w-[54px] shrink-0 items-center justify-end gap-1">
-              <span
-                onMouseDown={() => setArmed(i)}
-                onMouseUp={() => setArmed(null)}
-                title="Drag to reorder"
-                className="cursor-grab text-neutral-300 hover:text-neutral-600 active:cursor-grabbing"
-              >
-                <GripVertical size={12} />
-              </span>
-              <button onClick={() => remove(i)} title="Delete" className="text-neutral-300 hover:text-[#C1440E]"><Trash2 size={12} /></button>
-            </div>
-          </div>
-        ))}
-        {rows.length === 0 && <p className="px-2.5 py-3 text-[12px] text-neutral-400 italic">Empty. Use Add below to start.</p>}
-      </div>
-
-      <button onClick={add} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add cost</button>
-    </div>
-  );
 }
 
 export default function Planning() {
@@ -123,8 +38,6 @@ export default function Planning() {
   const reorder = (from, to) => { if (from == null || to == null || from === to) return; const next = rows.slice(); const [moved] = next.splice(from, 1); next.splice(to, 0, moved); persistRows(next); };
   const insertAt = (i, type) => { persistRows([...rows.slice(0, i), { id: newId(), type, text: "" }, ...rows.slice(i)]); setAddMenu(null); };
 
-  // The costs sub-table sits just above the Priorities header; with no such header it goes last.
-  const costsAt = rows.findIndex((r) => r.type !== "text" && /priorit/i.test(r.text));
 
   const TypeMenu = ({ at, opts = ALL_TYPES }) => (
     <div className="flex flex-wrap items-center gap-2 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1">
@@ -162,7 +75,6 @@ export default function Planning() {
             const sectionEnd = i < rows.length - 1 && rows[i + 1].type !== "text";
             return (
               <div key={r.id}>
-                {i === costsAt && <CostsTable />}
                 <div
                   draggable={armed === i}
                   onDragStart={() => setDragI(i)}
@@ -205,7 +117,6 @@ export default function Planning() {
           <button onClick={() => setAddMenu("end")} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
         )}
 
-        {costsAt === -1 && <CostsTable />}
       </div>
     </div>
   );
