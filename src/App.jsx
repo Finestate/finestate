@@ -166,7 +166,27 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
   const others = users.filter((u) => !u.isMe);
 
   return (
-    <div className="fixed top-4 right-6 z-30 flex items-center gap-3">
+    // Secondary top strip: its own region above the page, for the account chip,
+    // the admin preview picker and later things like alerts.
+    <div className="fixed top-0 left-60 right-0 z-30 flex h-11 items-center gap-3 border-b border-neutral-200 bg-white px-6">
+      <div className="flex-1" />
+      <div className="group relative flex items-center">
+        <button className="inline-flex items-center gap-1 text-[11px] text-neutral-500 transition-colors group-hover:text-neutral-800">
+          {email}
+          <ChevronDown size={12} />
+        </button>
+        <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
+          <div className="flex min-w-[150px] flex-col rounded-md border border-neutral-200 bg-white py-1 shadow-lg">
+            <button
+              onClick={onSignOut}
+              className="flex items-center gap-2 px-3 py-1.5 text-left text-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+            >
+              <LogOut size={12} /> Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+
       {isRealAdmin && (
         <div className="group relative flex items-center">
           <button
@@ -207,23 +227,6 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
           </div>
         </div>
       )}
-
-      <div className="group relative flex items-center">
-        <button className="inline-flex items-center gap-1 text-[11px] text-neutral-500 transition-colors group-hover:text-neutral-800">
-          {email}
-          <ChevronDown size={12} />
-        </button>
-        <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
-          <div className="flex min-w-[150px] flex-col rounded-md border border-neutral-200 bg-white py-1 shadow-lg">
-            <button
-              onClick={onSignOut}
-              className="flex items-center gap-2 px-3 py-1.5 text-left text-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
-            >
-              <LogOut size={12} /> Sign out
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -341,7 +344,7 @@ export default function App() {
         onSignOut={signOut}
       />
 
-      <main className="relative z-10 min-h-screen pl-[17rem] pr-8 py-8">
+      <main className="relative z-10 min-h-screen pl-[17rem] pr-8 pb-8 pt-16">
         {!canSee(route) ? (
           <p className="text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
             You do not have access to this page.
