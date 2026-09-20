@@ -93,16 +93,7 @@ function Sidebar({ route, onGo, allowed }) {
     >
       <div className="flex items-center px-6 pt-6 pb-2">
         <button onClick={() => onGo("home")} aria-label="Home" className="cursor-pointer">
-          {/* The original mark, a touch larger and fattened with matching outlines. */}
-          <img
-            src={infinityImg}
-            alt="FI"
-            className="h-8 w-auto"
-            style={{
-              filter:
-                "drop-shadow(0.7px 0 0 #7f5022) drop-shadow(-0.7px 0 0 #7f5022) drop-shadow(0 0.7px 0 #7f5022) drop-shadow(0 -0.7px 0 #7f5022)",
-            }}
-          />
+          <img src={infinityImg} alt="FI" className="h-6 w-auto" />
         </button>
       </div>
 
