@@ -10,7 +10,6 @@ import {
   Receipt,
   Users,
   ChevronDown,
-  LogOut,
 } from "lucide-react";
 import Investing from "./Investing.jsx";
 import Opportunities from "./Opportunities.jsx";
@@ -179,9 +178,9 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
           <div className="flex min-w-[150px] flex-col rounded-md border border-neutral-200 bg-white py-1 shadow-lg">
             <button
               onClick={onSignOut}
-              className="flex items-center gap-2 px-3 py-1.5 text-left text-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+              className="px-3 py-1.5 text-left text-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
             >
-              <LogOut size={12} /> Sign out
+              Sign out
             </button>
           </div>
         </div>
