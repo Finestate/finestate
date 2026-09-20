@@ -8,6 +8,17 @@ const HEADER_BG = "#FCEFCF";  // header row – mid
 const SUBHEAD_BG = "#FDF7E8"; // sub-header row – lowest
 const ROWS_KEY = "finestate.planning.rows";
 const TITLE_KEY = "finestate.planning.title";
+const COSTS_KEY = "finestate.planning.costs";
+const COSTS_TITLE_KEY = "finestate.planning.costs.title";
+
+// Seeded once; after that the user's edits in localStorage win.
+const COSTS_SEED = [
+  { item: "Anthropic (Claude API)", price: "" },
+  { item: "Domain name", price: "" },
+  { item: "GitHub", price: "" },
+  { item: "Stock data API", price: "" },
+  { item: "Vercel", price: "" },
+];
 
 let _idc = 0;
 const newId = () => "p" + Date.now().toString(36) + "-" + (_idc++);
@@ -16,6 +27,52 @@ function AutoTextarea({ value, onChange, ...props }) {
   const ref = useRef(null);
   useEffect(() => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }, [value]);
   return <textarea ref={ref} value={value} onChange={onChange} rows={1} {...props} />;
+}
+
+// Small two-column costs table – same dimensions/fonts as the planning table above.
+function CostsTable() {
+  const [title, setTitle] = useState(() => { try { return localStorage.getItem(COSTS_TITLE_KEY) || "Site running costs"; } catch { return "Site running costs"; } });
+  const [rows, setRows] = useState(() => {
+    try {
+      const p = JSON.parse(localStorage.getItem(COSTS_KEY) || "null");
+      if (Array.isArray(p)) return p;
+    } catch {}
+    return COSTS_SEED.map((c) => ({ id: newId(), ...c }));
+  });
+
+  const persist = (next) => { setRows(next); try { localStorage.setItem(COSTS_KEY, JSON.stringify(next)); } catch {} };
+  const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(COSTS_TITLE_KEY, val); } catch {} };
+  const update = (i, key, val) => persist(rows.map((r, idx) => (idx === i ? { ...r, [key]: val } : r)));
+  const remove = (i) => persist(rows.filter((_, idx) => idx !== i));
+  const move = (i, d) => { const j = i + d; if (j < 0 || j >= rows.length) return; const next = rows.slice(); [next[i], next[j]] = [next[j], next[i]]; persist(next); };
+  const add = () => persist([...rows, { id: newId(), item: "", price: "" }]);
+
+  return (
+    <div className="mt-4 w-full max-w-md border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
+      <div className="flex items-center gap-2 px-2.5 py-1 border-b-2 border-neutral-400" style={{ backgroundColor: BAR_BG }}>
+        <input value={title} onChange={(e) => saveTitle(e.target.value)} className="flex-1 bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
+        <span className="w-20 shrink-0 text-right text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">Cost</span>
+        <span className="w-[54px] shrink-0" />
+      </div>
+
+      <div>
+        {rows.map((r, i) => (
+          <div key={r.id} className={`flex items-center gap-2 px-2.5 py-0.5 ${i === 0 ? "" : "border-t border-neutral-300"}`}>
+            <input value={r.item} onChange={(e) => update(i, "item", e.target.value)} placeholder="Cost item" className="flex-1 bg-transparent py-0.5 text-[11px] leading-snug text-neutral-700 outline-none placeholder:text-neutral-300" />
+            <input value={r.price} onChange={(e) => update(i, "price", e.target.value)} placeholder="–" className="w-20 shrink-0 bg-transparent py-0.5 text-right text-[11px] leading-snug tabular-nums text-neutral-700 outline-none placeholder:text-neutral-300" />
+            <div className="flex w-[54px] shrink-0 items-center justify-end gap-1">
+              <button onClick={() => move(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-300 hover:text-neutral-600 disabled:opacity-25"><ChevronUp size={12} /></button>
+              <button onClick={() => move(i, 1)} disabled={i === rows.length - 1} title="Move down" className="text-neutral-300 hover:text-neutral-600 disabled:opacity-25"><ChevronDown size={12} /></button>
+              <button onClick={() => remove(i)} title="Delete" className="text-neutral-300 hover:text-[#C1440E]"><Trash2 size={12} /></button>
+            </div>
+          </div>
+        ))}
+        {rows.length === 0 && <p className="px-2.5 py-3 text-[12px] text-neutral-400 italic">Empty. Use Add below to start.</p>}
+      </div>
+
+      <button onClick={add} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
+    </div>
+  );
 }
 
 export default function Planning() {
@@ -86,6 +143,8 @@ export default function Planning() {
           <button onClick={() => setAddMenu("end")} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
         )}
       </div>
+
+      <CostsTable />
     </div>
   );
 }
