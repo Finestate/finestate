@@ -19,7 +19,7 @@ function AutoTextarea({ value, onChange, ...props }) {
 }
 
 export default function Planning() {
-  const [title, setTitle] = useState(() => { try { return localStorage.getItem(TITLE_KEY) || "Planning"; } catch { return "Planning"; } });
+  const [title, setTitle] = useState(() => { try { return localStorage.getItem(TITLE_KEY) || "8"; } catch { return "8"; } });
   const [rows, setRows] = useState(() => { try { const p = JSON.parse(localStorage.getItem(ROWS_KEY) || "null"); return Array.isArray(p) ? p : []; } catch { return []; } });
   const [addMenu, setAddMenu] = useState(null); // row index whose insert menu is open, or "end"
 
