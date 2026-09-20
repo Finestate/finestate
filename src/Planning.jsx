@@ -222,6 +222,7 @@ export default function Planning() {
                       <span
                         key={m.id}
                         draggable={editing !== m.id}
+                        onDoubleClick={(e) => { e.stopPropagation(); setEditing(m.id); }}
                         onDragStart={(e) => { e.stopPropagation(); setDrag({ from: "line", lineIdx: idx, index: mi, id: m.id }); }}
                         onDragEnd={() => setDrag(null)}
                         onDragOver={(e) => e.preventDefault()}
@@ -233,14 +234,16 @@ export default function Planning() {
                         }}
                         className={`inline-flex cursor-grab items-center gap-1 text-[12px] leading-snug text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
                       >
+                        {/* Click and drag moves it, double click puts the caret in. */}
                         <input
+                          ref={(el) => { if (el && editing === m.id && document.activeElement !== el) el.focus(); }}
                           value={m.name}
+                          readOnly={editing !== m.id}
                           onClick={(e) => e.stopPropagation()}
                           onChange={(e) => renameMeeting(m.id, e.target.value)}
-                          onFocus={() => setEditing(m.id)}
                           onBlur={() => setEditing(null)}
                           style={{ width: `${Math.max(2, m.name.length)}ch` }}
-                          className="bg-transparent leading-snug outline-none"
+                          className={`bg-transparent leading-snug outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
                         />
                         <button
                           onClick={(e) => { e.stopPropagation(); dropMeeting(idx, m.id); }}
@@ -279,6 +282,7 @@ export default function Planning() {
                     <div
                       key={m.id}
                       draggable={editing !== m.id}
+                      onDoubleClick={() => setEditing(m.id)}
                       onDragStart={() => setDrag({ from: "pool", index: mi, id: m.id })}
                       onDragEnd={() => setDrag(null)}
                       onDragOver={(e) => e.preventDefault()}
@@ -286,11 +290,12 @@ export default function Planning() {
                       className={`flex h-full w-full cursor-grab items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 active:cursor-grabbing ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.index === mi ? "opacity-40" : ""}`}
                     >
                       <input
+                        ref={(el) => { if (el && editing === m.id && document.activeElement !== el) el.focus(); }}
                         value={m.name}
+                        readOnly={editing !== m.id}
                         onChange={(e) => renameMeeting(m.id, e.target.value)}
-                        onFocus={() => setEditing(m.id)}
                         onBlur={() => setEditing(null)}
-                        className="min-w-0 flex-1 bg-transparent leading-snug outline-none"
+                        className={`min-w-0 flex-1 bg-transparent leading-snug outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
                       />
                       <button
                         onClick={() => saveMeetings(meetings.filter((x) => x.id !== m.id))}
