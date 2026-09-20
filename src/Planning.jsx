@@ -85,6 +85,7 @@ export default function Planning() {
   const [newMeeting, setNewMeeting] = useState("");
   const [newPermanent, setNewPermanent] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [dragM, setDragM] = useState(null); // meeting box being dragged into a new order
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
   const [dragI, setDragI] = useState(null);     // row being dragged
   const [armed, setArmed] = useState(null);     // row whose grip is held, so only the grip starts a drag
@@ -118,6 +119,13 @@ export default function Planning() {
     }
     patchLine(idx, { meetings: [...line.meetings, m] });
     if (!m.permanent) saveMeetings(meetings.filter((x) => x.id !== m.id));
+  };
+  const moveMeeting = (from, to) => {
+    if (from == null || to == null || from === to) return;
+    const next = meetings.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    saveMeetings(next);
   };
   const dropMeeting = (idx, id) => patchLine(idx, { meetings: todoLines[idx].meetings.filter((x) => x.id !== id) });
   const addMeeting = () => {
@@ -181,10 +189,15 @@ export default function Planning() {
               <div className="border-t border-neutral-200 bg-white px-2.5 py-2">
                 <div className="text-[9px] font-bold uppercase tracking-wide text-neutral-400">Meetings:</div>
                 <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-                  {meetings.map((m) => (
+                  {meetings.map((m, mi) => (
                     <label
                       key={m.id}
-                      className="group flex cursor-pointer items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
+                      draggable
+                      onDragStart={() => setDragM(mi)}
+                      onDragEnd={() => setDragM(null)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => { moveMeeting(dragM, mi); setDragM(null); }}
+                      className={`group flex cursor-pointer items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragM === mi ? "opacity-40" : ""}`}
                     >
                       <input
                         type="checkbox"
@@ -218,10 +231,6 @@ export default function Planning() {
                         placeholder="Meeting"
                         className="w-64 bg-transparent text-[11px] outline-none placeholder:text-neutral-300"
                       />
-                      <label className="flex cursor-pointer items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-neutral-400">
-                        <input type="checkbox" checked={newPermanent} onChange={(e) => setNewPermanent(e.target.checked)} className="h-3 w-3" style={{ accentColor: GOLD }} />
-                        Keep
-                      </label>
                       <button onClick={() => { addMeeting(); setAdding(false); }} title="Save" className="text-[#9c7c33] hover:opacity-70">
                         <Plus size={12} />
                       </button>
