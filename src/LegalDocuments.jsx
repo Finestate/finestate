@@ -213,7 +213,7 @@ export default function LegalDocuments() {
                       <span key={c.key} style={{ width: c.w }} className={`shrink-0 ${head}`}>{c.label}</span>
                     ))}
                   </span>
-                  <span className="w-8 shrink-0" />
+                  <span className="flex w-8 shrink-0 items-center justify-end pr-1 text-neutral-900"><Trash2 size={12} /></span>
                 </div>
               </div>
             ) : (
