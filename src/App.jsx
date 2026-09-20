@@ -18,6 +18,7 @@ import SiteRunningCosts from "./SiteRunningCosts.jsx";
 import Logins from "./Logins.jsx";
 import Auth from "./Auth.jsx";
 import { supabase, supabaseReady } from "./lib/supabaseClient.js";
+import infinityImg from "../Website Images/Infinity.webp";
 import { ALL_PAGE_IDS } from "./pages.js";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
