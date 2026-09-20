@@ -13,9 +13,8 @@ const TODO_ITEMS_KEY = "finestate.planning.todoItems";
 const TODO_LINES_KEY = "finestate.planning.todoLines";
 const TODO_OPEN_KEY = "finestate.planning.todoOpen";
 
-// The two checklist lines that sit under the Daily routine heading: today, and the
+// Two identical checklist lines under the Daily routine heading: today, and the
 // next day being planned while today is still in front of you.
-const LINE_LABELS = ["Today", "Next day"];
 
 // Insert options: the bottom of the table can start a new section, a section's own
 // add bar only offers the two row kinds that live inside it.
@@ -84,9 +83,8 @@ export default function Planning() {
                 title="Choose to-dos"
                 className="flex flex-1 items-center gap-1.5 px-2.5 py-0.5 text-left hover:bg-neutral-50"
               >
-                <span className="w-16 shrink-0 text-[10px] font-bold uppercase tracking-wide text-neutral-400">{LINE_LABELS[idx]}</span>
-                {chosen.length > 0 && <span className="py-0.5 text-[12px] leading-snug text-neutral-900">{chosen.join("-")}</span>}
                 <ChevronDown size={14} className={`shrink-0 text-neutral-500 transition-transform ${open ? "rotate-180" : ""}`} />
+                {chosen.length > 0 && <span className="py-0.5 text-[12px] leading-snug text-neutral-900">{chosen.join("-")}</span>}
               </button>
               {idx === 1 && (
                 <button onClick={swapLines} title="Make this today" className="shrink-0 pr-2 text-neutral-400 hover:text-[#9c7c33]">
