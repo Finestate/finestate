@@ -159,10 +159,12 @@ export default function Planning() {
     <>
       {todoLines.map((line, idx) => {
         const open = todoOpen === idx;
-        const codes = TODO_ITEMS.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
+        // Selected points keep their group on the line: meetings, core codes, then the rest.
+        const coreCodes = TODO_CORE.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
+        const restCodes = TODO_REST.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           <div key={idx} className="border-t border-neutral-300 bg-white">
-            <div className="flex items-center">
+            <div className="flex items-start">
               <button
                 onClick={() => openLine(open ? null : idx)}
                 title="Choose to-dos"
@@ -171,17 +173,24 @@ export default function Planning() {
                 <ChevronDown size={14} className={`text-neutral-500 transition-transform ${open ? "rotate-180" : ""}`} />
               </button>
 
-              <div className="flex flex-1 flex-wrap items-center gap-1.5 py-0.5 pr-2">
-                {line.meetings.map((m) => (
-                  <span key={m.id} className="group inline-flex items-center gap-1 text-[12px] leading-snug text-neutral-900">
-                    {m.name}
-                    <button onClick={() => dropMeeting(idx, m.id)} title="Remove" className="text-neutral-300 hover:text-[#C1440E]">
-                      <Trash2 size={10} />
-                    </button>
-                  </span>
-                ))}
-                {codes.length > 0 && (
-                  <span className="text-[12px] leading-snug text-neutral-900">{codes.join(" · ")}</span>
+              <div className="flex flex-1 flex-col gap-0.5 py-0.5 pr-2">
+                {line.meetings.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {line.meetings.map((m) => (
+                      <span key={m.id} className="group inline-flex items-center gap-1 text-[12px] leading-snug text-neutral-900">
+                        {m.name}
+                        <button onClick={() => dropMeeting(idx, m.id)} title="Remove" className="text-neutral-300 hover:text-[#C1440E]">
+                          <Trash2 size={10} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {coreCodes.length > 0 && (
+                  <div className="text-[12px] leading-snug text-neutral-900">{coreCodes.join(" · ")}</div>
+                )}
+                {restCodes.length > 0 && (
+                  <div className="text-[12px] leading-snug text-neutral-900">{restCodes.join(" · ")}</div>
                 )}
               </div>
 
