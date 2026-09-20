@@ -105,6 +105,38 @@ function DateCell({ value, onChange }) {
   );
 }
 
+// Anything that looks like an address shows as a link reading "Link to document".
+const isUrl = (v) => /^(https?:\/\/|www\.)/i.test(String(v || "").trim());
+
+function LinkCell({ value, onChange }) {
+  const [editing, setEditing] = useState(false);
+  if (!editing && isUrl(value)) {
+    const href = /^www\./i.test(value.trim()) ? `https://${value.trim()}` : value.trim();
+    return (
+      <span className="flex w-full items-center" onDoubleClick={() => setEditing(true)} title="Double click to edit">
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="truncate text-[12px] leading-snug underline underline-offset-2"
+          style={{ color: GOLD }}
+        >
+          Link to document
+        </a>
+      </span>
+    );
+  }
+  return (
+    <input
+      value={value || ""}
+      autoFocus={editing}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={() => setEditing(false)}
+      className={cell}
+    />
+  );
+}
+
 let _idc = 0;
 const newId = () => "l" + Date.now().toString(36) + "-" + (_idc++);
 
@@ -191,6 +223,8 @@ export default function LegalDocuments() {
                     <span key={c.key} style={{ width: c.w }} className="shrink-0">
                       {c.key === "issued" || c.key === "expiry" ? (
                         <DateCell value={r[c.key] || ""} onChange={(v) => update(i, c.key, v)} />
+                      ) : c.key === "scan" ? (
+                        <LinkCell value={r.scan || ""} onChange={(v) => update(i, "scan", v)} />
                       ) : (
                         <input value={r[c.key] || ""} onChange={(e) => update(i, c.key, e.target.value)} className={cell} />
                       )}
