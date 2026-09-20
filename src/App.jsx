@@ -9,6 +9,7 @@ import {
   Shield,
   Receipt,
   FileText,
+  Compass,
   Users,
   ChevronDown,
 } from "lucide-react";
