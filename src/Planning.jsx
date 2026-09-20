@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell, Bold, List, IndentIncrease, IndentDecrease } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell, List, IndentIncrease, IndentDecrease } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -71,6 +71,14 @@ const SECTION_TYPES = [["Sub-title", "subheader"], ["Row", "text"]];
 let _idc = 0;
 const newId = () => "p" + Date.now().toString(36) + "-" + (_idc++);
 
+// Each visual line needs its own block element, otherwise the browser cannot
+// bullet or indent one line at a time.
+const toBlocks = (html) => {
+  const h = String(html || "");
+  if (!/<br\s*\/?>/i.test(h)) return h;
+  return h.split(/<br\s*\/?>/i).map((part) => `<div>${part.trim() ? part : "<br>"}</div>`).join("");
+};
+
 const escapeHtml = (s) =>
   String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -107,9 +115,12 @@ export default function Planning() {
     try {
       const p = JSON.parse(localStorage.getItem(ROWS_KEY) || "null");
       if (!Array.isArray(p)) return [];
-      // Text rows written before rich editing carry their words in `text`.
+      // Text rows written before rich editing carry their words in `text`, and every
+      // visual line becomes its own block so it can be bulleted or indented alone.
       return p.map((r) =>
-        r.type === "text" && r.html == null ? { ...r, html: escapeHtml(r.text).replace(/\n/g, "<br>") } : r
+        r.type !== "text"
+          ? r
+          : { ...r, html: toBlocks(r.html == null ? escapeHtml(r.text).replace(/\n/g, "<br>") : r.html) }
       );
     } catch { return []; }
   });
@@ -162,13 +173,14 @@ export default function Planning() {
     setActiveRow(row.id);
     setTimeout(() => lineRefs.current[row.id]?.focus(), 0);
   };
-  // Word style: whatever is highlighted in the active row turns bold, or back again.
-  const boldSelection = (i) => {
+  // Word style: the ribbon runs the browser's own command on whatever is selected,
+  // so bold hits the highlighted words and bullets or indent hit those lines only.
+  const applyCmd = (i, cmd) => {
     const r = rows[i];
     const el = r && lineRefs.current[r.id];
     if (!el) return;
     el.focus();
-    document.execCommand("bold");
+    document.execCommand(cmd);
     updateHtml(i, el.innerHTML);
   };
   const bump = (i, d) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, indent: Math.max(0, Math.min(6, (r.indent || 0) + d)) } : r)));
@@ -281,7 +293,7 @@ export default function Planning() {
 
   let anchorIdx = rows.findIndex((r) => r.id === todoAnchor && r.type !== "text");
   if (anchorIdx < 0) anchorIdx = rows.findIndex(matchesTodoName);
-  if (anchorIdx < 0) anchorIdx = rows.findIndex((r) => r.type !== "text");
+  // No such heading: the checklist sits at the top and no heading gets locked.
 
   useEffect(() => {
     const r = rows[anchorIdx];
@@ -291,7 +303,7 @@ export default function Planning() {
     }
   }, [anchorIdx, rows, todoAnchor]);
 
-  const isTodoHeader = (r) => r && rows[anchorIdx] && r.id === rows[anchorIdx].id;
+  const isTodoHeader = (r) => anchorIdx >= 0 && r && rows[anchorIdx] && r.id === rows[anchorIdx].id;
 
   // Codes on a line are split by a small solid gold square rather than a dot.
   const renderCodeLine = (list) => (
@@ -533,7 +545,7 @@ export default function Planning() {
           title="Bold the highlighted words"
           className={!r ? off : on}
         >
-          <Bold size={15} strokeWidth={2.75} />
+          <span className="font-serif text-[15px] font-bold leading-none">B</span>
         </button>
         <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "insertUnorderedList")} title="Bullet the selected lines" className={!r ? off : on}><List size={15} strokeWidth={2.75} /></button>
         <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "outdent")} title="Decrease indent" className={!r ? off : on}><IndentDecrease size={15} strokeWidth={2.75} /></button>
@@ -559,6 +571,9 @@ export default function Planning() {
         <div className="px-2.5 py-1 border-b-2 border-neutral-400" style={{ backgroundColor: BAR_BG }}>
           <input value={title} onChange={(e) => saveTitle(e.target.value)} className="block w-full bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
         </div>
+
+        {/* With no Daily routine heading to hang under, the checklist sits up here. */}
+        {anchorIdx < 0 && renderTodoLines()}
 
         <div>
           {rows.map((r, i) => {
