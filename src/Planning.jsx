@@ -381,7 +381,11 @@ export default function Planning() {
                   </div>
                 )}
                 {line.meetings.length === 0 && coreCodes.length === 0 && restCodes.length === 0 && (
-                  <span className="my-[7px] inline-block h-[5px] w-[5px] bg-neutral-300" />
+                  <span className="my-[7px] inline-flex items-center gap-1.5">
+                    {[0, 1, 2, 3, 4].map((n) => (
+                      <span key={n} className="inline-block h-[5px] w-[5px] bg-neutral-300" />
+                    ))}
+                  </span>
                 )}
                 {coreCodes.length > 0 && renderCodeLine(coreCodes)}
                 {restCodes.length > 0 && renderCodeLine(restCodes)}
