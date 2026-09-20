@@ -10,9 +10,9 @@ const HEADER_BG = "#FCEFCF";
 const COLS = [
   { key: "item", label: "Document or ID", w: "40%" },
   { key: "number", label: "Number", w: "20%" },
-  { key: "issued", label: "Issued / renewed", w: "15%" },
-  { key: "expiry", label: "Expiry", w: "15%" },
-  { key: "scan", label: "Scan", w: "10%" },
+  { key: "issued", label: "Issue date", w: "15%" },
+  { key: "expiry", label: "Expiry date", w: "15%" },
+  { key: "scan", label: "Server link", w: "10%" },
 ];
 
 const GOLD = "#9c7c33";
