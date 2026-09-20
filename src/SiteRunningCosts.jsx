@@ -68,7 +68,7 @@ export default function SiteRunningCosts() {
         </div>
 
         <div className="flex items-center gap-2 border-t-2 border-neutral-400 px-2.5 py-1">
-          <span className="flex-1 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">Total / month</span>
+          <span className="flex-1 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">Total monthly cost</span>
           <div className="flex w-24 shrink-0 items-center justify-start gap-1">
             <span className="text-[12px] font-black leading-snug text-neutral-900">USD</span>
             <span className="text-[12px] font-black leading-snug tabular-nums text-neutral-900">{total.toFixed(2)}</span>
