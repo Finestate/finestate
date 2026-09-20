@@ -47,6 +47,8 @@ const NAV = [
   },
 ];
 
+const VIEW_AS_KEY = "finestate.viewAs";
+
 const LEAF_IDS = [
   "home",
   ...NAV.flatMap((s) => (s.children ? s.children.map((c) => c.id) : [s.id])),
@@ -60,7 +62,7 @@ function readRoute() {
   return LEAF_IDS.includes(h) ? h : "home";
 }
 
-function Sidebar({ route, onGo, allowed, email, onSignOut }) {
+function Sidebar({ route, onGo, allowed }) {
   const isHome = route === "home";
   const [openId, setOpenId] = useState(() => {
     const parent = NAV.find((s) => s.children?.some((c) => c.id === route));
@@ -154,16 +156,75 @@ function Sidebar({ route, onGo, allowed, email, onSignOut }) {
         })}
       </nav>
 
-      <div className="border-t border-neutral-200 px-3 py-2">
-        <div className="truncate px-1 text-[10px] text-neutral-400">{email}</div>
-        <button
-          onClick={onSignOut}
-          className="mt-1 flex w-full items-center gap-2 rounded-md px-1 py-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 hover:text-neutral-900 hover:bg-black/[0.04] transition-colors"
-        >
-          <LogOut size={13} className="shrink-0" /> Sign out
-        </button>
-      </div>
     </aside>
+  );
+}
+
+// Top-right: who is signed in, plus the admin's "view as" preview picker.
+function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
+  const viewing = viewAs ? users.find((u) => u.id === viewAs) : null;
+  const others = users.filter((u) => !u.isMe);
+
+  return (
+    <div className="fixed top-4 right-6 z-30 flex items-center gap-3">
+      {isRealAdmin && (
+        <div className="group relative flex items-center">
+          <button
+            className={
+              "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] transition-colors " +
+              (viewing
+                ? "border-[#C1440E]/40 bg-[#C1440E]/10 text-[#C1440E]"
+                : "border-neutral-300 text-neutral-600 group-hover:border-neutral-400 group-hover:text-neutral-900")
+            }
+          >
+            {viewing ? `Viewing as ${viewing.email}` : "View as"}
+            <ChevronDown size={12} />
+          </button>
+          <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
+            <div className="flex w-60 flex-col rounded-md border border-neutral-200 bg-white py-1 shadow-lg">
+              <button
+                onClick={() => onViewAs(null)}
+                className={`px-3 py-1.5 text-left text-[11px] transition-colors hover:bg-neutral-100 ${!viewAs ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
+              >
+                Me (Admin){!viewAs ? " ✓" : ""}
+              </button>
+              <div className="my-1 border-t border-neutral-200" />
+              <div className="flex max-h-72 flex-col overflow-y-auto">
+                {others.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() => onViewAs(u.id)}
+                    className={`px-3 py-1.5 text-left text-[11px] transition-colors hover:bg-neutral-100 ${viewAs === u.id ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
+                  >
+                    {u.email}{viewAs === u.id ? " ✓" : ""}
+                  </button>
+                ))}
+                {others.length === 0 && (
+                  <p className="px-3 py-1.5 text-[11px] italic text-neutral-300">No other users yet.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="group relative flex items-center">
+        <button className="inline-flex items-center gap-1 text-[11px] text-neutral-500 transition-colors group-hover:text-neutral-800">
+          {email}
+          <ChevronDown size={12} />
+        </button>
+        <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
+          <div className="flex min-w-[150px] flex-col rounded-md border border-neutral-200 bg-white py-1 shadow-lg">
+            <button
+              onClick={onSignOut}
+              className="flex items-center gap-2 px-3 py-1.5 text-left text-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+            >
+              <LogOut size={12} /> Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -190,6 +251,13 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [profile, setProfile] = useState(null);
   const [profileReady, setProfileReady] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
+  // Admin preview: null means "me", otherwise the id of the person whose view to show.
+  const [viewAs, setViewAs] = useState(() => { try { return localStorage.getItem(VIEW_AS_KEY) || null; } catch { return null; } });
+
+  useEffect(() => {
+    try { if (viewAs) localStorage.setItem(VIEW_AS_KEY, viewAs); else localStorage.removeItem(VIEW_AS_KEY); } catch {}
+  }, [viewAs]);
 
   useEffect(() => {
     const onHash = () => setRoute(readRoute());
@@ -215,6 +283,16 @@ export default function App() {
       .single()
       .then(({ data }) => { setProfile(data || null); setProfileReady(true); });
   }, [session]);
+
+  // Everyone else, for the admin's "view as" list. RLS returns only this row for members.
+  useEffect(() => {
+    if (!profile || profile.role !== "admin") { setAllUsers([]); return; }
+    supabase
+      .from("profiles")
+      .select("id, email, full_name, role, status, access")
+      .order("created_at", { ascending: true })
+      .then(({ data }) => setAllUsers(data || []));
+  }, [profile]);
 
   const go = (r) => {
     setRoute(r);
@@ -243,13 +321,25 @@ export default function App() {
     );
   }
 
-  const isAdmin = profile.role === "admin";
-  const allowed = isAdmin ? ALL_PAGE_IDS : profile.access || [];
+  const realIsAdmin = profile.role === "admin";
+  // While previewing, every access decision uses the other person's row instead of mine.
+  const viewed = realIsAdmin && viewAs ? allUsers.find((u) => u.id === viewAs) : null;
+  const eff = viewed || profile;
+  const isAdmin = eff.role === "admin";
+  const allowed = isAdmin ? ALL_PAGE_IDS : eff.access || [];
   const canSee = (id) => id === "home" || allowed.includes(id);
 
   return (
     <div className="relative min-h-screen bg-[#FBF3E4]">
-      <Sidebar route={route} onGo={go} allowed={allowed} email={profile.email} onSignOut={signOut} />
+      <Sidebar route={route} onGo={go} allowed={allowed} />
+      <TopBar
+        email={eff.email}
+        isRealAdmin={realIsAdmin}
+        users={allUsers.map((u) => ({ ...u, isMe: u.id === profile.id }))}
+        viewAs={viewAs}
+        onViewAs={setViewAs}
+        onSignOut={signOut}
+      />
 
       <main className="relative z-10 min-h-screen pl-[17rem] pr-8 py-8">
         {!canSee(route) ? (
@@ -261,6 +351,11 @@ export default function App() {
             {route === "admin/planning" && <Planning />}
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/logins" && isAdmin && <Logins myId={profile.id} />}
+            {route === "home" && (
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
+                Welcome{eff.full_name ? `, ${eff.full_name}` : ""}.
+              </p>
+            )}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}
           </>
