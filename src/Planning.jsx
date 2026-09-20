@@ -407,7 +407,7 @@ export default function Planning() {
                 {["core", "rest"].map((g) => (
                   <div key={g} className="mt-2 border-t border-[#C1440E] pt-2">
                     <div className="mb-1 flex items-center">
-                      {g === "core" ? <DollarSign size={13} style={{ color: GOLD }} /> : <Dumbbell size={13} style={{ color: GOLD }} />}
+                      {g === "core" ? <DollarSign size={13} style={{ color: GOLD }} /> : <Dumbbell size={13} style={{ color: GOLD, transform: "scaleY(-1)" }} />}
                     </div>
                     <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
                       {points[g].map((it, pi) => (
