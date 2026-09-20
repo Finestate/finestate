@@ -67,7 +67,14 @@ function Sidebar({ route, onGo, allowed }) {
     const parent = NAV.find((s) => s.children?.some((c) => c.id === route));
     return parent ? parent.id : null;
   });
-  const toggle = (id) => setOpenId((o) => (o === id ? null : id));
+  // Opening a section also lands on its first page, so you never sit on the old screen.
+  const toggle = (sec) => {
+    setOpenId((o) => (o === sec.id ? null : sec.id));
+    if (openId !== sec.id) {
+      const first = sec.children.find((c) => allowed.includes(c.id));
+      if (first) onGo(first.id);
+    }
+  };
   const can = (id) => allowed.includes(id);
 
   const sectionCls = (active) =>
@@ -122,7 +129,7 @@ function Sidebar({ route, onGo, allowed }) {
           const parentActive = sec.children.some((c) => c.id === route);
           return (
             <div key={sec.id}>
-              <button onClick={() => toggle(sec.id)} className={sectionCls(parentActive)}>
+              <button onClick={() => toggle(sec)} className={sectionCls(parentActive)}>
                 <Icon size={16} className="shrink-0" />
                 <span className="flex-1 text-left">{sec.name}</span>
                 <ChevronDown
