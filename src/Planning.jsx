@@ -12,6 +12,7 @@ const TITLE_KEY = "finestate.planning.title";
 const TODO_LINES_KEY = "finestate.planning.todoLines";
 const TODO_OPEN_KEY = "finestate.planning.todoOpen";
 const MEETINGS_KEY = "finestate.planning.meetings";
+const TODO_ANCHOR_KEY = "finestate.planning.todoAnchor";
 
 // Two identical checklist lines under the Daily routine heading: today, and the
 // next day being planned while today is still in front of you.
@@ -95,6 +96,7 @@ export default function Planning() {
   // What is being dragged: a box from the picker, or a name already on a line.
   const [drag, setDrag] = useState(null);
   const [editing, setEditing] = useState(null); // meeting being typed in, so dragging steps aside
+  const [todoAnchor, setTodoAnchor] = useState(() => { try { return localStorage.getItem(TODO_ANCHOR_KEY) || null; } catch { return null; } });
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
   const [dragI, setDragI] = useState(null);     // row being dragged
   const [armed, setArmed] = useState(null);     // row whose grip is held, so only the grip starts a drag
@@ -180,9 +182,24 @@ export default function Planning() {
   // The heading a given row sits under, so the Daily routine section can hide its Add bar.
   const headingFor = (i) => { for (let j = i; j >= 0; j--) if (rows[j].type !== "text") return rows[j]; return null; };
 
-  // A Daily routine / To-dos heading is what the two checklist lines hang under.
-  const isTodoHeader = (r) =>
+  // The two checklist lines hang under one heading. It is found by name the first
+  // time, then remembered by id, so renaming that heading cannot detach them.
+  const matchesTodoName = (r) =>
     r.type !== "text" && /dailyroutine|todo|todos/.test((r.text || "").toLowerCase().replace(/[^a-z]/g, ""));
+
+  let anchorIdx = rows.findIndex((r) => r.id === todoAnchor && r.type !== "text");
+  if (anchorIdx < 0) anchorIdx = rows.findIndex(matchesTodoName);
+  if (anchorIdx < 0) anchorIdx = rows.findIndex((r) => r.type !== "text");
+
+  useEffect(() => {
+    const r = rows[anchorIdx];
+    if (r && r.id !== todoAnchor) {
+      setTodoAnchor(r.id);
+      try { localStorage.setItem(TODO_ANCHOR_KEY, r.id); } catch {}
+    }
+  }, [anchorIdx, rows, todoAnchor]);
+
+  const isTodoHeader = (r) => r && rows[anchorIdx] && r.id === rows[anchorIdx].id;
 
   // Codes on a line are split by a small solid gold square rather than a dot.
   const renderCodeLine = (list) => (
