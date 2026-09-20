@@ -140,7 +140,6 @@ function Sidebar({ route, onGo, allowed }) {
               {isOpen && (
                 <div className="mt-0.5 flex flex-col">
                   {sec.children.map((ch) => {
-                    const CI = ch.icon;
                     const locked = !can(ch.id);
                     return (
                       <button
@@ -150,7 +149,6 @@ function Sidebar({ route, onGo, allowed }) {
                         onClick={() => { setOpenId(sec.id); onGo(ch.id); }}
                         className={subCls(route === ch.id, locked)}
                       >
-                        {CI && <CI size={14} className="shrink-0" />}
                         <span className="text-left">{ch.name}</span>
                       </button>
                     );
