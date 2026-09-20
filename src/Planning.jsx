@@ -16,11 +16,14 @@ const MEETINGS_KEY = "finestate.planning.meetings";
 // Two identical checklist lines under the Daily routine heading: today, and the
 // next day being planned while today is still in front of you.
 // These fixed points are maintained here in code – ask for changes when they shift.
-const TODO_ITEMS = [
+const TODO_CORE = [
   { code: "A-HEIEDR" },
   { code: "B-SIDR" },
   { code: "C-SYDR" },
   { code: "D-SFDR" },
+];
+
+const TODO_REST = [
   { code: "GWM(textaudiorecordaitalkwritegrammarongo-perhetab-twicedaily)" },
   { code: "SC(CCEDB)" },
   { code: "Safetyaudit" },
@@ -48,6 +51,8 @@ const TODO_ITEMS = [
   { code: "Errandsprios()" },
   { code: "Sleepeight" },
 ];
+
+const TODO_ITEMS = [...TODO_CORE, ...TODO_REST];
 
 const emptyLine = () => ({ codes: [], meetings: [] });
 // Older saves held a bare array of codes.
@@ -187,8 +192,7 @@ export default function Planning() {
 
             {open && (
               <div className="border-t border-neutral-200 bg-white px-2.5 py-2">
-                <div className="text-[9px] font-bold uppercase tracking-wide text-neutral-400">Meetings:</div>
-                <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5">
                   {meetings.map((m, mi) => (
                     <label
                       key={m.id}
@@ -246,24 +250,25 @@ export default function Planning() {
                   )}
                 </div>
 
-                <div className="mt-3 text-[9px] font-bold uppercase tracking-wide text-neutral-400">Daily:</div>
-                <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-                  {TODO_ITEMS.map((it) => (
-                    <label
-                      key={it.code}
-                      className="flex cursor-pointer items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={line.codes.includes(it.code)}
-                        onChange={() => toggleTodo(idx, it.code)}
-                        className="h-3.5 w-3.5 shrink-0"
-                        style={{ accentColor: GOLD }}
-                      />
-                      <span className="whitespace-nowrap leading-snug">{it.code}</span>
-                    </label>
-                  ))}
-                </div>
+                {[TODO_CORE, TODO_REST].map((group, gi) => (
+                  <div key={gi} className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-neutral-200 pt-2">
+                    {group.map((it) => (
+                      <label
+                        key={it.code}
+                        className="flex cursor-pointer items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={line.codes.includes(it.code)}
+                          onChange={() => toggleTodo(idx, it.code)}
+                          className="h-3.5 w-3.5 shrink-0"
+                          style={{ accentColor: GOLD }}
+                        />
+                        <span className="whitespace-nowrap leading-snug">{it.code}</span>
+                      </label>
+                    ))}
+                  </div>
+                ))}
               </div>
             )}
           </div>
