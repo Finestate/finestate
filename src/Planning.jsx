@@ -381,7 +381,7 @@ export default function Planning() {
                   </div>
                 )}
                 {line.meetings.length === 0 && coreCodes.length === 0 && restCodes.length === 0 && (
-                  <span className="text-[12px] leading-snug text-neutral-300">Ready.</span>
+                  <span className="my-[7px] inline-block h-[5px] w-[5px] bg-neutral-300" />
                 )}
                 {coreCodes.length > 0 && renderCodeLine(coreCodes)}
                 {restCodes.length > 0 && renderCodeLine(restCodes)}
