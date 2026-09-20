@@ -159,6 +159,12 @@ export default function Planning() {
     <>
       {todoLines.map((line, idx) => {
         const open = todoOpen === idx;
+        // Meetings show in the order set in the dropdown; one-offs that have left the
+        // picker keep the order they were added in, after the pinned ones.
+        const lineMeetings = line.meetings
+          .map((m, i) => { const p = meetings.findIndex((x) => x.id === m.id); return { m, k: p === -1 ? Number.MAX_SAFE_INTEGER : p, i }; })
+          .sort((a, b) => a.k - b.k || a.i - b.i)
+          .map((x) => x.m);
         // Selected points keep their group on the line: meetings, core codes, then the rest.
         const coreCodes = TODO_CORE.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         const restCodes = TODO_REST.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
@@ -176,7 +182,7 @@ export default function Planning() {
               <div className="flex flex-1 flex-col gap-0.5 py-0.5 pr-2">
                 {line.meetings.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2">
-                    {line.meetings.map((m) => (
+                    {lineMeetings.map((m) => (
                       <span key={m.id} className="group inline-flex items-center gap-1 text-[12px] leading-snug text-neutral-900">
                         {m.name}
                         <button onClick={() => dropMeeting(idx, m.id)} title="Remove" className="text-neutral-300 hover:text-[#C1440E]">
