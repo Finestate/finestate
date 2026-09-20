@@ -94,6 +94,7 @@ export default function Planning() {
   const [adding, setAdding] = useState(false);
   // What is being dragged: a box from the picker, or a name already on a line.
   const [drag, setDrag] = useState(null);
+  const [editing, setEditing] = useState(null); // meeting being typed in, so dragging steps aside
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
   const [dragI, setDragI] = useState(null);     // row being dragged
   const [armed, setArmed] = useState(null);     // row whose grip is held, so only the grip starts a drag
@@ -143,12 +144,26 @@ export default function Planning() {
     }
     setDrag(null);
   };
+  // Dragging a name off a line and into the picker puts it back in the list.
+  const returnToPool = (lineIdx) => {
+    if (drag?.from === "line") {
+      const m = todoLines[drag.lineIdx].meetings.find((x) => x.id === drag.id);
+      patchLine(drag.lineIdx, { meetings: todoLines[drag.lineIdx].meetings.filter((x) => x.id !== drag.id) });
+      if (m && !meetings.some((x) => x.id === m.id)) saveMeetings([...meetings, m]);
+    }
+    setDrag(null);
+  };
   const moveMeeting = (from, to) => {
     if (from == null || to == null || from === to) return;
     const next = meetings.slice();
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
     saveMeetings(next);
+  };
+  // Renaming reaches the picker copy and every line that already carries it.
+  const renameMeeting = (id, name) => {
+    saveMeetings(meetings.map((m) => (m.id === id ? { ...m, name } : m)));
+    saveLines(todoLines.map((l) => ({ ...l, meetings: l.meetings.map((m) => (m.id === id ? { ...m, name } : m)) })));
   };
   // A pinned meeting stays in the picker after use; an unpinned one is a one-off.
   const togglePermanent = (id) => saveMeetings(meetings.map((m) => (m.id === id ? { ...m, permanent: !m.permanent } : m)));
@@ -208,7 +223,7 @@ export default function Planning() {
                     {line.meetings.map((m, mi) => (
                       <span
                         key={m.id}
-                        draggable
+                        draggable={editing !== m.id}
                         onDragStart={(e) => { e.stopPropagation(); setDrag({ from: "line", lineIdx: idx, index: mi, id: m.id }); }}
                         onDragEnd={() => setDrag(null)}
                         onDragOver={(e) => e.preventDefault()}
@@ -220,7 +235,15 @@ export default function Planning() {
                         }}
                         className={`inline-flex cursor-grab items-center gap-1 text-[12px] leading-snug text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
                       >
-                        {m.name}
+                        <input
+                          value={m.name}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => renameMeeting(m.id, e.target.value)}
+                          onFocus={() => setEditing(m.id)}
+                          onBlur={() => setEditing(null)}
+                          style={{ width: `${Math.max(2, m.name.length)}ch` }}
+                          className="bg-transparent leading-snug outline-none"
+                        />
                         <button
                           onClick={(e) => { e.stopPropagation(); dropMeeting(idx, m.id); }}
                           title="Remove"
@@ -249,24 +272,33 @@ export default function Planning() {
 
             {open && (
               <div className="border-t border-[#C1440E] bg-white px-2.5 py-2">
-                <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
+                <div
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => returnToPool(idx)}
+                  className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4"
+                >
                   {meetings.map((m, mi) => (
                     <div
                       key={m.id}
-                      draggable
+                      draggable={editing !== m.id}
                       onDragStart={() => setDrag({ from: "pool", index: mi, id: m.id })}
                       onDragEnd={() => setDrag(null)}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => { if (drag?.from === "pool") moveMeeting(drag.index, mi); setDrag(null); }}
                       className={`flex h-full w-full cursor-grab items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 active:cursor-grabbing ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.index === mi ? "opacity-40" : ""}`}
                     >
-                      <span
+                      <button
                         onClick={() => togglePermanent(m.id)}
-                        title={m.permanent ? "Permanent – click to make it a one-off" : "One-off – click to keep it permanently"}
-                        className="min-w-0 flex-1 break-words leading-snug"
-                      >
-                        {m.name}
-                      </span>
+                        title={m.permanent ? "Permanent – click to make it a one-off" : "One-off – click to keep it permanent"}
+                        className={`mt-[3px] h-2.5 w-2.5 shrink-0 border ${m.permanent ? "border-[#C1440E] bg-[#C1440E]" : "border-neutral-300 bg-white hover:border-neutral-500"}`}
+                      />
+                      <input
+                        value={m.name}
+                        onChange={(e) => renameMeeting(m.id, e.target.value)}
+                        onFocus={() => setEditing(m.id)}
+                        onBlur={() => setEditing(null)}
+                        className="min-w-0 flex-1 bg-transparent leading-snug outline-none"
+                      />
                       <button
                         onClick={() => saveMeetings(meetings.filter((x) => x.id !== m.id))}
                         title="Remove this meeting"
