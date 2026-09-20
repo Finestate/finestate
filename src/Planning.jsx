@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, GripVertical, ChevronUp, Pin } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChevronUp } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -92,7 +92,8 @@ export default function Planning() {
   const [newMeeting, setNewMeeting] = useState("");
   const [newPermanent, setNewPermanent] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [dragM, setDragM] = useState(null); // meeting box being dragged into a new order
+  // What is being dragged: a box from the picker, or a name already on a line.
+  const [drag, setDrag] = useState(null);
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
   const [dragI, setDragI] = useState(null);     // row being dragged
   const [armed, setArmed] = useState(null);     // row whose grip is held, so only the grip starts a drag
@@ -126,6 +127,21 @@ export default function Planning() {
     }
     patchLine(idx, { meetings: [...line.meetings, m] });
     if (!m.permanent) saveMeetings(meetings.filter((x) => x.id !== m.id));
+  };
+  const moveInLine = (lineIdx, from, to) => {
+    if (from == null || to == null || from === to) return;
+    const arr = todoLines[lineIdx].meetings.slice();
+    const [moved] = arr.splice(from, 1);
+    arr.splice(to, 0, moved);
+    patchLine(lineIdx, { meetings: arr });
+  };
+  // Dropping a picker box anywhere on a line adds it to that line.
+  const dropOnLine = (lineIdx) => {
+    if (drag?.from === "pool") {
+      const m = meetings.find((x) => x.id === drag.id);
+      if (m && !todoLines[lineIdx].meetings.some((x) => x.id === m.id)) pickMeeting(lineIdx, m);
+    }
+    setDrag(null);
   };
   const moveMeeting = (from, to) => {
     if (from == null || to == null || from === to) return;
@@ -173,12 +189,6 @@ export default function Planning() {
     <>
       {todoLines.map((line, idx) => {
         const open = todoOpen === idx;
-        // Meetings show in the order set in the dropdown; one-offs that have left the
-        // picker keep the order they were added in, after the pinned ones.
-        const lineMeetings = line.meetings
-          .map((m, i) => { const p = meetings.findIndex((x) => x.id === m.id); return { m, k: p === -1 ? Number.MAX_SAFE_INTEGER : p, i }; })
-          .sort((a, b) => a.k - b.k || a.i - b.i)
-          .map((x) => x.m);
         // Selected points keep their group on the line: meetings, core codes, then the rest.
         const coreCodes = TODO_CORE.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         const restCodes = TODO_REST.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
@@ -187,14 +197,29 @@ export default function Planning() {
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(open ? null : idx)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => dropOnLine(idx)}
               title="Choose to-dos"
               className="flex min-h-[22px] cursor-pointer items-start hover:bg-neutral-50"
             >
               <div className="flex flex-1 flex-col gap-0.5 px-2.5 py-0.5">
                 {line.meetings.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2">
-                    {lineMeetings.map((m) => (
-                      <span key={m.id} className="group inline-flex items-center gap-1 text-[12px] leading-snug text-neutral-900">
+                    {line.meetings.map((m, mi) => (
+                      <span
+                        key={m.id}
+                        draggable
+                        onDragStart={(e) => { e.stopPropagation(); setDrag({ from: "line", lineIdx: idx, index: mi, id: m.id }); }}
+                        onDragEnd={() => setDrag(null)}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.stopPropagation();
+                          if (drag?.from === "line" && drag.lineIdx === idx) moveInLine(idx, drag.index, mi);
+                          else dropOnLine(idx);
+                          setDrag(null);
+                        }}
+                        className={`inline-flex cursor-grab items-center gap-1 text-[12px] leading-snug text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
+                      >
                         {m.name}
                         <button
                           onClick={(e) => { e.stopPropagation(); dropMeeting(idx, m.id); }}
@@ -229,36 +254,31 @@ export default function Planning() {
                     <label
                       key={m.id}
                       draggable
-                      onDragStart={() => setDragM(mi)}
-                      onDragEnd={() => setDragM(null)}
+                      onDragStart={() => setDrag({ from: "pool", index: mi, id: m.id })}
+                      onDragEnd={() => setDrag(null)}
                       onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => { moveMeeting(dragM, mi); setDragM(null); }}
-                      className={`group flex h-full w-full cursor-pointer items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragM === mi ? "opacity-40" : ""}`}
+                      onDrop={() => { if (drag?.from === "pool") moveMeeting(drag.index, mi); setDrag(null); }}
+                      className={`group flex h-full w-full cursor-grab items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${drag?.from === "pool" && drag.index === mi ? "opacity-40" : ""}`}
                     >
                       <input
                         type="checkbox"
                         checked={line.meetings.some((x) => x.id === m.id)}
                         onChange={() => pickMeeting(idx, m)}
                         className="h-3.5 w-3.5 shrink-0"
-                        style={{ accentColor: GOLD }}
+                        title={m.permanent ? "Permanent – stays here after use" : "One-off – leaves here once used"}
+                        style={{ accentColor: m.permanent ? "#C1440E" : GOLD }}
                       />
-                      <span className="min-w-0 flex-1 break-words leading-snug">{m.name}</span>
-                      <button
+                      <span
                         onClick={(e) => { e.preventDefault(); togglePermanent(m.id); }}
-                        title={m.permanent ? "Permanent – click to make it a one-off" : "One-off – click to keep it permanently"}
-                        className={
-                          "shrink-0 " +
-                          (m.permanent
-                            ? "text-[#9c7c33]"
-                            : "hidden text-neutral-300 hover:text-neutral-600 group-hover:block")
-                        }
+                        title={m.permanent ? "Permanent – click the name to make it a one-off" : "One-off – click the name to keep it permanently"}
+                        className="min-w-0 flex-1 break-words leading-snug"
                       >
-                        <Pin size={11} />
-                      </button>
+                        {m.name}
+                      </span>
                       <button
                         onClick={(e) => { e.preventDefault(); saveMeetings(meetings.filter((x) => x.id !== m.id)); }}
                         title="Remove this meeting"
-                        className="hidden shrink-0 text-neutral-300 hover:text-[#C1440E] group-hover:block"
+                        className="shrink-0 text-neutral-300 hover:text-[#C1440E]"
                       >
                         <Trash2 size={11} />
                       </button>
