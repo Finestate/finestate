@@ -19,6 +19,7 @@ import Logins from "./Logins.jsx";
 import Auth from "./Auth.jsx";
 import { supabase, supabaseReady } from "./lib/supabaseClient.js";
 import { ALL_PAGE_IDS } from "./pages.js";
+import infinityImg from "../Website Images/Infinity.webp";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
 const NAV = [
@@ -91,11 +92,8 @@ function Sidebar({ route, onGo, allowed }) {
       }
     >
       <div className="flex items-center px-6 pt-6 pb-2">
-        {/* Drawn rather than an image, so the stroke can be thick and properly gold. */}
         <button onClick={() => onGo("home")} aria-label="Home" className="cursor-pointer">
-          <svg viewBox="0 0 64 40" className="h-7 w-auto" fill="none" stroke="#c2a15a" strokeWidth="6" strokeLinecap="round">
-            <path d="M20 32c-6.6 0-12-5.4-12-12S13.4 8 20 8c9 0 15 24 24 24 6.6 0 12-5.4 12-12S50.6 8 44 8C35 8 29 32 20 32z" />
-          </svg>
+          <img src={infinityImg} alt="FI" className="h-6 w-auto" />
         </button>
       </div>
 
