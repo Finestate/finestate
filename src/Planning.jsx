@@ -579,7 +579,9 @@ export default function Planning() {
 
         <div>
           {rows.map((r, i) => {
-            const bg = r.type === "header" ? BAR_BG : r.type === "subheader" ? SUBHEAD_BG : "#fff";
+            // A sub-title only steps down a shade when a main header sits above it.
+            const underHeader = rows.slice(0, i).some((x) => x.type === "header");
+            const bg = r.type === "text" ? "#fff" : r.type === "header" || !underHeader ? BAR_BG : SUBHEAD_BG;
             // The heading the checklist hangs under is locked: no typing, no bin, no dragging.
             const locked = isTodoHeader(r);
             const field = locked ? (

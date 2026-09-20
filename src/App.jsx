@@ -93,9 +93,19 @@ function Sidebar({ route, onGo, allowed }) {
         (isHome ? "bg-transparent" : "border-r border-neutral-200 bg-white")
       }
     >
-      <div className="flex items-center px-6 pt-6 pb-2">
+      {/* Logo block, split off from the nav by a thin line. The mark bottom right
+          jumps straight to Planning, as on the other sites. */}
+      <div className="relative flex items-center border-b border-black/10 px-6 pt-6 pb-2">
         <button onClick={() => onGo("home")} aria-label="Home" className="cursor-pointer">
           <img src={infinityImg} alt="FI" className="h-11 w-auto" />
+        </button>
+        <button
+          onClick={() => { setOpenId("admin"); onGo("admin/planning"); }}
+          title="Planning"
+          aria-label="Planning"
+          className="absolute bottom-1.5 right-2 text-[#9c7c33] transition-opacity hover:opacity-70"
+        >
+          <Compass size={16} strokeWidth={2.25} />
         </button>
       </div>
 
