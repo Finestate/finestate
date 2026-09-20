@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell, List, IndentIncrease, IndentDecrease } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, Calendar, DollarSign, Dumbbell, List, ChevronsRight, ChevronsLeft } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -545,11 +545,11 @@ export default function Planning() {
           title="Bold the highlighted words"
           className={!r ? off : on}
         >
-          <span className="font-serif text-[15px] font-bold leading-none">B</span>
+          <span className="text-[14px] font-black leading-none tracking-tight">B</span>
         </button>
-        <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "insertUnorderedList")} title="Bullet the selected lines" className={!r ? off : on}><List size={15} strokeWidth={2.75} /></button>
-        <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "outdent")} title="Decrease indent" className={!r ? off : on}><IndentDecrease size={15} strokeWidth={2.75} /></button>
-        <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "indent")} title="Increase indent" className={!r ? off : on}><IndentIncrease size={15} strokeWidth={2.75} /></button>
+        <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "insertUnorderedList")} title="Bullet the selected lines" className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}><List size={15} strokeWidth={2.75} /></button>
+        <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "outdent")} title="Decrease indent" className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}><ChevronsLeft size={15} strokeWidth={2.75} /></button>
+        <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "indent")} title="Increase indent" className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}><ChevronsRight size={15} strokeWidth={2.75} /></button>
       </div>
     );
   };
