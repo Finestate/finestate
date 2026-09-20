@@ -71,6 +71,30 @@ const SECTION_TYPES = [["Sub-title", "subheader"], ["Row", "text"]];
 let _idc = 0;
 const newId = () => "p" + Date.now().toString(36) + "-" + (_idc++);
 
+const escapeHtml = (s) =>
+  String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+// A row of rich text. Uncontrolled on purpose: React never rewrites the markup while
+// you type, so the caret stays put and part-line bold survives.
+function RichLine({ html, onInput, onFocus, innerRef, className }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (el && el.innerHTML !== (html || "")) el.innerHTML = html || "";
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <div
+      ref={(el) => { ref.current = el; if (innerRef) innerRef(el); }}
+      contentEditable
+      suppressContentEditableWarning
+      onInput={(e) => onInput(e.currentTarget.innerHTML)}
+      onFocus={onFocus}
+      className={className}
+    />
+  );
+}
+
 function AutoTextarea({ value, onChange, ...props }) {
   const ref = useRef(null);
   useEffect(() => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }, [value]);
@@ -79,7 +103,16 @@ function AutoTextarea({ value, onChange, ...props }) {
 
 export default function Planning() {
   const [title, setTitle] = useState(() => { try { return localStorage.getItem(TITLE_KEY) || "Planning"; } catch { return "Planning"; } });
-  const [rows, setRows] = useState(() => { try { const p = JSON.parse(localStorage.getItem(ROWS_KEY) || "null"); return Array.isArray(p) ? p : []; } catch { return []; } });
+  const [rows, setRows] = useState(() => {
+    try {
+      const p = JSON.parse(localStorage.getItem(ROWS_KEY) || "null");
+      if (!Array.isArray(p)) return [];
+      // Text rows written before rich editing carry their words in `text`.
+      return p.map((r) =>
+        r.type === "text" && r.html == null ? { ...r, html: escapeHtml(r.text).replace(/\n/g, "<br>") } : r
+      );
+    } catch { return []; }
+  });
   const [addMenu, setAddMenu] = useState(null); // row index whose insert menu is open, or "end"
   const [todoLines, setTodoLines] = useState(() => {
     try {
@@ -114,12 +147,23 @@ export default function Planning() {
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
 
 
+  const lineRefs = useRef({}); // row id -> its editable element, for the ribbon
   const persistRows = (next) => { setRows(next); try { localStorage.setItem(ROWS_KEY, JSON.stringify(next)); } catch {} };
   const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(TITLE_KEY, val); } catch {} };
   const update = (i, text) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, text } : r)));
   const remove = (i) => persistRows(rows.filter((_, idx) => idx !== i));
   const moveRow = (i, d) => { const j = i + d; if (j < 0 || j >= rows.length) return; const next = rows.slice(); [next[i], next[j]] = [next[j], next[i]]; persistRows(next); };
   const toggleFlag = (i, key) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, [key]: !r[key] } : r)));
+  const updateHtml = (i, html) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, html } : r)));
+  // Word style: whatever is highlighted in the active row turns bold, or back again.
+  const boldSelection = (i) => {
+    const r = rows[i];
+    const el = r && lineRefs.current[r.id];
+    if (!el) return;
+    el.focus();
+    document.execCommand("bold");
+    updateHtml(i, el.innerHTML);
+  };
   const bump = (i, d) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, indent: Math.max(0, Math.min(6, (r.indent || 0) + d)) } : r)));
   const insertAt = (i, type) => { persistRows([...rows.slice(0, i), { id: newId(), type, text: "" }, ...rows.slice(i)]); setAddMenu(null); };
 
@@ -471,11 +515,19 @@ export default function Planning() {
     while (end < rows.length && rows[end].type === "text") end++;
     const target = rows.findIndex((r, k) => r.id === activeRow && k > headerIdx && k < end);
     const r = target >= 0 ? rows[target] : null;
-    const off = "text-neutral-300 cursor-not-allowed";
-    const on = "text-neutral-700 hover:text-[#9c7c33]";
+    // Always the same black as the text, whether a row is selected or not.
+    const off = "text-neutral-900";
+    const on = "text-neutral-900 hover:text-[#9c7c33]";
     return (
       <div className="flex items-center gap-3 border-b border-neutral-300 bg-neutral-50 px-2.5 py-1">
-        <button disabled={!r} onClick={() => toggleFlag(target, "bold")} title="Bold this row" className={!r ? off : r.bold ? "text-[#9c7c33]" : on}><Bold size={15} strokeWidth={2.75} /></button>
+        <button
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => boldSelection(target)}
+          title="Bold the highlighted words"
+          className={!r ? off : on}
+        >
+          <Bold size={15} strokeWidth={2.75} />
+        </button>
         <button disabled={!r} onClick={() => toggleFlag(target, "bullet")} title="Bullet this row" className={!r ? off : r.bullet ? "text-[#9c7c33]" : on}><List size={15} strokeWidth={2.75} /></button>
         <button disabled={!r || !(r.indent > 0)} onClick={() => bump(target, -1)} title="Decrease indent" className={!r || !(r.indent > 0) ? off : on}><IndentDecrease size={15} strokeWidth={2.75} /></button>
         <button disabled={!r} onClick={() => bump(target, 1)} title="Increase indent" className={!r ? off : on}><IndentIncrease size={15} strokeWidth={2.75} /></button>
@@ -512,11 +564,12 @@ export default function Planning() {
               // Bold, bullet and indent are per row and never change the text size.
               <div className="flex flex-1 items-start gap-1" style={{ paddingLeft: (r.indent || 0) * 16 }}>
                 {r.bullet && <span className="py-0.5 text-[12px] leading-snug text-neutral-900">•</span>}
-                <AutoTextarea
-                  value={r.text}
-                  onChange={(e) => update(i, e.target.value)}
+                <RichLine
+                  html={r.html ?? escapeHtml(r.text)}
+                  innerRef={(el) => { lineRefs.current[r.id] = el; }}
                   onFocus={() => setActiveRow(r.id)}
-                  className={`flex-1 resize-none overflow-hidden bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none ${r.bold ? "font-bold" : ""}`}
+                  onInput={(html) => updateHtml(i, html)}
+                  className="min-h-[18px] flex-1 whitespace-pre-wrap break-words bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none"
                 />
               </div>
             ) : (
