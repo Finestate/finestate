@@ -192,7 +192,7 @@ export default function Planning() {
 
             {open && (
               <div className="border-t border-[#C1440E] bg-white px-2.5 py-2">
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
                   {meetings.map((m, mi) => (
                     <label
                       key={m.id}
@@ -201,7 +201,7 @@ export default function Planning() {
                       onDragEnd={() => setDragM(null)}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => { moveMeeting(dragM, mi); setDragM(null); }}
-                      className={`group flex cursor-pointer items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragM === mi ? "opacity-40" : ""}`}
+                      className={`group flex h-full w-full cursor-pointer items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragM === mi ? "opacity-40" : ""}`}
                     >
                       <input
                         type="checkbox"
@@ -210,7 +210,7 @@ export default function Planning() {
                         className="h-3.5 w-3.5 shrink-0"
                         style={{ accentColor: GOLD }}
                       />
-                      <span className="whitespace-nowrap leading-snug">{m.name}</span>
+                      <span className="min-w-0 break-words leading-snug">{m.name}</span>
                       {m.permanent && <span className="shrink-0 text-[9px] uppercase text-neutral-300">fixed</span>}
                       <button
                         onClick={(e) => { e.preventDefault(); saveMeetings(meetings.filter((x) => x.id !== m.id)); }}
@@ -223,7 +223,7 @@ export default function Planning() {
                   ))}
 
                   {adding ? (
-                    <span className="flex items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
+                    <span className="flex h-full w-full items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
                       <input
                         autoFocus
                         value={newMeeting}
@@ -233,7 +233,7 @@ export default function Planning() {
                           if (e.key === "Escape") { setNewMeeting(""); setAdding(false); }
                         }}
                         placeholder="Meeting"
-                        className="w-64 bg-transparent text-[11px] outline-none placeholder:text-neutral-300"
+                        className="w-full min-w-0 bg-transparent text-[11px] outline-none placeholder:text-neutral-300"
                       />
                       <button onClick={() => { addMeeting(); setAdding(false); }} title="Save" className="text-[#9c7c33] hover:opacity-70">
                         <Plus size={12} />
@@ -243,7 +243,7 @@ export default function Planning() {
                     <button
                       onClick={() => setAdding(true)}
                       title="Add a meeting"
-                      className="flex items-center rounded border border-neutral-300 bg-white px-1.5 py-1 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                      className="flex h-full w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 py-1 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
                     >
                       <Plus size={12} />
                     </button>
@@ -251,11 +251,11 @@ export default function Planning() {
                 </div>
 
                 {[TODO_CORE, TODO_REST].map((group, gi) => (
-                  <div key={gi} className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-[#C1440E] pt-2">
+                  <div key={gi} className="mt-2 grid grid-cols-2 items-stretch gap-1.5 border-t border-[#C1440E] pt-2 sm:grid-cols-3 lg:grid-cols-4">
                     {group.map((it) => (
                       <label
                         key={it.code}
-                        className="flex cursor-pointer items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
+                        className="flex h-full w-full cursor-pointer items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
                       >
                         <input
                           type="checkbox"
@@ -264,7 +264,7 @@ export default function Planning() {
                           className="h-3.5 w-3.5 shrink-0"
                           style={{ accentColor: GOLD }}
                         />
-                        <span className="whitespace-nowrap leading-snug">{it.code}</span>
+                        <span className="min-w-0 break-words leading-snug">{it.code}</span>
                       </label>
                     ))}
                   </div>
