@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Trash2, GripVertical } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -19,6 +19,11 @@ const COSTS_SEED = [
   { item: "Stock data API", price: "0.00" },
   { item: "Vercel", price: "0.00" },
 ];
+
+// Insert options: the bottom of the table can start a new section, a section's own
+// add bar only offers the two row kinds that live inside it.
+const ALL_TYPES = [["Header", "header"], ["Sub-title", "subheader"], ["Row", "text"]];
+const SECTION_TYPES = [["Sub-title", "subheader"], ["Row", "text"]];
 
 let _idc = 0;
 const newId = () => "p" + Date.now().toString(36) + "-" + (_idc++);
@@ -41,11 +46,14 @@ function CostsTable() {
     return COSTS_SEED.map((c) => ({ id: newId(), ...c }));
   });
 
+  const [dragI, setDragI] = useState(null);
+  const [armed, setArmed] = useState(null);
+
   const persist = (next) => { setRows(next); try { localStorage.setItem(COSTS_KEY, JSON.stringify(next)); } catch {} };
   const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(COSTS_TITLE_KEY, val); } catch {} };
   const update = (i, key, val) => persist(rows.map((r, idx) => (idx === i ? { ...r, [key]: val } : r)));
   const remove = (i) => persist(rows.filter((_, idx) => idx !== i));
-  const move = (i, d) => { const j = i + d; if (j < 0 || j >= rows.length) return; const next = rows.slice(); [next[i], next[j]] = [next[j], next[i]]; persist(next); };
+  const reorder = (from, to) => { if (from == null || to == null || from === to) return; const next = rows.slice(); const [moved] = next.splice(from, 1); next.splice(to, 0, moved); persist(next); };
   const add = () => persist([...rows, { id: newId(), item: "", price: "0.00" }]);
 
   return (
@@ -58,15 +66,29 @@ function CostsTable() {
 
       <div>
         {rows.map((r, i) => (
-          <div key={r.id} className={`flex items-center gap-2 px-2.5 py-0.5 ${i === 0 ? "" : "border-t border-neutral-300"}`}>
-            <input value={r.item} onChange={(e) => update(i, "item", e.target.value)} placeholder="Cost item" className="flex-1 bg-transparent py-0.5 text-[11px] leading-snug text-neutral-700 outline-none placeholder:text-neutral-300" />
-            <div className="flex w-24 shrink-0 items-center gap-1">
-              <span className="text-[11px] leading-snug text-neutral-400">USD</span>
-              <input value={r.price} onChange={(e) => update(i, "price", e.target.value)} placeholder="0.00" className="w-full bg-transparent py-0.5 text-right text-[11px] leading-snug tabular-nums text-neutral-700 outline-none placeholder:text-neutral-300" />
+          <div
+            key={r.id}
+            draggable={armed === i}
+            onDragStart={() => setDragI(i)}
+            onDragEnd={() => { setDragI(null); setArmed(null); }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => { reorder(dragI, i); setDragI(null); setArmed(null); }}
+            className={`flex items-center gap-2 px-2.5 py-0.5 ${i === 0 ? "" : "border-t border-neutral-300"} ${dragI === i ? "opacity-40" : ""}`}
+          >
+            <input value={r.item} onChange={(e) => update(i, "item", e.target.value)} placeholder="Cost item" className="flex-1 bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none placeholder:text-neutral-300" />
+            <div className="flex w-24 shrink-0 items-center justify-end gap-1">
+              <span className="text-[12px] leading-snug text-neutral-900">USD</span>
+              <input value={r.price} onChange={(e) => update(i, "price", e.target.value)} placeholder="0.00" className="w-14 bg-transparent py-0.5 text-right text-[12px] leading-snug tabular-nums text-neutral-900 outline-none placeholder:text-neutral-300" />
             </div>
             <div className="flex w-[54px] shrink-0 items-center justify-end gap-1">
-              <button onClick={() => move(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-300 hover:text-neutral-600 disabled:opacity-25"><ChevronUp size={12} /></button>
-              <button onClick={() => move(i, 1)} disabled={i === rows.length - 1} title="Move down" className="text-neutral-300 hover:text-neutral-600 disabled:opacity-25"><ChevronDown size={12} /></button>
+              <span
+                onMouseDown={() => setArmed(i)}
+                onMouseUp={() => setArmed(null)}
+                title="Drag to reorder"
+                className="cursor-grab text-neutral-300 hover:text-neutral-600 active:cursor-grabbing"
+              >
+                <GripVertical size={12} />
+              </span>
               <button onClick={() => remove(i)} title="Delete" className="text-neutral-300 hover:text-[#C1440E]"><Trash2 size={12} /></button>
             </div>
           </div>
@@ -83,21 +105,24 @@ export default function Planning() {
   const [title, setTitle] = useState(() => { try { return localStorage.getItem(TITLE_KEY) || "Planning"; } catch { return "Planning"; } });
   const [rows, setRows] = useState(() => { try { const p = JSON.parse(localStorage.getItem(ROWS_KEY) || "null"); return Array.isArray(p) ? p : []; } catch { return []; } });
   const [addMenu, setAddMenu] = useState(null); // row index whose insert menu is open, or "end"
+  const [dragI, setDragI] = useState(null);     // row being dragged
+  const [armed, setArmed] = useState(null);     // row whose grip is held, so only the grip starts a drag
+
 
   const persistRows = (next) => { setRows(next); try { localStorage.setItem(ROWS_KEY, JSON.stringify(next)); } catch {} };
   const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(TITLE_KEY, val); } catch {} };
   const update = (i, text) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, text } : r)));
   const remove = (i) => persistRows(rows.filter((_, idx) => idx !== i));
-  const move = (i, d) => { const j = i + d; if (j < 0 || j >= rows.length) return; const next = rows.slice(); [next[i], next[j]] = [next[j], next[i]]; persistRows(next); };
+  const reorder = (from, to) => { if (from == null || to == null || from === to) return; const next = rows.slice(); const [moved] = next.splice(from, 1); next.splice(to, 0, moved); persistRows(next); };
   const insertAt = (i, type) => { persistRows([...rows.slice(0, i), { id: newId(), type, text: "" }, ...rows.slice(i)]); setAddMenu(null); };
 
   // The costs sub-table sits just above the Priorities header; with no such header it goes last.
   const costsAt = rows.findIndex((r) => r.type !== "text" && /priorit/i.test(r.text));
 
-  const TypeMenu = ({ at }) => (
+  const TypeMenu = ({ at, opts = ALL_TYPES }) => (
     <div className="flex flex-wrap items-center gap-2 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1">
       <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Insert:</span>
-      {[["Header", "header"], ["Sub-header", "subheader"], ["Row", "text"]].map(([lbl, type]) => (
+      {opts.map(([lbl, type]) => (
         <button key={type} onClick={() => insertAt(at, type)} className="min-w-[84px] rounded border border-neutral-300 bg-white px-2 py-0.5 text-center text-[10px] font-semibold text-neutral-600 hover:bg-neutral-100 transition-colors">{lbl}</button>
       ))}
       <button onClick={() => setAddMenu(null)} className="ml-1 text-[10px] font-semibold uppercase tracking-wide text-[#9c7c33] hover:opacity-70 transition-opacity">Cancel</button>
@@ -116,7 +141,7 @@ export default function Planning() {
           {rows.map((r, i) => {
             const bg = r.type === "header" ? HEADER_BG : r.type === "subheader" ? SUBHEAD_BG : "#fff";
             const field = r.type === "text" ? (
-              <AutoTextarea value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 resize-none overflow-hidden bg-transparent py-0.5 text-[11px] leading-snug text-neutral-700 outline-none" />
+              <AutoTextarea value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 resize-none overflow-hidden bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none" />
             ) : (
               <input value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
             );
@@ -125,19 +150,40 @@ export default function Planning() {
             const prevHeader = i > 0 && rows[i - 1].type === "header";
             const topBorder = i === 0 ? "" : r.type === "header" ? "border-t-2 border-neutral-400" : prevHeader ? "" : "border-t border-neutral-300";
             const botBorder = r.type === "header" ? "border-b-2 border-neutral-400" : "";
+            // A section ends where the next header starts; the final section uses the bottom Add.
+            const sectionEnd = i < rows.length - 1 && rows[i + 1].type === "header";
             return (
               <div key={r.id}>
                 {i === costsAt && <CostsTable />}
-                <div className={`flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5`} style={{ backgroundColor: bg }}>
+                <div
+                  draggable={armed === i}
+                  onDragStart={() => setDragI(i)}
+                  onDragEnd={() => { setDragI(null); setArmed(null); }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => { reorder(dragI, i); setDragI(null); setArmed(null); }}
+                  className={`flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5 ${dragI === i ? "opacity-40" : ""}`}
+                  style={{ backgroundColor: bg }}
+                >
                   {field}
                   <div className="flex shrink-0 items-center gap-1 py-0.5">
-                    <button onClick={() => move(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-300 hover:text-neutral-600 disabled:opacity-25"><ChevronUp size={12} /></button>
-                    <button onClick={() => move(i, 1)} disabled={i === rows.length - 1} title="Move down" className="text-neutral-300 hover:text-neutral-600 disabled:opacity-25"><ChevronDown size={12} /></button>
-                    <button onClick={() => setAddMenu(addMenu === i ? null : i)} title="Insert below" className="text-[#9c7c33] hover:opacity-70"><Plus size={12} /></button>
+                    <span
+                      onMouseDown={() => setArmed(i)}
+                      onMouseUp={() => setArmed(null)}
+                      title="Drag to reorder"
+                      className="cursor-grab text-neutral-300 hover:text-neutral-600 active:cursor-grabbing"
+                    >
+                      <GripVertical size={12} />
+                    </span>
                     <button onClick={() => remove(i)} title="Delete" className="text-neutral-300 hover:text-[#C1440E]"><Trash2 size={12} /></button>
                   </div>
                 </div>
-                {addMenu === i && <TypeMenu at={i + 1} />}
+                {addMenu === i ? (
+                  <TypeMenu at={i + 1} opts={SECTION_TYPES} />
+                ) : (
+                  sectionEnd && (
+                    <button onClick={() => setAddMenu(i)} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
+                  )
+                )}
               </div>
             );
           })}
