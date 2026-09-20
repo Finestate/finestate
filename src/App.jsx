@@ -18,7 +18,6 @@ import SiteRunningCosts from "./SiteRunningCosts.jsx";
 import Logins from "./Logins.jsx";
 import Auth from "./Auth.jsx";
 import { supabase, supabaseReady } from "./lib/supabaseClient.js";
-import infinityImg from "../Website Images/Infinity.webp";
 import { ALL_PAGE_IDS } from "./pages.js";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
@@ -100,7 +99,17 @@ function Sidebar({ route, onGo, allowed }) {
     >
       <div className="flex items-center px-6 pt-6 pb-2">
         <button onClick={() => onGo("home")} aria-label="Home" className="cursor-pointer">
-          <img src={infinityImg} alt="FI" className="h-11 w-auto" />
+          {/* Drawn as a heavy sideways eight, gold shaded top to bottom. */}
+          <svg viewBox="0 0 100 46" className="h-10 w-auto" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16" stroke="url(#fiGold)">
+            <defs>
+              <linearGradient id="fiGold" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#e3c275" />
+                <stop offset="0.5" stopColor="#b9883a" />
+                <stop offset="1" stopColor="#8a5f22" />
+              </linearGradient>
+            </defs>
+            <path d="M50 23 C61 7 93 7 93 23 C93 39 61 39 50 23 C39 7 7 7 7 23 C7 39 39 39 50 23 Z" />
+          </svg>
         </button>
       </div>
 
