@@ -13,6 +13,7 @@ const TODO_LINES_KEY = "finestate.planning.todoLines";
 const TODO_OPEN_KEY = "finestate.planning.todoOpen";
 const MEETINGS_KEY = "finestate.planning.meetings";
 const TODO_ANCHOR_KEY = "finestate.planning.todoAnchor";
+const POINTS_KEY = "finestate.planning.points";
 
 // Two identical checklist lines under the Daily routine heading: today, and the
 // next day being planned while today is still in front of you.
@@ -97,6 +98,18 @@ export default function Planning() {
   const [drag, setDrag] = useState(null);
   const [editing, setEditing] = useState(null); // meeting being typed in, so dragging steps aside
   const [todoAnchor, setTodoAnchor] = useState(() => { try { return localStorage.getItem(TODO_ANCHOR_KEY) || null; } catch { return null; } });
+  // The two fixed groups of points, seeded once and then yours to edit.
+  const [points, setPoints] = useState(() => {
+    try {
+      const p = JSON.parse(localStorage.getItem(POINTS_KEY) || "null");
+      if (p && Array.isArray(p.core) && Array.isArray(p.rest)) return p;
+    } catch {}
+    return {
+      core: TODO_CORE.map((it) => ({ id: newId(), code: it.code })),
+      rest: TODO_REST.map((it) => ({ id: newId(), code: it.code })),
+    };
+  });
+  const [dragP, setDragP] = useState(null); // point box being dragged inside its group
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
   const [dragI, setDragI] = useState(null);     // row being dragged
   const [armed, setArmed] = useState(null);     // row whose grip is held, so only the grip starts a drag
@@ -162,6 +175,33 @@ export default function Planning() {
     next.splice(to, 0, moved);
     saveMeetings(next);
   };
+  const savePoints = (next) => { setPoints(next); try { localStorage.setItem(POINTS_KEY, JSON.stringify(next)); } catch {} };
+  // A renamed point carries its new wording onto any line already holding it.
+  const renamePoint = (g, id, code) => {
+    const old = points[g].find((p) => p.id === id)?.code;
+    savePoints({ ...points, [g]: points[g].map((p) => (p.id === id ? { ...p, code } : p)) });
+    if (old && old !== code) {
+      saveLines(todoLines.map((l) => ({ ...l, codes: l.codes.map((c) => (c === old ? code : c)) })));
+    }
+  };
+  const removePoint = (g, id) => {
+    const gone = points[g].find((p) => p.id === id)?.code;
+    savePoints({ ...points, [g]: points[g].filter((p) => p.id !== id) });
+    if (gone) saveLines(todoLines.map((l) => ({ ...l, codes: l.codes.filter((c) => c !== gone) })));
+  };
+  const addPoint = (g) => {
+    const p = { id: newId(), code: "" };
+    savePoints({ ...points, [g]: [...points[g], p] });
+    setEditing(p.id);
+  };
+  const movePoint = (g, from, to) => {
+    if (from == null || to == null || from === to) return;
+    const arr = points[g].slice();
+    const [moved] = arr.splice(from, 1);
+    arr.splice(to, 0, moved);
+    savePoints({ ...points, [g]: arr });
+  };
+
   // Renaming reaches the picker copy and every line that already carries it.
   const renameMeeting = (id, name) => {
     saveMeetings(meetings.map((m) => (m.id === id ? { ...m, name } : m)));
@@ -220,8 +260,8 @@ export default function Planning() {
       {todoLines.map((line, idx) => {
         const open = todoOpen === idx;
         // Selected points keep their group on the line: meetings, core codes, then the rest.
-        const coreCodes = TODO_CORE.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
-        const restCodes = TODO_REST.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
+        const coreCodes = points.core.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
+        const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           <div key={idx} className="border-t border-neutral-300 bg-white">
             {/* The whole line is the toggle – no chevron. */}
@@ -364,25 +404,55 @@ export default function Planning() {
                   )}
                 </div>
 
-                {[TODO_CORE, TODO_REST].map((group, gi) => (
-                  <div key={gi} className="mt-2 border-t border-[#C1440E] pt-2">
-                    <div className="mb-1 flex items-center">{gi === 0 ? <Briefcase size={13} style={{ color: GOLD }} /> : <Sparkles size={13} style={{ color: GOLD }} />}</div>
+                {["core", "rest"].map((g) => (
+                  <div key={g} className="mt-2 border-t border-[#C1440E] pt-2">
+                    <div className="mb-1 flex items-center">
+                      {g === "core" ? <Briefcase size={13} style={{ color: GOLD }} /> : <Sparkles size={13} style={{ color: GOLD }} />}
+                    </div>
                     <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
-                    {group.map((it) => (
-                      <label
-                        key={it.code}
-                        className="flex h-full w-full cursor-pointer items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
+                      {points[g].map((it, pi) => (
+                        <div
+                          key={it.id}
+                          draggable={editing !== it.id}
+                          onDoubleClick={() => setEditing(it.id)}
+                          onDragStart={() => setDragP({ group: g, index: pi })}
+                          onDragEnd={() => setDragP(null)}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={() => { if (dragP?.group === g) movePoint(g, dragP.index, pi); setDragP(null); }}
+                          className={`flex h-full w-full cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragP?.group === g && dragP.index === pi ? "opacity-40" : ""}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={line.codes.includes(it.code)}
+                            onChange={() => toggleTodo(idx, it.code)}
+                            className="h-3.5 w-3.5 shrink-0 self-start"
+                            style={{ accentColor: GOLD }}
+                          />
+                          <input
+                            ref={(el) => { if (el && editing === it.id && document.activeElement !== el) el.focus(); }}
+                            value={it.code}
+                            readOnly={editing !== it.id}
+                            onChange={(e) => renamePoint(g, it.id, e.target.value)}
+                            onBlur={() => setEditing(null)}
+                            className={`min-w-0 flex-1 bg-transparent leading-snug outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
+                          />
+                          <button
+                            onClick={() => removePoint(g, it.id)}
+                            title="Remove this point"
+                            className="shrink-0 self-start text-neutral-900 hover:text-[#C1440E]"
+                          >
+                            <Trash2 size={11} />
+                          </button>
+                        </div>
+                      ))}
+
+                      <button
+                        onClick={() => addPoint(g)}
+                        title="Add a point"
+                        className="flex h-full w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 py-1 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
                       >
-                        <input
-                          type="checkbox"
-                          checked={line.codes.includes(it.code)}
-                          onChange={() => toggleTodo(idx, it.code)}
-                          className="h-3.5 w-3.5 shrink-0"
-                          style={{ accentColor: GOLD }}
-                        />
-                        <span className="min-w-0 break-words leading-snug">{it.code}</span>
-                      </label>
-                    ))}
+                        <Plus size={12} />
+                      </button>
                     </div>
                   </div>
                 ))}
