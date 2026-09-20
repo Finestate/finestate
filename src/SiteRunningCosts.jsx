@@ -2,7 +2,7 @@
 // come through Claude rather than being typed into the page.
 const BAR_BG = "#FFE4B3";
 
-const TITLE = "Site running costs";
+const TITLE = "Name";
 
 const COSTS = [
   { item: "Anthropic (Claude API)", price: "0.00" },
@@ -21,7 +21,7 @@ export default function SiteRunningCosts() {
       <div className="w-full border-2 border-neutral-400 bg-white shadow-sm overflow-hidden">
         <div className="flex items-center gap-2 border-b-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: BAR_BG }}>
           <span className="flex-1 py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">{TITLE}</span>
-          <span className="w-24 shrink-0 whitespace-nowrap text-left text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">Monthly</span>
+          <span className="w-24 shrink-0 whitespace-nowrap text-left text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">Monthly cost</span>
         </div>
 
         <div>
