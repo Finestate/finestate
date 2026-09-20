@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, GripVertical, ChevronUp } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChevronUp, Calendar, Briefcase, Sparkles } from "lucide-react";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -293,6 +293,7 @@ export default function Planning() {
 
             {open && (
               <div className="border-t border-[#C1440E] bg-white px-2.5 py-2">
+                <div className="mb-1 flex items-center"><Calendar size={13} style={{ color: GOLD }} /></div>
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => returnToPool(idx)}
@@ -364,7 +365,9 @@ export default function Planning() {
                 </div>
 
                 {[TODO_CORE, TODO_REST].map((group, gi) => (
-                  <div key={gi} className="mt-2 grid grid-cols-2 items-stretch gap-1.5 border-t border-[#C1440E] pt-2 sm:grid-cols-3 lg:grid-cols-4">
+                  <div key={gi} className="mt-2 border-t border-[#C1440E] pt-2">
+                    <div className="mb-1 flex items-center">{gi === 0 ? <Briefcase size={13} style={{ color: GOLD }} /> : <Sparkles size={13} style={{ color: GOLD }} />}</div>
+                    <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
                     {group.map((it) => (
                       <label
                         key={it.code}
@@ -380,6 +383,7 @@ export default function Planning() {
                         <span className="min-w-0 break-words leading-snug">{it.code}</span>
                       </label>
                     ))}
+                    </div>
                   </div>
                 ))}
               </div>
