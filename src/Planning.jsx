@@ -550,7 +550,7 @@ export default function Planning() {
                 >
                   {/* Floats above the row on hover, so it never shifts the text. */}
                   {!locked && r.type === "text" && (
-                    <div className="absolute -top-2.5 left-2 z-10 hidden items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 shadow-sm group-hover:flex group-focus-within:flex">
+                    <div className="absolute -top-2.5 left-2 z-10 hidden items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 shadow-sm group-hover:flex">
                       <button
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => boldSelection(i, r.id)}
