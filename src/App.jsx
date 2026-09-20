@@ -168,7 +168,7 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
   return (
     // Secondary top strip: its own region above the page, for the account chip,
     // the admin preview picker and later things like alerts.
-    <div className="fixed top-0 left-60 right-0 z-30 flex h-11 items-center gap-3 border-b border-neutral-200 bg-white px-6">
+    <div className="fixed top-0 left-60 right-0 z-30 flex h-11 items-center gap-3 border-b border-black/10 bg-[#FBF3E4] px-6">
       <div className="flex-1" />
       <div className="group relative flex items-center">
         <button className="inline-flex items-center gap-1 text-[11px] text-neutral-500 transition-colors group-hover:text-neutral-800">
