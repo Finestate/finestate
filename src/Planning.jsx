@@ -48,8 +48,8 @@ function CostsTable() {
   const add = () => persist([...rows, { id: newId(), item: "", price: "" }]);
 
   return (
-    <div className="mt-4 w-full max-w-md border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
-      <div className="flex items-center gap-2 px-2.5 py-1 border-b-2 border-neutral-400" style={{ backgroundColor: BAR_BG }}>
+    <div className="w-full">
+      <div className="flex items-center gap-2 px-2.5 py-1 border-t-2 border-b-2 border-neutral-400" style={{ backgroundColor: HEADER_BG }}>
         <input value={title} onChange={(e) => saveTitle(e.target.value)} className="flex-1 bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
         <span className="w-20 shrink-0 text-right text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">Cost</span>
         <span className="w-[54px] shrink-0" />
@@ -70,7 +70,7 @@ function CostsTable() {
         {rows.length === 0 && <p className="px-2.5 py-3 text-[12px] text-neutral-400 italic">Empty. Use Add below to start.</p>}
       </div>
 
-      <button onClick={add} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
+      <button onClick={add} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add cost</button>
     </div>
   );
 }
@@ -142,9 +142,9 @@ export default function Planning() {
         ) : (
           <button onClick={() => setAddMenu("end")} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
         )}
-      </div>
 
-      <CostsTable />
+        <CostsTable />
+      </div>
     </div>
   );
 }
