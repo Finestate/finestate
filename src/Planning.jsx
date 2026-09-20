@@ -546,7 +546,7 @@ export default function Planning() {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => applyCmd(target, "bold")}
           title="Bold the highlighted words"
-          className={!r ? off : on}
+          className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}
         >
           <span className="text-[14px] font-black leading-none tracking-tight">B</span>
         </button>
