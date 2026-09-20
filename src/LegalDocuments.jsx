@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Personal ID numbers live in Supabase, never in this repo.
@@ -8,11 +8,11 @@ const BAR_BG = "#FFE4B3";
 const HEADER_BG = "#FCEFCF";
 
 const COLS = [
-  { key: "item", label: "Document or ID", cls: "flex-1" },
-  { key: "number", label: "Number", cls: "w-44 shrink-0" },
-  { key: "issued", label: "Issued / renewed", cls: "w-32 shrink-0" },
-  { key: "expiry", label: "Expiry", cls: "w-32 shrink-0" },
-  { key: "scan", label: "Scan", cls: "w-12 shrink-0" },
+  { key: "item", label: "Document or ID", w: "40%" },
+  { key: "number", label: "Number", w: "20%" },
+  { key: "issued", label: "Issued / renewed", w: "15%" },
+  { key: "expiry", label: "Expiry", w: "15%" },
+  { key: "scan", label: "Scan", w: "10%" },
 ];
 
 let _idc = 0;
@@ -27,6 +27,7 @@ export default function LegalDocuments() {
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [err, setErr] = useState("");
+  const [confirm, setConfirm] = useState(null); // index waiting on a delete confirmation
 
   useEffect(() => {
     supabase
@@ -50,14 +51,21 @@ export default function LegalDocuments() {
       .then(({ error }) => setErr(error ? error.message : ""));
   };
 
+  // Sections keep the order you set; the documents under each sort A to Z.
+  const order = (() => {
+    const out = []; let group = [];
+    const flush = () => { group.sort((a, b) => (items[a].item || "").localeCompare(items[b].item || "")); out.push(...group); group = []; };
+    items.forEach((r, i) => { if (r.kind === "section") { flush(); out.push(i); } else group.push(i); });
+    flush();
+    return out;
+  })();
+
   const update = (i, key, val) => save(items.map((r, idx) => (idx === i ? { ...r, [key]: val } : r)));
-  const remove = (i) => save(items.filter((_, idx) => idx !== i));
-  const move = (i, d) => {
-    const j = i + d;
-    if (j < 0 || j >= items.length) return;
-    const next = items.slice();
-    [next[i], next[j]] = [next[j], next[i]];
-    save(next);
+  // Deleting always asks first – these entries are not quick to retype.
+  const remove = (i) => setConfirm(i);
+  const confirmRemove = () => {
+    save(items.filter((_, idx) => idx !== confirm));
+    setConfirm(null);
   };
   const add = (kind) =>
     save([...items, kind === "section" ? { id: newId(), kind: "section", label: "" } : { id: newId(), kind: "row", item: "", number: "", issued: "", expiry: "", scan: "" }]);
@@ -71,7 +79,7 @@ export default function LegalDocuments() {
 
         <div className="flex items-center gap-2 border-b-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: HEADER_BG }}>
           {COLS.map((c) => (
-            <span key={c.key} className={`${c.cls} ${head}`}>{c.label}</span>
+            <span key={c.key} style={{ width: c.w }} className={`shrink-0 ${head}`}>{c.label}</span>
           ))}
           <span className="w-[54px] shrink-0" />
         </div>
@@ -79,41 +87,51 @@ export default function LegalDocuments() {
         {!loaded ? (
           <p className="px-2.5 py-3 text-[12px] italic text-neutral-400">Loading…</p>
         ) : (
-          items.map((r, i) =>
-            r.kind === "section" ? (
+          order.map((i) => {
+            const r = items[i];
+            return r.kind === "section" ? (
               <div key={r.id} className="flex items-center gap-2 border-y-2 border-neutral-400 px-2.5 py-0.5" style={{ backgroundColor: HEADER_BG }}>
                 <input value={r.label || ""} onChange={(e) => update(i, "label", e.target.value)} className={`flex-1 bg-transparent py-0.5 ${head} outline-none`} />
-                <Controls i={i} last={items.length - 1} move={move} remove={remove} />
+                <Bin i={i} remove={remove} />
               </div>
             ) : (
-              <div key={r.id} className={`flex items-center gap-2 px-2.5 py-0.5 ${i === 0 ? "" : "border-t border-neutral-300"}`}>
+              <div key={r.id} className="flex items-center gap-2 border-t border-neutral-300 px-2.5 py-0.5">
                 {COLS.map((c) => (
-                  <span key={c.key} className={c.cls}>
+                  <span key={c.key} style={{ width: c.w }} className="shrink-0">
                     <input value={r[c.key] || ""} onChange={(e) => update(i, c.key, e.target.value)} className={cell} />
                   </span>
                 ))}
-                <Controls i={i} last={items.length - 1} move={move} remove={remove} />
+                <Bin i={i} remove={remove} />
               </div>
-            )
-          )
+            );
+          })
         )}
 
         <div className="flex items-center gap-4 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1">
           <button onClick={() => add("row")} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-800"><Plus size={12} /> Add row</button>
-          <button onClick={() => add("section")} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-800"><Plus size={12} /> Add section</button>
         </div>
       </div>
+
+      {confirm != null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setConfirm(null)}>
+          <div className="w-full max-w-sm rounded-xl border bg-white p-6 text-center shadow-xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-[13px] font-semibold text-neutral-800">Delete this line?</p>
+            <div className="mt-5 flex justify-center gap-6 text-[13px] font-semibold uppercase tracking-wide">
+              <button onClick={confirmRemove} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Yes</button>
+              <button onClick={() => setConfirm(null)} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
     </div>
   );
 }
 
-function Controls({ i, last, move, remove }) {
+function Bin({ i, remove }) {
   return (
-    <div className="flex w-[54px] shrink-0 items-center justify-end gap-1">
-      <button onClick={() => move(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={12} /></button>
-      <button onClick={() => move(i, 1)} disabled={i === last} title="Move down" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronDown size={12} /></button>
+    <div className="flex w-[54px] shrink-0 items-center justify-end">
       <button onClick={() => remove(i)} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={12} /></button>
     </div>
   );
