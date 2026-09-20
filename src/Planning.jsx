@@ -411,7 +411,11 @@ export default function Planning() {
         <div>
           {rows.map((r, i) => {
             const bg = r.type === "header" ? HEADER_BG : r.type === "subheader" ? SUBHEAD_BG : "#fff";
-            const field = r.type === "text" ? (
+            // The heading the checklist hangs under is locked: no typing, no bin, no dragging.
+            const locked = isTodoHeader(r);
+            const field = locked ? (
+              <span className="flex-1 py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">{r.text}</span>
+            ) : r.type === "text" ? (
               <AutoTextarea value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 resize-none overflow-hidden bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none" />
             ) : (
               <input value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
@@ -428,7 +432,7 @@ export default function Planning() {
             return (
               <div key={r.id}>
                 <div
-                  draggable={armed === i}
+                  draggable={armed === i && !locked}
                   onDragStart={() => setDragI(i)}
                   onDragEnd={() => { setDragI(null); setArmed(null); }}
                   onDragOver={(e) => e.preventDefault()}
@@ -437,17 +441,19 @@ export default function Planning() {
                   style={{ backgroundColor: bg }}
                 >
                   {field}
-                  <div className="flex shrink-0 items-center gap-1 py-0.5">
-                    <span
-                      onMouseDown={() => setArmed(i)}
-                      onMouseUp={() => setArmed(null)}
-                      title="Drag to reorder"
-                      className="cursor-grab text-neutral-300 hover:text-neutral-600 active:cursor-grabbing"
-                    >
-                      <GripVertical size={12} />
-                    </span>
-                    <button onClick={() => remove(i)} title="Delete" className="text-neutral-300 hover:text-[#C1440E]"><Trash2 size={12} /></button>
-                  </div>
+                  {!locked && (
+                    <div className="flex shrink-0 items-center gap-1 py-0.5">
+                      <span
+                        onMouseDown={() => setArmed(i)}
+                        onMouseUp={() => setArmed(null)}
+                        title="Drag to reorder"
+                        className="cursor-grab text-neutral-300 hover:text-neutral-600 active:cursor-grabbing"
+                      >
+                        <GripVertical size={12} />
+                      </span>
+                      <button onClick={() => remove(i)} title="Delete" className="text-neutral-300 hover:text-[#C1440E]"><Trash2 size={12} /></button>
+                    </div>
+                  )}
                 </div>
                 {isTodoHeader(r) && renderTodoLines()}
                 {addMenu === i ? (
