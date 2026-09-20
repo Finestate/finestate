@@ -71,26 +71,6 @@ const SECTION_TYPES = [["Sub-title", "subheader"], ["Row", "text"]];
 let _idc = 0;
 const newId = () => "p" + Date.now().toString(36) + "-" + (_idc++);
 
-// A row of rich text. Uncontrolled on purpose: React never rewrites the markup
-// while you type, so the caret stays where you put it and part-line bold survives.
-function RichLine({ html, onInput, innerRef, className }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (el && el.innerHTML !== (html || "")) el.innerHTML = html || "";
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  return (
-    <div
-      ref={(el) => { ref.current = el; if (innerRef) innerRef(el); }}
-      contentEditable
-      suppressContentEditableWarning
-      onInput={(e) => onInput(e.currentTarget.innerHTML)}
-      className={className}
-    />
-  );
-}
-
 function AutoTextarea({ value, onChange, ...props }) {
   const ref = useRef(null);
   useEffect(() => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }, [value]);
@@ -133,22 +113,12 @@ export default function Planning() {
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
 
 
-  const lineRefs = useRef({}); // row id -> the editable element, for the bold button
   const persistRows = (next) => { setRows(next); try { localStorage.setItem(ROWS_KEY, JSON.stringify(next)); } catch {} };
   const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(TITLE_KEY, val); } catch {} };
   const update = (i, text) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, text } : r)));
   const remove = (i) => persistRows(rows.filter((_, idx) => idx !== i));
   const moveRow = (i, d) => { const j = i + d; if (j < 0 || j >= rows.length) return; const next = rows.slice(); [next[i], next[j]] = [next[j], next[i]]; persistRows(next); };
   const toggleFlag = (i, key) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, [key]: !r[key] } : r)));
-  const updateHtml = (i, html) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, html } : r)));
-  // Bold only what is highlighted, then keep whatever markup the browser produced.
-  const boldSelection = (i, id) => {
-    const el = lineRefs.current[id];
-    if (!el) return;
-    el.focus();
-    document.execCommand("bold");
-    updateHtml(i, el.innerHTML);
-  };
   const bump = (i, d) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, indent: Math.max(0, Math.min(6, (r.indent || 0) + d)) } : r)));
   const insertAt = (i, type) => { persistRows([...rows.slice(0, i), { id: newId(), type, text: "" }, ...rows.slice(i)]); setAddMenu(null); };
 
@@ -520,14 +490,13 @@ export default function Planning() {
             const field = locked ? (
               <span className="flex-1 py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">{r.text}</span>
             ) : r.type === "text" ? (
-              // Bullet and indent are per row; bold applies to whatever you highlight.
+              // Bold, bullet and indent are per row and never change the text size.
               <div className="flex flex-1 items-start gap-1" style={{ paddingLeft: (r.indent || 0) * 16 }}>
                 {r.bullet && <span className="py-0.5 text-[12px] leading-snug text-neutral-900">•</span>}
-                <RichLine
-                  html={r.html ?? r.text}
-                  innerRef={(el) => { lineRefs.current[r.id] = el; }}
-                  onInput={(html) => updateHtml(i, html)}
-                  className="flex-1 bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none"
+                <AutoTextarea
+                  value={r.text}
+                  onChange={(e) => update(i, e.target.value)}
+                  className={`flex-1 resize-none overflow-hidden bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none ${r.bold ? "font-bold" : ""}`}
                 />
               </div>
             ) : (
@@ -551,14 +520,7 @@ export default function Planning() {
                   {/* Floats above the row on hover, so it never shifts the text. */}
                   {!locked && r.type === "text" && (
                     <div className="absolute -top-2.5 left-2 z-10 hidden items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 shadow-sm group-hover:flex">
-                      <button
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => boldSelection(i, r.id)}
-                        title="Bold the highlighted words"
-                        className="text-neutral-700 hover:text-[#9c7c33]"
-                      >
-                        <Bold size={12} />
-                      </button>
+                      <button onClick={() => toggleFlag(i, "bold")} title="Bold" className={r.bold ? "text-[#9c7c33]" : "text-neutral-700 hover:text-[#9c7c33]"}><Bold size={12} /></button>
                       <button onClick={() => toggleFlag(i, "bullet")} title="Bullet list" className={r.bullet ? "text-[#9c7c33]" : "text-neutral-700 hover:text-[#9c7c33]"}><List size={12} /></button>
                       <button onClick={() => bump(i, -1)} disabled={!(r.indent > 0)} title="Decrease indent" className="text-neutral-700 hover:text-[#9c7c33] disabled:opacity-25"><IndentDecrease size={12} /></button>
                       <button onClick={() => bump(i, 1)} title="Increase indent" className="text-neutral-700 hover:text-[#9c7c33]"><IndentIncrease size={12} /></button>
