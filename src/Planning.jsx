@@ -251,7 +251,7 @@ export default function Planning() {
                         <button
                           onClick={(e) => { e.stopPropagation(); dropMeeting(idx, m.id); }}
                           title="Remove"
-                          className="flex shrink-0 items-center self-center leading-none text-neutral-300 hover:text-[#C1440E]"
+                          className="flex shrink-0 items-center self-center leading-none text-neutral-900 hover:text-[#C1440E]"
                         >
                           <Trash2 size={10} />
                         </button>
@@ -303,7 +303,7 @@ export default function Planning() {
                       <button
                         onClick={() => saveMeetings(meetings.filter((x) => x.id !== m.id))}
                         title="Remove this meeting"
-                        className="shrink-0 text-neutral-300 hover:text-[#C1440E]"
+                        className="shrink-0 text-neutral-900 hover:text-[#C1440E]"
                       >
                         <Trash2 size={11} />
                       </button>
