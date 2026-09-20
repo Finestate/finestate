@@ -566,7 +566,7 @@ export default function Planning() {
 
   return (
     <div className="w-full">
-      <div className="w-full border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
+      <div spellCheck={false} className="w-full border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
         {/* Header bar – editable title (brightest) */}
         <div className="px-2.5 py-1 border-b-2 border-neutral-400" style={{ backgroundColor: BAR_BG }}>
           <input value={title} onChange={(e) => saveTitle(e.target.value)} className="block w-full bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
