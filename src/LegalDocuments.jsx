@@ -12,7 +12,7 @@ const COLS = [
   { key: "number", label: "Number", w: "20%" },
   { key: "issued", label: "Issue date", w: "15%" },
   { key: "expiry", label: "Expiry date", w: "15%" },
-  { key: "scan", label: "Server link", w: "10%" },
+  { key: "scan", label: "Document link", w: "10%" },
 ];
 
 const GOLD = "#9c7c33";
