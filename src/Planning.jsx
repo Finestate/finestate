@@ -138,7 +138,9 @@ export default function Planning() {
   const isTodoHeader = (r) =>
     r.type !== "text" && /dailyroutine|todo|todos/.test((r.text || "").toLowerCase().replace(/[^a-z]/g, ""));
 
-  const TodoLines = () => (
+  // Plain function, not a component: a nested component would remount on every
+  // keystroke and throw the caret to the end of the field.
+  const renderTodoLines = () => (
     <>
       {todoLines.map((line, idx) => {
         const open = todoOpen === idx;
@@ -214,7 +216,7 @@ export default function Planning() {
                           if (e.key === "Escape") { setNewMeeting(""); setAdding(false); }
                         }}
                         placeholder="Meeting"
-                        className="w-28 bg-transparent text-[11px] outline-none placeholder:text-neutral-300"
+                        className="w-64 bg-transparent text-[11px] outline-none placeholder:text-neutral-300"
                       />
                       <label className="flex cursor-pointer items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-neutral-400">
                         <input type="checkbox" checked={newPermanent} onChange={(e) => setNewPermanent(e.target.checked)} className="h-3 w-3" style={{ accentColor: GOLD }} />
@@ -320,7 +322,7 @@ export default function Planning() {
                     <button onClick={() => remove(i)} title="Delete" className="text-neutral-300 hover:text-[#C1440E]"><Trash2 size={12} /></button>
                   </div>
                 </div>
-                {isTodoHeader(r) && <TodoLines />}
+                {isTodoHeader(r) && renderTodoLines()}
                 {addMenu === i ? (
                   <TypeMenu at={i + 1} opts={SECTION_TYPES} />
                 ) : (
