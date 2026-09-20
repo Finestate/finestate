@@ -8,11 +8,11 @@ const BAR_BG = "#FFE4B3";
 const HEADER_BG = "#FCEFCF";
 
 const COLS = [
-  { key: "item", label: "Document or ID", w: "40%" },
-  { key: "number", label: "Number", w: "20%" },
-  { key: "issued", label: "Issue date", w: "15%" },
-  { key: "expiry", label: "Expiry date", w: "15%" },
-  { key: "scan", label: "Link to document", w: "10%" },
+  { key: "item", label: "Document or ID", w: "30%" },
+  { key: "number", label: "Number", w: "17%" },
+  { key: "issued", label: "Issue date", w: "17%" },
+  { key: "expiry", label: "Expiry date", w: "17%" },
+  { key: "scan", label: "Link to document", w: "17%" },
 ];
 
 const GOLD = "#9c7c33";
@@ -181,7 +181,7 @@ export default function LegalDocuments() {
                       <span key={c.key} style={{ width: c.w }} className={`shrink-0 ${head}`}>{c.label}</span>
                     ))}
                   </span>
-                  <span className="w-6 shrink-0" />
+                  <span className="w-8 shrink-0" />
                 </div>
               </div>
             ) : (
@@ -227,7 +227,7 @@ export default function LegalDocuments() {
 
 function Bin({ i, remove }) {
   return (
-    <div className="flex w-6 shrink-0 items-center justify-end">
+    <div className="flex w-8 shrink-0 items-center justify-end pr-1">
       <button onClick={() => remove(i)} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={12} /></button>
     </div>
   );
