@@ -517,7 +517,6 @@ export default function Planning() {
                   className={`flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5`}
                   style={{ backgroundColor: bg }}
                 >
-                  {field}
                   {!locked && r.type === "text" && (
                     <div className="flex shrink-0 items-center gap-1 py-0.5">
                       <button onClick={() => toggleFlag(i, "bold")} title="Bold" className={`text-[11px] font-black leading-none ${r.bold ? "text-[#9c7c33]" : "text-neutral-900 hover:text-[#9c7c33]"}`}>B</button>
@@ -526,6 +525,7 @@ export default function Planning() {
                       <button onClick={() => bump(i, 1)} title="More indent" className="text-neutral-900 hover:text-[#9c7c33]"><IndentIncrease size={12} /></button>
                     </div>
                   )}
+                  {field}
                   {!locked && (
                     <div className="flex shrink-0 items-center gap-1 py-0.5">
                       <button onClick={() => moveRow(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={12} /></button>
