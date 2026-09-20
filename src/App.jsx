@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Shield,
   Receipt,
+  FileText,
   Users,
   ChevronDown,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import Opportunities from "./Opportunities.jsx";
 import Planning from "./Planning.jsx";
 import SiteRunningCosts from "./SiteRunningCosts.jsx";
 import Logins from "./Logins.jsx";
+import LegalDocuments from "./LegalDocuments.jsx";
 import Auth from "./Auth.jsx";
 import { supabase, supabaseReady } from "./lib/supabaseClient.js";
 import infinityImg from "../Website Images/Infinity.webp";
@@ -29,6 +31,7 @@ const NAV = [
     icon: Shield,
     children: [
       { id: "admin/planning", name: "Planning", icon: CalendarDays },
+      { id: "admin/legal-documents", name: "Legal documents", icon: FileText },
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
       { id: "admin/logins", name: "Logins", icon: Users },
     ],
@@ -356,6 +359,7 @@ export default function App() {
         ) : (
           <>
             {route === "admin/planning" && <Planning />}
+            {route === "admin/legal-documents" && <LegalDocuments />}
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/logins" && isAdmin && <Logins myId={profile.id} />}
             {route === "home" && (

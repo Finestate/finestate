@@ -66,3 +66,17 @@ create policy "admins manage everyone" on public.profiles
 -- update public.profiles
 --    set role = 'admin', status = 'active', access = array['admin/planning','admin/site-running-costs','admin/logins','assets','income','investing/opportunities','investing/ratios-calcs']
 --  where email = 'you@example.com';
+
+-- 6. Admin-only documents (Legal documents page). The content is private data,
+--    so it lives here rather than in the site's code.
+create table if not exists public.admin_docs (
+  id         text primary key,
+  data       jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.admin_docs enable row level security;
+
+drop policy if exists "admins only" on public.admin_docs;
+create policy "admins only" on public.admin_docs
+  for all using (public.is_admin()) with check (public.is_admin());
