@@ -58,6 +58,7 @@ export default function Planning() {
   const [meetings, setMeetings] = useState(() => { try { const p = JSON.parse(localStorage.getItem(MEETINGS_KEY) || "null"); return Array.isArray(p) ? p : []; } catch { return []; } });
   const [newMeeting, setNewMeeting] = useState("");
   const [newPermanent, setNewPermanent] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
   const [dragI, setDragI] = useState(null);     // row being dragged
   const [armed, setArmed] = useState(null);     // row whose grip is held, so only the grip starts a drag
@@ -151,43 +152,61 @@ export default function Planning() {
             {open && (
               <div className="border-t border-neutral-200 bg-white px-2.5 py-2">
                 <div className="text-[9px] font-bold uppercase tracking-wide text-neutral-400">Meetings:</div>
-                <div className="mt-0.5 grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3 lg:grid-cols-4">
+                <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                   {meetings.map((m) => (
-                    <label key={m.id} className="group flex min-w-0 cursor-pointer items-start gap-1.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900">
+                    <label
+                      key={m.id}
+                      className="group flex cursor-pointer items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
+                    >
                       <input
                         type="checkbox"
                         checked={line.meetings.some((x) => x.id === m.id)}
                         onChange={() => pickMeeting(idx, m)}
-                        className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                        className="h-3.5 w-3.5 shrink-0"
                         style={{ accentColor: GOLD }}
                       />
-                      <span className="min-w-0 break-words leading-snug">{m.name}</span>
+                      <span className="whitespace-nowrap leading-snug">{m.name}</span>
                       {m.permanent && <span className="shrink-0 text-[9px] uppercase text-neutral-300">fixed</span>}
                       <button
                         onClick={(e) => { e.preventDefault(); saveMeetings(meetings.filter((x) => x.id !== m.id)); }}
                         title="Remove this meeting"
-                        className="ml-auto hidden shrink-0 text-neutral-300 hover:text-[#C1440E] group-hover:block"
+                        className="hidden shrink-0 text-neutral-300 hover:text-[#C1440E] group-hover:block"
                       >
                         <Trash2 size={11} />
                       </button>
                     </label>
                   ))}
-                  {meetings.length === 0 && <p className="text-[11px] italic text-neutral-300">None yet.</p>}
-                </div>
 
-                <div className="mt-2 flex items-center gap-2">
-                  <input
-                    value={newMeeting}
-                    onChange={(e) => setNewMeeting(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") addMeeting(); }}
-                    placeholder="Add a meeting"
-                    className="flex-1 rounded border border-neutral-300 px-1.5 py-0.5 text-[11px] outline-none focus:border-neutral-500 placeholder:text-neutral-300"
-                  />
-                  <label className="flex cursor-pointer items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
-                    <input type="checkbox" checked={newPermanent} onChange={(e) => setNewPermanent(e.target.checked)} className="h-3 w-3" style={{ accentColor: GOLD }} />
-                    Keep
-                  </label>
-                  <button onClick={addMeeting} className="rounded border border-neutral-300 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-600 hover:bg-neutral-100">Add</button>
+                  {adding ? (
+                    <span className="flex items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
+                      <input
+                        autoFocus
+                        value={newMeeting}
+                        onChange={(e) => setNewMeeting(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") { addMeeting(); setAdding(false); }
+                          if (e.key === "Escape") { setNewMeeting(""); setAdding(false); }
+                        }}
+                        placeholder="Meeting"
+                        className="w-28 bg-transparent text-[11px] outline-none placeholder:text-neutral-300"
+                      />
+                      <label className="flex cursor-pointer items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-neutral-400">
+                        <input type="checkbox" checked={newPermanent} onChange={(e) => setNewPermanent(e.target.checked)} className="h-3 w-3" style={{ accentColor: GOLD }} />
+                        Keep
+                      </label>
+                      <button onClick={() => { addMeeting(); setAdding(false); }} title="Save" className="text-[#9c7c33] hover:opacity-70">
+                        <Plus size={12} />
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setAdding(true)}
+                      title="Add a meeting"
+                      className="flex items-center rounded border border-neutral-300 bg-white px-1.5 py-1 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                    >
+                      <Plus size={12} />
+                    </button>
+                  )}
                 </div>
 
                 <div className="mt-3 text-[9px] font-bold uppercase tracking-wide text-neutral-400">Daily:</div>
