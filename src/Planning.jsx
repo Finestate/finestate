@@ -191,7 +191,7 @@ export default function Planning() {
             </div>
 
             {open && (
-              <div className="border-t border-neutral-200 bg-white px-2.5 py-2">
+              <div className="border-t border-[#C1440E] bg-white px-2.5 py-2">
                 <div className="flex flex-wrap items-center gap-1.5">
                   {meetings.map((m, mi) => (
                     <label
@@ -251,7 +251,7 @@ export default function Planning() {
                 </div>
 
                 {[TODO_CORE, TODO_REST].map((group, gi) => (
-                  <div key={gi} className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-neutral-200 pt-2">
+                  <div key={gi} className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-[#C1440E] pt-2">
                     {group.map((it) => (
                       <label
                         key={it.code}
