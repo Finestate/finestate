@@ -24,7 +24,9 @@ const TODO_CORE = [
 ];
 
 const TODO_REST = [
-  { code: "GWM(textaudiorecordaitalkwritegrammarongo-perhetab-twicedaily)" },
+  { code: "G(textaudiorecordaitalkwritegrammarongo)" },
+  { code: "W(perhetab)" },
+  { code: "M(twicedaily)" },
   { code: "SC(CCEDB)" },
   { code: "Safetyaudit" },
   { code: "Ycfoodmd" },
