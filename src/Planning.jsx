@@ -234,7 +234,7 @@ export default function Planning() {
     const el = r && lineRefs.current[r.id];
     if (!el) return;
     el.focus();
-    const now = String(document.queryCommandValue("foreColor") || "").replace(/s/g, "");
+    const now = String(document.queryCommandValue("foreColor") || "").replace(/\s/g, "");
     const isRed = now === "rgb(176,30,47)" || now.toLowerCase() === INK_RED.toLowerCase();
     document.execCommand("foreColor", false, isRed ? "#171717" : INK_RED);
     updateHtml(i, el.innerHTML);
