@@ -26,10 +26,10 @@ const TODO_CORE = [
 ];
 
 const TODO_REST = [
-  { code: "G(textaudiorecordaitalkwritegrammarongo)" },
-  { code: "W(perhetab)" },
-  { code: "M(twicedaily)" },
-  { code: "SC(CCEDB)" },
+  { code: "G (textaudiorecordaitalkwritegrammarongo)" },
+  { code: "W (perhetab)" },
+  { code: "M (twicedaily)" },
+  { code: "SC (CCEDB)" },
   { code: "Safetyaudit" },
   { code: "Ycfoodmd" },
   { code: "Hydrateheavily" },
@@ -52,11 +52,14 @@ const TODO_REST = [
   { code: "Csupplementscheck" },
   { code: "Medssupplementstakeandprep" },
   { code: "Setupfornextday" },
-  { code: "Errandsprios()" },
+  { code: "Errandsprios ()" },
   { code: "Sleepeight" },
 ];
 
 const TODO_ITEMS = [...TODO_CORE, ...TODO_REST];
+
+// House style: one space before an opening bracket, e.g. "SC (CCEDB)".
+const spaceBrackets = (s) => String(s || "").replace(/([^\s(])\(/g, "$1 (");
 
 const emptyLine = () => ({ codes: [], meetings: [] });
 // Older saves held a bare array of codes.
@@ -128,7 +131,7 @@ export default function Planning() {
   const [todoLines, setTodoLines] = useState(() => {
     try {
       const p = JSON.parse(localStorage.getItem(TODO_LINES_KEY) || "null");
-      if (Array.isArray(p) && p.length === 2) return p.map(normaliseLine);
+      if (Array.isArray(p) && p.length === 2) return p.map(normaliseLine).map((l) => ({ ...l, codes: l.codes.map(spaceBrackets) }));
     } catch {}
     return [emptyLine(), emptyLine()];
   });
@@ -146,7 +149,10 @@ export default function Planning() {
   const [points, setPoints] = useState(() => {
     try {
       const p = JSON.parse(localStorage.getItem(POINTS_KEY) || "null");
-      if (p && Array.isArray(p.core) && Array.isArray(p.rest)) return p;
+      if (p && Array.isArray(p.core) && Array.isArray(p.rest)) {
+        const fix = (list) => list.map((x) => ({ ...x, code: spaceBrackets(x.code) }));
+        return { core: fix(p.core), rest: fix(p.rest) };
+      }
     } catch {}
     return {
       core: TODO_CORE.map((it) => ({ id: newId(), code: it.code })),
@@ -241,7 +247,8 @@ export default function Planning() {
   };
   const savePoints = (next) => { setPoints(next); try { localStorage.setItem(POINTS_KEY, JSON.stringify(next)); } catch {} };
   // A renamed point carries its new wording onto any line already holding it.
-  const renamePoint = (g, id, code) => {
+  const renamePoint = (g, id, raw) => {
+    const code = spaceBrackets(raw);
     const old = points[g].find((p) => p.id === id)?.code;
     savePoints({ ...points, [g]: points[g].map((p) => (p.id === id ? { ...p, code } : p)) });
     if (old && old !== code) {
