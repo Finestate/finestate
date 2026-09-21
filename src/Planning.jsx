@@ -106,6 +106,39 @@ function RichLine({ html, onInput, onFocus, onEnter, innerRef, className }) {
   );
 }
 
+// Text between a point's brackets. It hugs its words exactly – no padding either
+// side – and stays uncontrolled so the caret never jumps while typing.
+function FillText({ text, onChange }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) ref.current.textContent = text || "";
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <span
+      ref={ref}
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck={false}
+      onInput={(e) => onChange(e.currentTarget.textContent)}
+      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
+      className="inline-block min-w-[1px] whitespace-pre outline-none"
+    />
+  );
+}
+
+// Put the caret at the end of an editable span.
+const focusEnd = (el) => {
+  if (!el) return;
+  el.focus();
+  const r = document.createRange();
+  r.selectNodeContents(el);
+  r.collapse(false);
+  const s = window.getSelection();
+  s.removeAllRanges();
+  s.addRange(r);
+};
+
 function AutoTextarea({ value, onChange, ...props }) {
   const ref = useRef(null);
   useEffect(() => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }, [value]);
@@ -335,16 +368,11 @@ export default function Planning() {
               // Clicking anywhere on the point drops the caret between its brackets.
               // Empty, the field is one space wide – typing fills that space.
               <span
-                onClick={(e) => { e.stopPropagation(); e.currentTarget.querySelector("input")?.focus(); }}
+                onClick={(e) => { e.stopPropagation(); focusEnd(e.currentTarget.querySelector("[contenteditable]")); }}
                 className="inline-flex cursor-text items-center"
               >
                 {c.slice(0, -1)}
-                <input
-                  value={fill}
-                  onChange={(e) => setFill(idx, c, e.target.value)}
-                  style={{ width: fill ? `${fill.length + 0.5}ch` : "1ch", color: colour }}
-                  className="bg-transparent outline-none"
-                />
+                <FillText key={`${idx}-${c}`} text={fill} onChange={(t) => setFill(idx, c, t)} />
                 )
               </span>
             ) : (
