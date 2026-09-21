@@ -123,7 +123,7 @@ function FillText({ text, onChange }) {
       spellCheck={false}
       onInput={(e) => onChange(e.currentTarget.textContent)}
       onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
-      className="inline-block min-w-[1px] whitespace-pre outline-none"
+      className="inline-block min-w-[1px] whitespace-pre text-[#B01E2F] outline-none"
     />
   );
 }
@@ -378,7 +378,6 @@ export default function Planning() {
         const fill = todoLines[idx]?.fills?.[c] || "";
         return (
           <span key={c} className="inline-flex items-center gap-1.5">
-            {i > 0 && <span className="inline-block h-[5px] w-[5px] shrink-0" style={{ backgroundColor: colour }} />}
             {fillable ? (
               // Clicking anywhere on the point drops the caret between its brackets.
               // Empty, the field is one space wide – typing fills that space.
@@ -393,6 +392,7 @@ export default function Planning() {
             ) : (
               c
             )}
+            {i < list.length - 1 && <span className="inline-block h-[5px] w-[5px] shrink-0" style={{ backgroundColor: colour }} />}
           </span>
         );
       })}
@@ -421,7 +421,7 @@ export default function Planning() {
             >
               <div className="flex flex-1 flex-col gap-0.5 px-2.5 py-0.5">
                 {line.meetings.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1">
                     {line.meetings.map((m, mi) => (
                       <span
                         key={m.id}
@@ -436,7 +436,7 @@ export default function Planning() {
                           else dropOnLine(idx);
                           setDrag(null);
                         }}
-                        className={`inline-flex cursor-grab items-center gap-[3px] text-[12px] leading-snug text-[#C1440E] active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
+                        className={`inline-flex cursor-grab items-center gap-1 text-[12px] leading-snug text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
                       >
                         {/* Plain text until double clicked, so the bin sits right after the words. */}
                         {editing === m.id ? (
