@@ -330,13 +330,17 @@ export default function Planning() {
           <span key={c} className="inline-flex items-center gap-1.5">
             {i > 0 && <span className="inline-block h-[5px] w-[5px] shrink-0" style={{ backgroundColor: colour }} />}
             {fillable ? (
-              <span className="inline-flex items-center">
+              // Clicking anywhere on the point drops the caret between its brackets.
+              // Empty, the field is one space wide – typing fills that space.
+              <span
+                onClick={(e) => { e.stopPropagation(); e.currentTarget.querySelector("input")?.focus(); }}
+                className="inline-flex cursor-text items-center"
+              >
                 {c.slice(0, -1)}
                 <input
                   value={fill}
-                  onClick={(e) => e.stopPropagation()}
                   onChange={(e) => setFill(idx, c, e.target.value)}
-                  style={{ width: `${Math.max(2, fill.length + 1)}ch`, color: colour }}
+                  style={{ width: fill ? `${fill.length + 0.5}ch` : "1ch", color: colour }}
                   className="bg-transparent outline-none"
                 />
                 )
