@@ -372,7 +372,7 @@ export default function Planning() {
     patchLine(idx, { fills: { ...(line.fills || {}), [code]: text } });
   };
   const renderCodeLine = (list, colour, idx) => (
-    <div className="flex flex-wrap items-center gap-1.5 text-[12px] leading-snug" style={{ color: colour }}>
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 text-[12px] leading-tight" style={{ color: colour }}>
       {list.map((c, i) => {
         const fillable = /\(\)$/.test(c);
         const fill = todoLines[idx]?.fills?.[c] || "";
@@ -419,9 +419,9 @@ export default function Planning() {
               title="Choose to-dos"
               className="flex min-h-[22px] cursor-pointer items-start hover:bg-neutral-50"
             >
-              <div className="flex flex-1 flex-col gap-0.5 px-2.5 py-0.5">
+              <div className="flex flex-1 flex-col gap-0 px-2.5 py-0.5">
                 {line.meetings.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1">
+                  <div className="flex flex-wrap items-center gap-x-1 gap-y-0 leading-tight">
                     {line.meetings.map((m, mi) => (
                       <span
                         key={m.id}
