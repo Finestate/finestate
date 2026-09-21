@@ -353,8 +353,7 @@ export default function Planning() {
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = () => (
-    // Red frame so the daily block stands apart from the rest of the table.
-    <div className={`border-2 border-[#C1440E] ${anchorIdx >= 0 ? "border-t" : ""}`}>
+    <div>
       {todoLines.map((line, idx) => {
         const open = todoOpen === idx;
         // Selected points keep their group on the line: meetings, core codes, then the rest.
@@ -362,7 +361,7 @@ export default function Planning() {
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
-          <div key={idx} className={`bg-white ${idx === 0 ? "" : "border-t-[3px] border-neutral-500"}`}>
+          <div key={idx} className={`bg-white ${idx === 0 ? "border-t border-neutral-300" : "border-t-[3px] border-neutral-500"}`}>
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(open ? null : idx)}
@@ -645,7 +644,7 @@ export default function Planning() {
             return (
               <div key={r.id}>
                 <div
-                  className={`group relative flex items-start gap-2 ${locked ? "border-2 border-b-0 border-[#C1440E]" : `${topBorder} ${botBorder}`} px-2.5 py-0.5`}
+                  className={`group relative flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5`}
                   style={{ backgroundColor: bg }}
                 >
                   {field}
