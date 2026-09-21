@@ -227,6 +227,18 @@ export default function Planning() {
     document.execCommand(cmd);
     updateHtml(i, el.innerHTML);
   };
+  // Red for the highlighted words; pressed again on red text it goes back to black.
+  const INK_RED = "#B01E2F";
+  const applyRed = (i) => {
+    const r = rows[i];
+    const el = r && lineRefs.current[r.id];
+    if (!el) return;
+    el.focus();
+    const now = String(document.queryCommandValue("foreColor") || "").replace(/s/g, "");
+    const isRed = now === "rgb(176,30,47)" || now.toLowerCase() === INK_RED.toLowerCase();
+    document.execCommand("foreColor", false, isRed ? "#171717" : INK_RED);
+    updateHtml(i, el.innerHTML);
+  };
   const bump = (i, d) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, indent: Math.max(0, Math.min(6, (r.indent || 0) + d)) } : r)));
   const insertAt = (i, type) => { persistRows([...rows.slice(0, i), { id: newId(), type, text: "" }, ...rows.slice(i)]); setAddMenu(null); };
 
@@ -642,6 +654,14 @@ export default function Planning() {
           className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}
         >
           <span className="text-[14px] font-black leading-none tracking-tight">B</span>
+        </button>
+        <button
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => applyRed(target)}
+          title="Turn the highlighted words red"
+          className="flex h-4 w-4 items-center justify-center"
+        >
+          <span className="block h-3 w-3" style={{ backgroundColor: INK_RED }} />
         </button>
         <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "insertUnorderedList")} title="Bullet the selected lines" className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}><List size={15} strokeWidth={2.75} /></button>
         <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "outdent")} title="Decrease indent" className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}><ChevronsLeft size={15} strokeWidth={2.75} /></button>
