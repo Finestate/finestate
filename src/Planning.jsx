@@ -61,10 +61,10 @@ const TODO_ITEMS = [...TODO_CORE, ...TODO_REST];
 // House style: one space before an opening bracket, e.g. "SC (CCEDB)".
 const spaceBrackets = (s) => String(s || "").replace(/([^\s(])\(/g, "$1 (");
 
-const emptyLine = () => ({ codes: [], meetings: [] });
+const emptyLine = () => ({ codes: [], meetings: [], fills: {} });
 // Older saves held a bare array of codes.
 const normaliseLine = (l) =>
-  Array.isArray(l) ? { codes: l, meetings: [] } : { codes: l?.codes || [], meetings: l?.meetings || [] };
+  Array.isArray(l) ? { codes: l, meetings: [], fills: {} } : { codes: l?.codes || [], meetings: l?.meetings || [], fills: l?.fills || {} };
 
 // Insert options: the bottom of the table can start a new section, a section's own
 // add bar only offers the two row kinds that live inside it.
@@ -201,7 +201,9 @@ export default function Planning() {
   const toggleTodo = (idx, code) => {
     const line = todoLines[idx];
     const has = line.codes.includes(code);
-    patchLine(idx, { codes: has ? line.codes.filter((c) => c !== code) : [...line.codes, code] });
+    const fills = { ...(line.fills || {}) };
+    if (has) delete fills[code];
+    patchLine(idx, { codes: has ? line.codes.filter((c) => c !== code) : [...line.codes, code], fills });
   };
 
   // Picking a meeting moves it onto the line. A one-off also leaves the picker.
@@ -313,14 +315,38 @@ export default function Planning() {
   const isTodoHeader = (r) => anchorIdx >= 0 && r && rows[anchorIdx] && r.id === rows[anchorIdx].id;
 
   // Codes on a line are split by a small solid gold square rather than a dot.
-  const renderCodeLine = (list, colour) => (
+  // A point ending in empty brackets, like Errandsprios (), takes free text between
+  // them on the line itself. Unticking the point clears it again.
+  const setFill = (idx, code, text) => {
+    const line = todoLines[idx];
+    patchLine(idx, { fills: { ...(line.fills || {}), [code]: text } });
+  };
+  const renderCodeLine = (list, colour, idx) => (
     <div className="flex flex-wrap items-center gap-1.5 text-[12px] leading-snug" style={{ color: colour }}>
-      {list.map((c, i) => (
-        <span key={c} className="inline-flex items-center gap-1.5">
-          {i > 0 && <span className="inline-block h-[5px] w-[5px] shrink-0" style={{ backgroundColor: colour }} />}
-          {c}
-        </span>
-      ))}
+      {list.map((c, i) => {
+        const fillable = /\(\)$/.test(c);
+        const fill = todoLines[idx]?.fills?.[c] || "";
+        return (
+          <span key={c} className="inline-flex items-center gap-1.5">
+            {i > 0 && <span className="inline-block h-[5px] w-[5px] shrink-0" style={{ backgroundColor: colour }} />}
+            {fillable ? (
+              <span className="inline-flex items-center">
+                {c.slice(0, -1)}
+                <input
+                  value={fill}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => setFill(idx, c, e.target.value)}
+                  style={{ width: `${Math.max(2, fill.length + 1)}ch`, color: colour }}
+                  className="bg-transparent outline-none"
+                />
+                )
+              </span>
+            ) : (
+              c
+            )}
+          </span>
+        );
+      })}
     </div>
   );
 
@@ -396,8 +422,8 @@ export default function Planning() {
                     ))}
                   </span>
                 )}
-                {coreCodes.length > 0 && renderCodeLine(coreCodes, "#171717")}
-                {restCodes.length > 0 && renderCodeLine(restCodes, "#171717")}
+                {coreCodes.length > 0 && renderCodeLine(coreCodes, "#171717", idx)}
+                {restCodes.length > 0 && renderCodeLine(restCodes, "#171717", idx)}
               </div>
 
               {idx === 1 && (
