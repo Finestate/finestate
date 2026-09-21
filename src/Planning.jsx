@@ -752,8 +752,14 @@ export default function Planning() {
                 {addMenu === i ? (
                   <TypeMenu at={i + 1} opts={SECTION_TYPES} />
                 ) : (
-                  sectionEnd && !hidden[i] && !collapsed.includes(r.id) && (
-                    <button onClick={() => setAddMenu(i)} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
+                  // A folded heading keeps its Add bar too; adding opens the section so the new row shows.
+                  ((sectionEnd && !hidden[i]) || (collapsed.includes(r.id) && collapsible(r))) && (
+                    <button
+                      onClick={() => { if (collapsed.includes(r.id)) toggleCollapse(r.id); setAddMenu(i); }}
+                      className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 hover:text-neutral-800 transition-colors"
+                    >
+                      <Plus size={12} /> Add
+                    </button>
                   )
                 )}
               </div>
