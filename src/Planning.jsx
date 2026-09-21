@@ -334,7 +334,8 @@ export default function Planning() {
         const coreCodes = points.core.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
-          <div key={idx} className="border-t border-neutral-300 bg-white">
+          // A heavy rule between today and the next day, so the two never blur.
+          <div key={idx} className={`bg-white ${idx === 0 ? "border-t border-neutral-300" : "border-t-[3px] border-neutral-500"}`}>
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(open ? null : idx)}
