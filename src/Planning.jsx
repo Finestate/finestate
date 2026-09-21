@@ -622,8 +622,8 @@ export default function Planning() {
     setCollapsed(next);
     try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next)); } catch {}
   };
-  // For now only the Sorting section folds.
-  const collapsible = (r) => r.type !== "text" && /sorting/i.test(r.text || "");
+  // Every heading folds, except the locked Daily routine one that carries the checklist.
+  const collapsible = (r) => r.type !== "text" && !isTodoHeader(r);
   // A folded heading hides everything below it up to the next heading of the same or higher rank.
   const rank = (r) => (r.type === "header" ? 1 : r.type === "subheader" ? 2 : 3);
   const hidden = (() => {
@@ -707,7 +707,7 @@ export default function Planning() {
                 />
               </div>
             ) : collapsible(r) ? (
-              // Sorting folds away: the chevron sits right after the word.
+              // Headings fold away: the chevron sits right after the word.
               <span className="flex flex-1 items-center gap-1">
                 <input
                   value={r.text}
