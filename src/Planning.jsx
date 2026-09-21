@@ -328,7 +328,7 @@ export default function Planning() {
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = () => (
     // Red frame so the daily block stands apart from the rest of the table.
-    <div className="border-2 border-[#C1440E]">
+    <div className={`border-2 border-[#C1440E] ${anchorIdx >= 0 ? "border-t" : ""}`}>
       {todoLines.map((line, idx) => {
         const open = todoOpen === idx;
         // Selected points keep their group on the line: meetings, core codes, then the rest.
@@ -619,7 +619,7 @@ export default function Planning() {
             return (
               <div key={r.id}>
                 <div
-                  className={`group relative flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5`}
+                  className={`group relative flex items-start gap-2 ${locked ? "border-2 border-b-0 border-[#C1440E]" : `${topBorder} ${botBorder}`} px-2.5 py-0.5`}
                   style={{ backgroundColor: bg }}
                 >
                   {field}
