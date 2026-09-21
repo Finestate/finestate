@@ -247,7 +247,7 @@ export default function LegalDocuments() {
           <div className="w-full max-w-sm rounded-xl border bg-white p-6 text-center shadow-xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
             <p className="text-[13px] font-semibold text-neutral-800">Delete this line?</p>
             <div className="mt-5 flex justify-center gap-6 text-[13px] font-semibold uppercase tracking-wide">
-              <button onClick={confirmRemove} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Yes</button>
+              <button onClick={confirmRemove} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Delete</button>
               <button onClick={() => setConfirm(null)} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Cancel</button>
             </div>
           </div>

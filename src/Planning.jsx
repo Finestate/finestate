@@ -161,6 +161,8 @@ export default function Planning() {
   });
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
   const [activeRow, setActiveRow] = useState(null); // row the ribbon acts on
+  const [confirm, setConfirm] = useState(null); // delete waiting on Yes or Cancel
+  const ask = (run) => setConfirm({ run });
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
 
 
@@ -408,7 +410,7 @@ export default function Planning() {
                           <span className="leading-snug">{m.name}</span>
                         )}
                         <button
-                          onClick={(e) => { e.stopPropagation(); dropMeeting(idx, m.id); }}
+                          onClick={(e) => { e.stopPropagation(); ask(() => dropMeeting(idx, m.id)); }}
                           title="Remove"
                           className="flex shrink-0 items-center self-center leading-none text-neutral-900 hover:text-[#C1440E]"
                         >
@@ -467,7 +469,7 @@ export default function Planning() {
                         className={`min-w-0 flex-1 bg-transparent leading-snug outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
                       />
                       <button
-                        onClick={() => saveMeetings(meetings.filter((x) => x.id !== m.id))}
+                        onClick={() => ask(() => saveMeetings(meetings.filter((x) => x.id !== m.id)))}
                         title="Remove this meeting"
                         className="shrink-0 text-neutral-900 hover:text-[#C1440E]"
                       >
@@ -542,7 +544,7 @@ export default function Planning() {
                             className={`min-w-0 flex-1 bg-transparent leading-snug outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
                           <button
-                            onClick={() => removePoint(g, it.id)}
+                            onClick={() => ask(() => removePoint(g, it.id))}
                             title="Remove this point"
                             className="shrink-0 self-start text-neutral-900 hover:text-[#C1440E]"
                           >
@@ -656,7 +658,7 @@ export default function Planning() {
                     <div className="flex shrink-0 items-center gap-1 py-0.5">
                       <button onClick={() => moveRow(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={12} /></button>
                       <button onClick={() => moveRow(i, 1)} disabled={i === rows.length - 1} title="Move down" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronDown size={12} /></button>
-                      <button onClick={() => remove(i)} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={12} /></button>
+                      <button onClick={() => ask(() => remove(i))} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={12} /></button>
                     </div>
                   )}
                 </div>
@@ -684,6 +686,19 @@ export default function Planning() {
         )}
 
       </div>
+
+      {/* Every bin on this page asks first. */}
+      {confirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setConfirm(null)}>
+          <div className="w-full max-w-sm rounded-xl border bg-white p-6 text-center shadow-xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-[13px] font-semibold text-neutral-800">Delete this?</p>
+            <div className="mt-5 flex justify-center gap-6 text-[13px] font-semibold uppercase tracking-wide">
+              <button onClick={() => { confirm.run(); setConfirm(null); }} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Delete</button>
+              <button onClick={() => setConfirm(null)} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
