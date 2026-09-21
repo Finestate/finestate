@@ -69,8 +69,8 @@ const normaliseLine = (l) =>
 
 // Insert options: the bottom of the table can start a new section, a section's own
 // add bar only offers the two row kinds that live inside it.
-const ALL_TYPES = [["Header", "header"], ["Sub-title", "subheader"], ["Row", "text"]];
-const SECTION_TYPES = [["Sub-title", "subheader"], ["Row", "text"]];
+const ALL_TYPES = [["Header", "header"], ["Row", "text"]];
+const SECTION_TYPES = [["Header", "header"], ["Row", "text"]];
 
 let _idc = 0;
 const newId = () => "p" + Date.now().toString(36) + "-" + (_idc++);
