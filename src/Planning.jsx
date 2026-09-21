@@ -14,6 +14,7 @@ const TODO_OPEN_KEY = "finestate.planning.todoOpen";
 const MEETINGS_KEY = "finestate.planning.meetings";
 const TODO_ANCHOR_KEY = "finestate.planning.todoAnchor";
 const POINTS_KEY = "finestate.planning.points";
+const COLLAPSED_KEY = "finestate.planning.collapsed";
 
 // Two identical checklist lines under the Daily routine heading: today, and the
 // next day being planned while today is still in front of you.
@@ -195,6 +196,8 @@ export default function Planning() {
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
   const [activeRow, setActiveRow] = useState(null); // row the ribbon acts on
   const [confirm, setConfirm] = useState(null); // delete waiting on Yes or Cancel
+  // Headings folded shut, remembered across refreshes and visits.
+  const [collapsed, setCollapsed] = useState(() => { try { const p = JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "null"); return Array.isArray(p) ? p : []; } catch { return []; } });
   const ask = (run) => setConfirm({ run });
   const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
 
@@ -602,6 +605,25 @@ export default function Planning() {
     </div>
   );
 
+  const toggleCollapse = (id) => {
+    const next = collapsed.includes(id) ? collapsed.filter((x) => x !== id) : [...collapsed, id];
+    setCollapsed(next);
+    try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next)); } catch {}
+  };
+  // For now only the Sorting section folds.
+  const collapsible = (r) => r.type !== "text" && /sorting/i.test(r.text || "");
+  // A folded heading hides everything below it up to the next heading of the same or higher rank.
+  const rank = (r) => (r.type === "header" ? 1 : r.type === "subheader" ? 2 : 3);
+  const hidden = (() => {
+    const out = []; let until = null;
+    rows.forEach((r, i) => {
+      if (until !== null && r.type !== "text" && rank(r) <= until) until = null;
+      out[i] = until !== null;
+      if (until === null && collapsed.includes(r.id) && collapsible(r)) until = rank(r);
+    });
+    return out;
+  })();
+
   // The ribbon works on the row that has the caret, as long as it sits in this section.
   const renderRibbon = (headerIdx) => {
     let end = headerIdx + 1;
@@ -646,6 +668,7 @@ export default function Planning() {
 
         <div>
           {rows.map((r, i) => {
+            if (hidden[i]) return null;
             // Every heading in this table is a main heading, so they share one colour.
             const bg = r.type === "text" ? "#fff" : BAR_BG;
             // The heading the checklist hangs under is locked: no typing, no bin, no dragging.
@@ -663,6 +686,19 @@ export default function Planning() {
                   className="rich-line min-h-[18px] flex-1 whitespace-pre-wrap break-words bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none"
                 />
               </div>
+            ) : collapsible(r) ? (
+              // Sorting folds away: the chevron sits right after the word.
+              <span className="flex flex-1 items-center gap-1">
+                <input
+                  value={r.text}
+                  onChange={(e) => update(i, e.target.value)}
+                  style={{ width: `${(r.text || "").length * 1.15 + 1}ch` }}
+                  className="bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none"
+                />
+                <button onClick={() => toggleCollapse(r.id)} title={collapsed.includes(r.id) ? "Open" : "Close"} className="text-neutral-900 hover:text-[#9c7c33]">
+                  <ChevronDown size={14} className={`transition-transform ${collapsed.includes(r.id) ? "-rotate-90" : ""}`} />
+                </button>
+              </span>
             ) : (
               <input value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
             );
@@ -691,12 +727,12 @@ export default function Planning() {
                   )}
                 </div>
                 {/* One ribbon per section, always there, acting on the row you last clicked. */}
-                {isHead && !locked && renderRibbon(i)}
+                {isHead && !locked && !collapsed.includes(r.id) && renderRibbon(i)}
                 {isTodoHeader(r) && renderTodoLines()}
                 {addMenu === i ? (
                   <TypeMenu at={i + 1} opts={SECTION_TYPES} />
                 ) : (
-                  sectionEnd && (
+                  sectionEnd && !hidden[i] && !collapsed.includes(r.id) && (
                     <button onClick={() => setAddMenu(i)} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
                   )
                 )}
