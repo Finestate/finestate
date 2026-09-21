@@ -416,7 +416,7 @@ export default function Planning() {
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => returnToPool(idx)}
-                  className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4"
+                  className="grid grid-cols-2 items-stretch gap-1.5 border border-[#C1440E] p-2 sm:grid-cols-3 lg:grid-cols-4"
                 >
                   {meetings.map((m, mi) => (
                     <div
@@ -484,7 +484,7 @@ export default function Planning() {
                 </div>
 
                 {["core", "rest"].map((g) => (
-                  <div key={g} className="mt-2 border-t border-[#C1440E] pt-2">
+                  <div key={g} className="mt-2 border border-[#C1440E] p-2">
                     <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
                       {points[g].map((it, pi) => (
                         <div
