@@ -624,12 +624,12 @@ export default function Planning() {
   };
   // Every heading folds, except the locked Daily routine one that carries the checklist.
   const collapsible = (r) => r.type !== "text" && !isTodoHeader(r);
-  // A folded heading hides everything below it up to the next heading of the same or higher rank.
+  // A folded heading hides only its own rows, up to the very next heading of any kind.
   const rank = (r) => (r.type === "header" ? 1 : r.type === "subheader" ? 2 : 3);
   const hidden = (() => {
     const out = []; let until = null;
     rows.forEach((r, i) => {
-      if (until !== null && r.type !== "text" && rank(r) <= until) until = null;
+      if (until !== null && r.type !== "text") until = null;
       out[i] = until !== null;
       if (until === null && collapsed.includes(r.id) && collapsible(r)) until = rank(r);
     });
