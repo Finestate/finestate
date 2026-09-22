@@ -190,24 +190,7 @@ export default function Costs({ seed }) {
   return (
     <div className="w-full">
       <div spellCheck={false} className="w-full overflow-hidden border-2 border-neutral-400 bg-white text-[11px] leading-none shadow-sm">
-        {/* Exchange rates */}
-        <Main>Exchange rates</Main>
-        <div className="flex items-center gap-1.5 border-b border-neutral-300 bg-white flex h-[22px] items-center px-2">
-          <span className={`flex-1 ${colHead}`}>Currency pair</span>
-          <span className={`w-24 shrink-0 text-right ${colHead}`}>Rate</span>
-          <span className="w-6 shrink-0" />
-        </div>
-        {doc.rates.map((r, i) => (
-          <Row key={r.id} first={i === 0}>
-            <input value={r.pair || ""} onChange={(e) => editIn("rates", r.id, "pair", e.target.value)} placeholder="AED / EUR" className={`${txt} flex-1`} />
-            <span className="w-28 shrink-0">
-              <input value={r.rate || ""} onChange={(e) => editIn("rates", r.id, "rate", e.target.value)} placeholder="0.0000" className={numCls} />
-            </span>
-            <Bin onClick={() => ask(() => setList("rates", doc.rates.filter((x) => x.id !== r.id)))} />
-          </Row>
-        ))}
-        <AddBar onClick={() => addTo("rates", { pair: "", rate: "" })} />
-
+        {/* Exchange rates are hidden for now; the saved ones still convert income to EUR. */}
         {/* Monthly */}
         <Main>Monthly</Main>
 
