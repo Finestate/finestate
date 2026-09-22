@@ -40,7 +40,7 @@ const NAV = [
   },
   {
     id: "costs",
-    name: "Income + Costs",
+    name: "Income+Costs",
     icon: CreditCard,
     children: [{ id: "costs/monthly", name: "Monthly" }],
   },
