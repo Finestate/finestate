@@ -4,13 +4,16 @@ const BAR_BG = "#FFE4B3";
 
 const TITLE = "Name";
 
+// Every paid or potentially paid service behind the site, A to Z. Free tiers sit at 0.00.
 const COSTS = [
-  { item: "Anthropic (Claude API)", price: "0.00" },
-  { item: "Domain name", price: "0.00" },
-  { item: "GitHub", price: "0.00" },
-  { item: "Stock data API", price: "0.00" },
-  { item: "Supabase", price: "0.00" },
-  { item: "Vercel", price: "0.00" },
+  { item: "Anthropic – Claude API (AI research, planned)", price: "0.00" },
+  { item: "Claude – Claude Code plan (building the site)", price: "0.00" },
+  { item: "Domain name – finestate.xyz", price: "0.00" },
+  { item: "Dropbox – project files", price: "0.00" },
+  { item: "GitHub – code repository", price: "0.00" },
+  { item: "Stock data API – market feed (planned)", price: "0.00" },
+  { item: "Supabase – logins and database", price: "0.00" },
+  { item: "Vercel – hosting", price: "0.00" },
 ];
 
 export default function SiteRunningCosts() {
