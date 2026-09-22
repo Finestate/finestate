@@ -39,8 +39,8 @@ const NAV = [
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
     ],
   },
-  { id: "assets", name: "Assets", icon: Wallet },
   { id: "costs", name: "Costs", icon: CreditCard },
+  { id: "assets", name: "Assets", icon: Wallet },
   { id: "income", name: "Income", icon: Banknote },
   { id: "investing", name: "Investing", icon: TrendingUp },
 ];
