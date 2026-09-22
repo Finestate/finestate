@@ -10,6 +10,7 @@ import {
   Receipt,
   FileText,
   Compass,
+  KeyRound,
   Users,
   ChevronDown,
 } from "lucide-react";
@@ -35,6 +36,7 @@ const NAV = [
     icon: Shield,
     children: [
       { id: "admin/legal-documents", name: "Legal documents", icon: FileText },
+      { id: "admin/logins", name: "Logins", icon: KeyRound },
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
       { id: "admin/users", name: "Users", icon: Users },
     ],
