@@ -413,7 +413,7 @@ export default function Planning() {
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
-          <div key={idx} className={`bg-white ${idx === 0 ? "border-t border-neutral-300" : "border-t-[3px] border-neutral-500"}`}>
+          <div key={idx} className={`bg-white ${idx === 0 ? "border-t border-neutral-300" : "border-t-2 border-neutral-500"}`}>
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(open ? null : idx)}
@@ -720,25 +720,25 @@ export default function Planning() {
                   className="bg-transparent py-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900 outline-none"
                 />
                 <button onClick={() => toggleCollapse(r.id)} title={collapsed.includes(r.id) ? "Open" : "Close"} className="text-neutral-900 hover:text-[#9c7c33]">
-                  <ChevronDown size={14} className={`transition-transform ${collapsed.includes(r.id) ? "-rotate-90" : ""}`} />
+                  <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(r.id) ? "-rotate-90" : ""}`} />
                 </button>
               </span>
             ) : (
               <input value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 bg-transparent py-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900 outline-none" />
             );
-            // Strong 2px separator (same as under the title bar) below a header, and above a header
-            // that follows other rows – so each subtitle's items are clearly grouped.
+            // Hairline separators either side of a header – enough to group a section
+            // without the bar turning into a thick band.
             const isHead = r.type !== "text";
             const prevHeader = i > 0 && rows[i - 1].type !== "text";
-            const topBorder = i === 0 ? "" : isHead ? "border-t-2 border-neutral-400" : prevHeader ? "" : "border-t border-neutral-300";
-            const botBorder = isHead ? "border-b-2 border-neutral-400" : "";
+            const topBorder = i === 0 ? "" : isHead ? "border-t border-neutral-400" : prevHeader ? "" : "border-t border-neutral-300";
+            const botBorder = isHead ? "border-b border-neutral-400" : "";
             // A section ends where the next header starts; the final section uses the bottom Add.
             const sectionEnd =
               i < rows.length - 1 && rows[i + 1].type !== "text" && !isTodoHeader(headingFor(i) || {});
             return (
               <div key={r.id}>
                 <div
-                  className={`group relative flex min-h-[21px] items-start gap-2 ${topBorder} ${botBorder} px-2 py-[3px]`}
+                  className={`group relative flex gap-2 ${topBorder} ${botBorder} px-2 ${isHead ? "h-[18px] items-center py-0" : "min-h-[21px] items-start py-[3px]"}`}
                   style={{ backgroundColor: bg }}
                 >
                   {field}
