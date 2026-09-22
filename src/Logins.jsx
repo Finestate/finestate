@@ -6,9 +6,11 @@ import { PAGES } from "./pages.js";
 const BAR_BG = "#FFE4B3";
 const HEADER_BG = "#FCEFCF";
 
-const cell = "px-2.5 py-0.5 text-[12px] leading-snug text-neutral-900";
+// One size, one line height across the whole table – same as the Planning page.
+const cell = "px-2 py-0 text-[11px] leading-[15px] text-neutral-900";
+const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
 const select =
-  "rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[12px] text-neutral-900 outline-none focus:border-neutral-500 disabled:opacity-40";
+  "rounded border border-neutral-300 bg-white px-1.5 py-0 text-[11px] leading-[15px] text-neutral-900 outline-none focus:border-neutral-500 disabled:opacity-40";
 
 export default function Logins({ myId }) {
   const [users, setUsers] = useState([]);
@@ -43,19 +45,19 @@ export default function Logins({ myId }) {
   return (
     <div className="w-full">
       <div className="w-full border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
-        <div className="flex items-center gap-2 border-b-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: BAR_BG }}>
-          <span className="flex-1 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Person</span>
-          <span className="w-40 shrink-0 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Role</span>
-          <span className="w-40 shrink-0 text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Status</span>
-          <span className="w-24 shrink-0 text-right text-[12px] font-black uppercase tracking-[0.06em] text-neutral-900">Pages</span>
+        <div className="flex h-[18px] items-center gap-2 border-b border-neutral-400 px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={`flex-1 ${head}`}>Person</span>
+          <span className={`w-40 shrink-0 ${head}`}>Role</span>
+          <span className={`w-40 shrink-0 ${head}`}>Status</span>
+          <span className={`w-24 shrink-0 text-right ${head}`}>Pages</span>
         </div>
 
-        {err && <p className="px-2.5 py-1 text-[12px] font-semibold text-[#b91c1c]">{err}</p>}
+        {err && <p className="px-2 py-0.5 text-[11px] font-semibold leading-[15px] text-[#b91c1c]">{err}</p>}
 
         {users.map((u, i) => (
           <div key={u.id} className={i === 0 ? "" : "border-t border-neutral-300"}>
-            <div className="flex items-center gap-2 px-2.5 py-0.5">
-              <span className="flex-1 truncate text-[12px] leading-snug text-neutral-900">
+            <div className="flex h-[21px] items-center gap-2 px-2">
+              <span className="flex-1 truncate text-[11px] leading-[15px] text-neutral-900">
                 {u.full_name || "—"} <span className="text-neutral-500">{u.email}</span>
               </span>
 
@@ -83,20 +85,20 @@ export default function Logins({ myId }) {
 
               <button
                 onClick={() => setOpenId(openId === u.id ? null : u.id)}
-                className="w-24 shrink-0 text-right text-[11px] font-bold uppercase tracking-wide text-[#9c7c33] underline underline-offset-2 hover:opacity-70"
+                className="w-24 shrink-0 text-right text-[11px] font-bold uppercase leading-[15px] tracking-wide text-[#9c7c33] underline underline-offset-2 hover:opacity-70"
               >
                 {u.role === "admin" ? "All" : "Edit"}
               </button>
             </div>
 
             {openId === u.id && (
-              <div className="border-t border-neutral-200 bg-neutral-50 px-2.5 py-1.5">
+              <div className="border-t border-neutral-200 bg-neutral-50 px-2 py-1">
                 {u.role === "admin" ? (
-                  <p className="text-[12px] text-neutral-600">Admins can open every page.</p>
+                  <p className="text-[11px] leading-[15px] text-neutral-600">Admins can open every page.</p>
                 ) : (
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col gap-0">
                     {PAGES.map((p) => (
-                      <label key={p.id} className="flex cursor-pointer items-center gap-2 text-[12px] text-neutral-900">
+                      <label key={p.id} className="flex h-[17px] cursor-pointer items-center gap-2 text-[11px] leading-[15px] text-neutral-900">
                         <input
                           type="checkbox"
                           checked={(u.access || []).includes(p.id)}
