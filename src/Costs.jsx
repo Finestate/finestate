@@ -191,7 +191,15 @@ export default function Costs({ seed }) {
     <div className="w-full">
       <div spellCheck={false} className="w-full overflow-hidden border-2 border-neutral-400 bg-white text-[11px] leading-none shadow-sm">
         {/* Exchange rates are hidden for now; the saved ones still convert income to EUR. */}
-        {/* The nav already says Monthly, so the page opens straight on Balances. */}
+        {/* Title bar: page name with the current month, and the headline balance on the right. */}
+        <div className="flex h-[22px] items-center gap-1.5 border-b-2 border-neutral-400 px-2" style={{ backgroundColor: MAIN_BG }}>
+          <span className={}>
+            Monthly income and costs – {["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][new Date().getMonth()]} {new Date().getFullYear()}
+          </span>
+          <span className={head}>Balance after pending</span>
+          <span className={}>EUR {money(balanceAfter)}</span>
+          <span className="w-6 shrink-0" />
+        </div>
 
         <Sub>Balances</Sub>
         <Figure label="SP Giro account balance" value={doc.balances.giro} onChange={(v) => setBalance("giro", v)} />
