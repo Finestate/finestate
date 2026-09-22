@@ -375,7 +375,7 @@ export default function Planning() {
     patchLine(idx, { fills: { ...(line.fills || {}), [code]: text } });
   };
   const renderCodeLine = (list, colour, idx) => (
-    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 text-[12px] leading-tight" style={{ color: colour }}>
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 text-[11px] leading-[15px]" style={{ color: colour }}>
       {list.map((c, i) => {
         const fillable = /\(\)$/.test(c);
         const fill = todoLines[idx]?.fills?.[c] || "";
@@ -420,11 +420,11 @@ export default function Planning() {
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => dropOnLine(idx)}
               title="Choose to-dos"
-              className="flex min-h-[22px] cursor-pointer items-start hover:bg-neutral-50"
+              className="flex min-h-[21px] cursor-pointer items-start hover:bg-neutral-50"
             >
-              <div className="flex flex-1 flex-col gap-0 px-2.5 py-0.5">
+              <div className="flex flex-1 flex-col gap-0 px-2 py-[3px]">
                 {line.meetings.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-x-1 gap-y-0 leading-tight">
+                  <div className="flex flex-wrap items-center gap-x-1 gap-y-0 leading-[15px]">
                     {line.meetings.map((m, mi) => (
                       <span
                         key={m.id}
@@ -439,7 +439,7 @@ export default function Planning() {
                           else dropOnLine(idx);
                           setDrag(null);
                         }}
-                        className={`inline-flex cursor-grab items-center gap-1 text-[12px] leading-snug text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
+                        className={`inline-flex cursor-grab items-center gap-1 text-[11px] leading-[15px] text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
                       >
                         {/* Plain text until double clicked, so the bin sits right after the words. */}
                         {editing === m.id ? (
@@ -450,10 +450,10 @@ export default function Planning() {
                             onChange={(e) => renameMeeting(m.id, e.target.value)}
                             onBlur={() => setEditing(null)}
                             style={{ width: `${Math.max(2, m.name.length)}ch` }}
-                            className="bg-transparent leading-snug outline-none"
+                            className="bg-transparent text-[11px] leading-[15px] outline-none"
                           />
                         ) : (
-                          <span className="leading-snug">{m.name}</span>
+                          <span className="leading-[15px]">{m.name}</span>
                         )}
                         <button
                           onClick={(e) => { e.stopPropagation(); ask(() => dropMeeting(idx, m.id)); }}
@@ -467,7 +467,7 @@ export default function Planning() {
                   </div>
                 )}
                 {line.meetings.length === 0 && coreCodes.length === 0 && restCodes.length === 0 && (
-                  <span className="my-[7px] inline-flex items-center gap-1.5">
+                  <span className="my-[4px] inline-flex items-center gap-1.5">
                     {[0, 1, 2, 3, 4].map((n) => (
                       <span key={n} className="inline-block h-[5px] w-[5px] bg-neutral-300" />
                     ))}
@@ -489,11 +489,11 @@ export default function Planning() {
             </div>
 
             {open && (
-              <div className="border-t border-[#C1440E] bg-white px-2.5 py-2">
+              <div className="border-t border-[#C1440E] bg-white px-2 py-1.5">
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => returnToPool(idx)}
-                  className="grid grid-cols-2 items-stretch gap-1.5 border border-[#C1440E] p-2 sm:grid-cols-3 lg:grid-cols-4"
+                  className="grid grid-cols-2 items-stretch gap-1 border border-[#C1440E] p-1.5 sm:grid-cols-3 lg:grid-cols-4"
                 >
                   {meetings.map((m, mi) => (
                     <div
@@ -512,7 +512,7 @@ export default function Planning() {
                         readOnly={editing !== m.id}
                         onChange={(e) => renameMeeting(m.id, e.target.value)}
                         onBlur={() => setEditing(null)}
-                        className={`min-w-0 flex-1 bg-transparent leading-snug outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
+                        className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
                       />
                       <button
                         onClick={() => ask(() => saveMeetings(meetings.filter((x) => x.id !== m.id)))}
@@ -561,8 +561,8 @@ export default function Planning() {
                 </div>
 
                 {["core", "rest"].map((g) => (
-                  <div key={g} className="mt-2 border border-[#C1440E] p-2">
-                    <div className="grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
+                  <div key={g} className="mt-1.5 border border-[#C1440E] p-1.5">
+                    <div className="grid grid-cols-2 items-stretch gap-1 sm:grid-cols-3 lg:grid-cols-4">
                       {points[g].map((it, pi) => (
                         <div
                           key={it.id}
@@ -587,7 +587,7 @@ export default function Planning() {
                             readOnly={editing !== it.id}
                             onChange={(e) => renamePoint(g, it.id, e.target.value)}
                             onBlur={() => setEditing(null)}
-                            className={`min-w-0 flex-1 bg-transparent leading-snug outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
+                            className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
                           <button
                             onClick={() => ask(() => removePoint(g, it.id))}
@@ -649,7 +649,7 @@ export default function Planning() {
     const off = "text-neutral-900";
     const on = "text-neutral-900 hover:text-[#9c7c33]";
     return (
-      <div className="flex items-center gap-3 border-b border-neutral-300 bg-neutral-50 px-2.5 py-1">
+      <div className="flex h-[21px] items-center gap-3 border-b border-neutral-300 bg-neutral-50 px-2">
         <button
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => applyCmd(target, "bold")}
@@ -675,12 +675,12 @@ export default function Planning() {
   };
 
   const TypeMenu = ({ at, opts = ALL_TYPES }) => (
-    <div className="flex flex-wrap items-center gap-2 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1">
-      <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Insert:</span>
+    <div className="flex min-h-[21px] flex-wrap items-center gap-2 border-t border-neutral-200 bg-neutral-50 px-2 py-[2px]">
+      <span className="text-[11px] font-bold uppercase leading-[15px] tracking-wide text-neutral-400">Insert:</span>
       {opts.map(([lbl, type]) => (
-        <button key={type} onClick={() => insertAt(at, type)} className="min-w-[84px] rounded border border-neutral-300 bg-white px-2 py-0.5 text-center text-[10px] font-semibold text-neutral-600 hover:bg-neutral-100 transition-colors">{lbl}</button>
+        <button key={type} onClick={() => insertAt(at, type)} className="min-w-[84px] rounded border border-neutral-300 bg-white px-2 py-0 text-center text-[11px] font-semibold leading-[15px] text-neutral-600 hover:bg-neutral-100 transition-colors">{lbl}</button>
       ))}
-      <button onClick={() => setAddMenu(null)} className="ml-1 text-[10px] font-semibold uppercase tracking-wide text-[#9c7c33] hover:opacity-70 transition-opacity">Cancel</button>
+      <button onClick={() => setAddMenu(null)} className="ml-1 text-[11px] font-semibold uppercase leading-[15px] tracking-wide text-[#9c7c33] hover:opacity-70 transition-opacity">Cancel</button>
     </div>
   );
 
@@ -698,7 +698,7 @@ export default function Planning() {
             // The heading the checklist hangs under is locked: no typing, no bin, no dragging.
             const locked = isTodoHeader(r);
             const field = locked ? (
-              <span className="flex-1 py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900">{r.text}</span>
+              <span className="flex-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{r.text}</span>
             ) : r.type === "text" ? (
               // One block, formatted line by line exactly as a Word document would be.
               <div className="flex flex-1 items-start gap-1">
@@ -707,7 +707,7 @@ export default function Planning() {
                   innerRef={(el) => { lineRefs.current[r.id] = el; }}
                   onFocus={() => setActiveRow(r.id)}
                   onInput={(html) => updateHtml(i, html)}
-                  className="rich-line min-h-[18px] flex-1 whitespace-pre-wrap break-words bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none"
+                  className="rich-line min-h-[15px] flex-1 whitespace-pre-wrap break-words bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
                 />
               </div>
             ) : collapsible(r) ? (
@@ -717,14 +717,14 @@ export default function Planning() {
                   value={r.text}
                   onChange={(e) => update(i, e.target.value)}
                   style={{ width: `${(r.text || "").length * 1.15 + 1}ch` }}
-                  className="bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none"
+                  className="bg-transparent py-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900 outline-none"
                 />
                 <button onClick={() => toggleCollapse(r.id)} title={collapsed.includes(r.id) ? "Open" : "Close"} className="text-neutral-900 hover:text-[#9c7c33]">
                   <ChevronDown size={14} className={`transition-transform ${collapsed.includes(r.id) ? "-rotate-90" : ""}`} />
                 </button>
               </span>
             ) : (
-              <input value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 bg-transparent py-0.5 text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900 outline-none" />
+              <input value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 bg-transparent py-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900 outline-none" />
             );
             // Strong 2px separator (same as under the title bar) below a header, and above a header
             // that follows other rows – so each subtitle's items are clearly grouped.
@@ -738,12 +738,12 @@ export default function Planning() {
             return (
               <div key={r.id}>
                 <div
-                  className={`group relative flex items-start gap-2 ${topBorder} ${botBorder} px-2.5 py-0.5`}
+                  className={`group relative flex min-h-[21px] items-start gap-2 ${topBorder} ${botBorder} px-2 py-[3px]`}
                   style={{ backgroundColor: bg }}
                 >
                   {field}
                   {!locked && (
-                    <div className="flex shrink-0 items-center gap-1 py-0.5">
+                    <div className="flex shrink-0 items-center gap-1 leading-none">
                       <button onClick={() => moveRow(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={12} /></button>
                       <button onClick={() => moveRow(i, 1)} disabled={i === rows.length - 1} title="Move down" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronDown size={12} /></button>
                       <button onClick={() => ask(() => remove(i))} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={12} /></button>
@@ -760,7 +760,7 @@ export default function Planning() {
                   ((sectionEnd && !hidden[i]) || (collapsed.includes(r.id) && collapsible(r))) && (
                     <button
                       onClick={() => { if (collapsed.includes(r.id)) toggleCollapse(r.id); setAddMenu(i); }}
-                      className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 hover:text-neutral-800 transition-colors"
+                      className="flex h-[21px] w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-400 hover:text-neutral-800 transition-colors"
                     >
                       <Plus size={12} /> Add
                     </button>
@@ -769,14 +769,14 @@ export default function Planning() {
               </div>
             );
           })}
-          {rows.length === 0 && <p className="px-2.5 py-3 text-[12px] text-neutral-400 italic">Empty. Use Add below to start.</p>}
+          {rows.length === 0 && <p className="px-2 py-2 text-[11px] italic text-neutral-400">Empty. Use Add below to start.</p>}
         </div>
 
         {/* Bottom add */}
         {addMenu === "end" ? (
           <TypeMenu at={rows.length} />
         ) : (
-          <button onClick={() => setAddMenu("end")} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
+          <button onClick={() => setAddMenu("end")} className="flex h-[21px] w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
         )}
 
       </div>
