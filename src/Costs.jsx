@@ -191,8 +191,7 @@ export default function Costs({ seed }) {
     <div className="w-full">
       <div spellCheck={false} className="w-full overflow-hidden border-2 border-neutral-400 bg-white text-[11px] leading-none shadow-sm">
         {/* Exchange rates are hidden for now; the saved ones still convert income to EUR. */}
-        {/* Monthly */}
-        <Main>Monthly</Main>
+        {/* The nav already says Monthly, so the page opens straight on Balances. */}
 
         <Sub>Balances</Sub>
         <Figure label="SP Giro account balance" value={doc.balances.giro} onChange={(v) => setBalance("giro", v)} />

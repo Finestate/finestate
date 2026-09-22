@@ -39,7 +39,12 @@ const NAV = [
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
     ],
   },
-  { id: "costs", name: "Costs", icon: CreditCard },
+  {
+    id: "costs",
+    name: "Costs",
+    icon: CreditCard,
+    children: [{ id: "costs/monthly", name: "Monthly" }],
+  },
   { id: "assets", name: "Assets", icon: Wallet },
   { id: "income", name: "Income", icon: Banknote },
   { id: "investing", name: "Investing", icon: TrendingUp },
@@ -366,7 +371,7 @@ export default function App() {
           <>
             {route === "admin/planning" && <Planning />}
             {route === "admin/legal-documents" && <LegalDocuments />}
-            {route === "costs" && <Costs />}
+            {route === "costs/monthly" && <Costs />}
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
             {route === "home" && (
