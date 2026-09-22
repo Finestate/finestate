@@ -107,7 +107,7 @@ function DateCell({ value, onChange, flagSoon }) {
       <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} title="Pick a date" className="shrink-0 text-neutral-400 hover:text-[#9c7c33]">
         <Calendar size={12} />
       </button>
-      <input value={value || ""} onChange={(e) => onChange(e.target.value)} className={`${cell} ${flagSoon && withinAYear(value) ? "!font-bold !text-[#E0101F]" : ""}`} />
+      <input value={value || ""} onChange={(e) => onChange(e.target.value)} className={`${cell} ${flagSoon && withinAYear(value) ? "!font-bold !text-[#E0101F] !bg-[#E0101F]/10 rounded px-1" : ""}`} />
       {anchor && <DatePicker value={value} anchor={anchor} onClose={() => setAnchor(null)} onPick={(v) => { onChange(v); setAnchor(null); }} />}
     </span>
   );
