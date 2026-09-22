@@ -49,8 +49,8 @@ const NAV = [
     name: "Assets",
     icon: Wallet,
     children: [
-      { id: "assets/estate", name: "Estate" },
       { id: "assets/snapshot", name: "Snapshot" },
+      { id: "assets/estate", name: "Estate" },
     ],
   },
   { id: "investing", name: "Investing", icon: TrendingUp },
