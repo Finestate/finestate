@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import {
   Wallet,
   CreditCard,
-  Banknote,
   TrendingUp,
   Calculator,
   Target,
@@ -41,7 +40,7 @@ const NAV = [
   },
   {
     id: "costs",
-    name: "Costs",
+    name: "Income + Costs",
     icon: CreditCard,
     children: [{ id: "costs/monthly", name: "Monthly" }],
   },
@@ -54,7 +53,6 @@ const NAV = [
       { id: "assets/snapshot", name: "Snapshot" },
     ],
   },
-  { id: "income", name: "Income", icon: Banknote },
   { id: "investing", name: "Investing", icon: TrendingUp },
 ];
 
