@@ -27,12 +27,13 @@ import { ALL_PAGE_IDS } from "./pages.js";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
 const NAV = [
+  // Planning stands on its own at the top; its route keeps the old id so access lists still match.
+  { id: "admin/planning", name: "Planning", icon: CalendarDays },
   {
     id: "admin",
-    name: "Ops",
+    name: "Admin",
     icon: Shield,
     children: [
-      { id: "admin/planning", name: "Planning", icon: CalendarDays },
       { id: "admin/legal-documents", name: "Legal documents", icon: FileText },
       { id: "admin/users", name: "Users", icon: Users },
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
@@ -50,10 +51,10 @@ const NAV = [
     icon: Wallet,
     children: [
       { id: "assets/snapshot", name: "Snapshot" },
+      { id: "assets/investing", name: "Investing" },
       { id: "assets/estate", name: "Estate" },
     ],
   },
-  { id: "investing", name: "Investing", icon: TrendingUp },
 ];
 
 const VIEW_AS_KEY = "finestate.viewAs";
@@ -115,7 +116,7 @@ function Sidebar({ route, onGo, allowed }) {
           <img src={infinityImg} alt="FI" className="h-11 w-auto" />
         </button>
         <button
-          onClick={() => { setOpenId("admin"); onGo("admin/planning"); }}
+          onClick={() => { setOpenId(null); onGo("admin/planning"); }}
           title="Planning"
           aria-label="Planning"
           className="absolute bottom-1.5 right-2 text-[#9c7c33] transition-opacity hover:opacity-70"
