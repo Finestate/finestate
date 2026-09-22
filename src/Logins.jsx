@@ -9,6 +9,8 @@ const HEADER_BG = "#FCEFCF";
 // One size, one line height across the whole table – same as the Planning page.
 const cell = "px-2 py-0 text-[11px] leading-[15px] text-neutral-900";
 const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
+// Four columns of equal width, so the table reads as a grid.
+const col = "min-w-0 flex-1 basis-0";
 const select =
   "rounded border border-neutral-300 bg-white px-1.5 py-0 text-[11px] leading-[15px] text-neutral-900 outline-none focus:border-neutral-500 disabled:opacity-40";
 
@@ -46,10 +48,10 @@ export default function Logins({ myId }) {
     <div className="w-full">
       <div className="w-full border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
         <div className="flex h-[18px] items-center gap-2 border-b border-neutral-400 px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={`flex-1 ${head}`}>Person</span>
-          <span className={`w-40 shrink-0 ${head}`}>Role</span>
-          <span className={`w-40 shrink-0 ${head}`}>Status</span>
-          <span className={`w-24 shrink-0 text-right ${head}`}>Pages</span>
+          <span className={`${col} ${head}`}>Person</span>
+          <span className={`${col} ${head}`}>Role</span>
+          <span className={`${col} ${head}`}>Status</span>
+          <span className={`${col} ${head}`}>Pages</span>
         </div>
 
         {err && <p className="px-2 py-0.5 text-[11px] font-semibold leading-[15px] text-[#b91c1c]">{err}</p>}
@@ -57,7 +59,7 @@ export default function Logins({ myId }) {
         {users.map((u, i) => (
           <div key={u.id} className={i === 0 ? "" : "border-t border-neutral-300"}>
             <div className="flex h-[21px] items-center gap-2 px-2">
-              <span className="flex-1 truncate text-[11px] leading-[15px] text-neutral-900">
+              <span className={`${col} truncate text-[11px] leading-[15px] text-neutral-900`}>
                 {u.full_name || "—"} <span className="text-neutral-500">{u.email}</span>
               </span>
 
@@ -66,7 +68,7 @@ export default function Logins({ myId }) {
                 disabled={u.id === myId}
                 title={u.id === myId ? "You cannot change your own role" : "Set role"}
                 onChange={(e) => patch(u.id, { role: e.target.value })}
-                className={`w-40 shrink-0 ${select}`}
+                className={`${col} ${select}`}
               >
                 <option value="admin">Admin</option>
                 <option value="member">Member</option>
@@ -76,7 +78,7 @@ export default function Logins({ myId }) {
                 value={u.status}
                 disabled={u.id === myId}
                 onChange={(e) => patch(u.id, { status: e.target.value })}
-                className={`w-40 shrink-0 ${select}`}
+                className={`${col} ${select}`}
               >
                 <option value="active">Active</option>
                 <option value="blocked">Blocked</option>
@@ -85,7 +87,7 @@ export default function Logins({ myId }) {
 
               <button
                 onClick={() => setOpenId(openId === u.id ? null : u.id)}
-                className="w-24 shrink-0 text-right text-[11px] font-bold uppercase leading-[15px] tracking-wide text-[#9c7c33] underline underline-offset-2 hover:opacity-70"
+                className={`${col} text-left text-[11px] font-bold uppercase leading-[15px] tracking-wide text-[#9c7c33] underline underline-offset-2 hover:opacity-70`}
               >
                 {u.role === "admin" ? "All" : "Edit"}
               </button>
