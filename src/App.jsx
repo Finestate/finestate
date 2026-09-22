@@ -45,7 +45,15 @@ const NAV = [
     icon: CreditCard,
     children: [{ id: "costs/monthly", name: "Monthly" }],
   },
-  { id: "assets", name: "Assets", icon: Wallet },
+  {
+    id: "assets",
+    name: "Assets",
+    icon: Wallet,
+    children: [
+      { id: "assets/estate", name: "Estate" },
+      { id: "assets/snapshot", name: "Snapshot" },
+    ],
+  },
   { id: "income", name: "Income", icon: Banknote },
   { id: "investing", name: "Investing", icon: TrendingUp },
 ];
