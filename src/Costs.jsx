@@ -6,10 +6,10 @@ import { supabase } from "./lib/supabaseClient.js";
 // so they live in Supabase (admin_docs), never in this repo.
 const DOC_ID = "costs-fc";
 
-// Heading ladder: a deep bronze main band with white type, then the site's prime
+// Heading ladder: a deeper amber main band, then the site's prime
 // shade for sections and its lighter shade for expense groups. Rows sit on white with
 // hairline rules, so the headings carry the structure.
-const MAIN_BG = "#6F5220";
+const MAIN_BG = "#F2C46D";
 const SUB_BG = "#FFE4B3";
 const SUBSUB_BG = "#FCEFCF";
 
@@ -64,8 +64,8 @@ function MoneyInput({ value, onChange, placeholder = "0.00" }) {
 }
 
 const Main = ({ children }) => (
-  <div className="border-t-2 border-neutral-600 flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
-    <span className={`${head} !text-white`}>{children}</span>
+  <div className="border-y-2 border-neutral-400 flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
+    <span className={head}>{children}</span>
   </div>
 );
 const Sub = ({ children }) => (
@@ -269,7 +269,7 @@ export default function Costs({ seed }) {
         <AddBar onClick={addGroup} label="Add group" />
 
         {/* Totals */}
-        <div className="flex items-center gap-1.5 border-t-2 border-neutral-600 flex h-[22px] items-center px-2 [&_span]:!text-white" style={{ backgroundColor: MAIN_BG }}>
+        <div className="flex items-center gap-1.5 border-y-2 border-neutral-400 flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
           <span className={`flex-1 ${head}`}>Totals</span>
           <span className={`w-24 shrink-0 text-right ${head} tabular-nums`}>{money(totalMonthly)}</span>
           <span className={`w-24 shrink-0 text-right ${head} tabular-nums`}>{money(totalPending)}</span>
