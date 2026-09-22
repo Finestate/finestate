@@ -48,7 +48,7 @@ export default function Logins({ myId }) {
     <div className="w-full">
       <div className="w-full border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
         <div className="flex h-[18px] items-center gap-2 border-b border-neutral-400 px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={`${col} ${head}`}>Person</span>
+          <span className={`${col} ${head}`}>Name</span>
           <span className={`${col} ${head}`}>Role</span>
           <span className={`${col} ${head}`}>Status</span>
           <span className={`${col} ${head}`}>Pages</span>
