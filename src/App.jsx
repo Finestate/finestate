@@ -35,8 +35,8 @@ const NAV = [
     icon: Shield,
     children: [
       { id: "admin/legal-documents", name: "Legal documents", icon: FileText },
-      { id: "admin/users", name: "Users", icon: Users },
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
+      { id: "admin/users", name: "Users", icon: Users },
     ],
   },
   {
