@@ -87,7 +87,15 @@ function DatePicker({ value, onPick, onClose, anchor }) {
   );
 }
 
-function DateCell({ value, onChange }) {
+// True when a date in "08 FEB 2034" form is a year or less away, or already past.
+const withinAYear = (v) => {
+  const d = parseDate(v);
+  if (!d) return false;
+  const days = (Date.UTC(d.y, d.m, d.d) - Date.now()) / 86400000;
+  return days <= 365;
+};
+
+function DateCell({ value, onChange, flagSoon }) {
   const [anchor, setAnchor] = useState(null);
   const btn = useRef(null);
   const open = () => {
@@ -99,7 +107,7 @@ function DateCell({ value, onChange }) {
       <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} title="Pick a date" className="shrink-0 text-neutral-400 hover:text-[#9c7c33]">
         <Calendar size={12} />
       </button>
-      <input value={value || ""} onChange={(e) => onChange(e.target.value)} className={cell} />
+      <input value={value || ""} onChange={(e) => onChange(e.target.value)} className={`${cell} ${flagSoon && withinAYear(value) ? "!text-[#B01E2F]" : ""}`} />
       {anchor && <DatePicker value={value} anchor={anchor} onClose={() => setAnchor(null)} onPick={(v) => { onChange(v); setAnchor(null); }} />}
     </span>
   );
@@ -222,7 +230,7 @@ export default function LegalDocuments() {
                   {COLS.map((c) => (
                     <span key={c.key} style={{ width: c.w }} className="shrink-0">
                       {c.key === "issued" || c.key === "expiry" ? (
-                        <DateCell value={r[c.key] || ""} onChange={(v) => update(i, c.key, v)} />
+                        <DateCell value={r[c.key] || ""} onChange={(v) => update(i, c.key, v)} flagSoon={c.key === "expiry"} />
                       ) : c.key === "scan" ? (
                         <LinkCell value={r.scan || ""} onChange={(v) => update(i, "scan", v)} />
                       ) : (
