@@ -193,6 +193,13 @@ export default function Costs({ seed }) {
         {/* Exchange rates are hidden for now; the saved ones still convert income to EUR. */}
         {/* The nav already says Monthly, so the page opens straight on Balances. */}
 
+        {/* Same order as the FC sheet: tax and pocket money first, then the monthly figures. */}
+        <Sub>Tax payments</Sub>
+        {simpleList("tax", "Payment")}
+
+        <Sub>Pocket money – current month</Sub>
+        {simpleList("pocket", "Who and how much weekly")}
+
         <Sub>Balances</Sub>
         <Figure label="SP Giro account balance" value={doc.balances.giro} onChange={(v) => setBalance("giro", v)} />
         <Figure label="Pending fixed costs" value={totalPending} calc />
@@ -220,11 +227,6 @@ export default function Costs({ seed }) {
         <Figure label="Total income (some of it to be taxed)" value={totalIncome} calc strong />
         <AddBar onClick={() => addTo("income", { name: "", amount: "", currency: "EUR" })} />
 
-        <Sub>Tax payments</Sub>
-        {simpleList("tax", "Payment")}
-
-        <Sub>Pocket money – current month</Sub>
-        {simpleList("pocket", "Who and how much weekly")}
 
         <Sub>Expenses</Sub>
         {doc.groups.map((g) => {
