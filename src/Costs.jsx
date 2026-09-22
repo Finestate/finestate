@@ -38,10 +38,10 @@ function timesPerYear(freq) {
   return listed || 0;
 }
 
-const txt = "w-full bg-transparent py-0.5 text-[12px] leading-snug text-neutral-900 outline-none placeholder:text-neutral-300";
+const txt = "w-full bg-transparent py-px text-[11px] leading-tight text-neutral-900 outline-none placeholder:text-neutral-300";
 const numCls = `${txt} text-right tabular-nums`;
-const head = "text-[12px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900";
-const colHead = "text-[11px] font-bold uppercase leading-tight tracking-wide text-neutral-700";
+const head = "text-[11px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900";
+const colHead = "text-[10px] font-bold uppercase leading-tight tracking-wide text-neutral-700";
 
 // A money field: shows 13,882.06 when you are not in it, the plain figure while typing,
 // and tidies to two decimals when you leave.
@@ -62,12 +62,12 @@ function MoneyInput({ value, onChange, placeholder = "0.00" }) {
 }
 
 const Main = ({ children }) => (
-  <div className="border-y-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: MAIN_BG }}>
+  <div className="border-y-2 border-neutral-400 px-2 py-0.5" style={{ backgroundColor: MAIN_BG }}>
     <span className={head}>{children}</span>
   </div>
 );
 const Sub = ({ children }) => (
-  <div className="border-b-2 border-neutral-400 px-2.5 py-0.5" style={{ backgroundColor: SUB_BG }}>
+  <div className="border-b-2 border-neutral-400 px-2 py-px" style={{ backgroundColor: SUB_BG }}>
     <span className={head}>{children}</span>
   </div>
 );
@@ -77,20 +77,20 @@ const Bin = ({ onClick }) => (
   </button>
 );
 const AddBar = ({ onClick, label = "Add" }) => (
-  <button onClick={onClick} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 transition-colors hover:text-neutral-800">
+  <button onClick={onClick} className="flex w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-neutral-500 transition-colors hover:text-neutral-800">
     <Plus size={12} /> {label}
   </button>
 );
 const Row = ({ children, first }) => (
-  <div className={`flex items-center gap-2 px-2.5 py-0.5 ${first ? "" : "border-t border-neutral-300"}`}>{children}</div>
+  <div className={`flex items-center gap-1.5 px-2 py-px ${first ? "" : "border-t border-neutral-300"}`}>{children}</div>
 );
 // A two-column line: label on the left, a figure on the right.
 const Figure = ({ label, value, onChange, calc, strong }) => (
-  <div className="flex items-center gap-2 border-t border-neutral-300 px-2.5 py-0.5">
-    <span className={`flex-1 text-[12px] leading-snug text-neutral-900 ${strong ? "font-bold" : ""}`}>{label}</span>
-    <span className="w-36 shrink-0">
+  <div className="flex items-center gap-1.5 border-t border-neutral-300 px-2 py-px">
+    <span className={`flex-1 text-[11px] leading-tight text-neutral-900 ${strong ? "font-bold" : ""}`}>{label}</span>
+    <span className="w-28 shrink-0">
       {calc ? (
-        <span className={`block text-right text-[12px] tabular-nums text-neutral-900 ${strong ? "font-bold" : ""}`}>EUR {money(value)}</span>
+        <span className={`block text-right text-[11px] tabular-nums text-neutral-900 ${strong ? "font-bold" : ""}`}>EUR {money(value)}</span>
       ) : (
         <MoneyInput value={value} onChange={onChange} />
       )}
@@ -172,7 +172,7 @@ export default function Costs() {
       {doc[key].map((r, i) => (
         <Row key={r.id} first={i === 0}>
           <input value={r.name || ""} onChange={(e) => editIn(key, r.id, "name", e.target.value)} placeholder={placeholder} className={`${txt} flex-1`} />
-          <span className="w-36 shrink-0">
+          <span className="w-28 shrink-0">
             <MoneyInput value={r.amount || ""} onChange={(v) => editIn(key, r.id, "amount", v)} />
           </span>
           <Bin onClick={() => ask(() => setList(key, doc[key].filter((x) => x.id !== r.id)))} />
@@ -182,22 +182,22 @@ export default function Costs() {
     </>
   );
 
-  if (!loaded) return <p className="px-2.5 py-3 text-[12px] italic text-neutral-400">Loading…</p>;
+  if (!loaded) return <p className="px-2 py-3 text-[11px] italic text-neutral-400">Loading…</p>;
 
   return (
     <div className="w-full">
       <div spellCheck={false} className="w-full overflow-hidden border-2 border-neutral-400 bg-white shadow-sm">
         {/* Exchange rates */}
         <Main>Exchange rates</Main>
-        <div className="flex items-center gap-2 border-b border-neutral-300 px-2.5 py-0.5" style={{ backgroundColor: SUBSUB_BG }}>
+        <div className="flex items-center gap-1.5 border-b border-neutral-300 px-2 py-px" style={{ backgroundColor: SUBSUB_BG }}>
           <span className={`flex-1 ${colHead}`}>Currency pair</span>
-          <span className={`w-36 shrink-0 text-right ${colHead}`}>Rate</span>
+          <span className={`w-24 shrink-0 text-right ${colHead}`}>Rate</span>
           <span className="w-6 shrink-0" />
         </div>
         {doc.rates.map((r, i) => (
           <Row key={r.id} first={i === 0}>
             <input value={r.pair || ""} onChange={(e) => editIn("rates", r.id, "pair", e.target.value)} placeholder="AED / EUR" className={`${txt} flex-1`} />
-            <span className="w-36 shrink-0">
+            <span className="w-28 shrink-0">
               <input value={r.rate || ""} onChange={(e) => editIn("rates", r.id, "rate", e.target.value)} placeholder="0.0000" className={numCls} />
             </span>
             <Bin onClick={() => ask(() => setList("rates", doc.rates.filter((x) => x.id !== r.id)))} />
@@ -216,11 +216,11 @@ export default function Costs() {
         <Figure label="Mortgage to clear with extra payments" value={doc.balances.mortgage} onChange={(v) => setBalance("mortgage", v)} />
 
         <Sub>Net incoming</Sub>
-        <div className="flex items-center gap-2 border-b border-neutral-300 px-2.5 py-0.5" style={{ backgroundColor: SUBSUB_BG }}>
+        <div className="flex items-center gap-1.5 border-b border-neutral-300 px-2 py-px" style={{ backgroundColor: SUBSUB_BG }}>
           <span className={`flex-1 ${colHead}`}>Source</span>
-          <span className={`w-28 shrink-0 text-right ${colHead}`}>Amount</span>
+          <span className={`w-24 shrink-0 text-right ${colHead}`}>Amount</span>
           <span className={`w-16 shrink-0 ${colHead}`}>Currency</span>
-          <span className={`w-36 shrink-0 text-right ${colHead}`}>In EUR</span>
+          <span className={`w-24 shrink-0 text-right ${colHead}`}>In EUR</span>
           <span className="w-6 shrink-0" />
         </div>
         {doc.income.map((r, i) => (
@@ -228,7 +228,7 @@ export default function Costs() {
             <input value={r.name || ""} onChange={(e) => editIn("income", r.id, "name", e.target.value)} placeholder="Source" className={`${txt} flex-1`} />
             <span className="w-28 shrink-0"><MoneyInput value={r.amount || ""} onChange={(v) => editIn("income", r.id, "amount", v)} /></span>
             <span className="w-16 shrink-0"><input value={r.currency || ""} onChange={(e) => editIn("income", r.id, "currency", e.target.value.toUpperCase())} placeholder="EUR" className={`${txt} uppercase`} /></span>
-            <span className="w-36 shrink-0 text-right text-[12px] tabular-nums text-neutral-900">EUR {money(toEur(r.amount, r.currency))}</span>
+            <span className="w-24 shrink-0 text-right text-[11px] tabular-nums text-neutral-900">EUR {money(toEur(r.amount, r.currency))}</span>
             <Bin onClick={() => ask(() => setList("income", doc.income.filter((x) => x.id !== r.id)))} />
           </Row>
         ))}
@@ -246,34 +246,34 @@ export default function Costs() {
           const gMonthly = g.rows.reduce((s, r) => s + monthlyAvg(r), 0);
           return (
             <div key={g.id}>
-              <div className="flex items-center gap-2 border-b border-neutral-400 px-2.5 py-0.5" style={{ backgroundColor: SUBSUB_BG }}>
-                <input value={g.name || ""} onChange={(e) => editGroup(g.id, e.target.value)} placeholder="Group" className={`flex-1 bg-transparent py-0.5 outline-none ${head}`} />
+              <div className="flex items-center gap-1.5 border-b border-neutral-400 px-2 py-px" style={{ backgroundColor: SUBSUB_BG }}>
+                <input value={g.name || ""} onChange={(e) => editGroup(g.id, e.target.value)} placeholder="Group" className={`flex-1 bg-transparent py-px outline-none ${head}`} />
                 <Bin onClick={() => ask(() => removeGroup(g.id))} />
               </div>
-              <div className="flex items-center gap-2 border-b border-neutral-300 px-2.5 py-0.5">
+              <div className="flex items-center gap-1.5 border-b border-neutral-300 px-2 py-px">
                 <span className={`flex-1 ${colHead}`}>Item</span>
-                <span className={`w-36 shrink-0 ${colHead}`}>Payment source</span>
-                <span className={`w-40 shrink-0 ${colHead}`}>Frequency</span>
-                <span className={`w-24 shrink-0 text-right ${colHead}`}>Amount</span>
-                <span className={`w-24 shrink-0 text-right ${colHead}`}>Monthly avg</span>
-                <span className={`w-24 shrink-0 text-right ${colHead}`}>Pending</span>
+                <span className={`w-28 shrink-0 ${colHead}`}>Payment source</span>
+                <span className={`w-32 shrink-0 ${colHead}`}>Frequency</span>
+                <span className={`w-20 shrink-0 text-right ${colHead}`}>Amount</span>
+                <span className={`w-20 shrink-0 text-right ${colHead}`}>Monthly avg</span>
+                <span className={`w-20 shrink-0 text-right ${colHead}`}>Pending</span>
                 <span className="w-6 shrink-0" />
               </div>
               {g.rows.map((r, i) => (
                 <Row key={r.id} first={i === 0}>
                   <input value={r.item || ""} onChange={(e) => editRow(g.id, r.id, "item", e.target.value)} placeholder="Item" className={`${txt} flex-1`} />
-                  <span className="w-36 shrink-0"><input value={r.source || ""} onChange={(e) => editRow(g.id, r.id, "source", e.target.value)} className={txt} /></span>
-                  <span className="w-40 shrink-0"><input value={r.freq || ""} onChange={(e) => editRow(g.id, r.id, "freq", e.target.value)} placeholder="Monthly" className={txt} /></span>
-                  <span className="w-24 shrink-0"><MoneyInput value={r.amount || ""} onChange={(v) => editRow(g.id, r.id, "amount", v)} /></span>
-                  <span className="w-24 shrink-0 text-right text-[12px] tabular-nums text-neutral-900">{money(monthlyAvg(r))}</span>
-                  <span className="w-24 shrink-0"><MoneyInput value={r.pending || ""} onChange={(v) => editRow(g.id, r.id, "pending", v)} placeholder="–" /></span>
+                  <span className="w-28 shrink-0"><input value={r.source || ""} onChange={(e) => editRow(g.id, r.id, "source", e.target.value)} className={txt} /></span>
+                  <span className="w-32 shrink-0"><input value={r.freq || ""} onChange={(e) => editRow(g.id, r.id, "freq", e.target.value)} placeholder="Monthly" className={txt} /></span>
+                  <span className="w-20 shrink-0"><MoneyInput value={r.amount || ""} onChange={(v) => editRow(g.id, r.id, "amount", v)} /></span>
+                  <span className="w-20 shrink-0 text-right text-[11px] tabular-nums text-neutral-900">{money(monthlyAvg(r))}</span>
+                  <span className="w-20 shrink-0"><MoneyInput value={r.pending || ""} onChange={(v) => editRow(g.id, r.id, "pending", v)} placeholder="–" /></span>
                   <Bin onClick={() => ask(() => removeRow(g.id, r.id))} />
                 </Row>
               ))}
-              <div className="flex items-center gap-2 border-t border-neutral-300 px-2.5 py-0.5">
+              <div className="flex items-center gap-1.5 border-t border-neutral-300 px-2 py-px">
                 <span className="flex-1 text-[11px] font-bold uppercase tracking-wide text-neutral-600">Group monthly</span>
-                <span className="w-24 shrink-0 text-right text-[12px] font-bold tabular-nums text-neutral-900">{money(gMonthly)}</span>
-                <span className="w-24 shrink-0" />
+                <span className="w-20 shrink-0 text-right text-[11px] font-bold tabular-nums text-neutral-900">{money(gMonthly)}</span>
+                <span className="w-20 shrink-0" />
                 <span className="w-6 shrink-0" />
               </div>
               <AddBar onClick={() => addRow(g.id)} />
@@ -283,10 +283,10 @@ export default function Costs() {
         <AddBar onClick={addGroup} label="Add group" />
 
         {/* Totals */}
-        <div className="flex items-center gap-2 border-t-2 border-neutral-400 px-2.5 py-1" style={{ backgroundColor: MAIN_BG }}>
+        <div className="flex items-center gap-1.5 border-t-2 border-neutral-400 px-2 py-0.5" style={{ backgroundColor: MAIN_BG }}>
           <span className={`flex-1 ${head}`}>Totals</span>
-          <span className={`w-24 shrink-0 text-right ${head} tabular-nums`}>{money(totalMonthly)}</span>
-          <span className={`w-24 shrink-0 text-right ${head} tabular-nums`}>{money(totalPending)}</span>
+          <span className={`w-20 shrink-0 text-right ${head} tabular-nums`}>{money(totalMonthly)}</span>
+          <span className={`w-20 shrink-0 text-right ${head} tabular-nums`}>{money(totalPending)}</span>
           <span className="w-6 shrink-0" />
         </div>
       </div>
