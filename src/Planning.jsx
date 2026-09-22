@@ -658,10 +658,11 @@ export default function Planning() {
         <button
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => applyRed(target)}
-          title="Turn the highlighted words red"
+          title="Switch the highlighted words between red and black"
           className="flex h-4 w-4 items-center justify-center"
         >
-          <span className="block h-3 w-3" style={{ backgroundColor: INK_RED }} />
+          {/* Half red, half black: it switches text between the two. */}
+          <span className="block h-3 w-3" style={{ background: `linear-gradient(135deg, ${INK_RED} 50%, #171717 50%)` }} />
         </button>
         <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "insertUnorderedList")} title="Bullet the selected lines" className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}><List size={15} strokeWidth={2.75} /></button>
         <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "outdent")} title="Decrease indent" className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}><ChevronsLeft size={15} strokeWidth={2.75} /></button>
