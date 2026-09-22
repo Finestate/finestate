@@ -20,6 +20,7 @@ import Planning from "./Planning.jsx";
 import SiteRunningCosts from "./SiteRunningCosts.jsx";
 import Logins from "./Logins.jsx";
 import LegalDocuments from "./LegalDocuments.jsx";
+import Costs from "./Costs.jsx";
 import Auth from "./Auth.jsx";
 import { supabase, supabaseReady } from "./lib/supabaseClient.js";
 import infinityImg from "../Website Images/Infinity.webp";
@@ -365,6 +366,7 @@ export default function App() {
           <>
             {route === "admin/planning" && <Planning />}
             {route === "admin/legal-documents" && <LegalDocuments />}
+            {route === "costs" && <Costs />}
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
             {route === "home" && (
