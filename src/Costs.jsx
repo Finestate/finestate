@@ -193,11 +193,11 @@ export default function Costs({ seed }) {
         {/* Exchange rates are hidden for now; the saved ones still convert income to EUR. */}
         {/* Title bar: page name with the current month, and the headline balance on the right. */}
         <div className="flex h-[22px] items-center gap-1.5 border-b-2 border-neutral-400 px-2" style={{ backgroundColor: MAIN_BG }}>
-          <span className={}>
-            Monthly income and costs – {["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][new Date().getMonth()]} {new Date().getFullYear()}
+          <span className={`flex-1 ${head}`}>
+            Monthly income and costs –{["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][new Date().getMonth()]} {new Date().getFullYear()}
           </span>
           <span className={head}>Balance after pending</span>
-          <span className={}>EUR {money(balanceAfter)}</span>
+          <span className={`w-28 shrink-0 text-right tabular-nums ${head}`}>EUR {money(balanceAfter)}</span>
           <span className="w-6 shrink-0" />
         </div>
 
