@@ -28,7 +28,7 @@ import { ALL_PAGE_IDS } from "./pages.js";
 const NAV = [
   {
     id: "admin",
-    name: "Admin",
+    name: "Ops",
     icon: Shield,
     children: [
       { id: "admin/planning", name: "Planning", icon: CalendarDays },
