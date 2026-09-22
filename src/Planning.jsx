@@ -79,6 +79,9 @@ const newId = () => "p" + Date.now().toString(36) + "-" + (_idc++);
 // bullet or indent one line at a time.
 const toBlocks = (html) => {
   const h = String(html || "");
+  // Already in blocks (anything typed since rich editing): leave it alone, or the
+  // empty-line markers get split apart and blank lines vanish on refresh.
+  if (/<(div|p|ul|ol|li|blockquote)\b/i.test(h)) return h;
   if (!/<br\s*\/?>/i.test(h)) return h;
   return h.split(/<br\s*\/?>/i).map((part) => `<div>${part.trim() ? part : "<br>"}</div>`).join("");
 };
