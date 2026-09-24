@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, List, ChevronsRight, ChevronsLeft } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, List, ChevronsRight, ChevronsLeft, X } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
@@ -583,8 +583,12 @@ export default function Planning() {
                         className="h-3.5 w-3.5 shrink-0"
                         style={{ accentColor: "#C1440E" }}
                       />
-                      <button onClick={() => { addMeeting(); setAdding(false); }} title="Save" className="text-[#9c7c33] hover:opacity-70">
+                      <button onClick={() => { addMeeting(); setAdding(false); }} title="Save" className="shrink-0 text-[#9c7c33] hover:opacity-70">
                         <Plus size={12} />
+                      </button>
+                      {/* Changed your mind: drop the half typed meeting. */}
+                      <button onClick={() => { setNewMeeting(""); setNewPermanent(false); setAdding(false); }} title="Cancel" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
+                        <X size={12} />
                       </button>
                     </span>
                   ) : (
