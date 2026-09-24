@@ -208,17 +208,19 @@ export default function LegalDocuments() {
         {!loaded ? (
           <p className="px-2 py-2 text-[11px] italic text-neutral-400">Loading…</p>
         ) : (
-          order.map((i) => {
+          order.map((i, pos) => {
             const r = items[i];
+            // Exactly one line between any two bands: every band draws its own top
+            // rule, the outer frame closes the table, so nothing ever doubles up.
+            const rule = pos === 0 ? "" : "border-t border-black";
             return r.kind === "section" ? (
               // Each section carries its own column headings underneath it.
               <div key={r.id}>
                 {/* Section bars carry no bin – a section only goes when I remove it. */}
-                {/* Every rule in this table is one hairline of the same colour. */}
-                <div className="flex h-[18px] items-center border-b border-black px-2" style={{ backgroundColor: BAR_BG }}>
+                <div className={`flex h-[18px] items-center px-2 ${rule}`} style={{ backgroundColor: BAR_BG }}>
                   <input value={r.label || ""} onChange={(e) => update(i, "label", e.target.value)} className={`block w-full bg-transparent py-0 ${head} outline-none`} />
                 </div>
-                <div className="flex h-[18px] items-center gap-2 border-b border-black px-2" style={{ backgroundColor: HEADER_BG }}>
+                <div className="flex h-[18px] items-center gap-2 border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
                   <span className="flex min-w-0 flex-1 items-center gap-2">
                     {COLS.map((c) => (
                       <span key={c.key} style={{ width: c.w }} className={`shrink-0 ${head}`}>{c.label}</span>
@@ -228,7 +230,7 @@ export default function LegalDocuments() {
                 </div>
               </div>
             ) : (
-              <div key={r.id} className="flex h-[21px] items-center gap-2 border-t border-black px-2">
+              <div key={r.id} className={`flex h-[21px] items-center gap-2 px-2 ${rule}`}>
                 <span className="flex min-w-0 flex-1 items-center gap-2">
                   {COLS.map((c) => (
                     <span key={c.key} style={{ width: c.w }} className="shrink-0">
