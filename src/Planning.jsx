@@ -489,11 +489,12 @@ export default function Planning() {
             </div>
 
             {open && (
-              <div className="border-t border-[#C1440E] bg-white px-2 py-1.5">
+              // Three columns side by side: meetings, the core codes, then the long list.
+              <div className="grid grid-cols-3 items-start gap-1.5 border-t border-[#C1440E] bg-white px-2 py-1.5">
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => returnToPool(idx)}
-                  className="grid grid-cols-2 items-stretch gap-1 border border-[#C1440E] p-1.5 sm:grid-cols-3 lg:grid-cols-4"
+                  className="grid grid-cols-1 items-stretch gap-1 self-stretch border border-[#C1440E] p-1.5"
                 >
                   {meetings.map((m, mi) => (
                     <div
@@ -561,8 +562,8 @@ export default function Planning() {
                 </div>
 
                 {["core", "rest"].map((g) => (
-                  <div key={g} className="mt-1.5 border border-[#C1440E] p-1.5">
-                    <div className="grid grid-cols-2 items-stretch gap-1 sm:grid-cols-3 lg:grid-cols-4">
+                  <div key={g} className="self-stretch border border-[#C1440E] p-1.5">
+                    <div className="grid grid-cols-1 items-stretch gap-1">
                       {points[g].map((it, pi) => (
                         <div
                           key={it.id}
