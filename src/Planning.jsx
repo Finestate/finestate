@@ -802,9 +802,9 @@ export default function Planning() {
     // Plain words in the same style as the Add bar, no boxes.
     <div className="flex h-[21px] items-center gap-4 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide">
       {opts.map(([lbl, type]) => (
-        <button key={type} onClick={() => insertAt(at, type)} className="text-neutral-500 transition-colors hover:text-neutral-800">{lbl}</button>
+        <button key={type} onClick={() => insertAt(at, type)} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>{lbl}</button>
       ))}
-      <button onClick={() => setAddMenu(null)} className="text-neutral-400 transition-colors hover:text-neutral-800">Cancel</button>
+      <button onClick={() => setAddMenu(null)} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Cancel</button>
     </div>
   );
 
