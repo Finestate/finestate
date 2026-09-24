@@ -877,13 +877,25 @@ export default function Planning() {
                 {/* One ribbon per section, always there, acting on the row you last clicked. */}
                 {isHead && !locked && !collapsed.includes(r.id) && renderRibbon(i)}
                 {isTodoHeader(r) && renderTodoLines()}
+                {/* Folded, but never gone: a blank line with the squares says there is more here. */}
+                {collapsed.includes(r.id) && collapsible(r) && (
+                  <div
+                    onClick={() => toggleCollapse(r.id)}
+                    title="Open"
+                    className="flex h-[21px] cursor-pointer items-center gap-1.5 bg-white px-2 hover:bg-neutral-50"
+                  >
+                    {[0, 1, 2, 3, 4].map((n) => (
+                      <span key={n} className="inline-block h-[5px] w-[5px] bg-neutral-300" />
+                    ))}
+                  </div>
+                )}
                 {addMenu === i ? (
                   <TypeMenu at={i + 1} opts={SECTION_TYPES} />
                 ) : (
-                  // A folded heading keeps its Add bar too; adding opens the section so the new row shows.
-                  ((sectionEnd && !hidden[i]) || (collapsed.includes(r.id) && collapsible(r))) && (
+                  // Only an open section carries its Add bar; folded, the squares line stands alone.
+                  sectionEnd && !hidden[i] && !collapsed.includes(r.id) && (
                     <button
-                      onClick={() => { if (collapsed.includes(r.id)) toggleCollapse(r.id); setAddMenu(i); }}
+                      onClick={() => setAddMenu(i)}
                       className="flex h-[21px] w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-400 hover:text-neutral-800 transition-colors"
                     >
                       <Plus size={12} /> Add
