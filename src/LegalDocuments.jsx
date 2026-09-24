@@ -4,8 +4,9 @@ import { supabase } from "./lib/supabaseClient.js";
 
 // Personal ID numbers live in Supabase, never in this repo.
 const DOC_ID = "legal-documents";
-const BAR_BG = "#FFE4B3";
-const HEADER_BG = "#FCEFCF";
+// Same ramp as the Costs table: darkest gold on the section bars, then down.
+const BAR_BG = "#F2C46D";
+const HEADER_BG = "#FFE4B3";
 
 const COLS = [
   { key: "item", label: "Document or ID", w: "30%" },
