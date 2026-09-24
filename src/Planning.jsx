@@ -529,7 +529,7 @@ export default function Planning() {
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => returnToPool(idx)}
-                  className="grid auto-rows-min grid-cols-1 content-start items-start gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
+                  className="flex flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
                 >
                   {meetings.map((m, mi) => (
                     <div
@@ -560,8 +560,10 @@ export default function Planning() {
                     </div>
                   ))}
 
+                  {/* One clear line above the add button, which sits on the floor of the column. */}
+                  <span className="mt-auto block h-[19px]" />
                   {adding ? (
-                    <span className="flex h-full w-full items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
+                    <span className="flex w-full items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
                       <input
                         autoFocus
                         value={newMeeting}
@@ -598,7 +600,7 @@ export default function Planning() {
 
                 {["core", "rest"].map((g) => (
                   <div key={g} className="self-stretch border-[3px] border-[#C1440E] p-1.5">
-                    <div className="grid auto-rows-min grid-cols-1 content-start items-start gap-1">
+                    <div className="flex h-full flex-col gap-1">
                       {points[g].map((it, pi) => (
                         <div
                           key={it.id}
@@ -635,7 +637,8 @@ export default function Planning() {
                         </div>
                       ))}
 
-                      {/* Both groups take new points straight from here. */}
+                      {/* Both groups take new points straight from here, on the floor of the column. */}
+                      <span className="mt-auto block h-[19px]" />
                       <button
                         onClick={() => addPoint(g)}
                         title="Add a point"
@@ -669,9 +672,9 @@ export default function Planning() {
       // Same shape as the daily picker: one red framed column per list.
       <div className="grid grid-cols-2 items-start gap-1.5 bg-white px-2 py-1.5">
         {TWOCOLS.map(([k, label]) => (
-          <div key={k} className="self-stretch border-[3px] border-[#C1440E] p-1.5">
+          <div key={k} className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
-            <div className="grid auto-rows-min grid-cols-1 content-start items-start gap-1">
+            <div className="flex flex-1 flex-col gap-1">
               {cols[k].map((r, i) => (
                 <div
                   key={r.id}
@@ -696,6 +699,8 @@ export default function Planning() {
                   </button>
                 </div>
               ))}
+              {/* One clear line, then the add button on the floor of the column. */}
+              <span className="mt-auto block h-[19px]" />
               <button
                 onClick={() => addColRow(k)}
                 title="Add a line"
