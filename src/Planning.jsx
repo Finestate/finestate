@@ -4,8 +4,9 @@ import { supabase } from "./lib/supabaseClient.js";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
-const BAR_BG = "#FFE4B3";     // title bar – brightest
-const HEADER_BG = "#FCEFCF";  // header row – mid
+// Same ramp as the Costs table: darkest gold on the main title bars, then down.
+const BAR_BG = "#F2C46D";     // main title bar – darkest
+const HEADER_BG = "#FFE4B3";  // one step down
 const SUBHEAD_BG = HEADER_BG; // sub-titles sit one shade below a main header
 const GOLD = "#9c7c33";
 const ROWS_KEY = "finestate.planning.rows";
