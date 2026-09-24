@@ -799,12 +799,12 @@ export default function Planning() {
   };
 
   const TypeMenu = ({ at, opts = ALL_TYPES }) => (
-    <div className="flex min-h-[21px] flex-wrap items-center gap-2 border-t border-neutral-200 bg-neutral-50 px-2 py-[2px]">
-      <span className="text-[11px] font-bold uppercase leading-[15px] tracking-wide text-neutral-400">Insert:</span>
+    // Plain words in the same style as the Add bar, no boxes.
+    <div className="flex h-[21px] items-center gap-4 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide">
       {opts.map(([lbl, type]) => (
-        <button key={type} onClick={() => insertAt(at, type)} className="min-w-[84px] rounded border border-neutral-300 bg-white px-2 py-0 text-center text-[11px] font-semibold leading-[15px] text-neutral-600 hover:bg-neutral-100 transition-colors">{lbl}</button>
+        <button key={type} onClick={() => insertAt(at, type)} className="text-neutral-500 transition-colors hover:text-neutral-800">{lbl}</button>
       ))}
-      <button onClick={() => setAddMenu(null)} className="ml-1 text-[11px] font-semibold uppercase leading-[15px] tracking-wide text-[#9c7c33] hover:opacity-70 transition-opacity">Cancel</button>
+      <button onClick={() => setAddMenu(null)} className="text-neutral-400 transition-colors hover:text-neutral-800">Cancel</button>
     </div>
   );
 
