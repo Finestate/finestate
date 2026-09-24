@@ -19,8 +19,8 @@ const POINTS_KEY = "finestate.planning.points";
 const COLLAPSED_KEY = "finestate.planning.collapsed";
 const TWOCOL_KEY = "personal-order"; // row id in the private admin_docs table
 
-// The two lists that sit under the daily area, side by side, under one folding bar.
-const TWOCOLS = [["errands", "Errands prios"], ["hf", "H+F order"]];
+// The lists that sit under the daily area, side by side, under one folding bar.
+const TWOCOLS = [["quicks", "Errands quicks"], ["errands", "Errands prios"], ["hf", "H+F order"]];
 const PERSONAL_ID = "personal-order";
 
 // Two identical checklist lines under the Daily routine heading: today, and the
@@ -150,6 +150,26 @@ const focusEnd = (el) => {
   s.addRange(r);
 };
 
+// A personal order line. Uncontrolled so the caret stays put, and it wraps onto as
+// many lines as the words need – nothing is ever cut off.
+function WrapLine({ text, onChange, className }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) ref.current.textContent = text || "";
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <span
+      ref={ref}
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck={false}
+      onInput={(e) => onChange(e.currentTarget.textContent)}
+      className={className}
+    />
+  );
+}
+
 function AutoTextarea({ value, onChange, ...props }) {
   const ref = useRef(null);
   useEffect(() => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }, [value]);
@@ -205,7 +225,7 @@ export default function Planning() {
   });
   // Errands prios and H+F order: plain lists, each line typed, moved or binned.
   // These hold door codes and names, so they live in Supabase, never in this public repo.
-  const [cols, setCols] = useState({ errands: [], hf: [] });
+  const [cols, setCols] = useState({ quicks: [], errands: [], hf: [] });
   useEffect(() => {
     supabase
       .from("admin_docs")
@@ -214,7 +234,8 @@ export default function Planning() {
       .maybeSingle()
       .then(({ data }) => {
         const d = data?.data;
-        if (d && Array.isArray(d.errands) && Array.isArray(d.hf)) setCols(d);
+        // A column added later starts empty rather than undefined.
+        if (d) setCols({ quicks: d.quicks || [], errands: d.errands || [], hf: d.hf || [] });
       });
   }, []);
   const saveCols = (next) => {
@@ -688,7 +709,7 @@ export default function Planning() {
     )}
     {!collapsed.includes(PERSONAL_ID) && (
       // Same shape as the daily picker: one red framed column per list.
-      <div className="grid grid-cols-2 items-start gap-1.5 bg-white px-2 py-1.5">
+      <div className="grid grid-cols-3 items-start gap-1.5 bg-white px-2 py-1.5">
         {TWOCOLS.map(([k, label]) => (
           <div key={k} className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
@@ -704,15 +725,13 @@ export default function Planning() {
                   onDrop={() => { if (dragC?.col === k) moveColRow(k, dragC.index, i); setDragC(null); }}
                   // A sub line is the same row, stepped in from the left.
                   style={r.sub ? { marginLeft: "20px" } : undefined}
-                  className={`flex cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
+                  className={`flex cursor-grab items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
                 >
-                  <input
-                    ref={(el) => { if (el && editing === r.id && document.activeElement !== el) el.focus(); }}
-                    value={r.text}
-                    readOnly={editing !== r.id}
-                    onChange={(e) => setColRow(k, r.id, e.target.value)}
-                    onBlur={() => setEditing(null)}
-                    className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === r.id ? "" : "pointer-events-none"}`}
+                  <WrapLine
+                    key={r.id}
+                    text={r.text}
+                    onChange={(t) => setColRow(k, r.id, t)}
+                    className="min-w-0 flex-1 whitespace-pre-wrap break-words bg-transparent leading-[15px] outline-none"
                   />
                   <GripVertical size={11} className="shrink-0 cursor-grab text-neutral-400" />
                   <button onClick={() => ask(() => removeColRow(k, r.id))} title="Remove this line" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
