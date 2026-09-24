@@ -449,7 +449,7 @@ export default function Planning() {
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
-          <div key={idx} className={`bg-white ${idx === 0 ? "border-t border-black" : "border-t-2 border-black"}`}>
+          <div key={idx} className={`bg-white border-t border-black`}>
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(open ? null : idx)}
@@ -668,7 +668,7 @@ export default function Planning() {
   const renderTwoCols = () => (
     <>
     {/* One bar across the pair, same colour as the Daily and Co sorting bars, and it folds. */}
-    <div className="flex h-[18px] items-center gap-1 border-y border-black px-2" style={{ backgroundColor: BAR_BG }}>
+    <div className="flex h-[18px] items-center gap-1 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
       <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Personal order</span>
       <button onClick={() => toggleCollapse(PERSONAL_ID)} title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"} className="text-neutral-900 hover:text-[#9c7c33]">
         <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(PERSONAL_ID) ? "-rotate-90" : ""}`} />
@@ -774,7 +774,7 @@ export default function Planning() {
     const off = "text-neutral-900";
     const on = "text-neutral-900 hover:text-[#9c7c33]";
     return (
-      <div className="flex h-[21px] items-center gap-3 border-b border-black bg-neutral-50 px-2">
+      <div className="flex h-[21px] items-center gap-3 border-t border-black bg-neutral-50 px-2">
         <button
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => applyCmd(target, "bold")}
@@ -855,8 +855,9 @@ export default function Planning() {
             // without the bar turning into a thick band.
             const isHead = r.type !== "text";
             const prevHeader = i > 0 && rows[i - 1].type !== "text";
-            const topBorder = i === 0 ? "" : isHead ? "border-t border-black" : prevHeader ? "" : "border-t border-black";
-            const botBorder = isHead ? "border-b border-black" : "";
+            // Exactly one line between any two bands: each band draws its own top rule only.
+            const topBorder = i === 0 ? "" : "border-t border-black";
+            const botBorder = "";
             // A section ends where the next header starts, or at the foot of the table.
             const sectionEnd =
               (i === rows.length - 1 || rows[i + 1].type !== "text") && !isTodoHeader(headingFor(i) || {});
