@@ -856,9 +856,9 @@ export default function Planning() {
             const prevHeader = i > 0 && rows[i - 1].type !== "text";
             const topBorder = i === 0 ? "" : isHead ? "border-t border-neutral-400" : prevHeader ? "" : "border-t border-neutral-300";
             const botBorder = isHead ? "border-b border-neutral-400" : "";
-            // A section ends where the next header starts; the final section uses the bottom Add.
+            // A section ends where the next header starts, or at the foot of the table.
             const sectionEnd =
-              i < rows.length - 1 && rows[i + 1].type !== "text" && !isTodoHeader(headingFor(i) || {});
+              (i === rows.length - 1 || rows[i + 1].type !== "text") && !isTodoHeader(headingFor(i) || {});
             return (
               <div key={r.id}>
                 <div
