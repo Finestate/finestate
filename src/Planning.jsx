@@ -17,8 +17,9 @@ const POINTS_KEY = "finestate.planning.points";
 const COLLAPSED_KEY = "finestate.planning.collapsed";
 const TWOCOL_KEY = "finestate.planning.twocol";
 
-// The two lists that sit under the daily area, side by side.
+// The two lists that sit under the daily area, side by side, under one folding bar.
 const TWOCOLS = [["errands", "Errands prios"], ["hf", "H+F order"]];
+const PERSONAL_ID = "personal-order";
 
 // Two identical checklist lines under the Daily routine heading: today, and the
 // next day being planned while today is still in front of you.
@@ -219,6 +220,7 @@ export default function Planning() {
     [next[i], next[j]] = [next[j], next[i]];
     saveCols({ ...cols, [k]: next });
   };
+  const [dragC, setDragC] = useState(null); // personal order line being dragged inside its column
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
   const [activeRow, setActiveRow] = useState(null); // row the ribbon acts on
   const [confirm, setConfirm] = useState(null); // delete waiting on Yes or Cancel
@@ -645,33 +647,58 @@ export default function Planning() {
 
   // Errands prios on the left, H+F order on the right, each line its own row.
   const renderTwoCols = () => (
-    <div className="grid grid-cols-2 border-t border-neutral-400">
-      {TWOCOLS.map(([k, label], ci) => (
-        <div key={k} className={ci === 0 ? "border-r border-neutral-400" : ""}>
-          <div className="flex h-[18px] items-center border-b border-neutral-400 px-2" style={{ backgroundColor: HEADER_BG }}>
-            <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</span>
-          </div>
-          {cols[k].map((r, i) => (
-            <div key={r.id} className={`flex h-[21px] items-center gap-1 px-2 ${i === 0 ? "" : "border-t border-neutral-200"}`}>
-              <input
-                value={r.text}
-                onChange={(e) => setColRow(k, r.id, e.target.value)}
-                className="min-w-0 flex-1 bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
-              />
-              <button onClick={() => moveColRow(k, i, -1)} disabled={i === 0} title="Move up" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={12} /></button>
-              <button onClick={() => moveColRow(k, i, 1)} disabled={i === cols[k].length - 1} title="Move down" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronDown size={12} /></button>
-              <button onClick={() => ask(() => removeColRow(k, r.id))} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={12} /></button>
-            </div>
-          ))}
-          <button
-            onClick={() => addColRow(k)}
-            className="flex h-[21px] w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-400 hover:text-neutral-800 transition-colors"
-          >
-            <Plus size={12} /> Add
-          </button>
-        </div>
-      ))}
+    <>
+    {/* One bar across the pair, same colour as the Daily and Co sorting bars, and it folds. */}
+    <div className="flex h-[18px] items-center gap-1 border-y border-neutral-400 px-2" style={{ backgroundColor: BAR_BG }}>
+      <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Personal order</span>
+      <button onClick={() => toggleCollapse(PERSONAL_ID)} title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"} className="text-neutral-900 hover:text-[#9c7c33]">
+        <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(PERSONAL_ID) ? "-rotate-90" : ""}`} />
+      </button>
     </div>
+    {!collapsed.includes(PERSONAL_ID) && (
+      // Same shape as the daily picker: one red framed column per list.
+      <div className="grid grid-cols-2 items-start gap-1.5 bg-white px-2 py-1.5">
+        {TWOCOLS.map(([k, label]) => (
+          <div key={k} className="self-stretch border-[3px] border-[#C1440E] p-1.5">
+            <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
+            <div className="grid auto-rows-min grid-cols-1 content-start items-start gap-1">
+              {cols[k].map((r, i) => (
+                <div
+                  key={r.id}
+                  draggable={editing !== r.id}
+                  onDoubleClick={() => setEditing(r.id)}
+                  onDragStart={() => setDragC({ col: k, index: i })}
+                  onDragEnd={() => setDragC(null)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => { if (dragC?.col === k) moveColRow(k, dragC.index, i); setDragC(null); }}
+                  className={`flex w-full cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
+                >
+                  <input
+                    ref={(el) => { if (el && editing === r.id && document.activeElement !== el) el.focus(); }}
+                    value={r.text}
+                    readOnly={editing !== r.id}
+                    onChange={(e) => setColRow(k, r.id, e.target.value)}
+                    onBlur={() => setEditing(null)}
+                    className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === r.id ? "" : "pointer-events-none"}`}
+                  />
+                  <button onClick={() => ask(() => removeColRow(k, r.id))} title="Remove this line" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
+                    <Trash2 size={11} />
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => addColRow(k)}
+                title="Add a line"
+                className="flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+              >
+                <Plus size={12} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+    </>
   );
 
   const toggleCollapse = (id) => {
