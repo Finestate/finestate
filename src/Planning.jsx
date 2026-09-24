@@ -562,10 +562,9 @@ export default function Planning() {
                     </div>
                   ))}
 
-                  {/* One clear line above the add button, which sits on the floor of the column. */}
-                  <span className="mt-auto block h-[19px]" />
+                  {/* The add sits on the floor of the column, right under the last box. */}
                   {adding ? (
-                    <span className="flex w-full items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
+                    <span className="mt-auto flex w-full items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
                       <input
                         autoFocus
                         value={newMeeting}
@@ -597,7 +596,7 @@ export default function Planning() {
                     <button
                       onClick={() => setAdding(true)}
                       title="Add a meeting"
-                      className="flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                      className="mt-auto flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
                     >
                       <Plus size={12} />
                     </button>
@@ -645,11 +644,10 @@ export default function Planning() {
                       ))}
 
                       {/* Both groups take new points straight from here, on the floor of the column. */}
-                      <span className="mt-auto block h-[19px]" />
                       <button
                         onClick={() => addPoint(g)}
                         title="Add a point"
-                        className="flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                        className="mt-auto flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
                       >
                         <Plus size={12} />
                       </button>
@@ -709,9 +707,8 @@ export default function Planning() {
                   </button>
                 </div>
               ))}
-              {/* One clear line, then the two adds on the floor of the column. */}
-              <span className="mt-auto block h-[19px]" />
-              <div className="flex w-full gap-1">
+              {/* The two adds sit on the floor of the column, right under the last line. */}
+              <div className="mt-auto flex w-full gap-1">
                 <button
                   onClick={() => addColRow(k, false)}
                   title="Add a line"
