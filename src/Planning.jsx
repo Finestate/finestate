@@ -903,7 +903,7 @@ export default function Planning() {
                   <div
                     onClick={() => toggleCollapse(r.id)}
                     title="Open"
-                    className="flex h-[21px] cursor-pointer items-center gap-1.5 bg-white px-2 hover:bg-neutral-50"
+                    className="flex h-[21px] cursor-pointer items-center gap-1.5 border-t border-black bg-white px-2 hover:bg-neutral-50"
                   >
                     {[0, 1, 2, 3, 4].map((n) => (
                       <span key={n} className="inline-block h-[5px] w-[5px] bg-neutral-300" />
