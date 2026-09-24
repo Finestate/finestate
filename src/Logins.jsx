@@ -3,7 +3,7 @@ import { supabase } from "./lib/supabaseClient.js";
 import { PAGES } from "./pages.js";
 
 // Admin-only console: who can sign in, what role they hold and which pages they may open.
-const BAR_BG = "#FFE4B3";
+const BAR_BG = "#F2C46D"; // same ramp as the Costs table: darkest gold on the title bar
 const HEADER_BG = "#FCEFCF";
 
 // One size, one line height across the whole table – same as the Planning page.
@@ -47,7 +47,7 @@ export default function Logins({ myId }) {
   return (
     <div className="w-full">
       <div className="w-full border-2 border-neutral-400 shadow-sm overflow-hidden bg-white">
-        <div className="flex h-[18px] items-center gap-2 border-b border-neutral-400 px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[18px] items-center gap-2 border-b border-neutral-300 px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={`${col} ${head}`}>Name</span>
           <span className={`${col} ${head}`}>Role</span>
           <span className={`${col} ${head}`}>Status</span>
@@ -94,7 +94,7 @@ export default function Logins({ myId }) {
             </div>
 
             {openId === u.id && (
-              <div className="border-t border-neutral-200 bg-neutral-50 px-2 py-1">
+              <div className="border-t border-neutral-300 bg-neutral-50 px-2 py-1">
                 {u.role === "admin" ? (
                   <p className="text-[11px] leading-[15px] text-neutral-600">Admins can open every page.</p>
                 ) : (

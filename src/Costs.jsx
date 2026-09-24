@@ -64,12 +64,12 @@ function MoneyInput({ value, onChange, placeholder = "0.00" }) {
 }
 
 const Main = ({ children }) => (
-  <div className="border-y-2 border-neutral-400 flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
+  <div className="border-y border-neutral-300 flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
     <span className={head}>{children}</span>
   </div>
 );
 const Sub = ({ children }) => (
-  <div className="border-y border-neutral-400 flex h-[22px] items-center px-2" style={{ backgroundColor: SUB_BG }}>
+  <div className="border-y border-neutral-300 flex h-[22px] items-center px-2" style={{ backgroundColor: SUB_BG }}>
     <span className={head}>{children}</span>
   </div>
 );
@@ -79,16 +79,16 @@ const Bin = ({ onClick }) => (
   </button>
 );
 const AddBar = ({ onClick, label = "Add" }) => (
-  <button onClick={onClick} className="flex h-[22px] w-full items-center gap-1 border-t border-neutral-200 bg-white px-2 text-[11px] font-bold uppercase tracking-wide text-neutral-400 transition-colors hover:text-neutral-800">
+  <button onClick={onClick} className="flex h-[22px] w-full items-center gap-1 border-t border-neutral-300 bg-white px-2 text-[11px] font-bold uppercase tracking-wide text-neutral-400 transition-colors hover:text-neutral-800">
     <Plus size={12} /> {label}
   </button>
 );
 const Row = ({ children, first }) => (
-  <div className={`flex h-[22px] items-center gap-1.5 px-2 ${first ? "" : "border-t border-neutral-200"}`}>{children}</div>
+  <div className={`flex h-[22px] items-center gap-1.5 px-2 ${first ? "" : "border-t border-neutral-300"}`}>{children}</div>
 );
 // A two-column line: label on the left, a figure on the right.
 const Figure = ({ label, value, onChange, calc, strong }) => (
-  <div className="flex items-center gap-1.5 border-t border-neutral-200 flex h-[22px] items-center px-2">
+  <div className="flex items-center gap-1.5 border-t border-neutral-300 flex h-[22px] items-center px-2">
     <span className={`flex-1 text-[11px] leading-tight text-neutral-900 ${strong ? "font-bold" : ""}`}>{label}</span>
     <span className="w-28 shrink-0">
       {calc ? (
@@ -192,7 +192,7 @@ export default function Costs({ seed }) {
       <div spellCheck={false} className="w-full overflow-hidden border-2 border-neutral-400 bg-white text-[11px] leading-none shadow-sm">
         {/* Exchange rates are hidden for now; the saved ones still convert income to EUR. */}
         {/* Title bar: page name with the current month, and the headline balance on the right. */}
-        <div className="flex h-[22px] items-center gap-1.5 border-b-2 border-neutral-400 px-2" style={{ backgroundColor: MAIN_BG }}>
+        <div className="flex h-[22px] items-center gap-1.5 border-b border-neutral-300 px-2" style={{ backgroundColor: MAIN_BG }}>
           <span className={`flex-1 ${head}`}>
             Monthly income and costs –{["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][new Date().getMonth()]} {new Date().getFullYear()}
           </span>
@@ -277,7 +277,7 @@ export default function Costs({ seed }) {
         <AddBar onClick={addGroup} label="Add group" />
 
         {/* Totals */}
-        <div className="flex items-center gap-1.5 border-y-2 border-neutral-400 flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
+        <div className="flex items-center gap-1.5 border-y border-neutral-300 flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
           <span className={`flex-1 ${head}`}>Totals</span>
           <span className={`w-24 shrink-0 text-right ${head} tabular-nums`}>{money(totalMonthly)}</span>
           <span className={`w-24 shrink-0 text-right ${head} tabular-nums`}>{money(totalPending)}</span>
