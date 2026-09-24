@@ -15,6 +15,10 @@ const MEETINGS_KEY = "finestate.planning.meetings";
 const TODO_ANCHOR_KEY = "finestate.planning.todoAnchor";
 const POINTS_KEY = "finestate.planning.points";
 const COLLAPSED_KEY = "finestate.planning.collapsed";
+const TWOCOL_KEY = "finestate.planning.twocol";
+
+// The two lists that sit under the daily area, side by side.
+const TWOCOLS = [["errands", "Errands prios"], ["hf", "H+F order"]];
 
 // Two identical checklist lines under the Daily routine heading: today, and the
 // next day being planned while today is still in front of you.
@@ -196,6 +200,25 @@ export default function Planning() {
       rest: TODO_REST.map((it) => ({ id: newId(), code: it.code })),
     };
   });
+  // Errands prios and H+F order: plain lists, each line typed, moved or binned.
+  const [cols, setCols] = useState(() => {
+    try {
+      const p = JSON.parse(localStorage.getItem(TWOCOL_KEY) || "null");
+      if (p && Array.isArray(p.errands) && Array.isArray(p.hf)) return p;
+    } catch {}
+    return { errands: [], hf: [] };
+  });
+  const saveCols = (next) => { setCols(next); try { localStorage.setItem(TWOCOL_KEY, JSON.stringify(next)); } catch {} };
+  const addColRow = (k) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "" }] });
+  const setColRow = (k, id, text) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) });
+  const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
+  const moveColRow = (k, i, d) => {
+    const j = i + d;
+    if (j < 0 || j >= cols[k].length) return;
+    const next = cols[k].slice();
+    [next[i], next[j]] = [next[j], next[i]];
+    saveCols({ ...cols, [k]: next });
+  };
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
   const [activeRow, setActiveRow] = useState(null); // row the ribbon acts on
   const [confirm, setConfirm] = useState(null); // delete waiting on Yes or Cancel
@@ -616,6 +639,38 @@ export default function Planning() {
           </div>
         );
       })}
+      {renderTwoCols()}
+    </div>
+  );
+
+  // Errands prios on the left, H+F order on the right, each line its own row.
+  const renderTwoCols = () => (
+    <div className="grid grid-cols-2 border-t border-neutral-400">
+      {TWOCOLS.map(([k, label], ci) => (
+        <div key={k} className={ci === 0 ? "border-r border-neutral-400" : ""}>
+          <div className="flex h-[18px] items-center border-b border-neutral-400 px-2" style={{ backgroundColor: HEADER_BG }}>
+            <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</span>
+          </div>
+          {cols[k].map((r, i) => (
+            <div key={r.id} className={`flex h-[21px] items-center gap-1 px-2 ${i === 0 ? "" : "border-t border-neutral-200"}`}>
+              <input
+                value={r.text}
+                onChange={(e) => setColRow(k, r.id, e.target.value)}
+                className="min-w-0 flex-1 bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
+              />
+              <button onClick={() => moveColRow(k, i, -1)} disabled={i === 0} title="Move up" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={12} /></button>
+              <button onClick={() => moveColRow(k, i, 1)} disabled={i === cols[k].length - 1} title="Move down" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronDown size={12} /></button>
+              <button onClick={() => ask(() => removeColRow(k, r.id))} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={12} /></button>
+            </div>
+          ))}
+          <button
+            onClick={() => addColRow(k)}
+            className="flex h-[21px] w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-400 hover:text-neutral-800 transition-colors"
+          >
+            <Plus size={12} /> Add
+          </button>
+        </div>
+      ))}
     </div>
   );
 
