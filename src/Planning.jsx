@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, List, ChevronsRight, ChevronsLeft, X } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, List, ChevronsRight, ChevronsLeft, X, GripVertical } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
@@ -490,6 +490,7 @@ export default function Planning() {
                         ) : (
                           <span className="leading-[15px]">{m.name}</span>
                         )}
+                        <GripVertical size={10} className="shrink-0 cursor-grab text-neutral-400" />
                         <button
                           onClick={(e) => { e.stopPropagation(); ask(() => dropMeeting(idx, m.id)); }}
                           title="Remove"
@@ -550,6 +551,7 @@ export default function Planning() {
                         onBlur={() => setEditing(null)}
                         className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
                       />
+                      <GripVertical size={11} className="shrink-0 cursor-grab text-neutral-400" />
                       <button
                         onClick={() => ask(() => saveMeetings(meetings.filter((x) => x.id !== m.id)))}
                         title="Remove this meeting"
@@ -631,6 +633,7 @@ export default function Planning() {
                             onBlur={() => setEditing(null)}
                             className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
+                          <GripVertical size={11} className="shrink-0 cursor-grab self-start text-neutral-400" />
                           <button
                             onClick={() => ask(() => removePoint(g, it.id))}
                             title="Remove this point"
@@ -700,8 +703,7 @@ export default function Planning() {
                     onBlur={() => setEditing(null)}
                     className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === r.id ? "" : "pointer-events-none"}`}
                   />
-                  <button onClick={() => moveColRow(k, i, -1)} disabled={i === 0} title="Move up" className="shrink-0 text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={11} /></button>
-                  <button onClick={() => moveColRow(k, i, 1)} disabled={i === cols[k].length - 1} title="Move down" className="shrink-0 text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronDown size={11} /></button>
+                  <GripVertical size={11} className="shrink-0 cursor-grab text-neutral-400" />
                   <button onClick={() => ask(() => removeColRow(k, r.id))} title="Remove this line" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
                     <Trash2 size={11} />
                   </button>
