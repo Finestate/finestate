@@ -673,6 +673,18 @@ export default function Planning() {
         <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(PERSONAL_ID) ? "-rotate-90" : ""}`} />
       </button>
     </div>
+    {collapsed.includes(PERSONAL_ID) && (
+      // Folded, but never gone: a blank line with the squares says there is more here.
+      <div
+        onClick={() => toggleCollapse(PERSONAL_ID)}
+        title="Open"
+        className="flex h-[21px] cursor-pointer items-center gap-1.5 bg-white px-2 hover:bg-neutral-50"
+      >
+        {[0, 1, 2, 3, 4].map((n) => (
+          <span key={n} className="inline-block h-[5px] w-[5px] bg-neutral-300" />
+        ))}
+      </div>
+    )}
     {!collapsed.includes(PERSONAL_ID) && (
       // Same shape as the daily picker: one red framed column per list.
       <div className="grid grid-cols-2 items-start gap-1.5 bg-white px-2 py-1.5">
