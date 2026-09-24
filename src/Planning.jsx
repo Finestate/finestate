@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Trash2, ChevronUp, ChevronDown, List, ChevronsRight, ChevronsLeft } from "lucide-react";
+import { supabase } from "./lib/supabaseClient.js";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -15,7 +16,7 @@ const MEETINGS_KEY = "finestate.planning.meetings";
 const TODO_ANCHOR_KEY = "finestate.planning.todoAnchor";
 const POINTS_KEY = "finestate.planning.points";
 const COLLAPSED_KEY = "finestate.planning.collapsed";
-const TWOCOL_KEY = "finestate.planning.twocol";
+const TWOCOL_KEY = "personal-order"; // row id in the private admin_docs table
 
 // The two lists that sit under the daily area, side by side, under one folding bar.
 const TWOCOLS = [["errands", "Errands prios"], ["hf", "H+F order"]];
@@ -202,14 +203,23 @@ export default function Planning() {
     };
   });
   // Errands prios and H+F order: plain lists, each line typed, moved or binned.
-  const [cols, setCols] = useState(() => {
-    try {
-      const p = JSON.parse(localStorage.getItem(TWOCOL_KEY) || "null");
-      if (p && Array.isArray(p.errands) && Array.isArray(p.hf)) return p;
-    } catch {}
-    return { errands: [], hf: [] };
-  });
-  const saveCols = (next) => { setCols(next); try { localStorage.setItem(TWOCOL_KEY, JSON.stringify(next)); } catch {} };
+  // These hold door codes and names, so they live in Supabase, never in this public repo.
+  const [cols, setCols] = useState({ errands: [], hf: [] });
+  useEffect(() => {
+    supabase
+      .from("admin_docs")
+      .select("data")
+      .eq("id", TWOCOL_KEY)
+      .maybeSingle()
+      .then(({ data }) => {
+        const d = data?.data;
+        if (d && Array.isArray(d.errands) && Array.isArray(d.hf)) setCols(d);
+      });
+  }, []);
+  const saveCols = (next) => {
+    setCols(next);
+    supabase.from("admin_docs").upsert({ id: TWOCOL_KEY, data: next, updated_at: new Date().toISOString() }).then(() => {});
+  };
   const addColRow = (k) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "" }] });
   const setColRow = (k, id, text) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) });
   const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
