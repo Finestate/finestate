@@ -220,7 +220,7 @@ export default function Planning() {
     setCols(next);
     supabase.from("admin_docs").upsert({ id: TWOCOL_KEY, data: next, updated_at: new Date().toISOString() }).then(() => {});
   };
-  const addColRow = (k) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "" }] });
+  const addColRow = (k, sub = false) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "", sub }] });
   const setColRow = (k, id, text) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) });
   const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
   const moveColRow = (k, i, d) => {
@@ -684,7 +684,9 @@ export default function Planning() {
                   onDragEnd={() => setDragC(null)}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => { if (dragC?.col === k) moveColRow(k, dragC.index, i); setDragC(null); }}
-                  className={`flex w-full cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
+                  // A sub line is the same row, stepped in from the left.
+                  style={r.sub ? { marginLeft: "20px" } : undefined}
+                  className={`flex cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
                 >
                   <input
                     ref={(el) => { if (el && editing === r.id && document.activeElement !== el) el.focus(); }}
@@ -694,20 +696,31 @@ export default function Planning() {
                     onBlur={() => setEditing(null)}
                     className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === r.id ? "" : "pointer-events-none"}`}
                   />
+                  <button onClick={() => moveColRow(k, i, -1)} disabled={i === 0} title="Move up" className="shrink-0 text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={11} /></button>
+                  <button onClick={() => moveColRow(k, i, 1)} disabled={i === cols[k].length - 1} title="Move down" className="shrink-0 text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronDown size={11} /></button>
                   <button onClick={() => ask(() => removeColRow(k, r.id))} title="Remove this line" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
                     <Trash2 size={11} />
                   </button>
                 </div>
               ))}
-              {/* One clear line, then the add button on the floor of the column. */}
+              {/* One clear line, then the two adds on the floor of the column. */}
               <span className="mt-auto block h-[19px]" />
-              <button
-                onClick={() => addColRow(k)}
-                title="Add a line"
-                className="flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
-              >
-                <Plus size={12} />
-              </button>
+              <div className="flex w-full gap-1">
+                <button
+                  onClick={() => addColRow(k, false)}
+                  title="Add a line"
+                  className="flex h-[19px] flex-1 items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                >
+                  <Plus size={12} />
+                </button>
+                <button
+                  onClick={() => addColRow(k, true)}
+                  title="Add a sub line"
+                  className="flex h-[19px] flex-1 items-center justify-center gap-0.5 rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                >
+                  <ChevronsRight size={11} /> <Plus size={12} />
+                </button>
+              </div>
             </div>
           </div>
         ))}
