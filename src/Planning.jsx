@@ -896,7 +896,8 @@ export default function Planning() {
                   sectionEnd && !hidden[i] && !collapsed.includes(r.id) && (
                     <button
                       onClick={() => setAddMenu(i)}
-                      className="flex h-[21px] w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-400 hover:text-neutral-800 transition-colors"
+                      style={{ color: "#C1440E" }}
+                      className="flex h-[21px] w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"
                     >
                       <Plus size={12} /> Add
                     </button>
@@ -910,7 +911,7 @@ export default function Planning() {
 
         {/* No table wide add: each section carries its own, and an empty table starts one. */}
         {rows.length === 0 && (addMenu === "end" ? <TypeMenu at={0} /> : (
-          <button onClick={() => setAddMenu("end")} className="flex h-[21px] w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
+          <button onClick={() => setAddMenu("end")} style={{ color: "#C1440E" }} className="flex h-[21px] w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"><Plus size={12} /> Add</button>
         ))}
 
       </div>
