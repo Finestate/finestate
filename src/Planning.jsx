@@ -540,7 +540,7 @@ export default function Planning() {
                       onDragEnd={() => setDrag(null)}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => { if (drag?.from === "pool") moveMeeting(drag.index, mi); setDrag(null); }}
-                      className={`flex h-full w-full cursor-grab items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 active:cursor-grabbing ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.index === mi ? "opacity-40" : ""}`}
+                      className={`flex w-full cursor-grab items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 active:cursor-grabbing ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.index === mi ? "opacity-40" : ""}`}
                     >
                       <input
                         ref={(el) => { if (el && editing === m.id && document.activeElement !== el) el.focus(); }}
@@ -610,7 +610,7 @@ export default function Planning() {
                           onDragEnd={() => setDragP(null)}
                           onDragOver={(e) => e.preventDefault()}
                           onDrop={() => { if (dragP?.group === g) movePoint(g, dragP.index, pi); setDragP(null); }}
-                          className={`flex h-full w-full cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragP?.group === g && dragP.index === pi ? "opacity-40" : ""}`}
+                          className={`flex w-full cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragP?.group === g && dragP.index === pi ? "opacity-40" : ""}`}
                         >
                           <input
                             type="checkbox"
