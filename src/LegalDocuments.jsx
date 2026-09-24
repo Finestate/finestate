@@ -215,10 +215,10 @@ export default function LegalDocuments() {
               <div key={r.id}>
                 {/* Section bars carry no bin – a section only goes when I remove it. */}
                 {/* Every rule in this table is one hairline of the same colour. */}
-                <div className="flex h-[18px] items-center border-b border-neutral-300 px-2" style={{ backgroundColor: BAR_BG }}>
+                <div className="flex h-[18px] items-center border-b border-neutral-400 px-2" style={{ backgroundColor: BAR_BG }}>
                   <input value={r.label || ""} onChange={(e) => update(i, "label", e.target.value)} className={`block w-full bg-transparent py-0 ${head} outline-none`} />
                 </div>
-                <div className="flex h-[18px] items-center gap-2 border-b border-neutral-300 px-2" style={{ backgroundColor: HEADER_BG }}>
+                <div className="flex h-[18px] items-center gap-2 border-b border-neutral-400 px-2" style={{ backgroundColor: HEADER_BG }}>
                   <span className="flex min-w-0 flex-1 items-center gap-2">
                     {COLS.map((c) => (
                       <span key={c.key} style={{ width: c.w }} className={`shrink-0 ${head}`}>{c.label}</span>
