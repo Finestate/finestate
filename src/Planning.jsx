@@ -410,7 +410,7 @@ export default function Planning() {
     patchLine(idx, { fills: { ...(line.fills || {}), [code]: text } });
   };
   const renderCodeLine = (list, colour, idx) => (
-    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 text-[11px] leading-[15px]" style={{ color: colour }}>
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 text-[11px] font-semibold leading-[15px]" style={{ color: colour }}>
       {list.map((c, i) => {
         const fillable = /\(\)$/.test(c);
         const fill = todoLines[idx]?.fills?.[c] || "";
@@ -474,7 +474,7 @@ export default function Planning() {
                           else dropOnLine(idx);
                           setDrag(null);
                         }}
-                        className={`inline-flex cursor-grab items-center gap-1 text-[11px] leading-[15px] text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
+                        className={`inline-flex cursor-grab items-center gap-1 text-[11px] font-semibold leading-[15px] text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
                       >
                         {/* Plain text until double clicked, so the bin sits right after the words. */}
                         {editing === m.id ? (
