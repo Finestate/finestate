@@ -494,7 +494,7 @@ export default function Planning() {
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => returnToPool(idx)}
-                  className="grid grid-cols-1 items-stretch gap-1 self-stretch border border-[#C1440E] p-1.5"
+                  className="grid auto-rows-min grid-cols-1 content-start items-start gap-1 self-stretch border border-[#C1440E] p-1.5"
                 >
                   {meetings.map((m, mi) => (
                     <div
@@ -563,7 +563,7 @@ export default function Planning() {
 
                 {["core", "rest"].map((g) => (
                   <div key={g} className="self-stretch border border-[#C1440E] p-1.5">
-                    <div className="grid grid-cols-1 items-stretch gap-1">
+                    <div className="grid auto-rows-min grid-cols-1 content-start items-start gap-1">
                       {points[g].map((it, pi) => (
                         <div
                           key={it.id}
