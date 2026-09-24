@@ -908,12 +908,10 @@ export default function Planning() {
           {rows.length === 0 && <p className="px-2 py-2 text-[11px] italic text-neutral-400">Empty. Use Add below to start.</p>}
         </div>
 
-        {/* Bottom add */}
-        {addMenu === "end" ? (
-          <TypeMenu at={rows.length} />
-        ) : (
+        {/* No table wide add: each section carries its own, and an empty table starts one. */}
+        {rows.length === 0 && (addMenu === "end" ? <TypeMenu at={0} /> : (
           <button onClick={() => setAddMenu("end")} className="flex h-[21px] w-full items-center gap-1 border-t border-neutral-200 bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-500 hover:text-neutral-800 transition-colors"><Plus size={12} /> Add</button>
-        )}
+        ))}
 
       </div>
 
