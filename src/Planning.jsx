@@ -554,7 +554,7 @@ export default function Planning() {
                     <button
                       onClick={() => setAdding(true)}
                       title="Add a meeting"
-                      className="flex h-full w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 py-1 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                      className="flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
                     >
                       <Plus size={12} />
                     </button>
@@ -600,16 +600,14 @@ export default function Planning() {
                         </div>
                       ))}
 
-                      {/* The A-HEIEDR group rarely changes, so new points there come through Claude. */}
-                      {g !== "core" && (
-                        <button
-                          onClick={() => addPoint(g)}
-                          title="Add a point"
-                          className="flex h-full w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 py-1 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
-                        >
-                          <Plus size={12} />
-                        </button>
-                      )}
+                      {/* Both groups take new points straight from here. */}
+                      <button
+                        onClick={() => addPoint(g)}
+                        title="Add a point"
+                        className="flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                      >
+                        <Plus size={12} />
+                      </button>
                     </div>
                   </div>
                 ))}
