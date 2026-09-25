@@ -111,7 +111,8 @@ function Sidebar({ route, onGo, allowed }) {
       className={
         // Sits under the top strip, marked off by one slightly stronger rule.
         "fixed top-7 left-0 z-20 flex h-full w-60 flex-col " +
-        "border-r border-black " + (isHome ? "bg-transparent" : "bg-[#FFE9C4]")
+        // The nav keeps its cream on every page, home included.
+        "border-r border-black bg-[#FFE9C4]"
       }
     >
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 pt-2">
