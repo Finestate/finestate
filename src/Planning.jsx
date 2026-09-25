@@ -388,11 +388,12 @@ export default function Planning() {
   const addColRow = (k, sub = false) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "", sub }] });
   const setColRow = (k, id, text) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) });
   const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
-  const moveColRow = (k, i, d) => {
-    const j = i + d;
-    if (j < 0 || j >= cols[k].length) return;
+  // Drag and drop moves a line to where it was dropped, not by a step.
+  const moveColRow = (k, from, to) => {
+    if (from == null || to == null || from === to) return;
     const next = cols[k].slice();
-    [next[i], next[j]] = [next[j], next[i]];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
     saveCols({ ...cols, [k]: next });
   };
   const [dragC, setDragC] = useState(null); // personal order line being dragged inside its column
@@ -874,15 +875,11 @@ export default function Planning() {
               {cols[k].map((r, i) => (
                 <div
                   key={r.id}
-                  draggable={editing !== r.id}
-                  onDoubleClick={() => setEditing(r.id)}
-                  onDragStart={() => setDragC({ col: k, index: i })}
-                  onDragEnd={() => setDragC(null)}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => { if (dragC?.col === k) moveColRow(k, dragC.index, i); setDragC(null); }}
                   // A sub line is the same row, stepped in from the left.
                   style={r.sub ? { marginLeft: "20px" } : undefined}
-                  className={`flex cursor-grab items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
+                  className={`flex items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
                 >
                   <WrapLine
                     key={r.id}
@@ -890,7 +887,16 @@ export default function Planning() {
                     onChange={(t) => setColRow(k, r.id, t)}
                     className="min-w-0 flex-1 whitespace-pre-wrap break-words bg-transparent leading-[15px] outline-none"
                   />
-                  <GripVertical size={11} className="shrink-0 cursor-grab text-neutral-400" />
+                  {/* The line is typed in, so dragging starts from the handle only. */}
+                  <span
+                    draggable
+                    onDragStart={() => setDragC({ col: k, index: i })}
+                    onDragEnd={() => setDragC(null)}
+                    title="Drag to move"
+                    className="shrink-0 cursor-grab text-neutral-400 active:cursor-grabbing"
+                  >
+                    <GripVertical size={11} />
+                  </span>
                   <button onClick={() => ask(() => removeColRow(k, r.id))} title="Remove this line" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
                     <Trash2 size={11} />
                   </button>
