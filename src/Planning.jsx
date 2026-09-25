@@ -1100,6 +1100,11 @@ export default function Planning() {
                   className="rich-line min-h-[15px] min-w-0 flex-1 whitespace-pre-wrap break-words bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
                 />
               </div>
+            ) : collapsible(r) && /^department ?notes$/i.test(nameOf(r)) ? (
+              // Department notes is a fixed heading: click to fold, but never retyped.
+              <span className="flex flex-1 items-center gap-1 text-[11px] font-semibold leading-[15px] text-neutral-900">
+                {r.text}
+              </span>
             ) : collapsible(r) ? (
               // Headings fold away on a click of the words themselves, no chevron.
               <span className="flex flex-1 items-center gap-1">
