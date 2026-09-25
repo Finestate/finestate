@@ -298,8 +298,9 @@ const withDailySections = (rawList) => {
   // Sorting notes rides with Personal order: one word, straight under the Master board.
   const sortIdx = out.findIndex((r) => r.type !== "text" && /sorting/i.test(String(r.text || "")));
   if (sortIdx >= 0) {
+    // Everything under it moves with it, sub headings included, up to the next board.
     let end = sortIdx + 1;
-    while (end < out.length && out[end].type === "text") end++;
+    while (end < out.length && !isBoardHead(out[end]) && !isDailyHead(out[end])) end++;
     const block = out.slice(sortIdx, end).map((r, k) => (k === 0 ? { ...r, text: "Sortingnotes" } : r));
     const without = [...out.slice(0, sortIdx), ...out.slice(end)];
     const masterIdx = without.findIndex((r) => r.type !== "text" && nameOf(r) === "MASTER");
@@ -830,9 +831,13 @@ export default function Planning() {
     <>
     {/* Not a section bar: a plain white row of notes that opens with the chevron. */}
     <div className="flex h-[21px] items-center gap-1 border-t border-[#C1440E] bg-white px-2">
-      <span className="text-[11px] leading-[15px] text-neutral-900">Personalorder</span>
-      <button onClick={() => toggleCollapse(PERSONAL_ID)} title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"} className="flex h-[15px] items-center text-neutral-900 hover:text-[#9c7c33]">
-        <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(PERSONAL_ID) ? "-rotate-90" : ""}`} />
+      {/* Same words as a day line point: click them to open, no chevron needed. */}
+      <button
+        onClick={() => toggleCollapse(PERSONAL_ID)}
+        title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"}
+        className="text-[11px] font-semibold leading-[15px] text-neutral-900 hover:text-[#9c7c33]"
+      >
+        Personalorder
       </button>
     </div>
     {!collapsed.includes(PERSONAL_ID) && (
@@ -988,17 +993,21 @@ export default function Planning() {
                 />
               </div>
             ) : collapsible(r) ? (
-              // Headings fold away: the chevron sits right after the word.
+              // Headings fold away on a click of the words themselves, no chevron.
               <span className="flex flex-1 items-center gap-1">
                 <input
                   value={r.text}
                   onChange={(e) => update(i, e.target.value)}
+                  onClick={() => plainHead && toggleCollapse(r.id)}
+                  title={collapsed.includes(r.id) ? "Open" : "Close"}
                   style={{ width: `${(r.text || "").length * 1.15 + 1}ch` }}
-                  className={`bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none ${plainHead ? "" : "font-bold uppercase tracking-[0.06em]"}`}
+                  className={`cursor-pointer bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none ${plainHead ? "font-semibold" : "font-bold uppercase tracking-[0.06em]"}`}
                 />
-                <button onClick={() => toggleCollapse(r.id)} title={collapsed.includes(r.id) ? "Open" : "Close"} className="flex h-[15px] items-center text-neutral-900 hover:text-[#9c7c33]">
-                  <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(r.id) ? "-rotate-90" : ""}`} />
-                </button>
+                {!plainHead && (
+                  <button onClick={() => toggleCollapse(r.id)} title={collapsed.includes(r.id) ? "Open" : "Close"} className="flex h-[15px] items-center text-neutral-900 hover:text-[#9c7c33]">
+                    <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(r.id) ? "-rotate-90" : ""}`} />
+                  </button>
+                )}
               </span>
             ) : (
               <input value={r.text} onChange={(e) => update(i, e.target.value)} className="flex-1 bg-transparent py-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900 outline-none" />
