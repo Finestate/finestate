@@ -9,7 +9,6 @@ import {
   Shield,
   Receipt,
   FileText,
-  Compass,
   KeyRound,
   Users,
   ChevronDown,
@@ -108,26 +107,23 @@ function Sidebar({ route, onGo, allowed }) {
     <aside
       className={
         "fixed top-0 left-0 z-20 flex h-full w-60 flex-col " +
-        (isHome ? "bg-transparent" : "border-r border-neutral-200 bg-white")
+        // Same beige as the page, marked off by one slightly stronger rule.
+        (isHome ? "bg-transparent" : "border-r border-black/25 bg-[#FBF3E4]")
       }
     >
-      {/* Logo block, split off from the nav by a thin line. The mark bottom right
-          jumps straight to Planning, as on the other sites. */}
-      <div className="relative flex items-center border-b border-black/10 px-6 pt-6 pb-2">
-        <button onClick={() => onGo("home")} aria-label="Home" className="cursor-pointer">
-          <img src={infinityImg} alt="FI" className="h-11 w-auto" />
-        </button>
+      {/* The logo is the shortcut: clicking it goes straight to Planning. */}
+      <div className="relative flex items-center px-6 pt-3 pb-1">
         <button
           onClick={() => { setOpenId(null); onGo("admin/planning"); }}
           title="Planning"
           aria-label="Planning"
-          className="absolute bottom-1.5 right-2 text-[#9c7c33] transition-opacity hover:opacity-70"
+          className="cursor-pointer"
         >
-          <Compass size={16} strokeWidth={2.25} />
+          <img src={infinityImg} alt="FI" className="h-9 w-auto" />
         </button>
       </div>
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 pt-1">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 pt-0">
         {NAV.map((sec) => {
           const Icon = sec.icon;
           if (!sec.children) {
@@ -195,7 +191,7 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
   return (
     // Secondary top strip: its own region above the page, for the account chip,
     // the admin preview picker and later things like alerts.
-    <div className="fixed top-0 left-60 right-0 z-30 flex h-11 items-center gap-3 border-b border-black/10 bg-[#FBF3E4] px-6">
+    <div className="fixed top-0 left-60 right-0 z-30 flex h-7 items-center gap-3 border-b border-black/25 bg-[#FBF3E4] px-6">
       <div className="flex-1" />
       <div className="group relative flex items-center">
         <button className="inline-flex items-center gap-1 text-[11px] text-neutral-500 transition-colors group-hover:text-neutral-800">
@@ -371,7 +367,7 @@ export default function App() {
         onSignOut={signOut}
       />
 
-      <main className="relative z-10 min-h-screen pl-[17rem] pr-8 pb-8 pt-16">
+      <main className="relative z-10 min-h-screen pl-[17rem] pr-8 pb-8 pt-10">
         {!canSee(route) ? (
           <p className="text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
             You do not have access to this page.
