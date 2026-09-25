@@ -212,12 +212,11 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
 
       {isRealAdmin && (
         <div className="group relative flex items-center">
+          {/* Same plain chip as the email: no frame, same size and level. */}
           <button
             className={
-              "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] transition-colors " +
-              (viewing
-                ? "border-[#C1440E]/40 bg-[#C1440E]/10 text-[#C1440E]"
-                : "border-neutral-300 text-neutral-600 group-hover:border-neutral-400 group-hover:text-neutral-900")
+              "inline-flex items-center gap-1 text-[11px] transition-colors " +
+              (viewing ? "text-[#C1440E]" : "text-neutral-500 group-hover:text-neutral-800")
             }
           >
             {viewing ? `Viewing as ${viewing.email}` : "View as"}
