@@ -231,7 +231,7 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
                 onClick={() => onViewAs(null)}
                 className="px-3 py-0.5 text-right text-[11px] text-neutral-600 no-underline transition-colors hover:text-neutral-900"
               >
-                Me (Admin)
+                Me
               </button>
               {others.map((u) => (
                 <button
