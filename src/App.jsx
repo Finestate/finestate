@@ -31,6 +31,7 @@ import { ALL_PAGE_IDS } from "./pages.js";
 const NAV = [
   // Planning stands on its own at the top; its route keeps the old id so access lists still match.
   { id: "admin/planning", name: "Planning", icon: CalendarDays },
+  { id: "hw", name: "HW", icon: HeartPulse },
   {
     id: "admin",
     name: "Admin",
@@ -58,7 +59,6 @@ const NAV = [
       { id: "assets/estate", name: "Estate" },
     ],
   },
-  { id: "hw", name: "HW", icon: HeartPulse },
 ];
 
 const VIEW_AS_KEY = "finestate.viewAs";
