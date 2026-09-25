@@ -585,8 +585,8 @@ export default function Planning() {
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = (b) => (
-    // The pair is set apart by a heavier rule above and below, hairline between them.
-    <div className="border-y-2 border-black">
+    // Trying the shade on Master only: the pair reads as one block behind a faint tint.
+    <div className={`border-t border-black ${b === "master" ? "bg-neutral-100" : ""}`}>
       {boards[b].lines.map((line, idx) => {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
@@ -595,7 +595,7 @@ export default function Planning() {
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
-          <div key={idx} className={`bg-white ${idx === 0 ? "" : "border-t border-black"}`}>
+          <div key={idx} className={`${b === "master" ? "" : "bg-white"} ${idx === 0 ? "" : "border-t border-black"}`}>
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(b, open ? null : idx)}
