@@ -186,6 +186,8 @@ const BOARDS = [
 // They were first called "Daily master" and so on; saved rows are renamed on load.
 const OLD_LABELS = { "DAILY MASTER": "Master", "DAILY SILX": "Silx", "DAILY SAYS": "Says", "DAILY SERVEFAST": "Servefast" };
 const DAILY_GROUP = "Daily";
+// The faintest wash of the table red, behind every pair of day lines.
+const DAY_BG = "#FBEFEC";
 // Only Master plans meetings; the company boards are just their two point columns.
 const MEETING_BOARDS = ["master"];
 // On a company day line only the short code shows: "FI (financials)" reads as FI.
@@ -294,6 +296,14 @@ const withDailySections = (rawList) => {
       out = [...out.slice(0, at), { id: newId(), type: "header", text: label }, ...out.slice(at)];
     }
     at = out.findIndex((r) => r.type !== "text" && nameOf(r) === label.toUpperCase()) + 1;
+  }
+  // Each company board carries its own notes row, the way Master carries Sortingnotes.
+  for (const [, label] of BOARDS.slice(1)) {
+    const h = out.findIndex((r) => r.type !== "text" && nameOf(r) === label.toUpperCase());
+    if (h < 0) continue;
+    const next = out[h + 1];
+    if (next && next.type !== "text" && nameOf(next) === "DEPARTMENTNOTES") continue;
+    out = [...out.slice(0, h + 1), { id: newId(), type: "header", text: "Departmentnotes" }, ...out.slice(h + 1)];
   }
   // Sorting notes rides with Personal order: one word, straight under the Master board.
   const sortIdx = out.findIndex((r) => r.type !== "text" && /sorting/i.test(String(r.text || "")));
@@ -585,8 +595,8 @@ export default function Planning() {
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = (b) => (
-    // Trying the shade on Master only: the faintest wash of the table red.
-    <div className="border-t border-black" style={b === "master" ? { backgroundColor: "#FBEFEC" } : undefined}>
+    // Every board's pair sits on the same faint wash of the table red.
+    <div className="border-t border-black" style={{ backgroundColor: DAY_BG }}>
       {boards[b].lines.map((line, idx) => {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
@@ -595,7 +605,7 @@ export default function Planning() {
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
-          <div key={idx} className={`${b === "master" ? "" : "bg-white"} ${idx === 0 ? "" : "border-t border-black"}`}>
+          <div key={idx} className={idx === 0 ? "" : "border-t border-black"}>
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(b, open ? null : idx)}
@@ -650,7 +660,8 @@ export default function Planning() {
                   </div>
                 )}
                 {line.meetings.length === 0 && coreCodes.length === 0 && restCodes.length === 0 && (
-                  <span className="my-[4px] inline-flex items-center gap-1.5">
+                  {/* Lined up with the first letter of the rows above. */}
+                  <span className="my-[4px] ml-[1px] inline-flex items-center gap-1.5">
                     {[0, 1, 2, 3, 4].map((n) => (
                       <span key={n} className="inline-block h-[5px] w-[5px] bg-neutral-300" />
                     ))}
