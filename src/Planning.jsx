@@ -582,7 +582,7 @@ export default function Planning() {
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
-          <div key={idx} className={`bg-white border-t border-black`}>
+          <div key={idx} className="border-t border-[#C1440E] bg-white">
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(b, open ? null : idx)}
@@ -818,27 +818,15 @@ export default function Planning() {
   const renderTwoCols = () => (
     <>
     {/* Not a section bar: a plain white row of notes that opens with the chevron. */}
-    <div className="flex h-[21px] items-center gap-1 border-t border-black bg-white px-2">
-      <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Personal order</span>
+    <div className="flex h-[21px] items-center gap-1 border-t border-[#C1440E] bg-white px-2">
+      <span className="text-[11px] lowercase leading-[15px] text-neutral-900">Personal order</span>
       <button onClick={() => toggleCollapse(PERSONAL_ID)} title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"} className="text-neutral-900 hover:text-[#9c7c33]">
         <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(PERSONAL_ID) ? "-rotate-90" : ""}`} />
       </button>
     </div>
-    {collapsed.includes(PERSONAL_ID) && (
-      // Folded, but never gone: a blank line with the squares says there is more here.
-      <div
-        onClick={() => toggleCollapse(PERSONAL_ID)}
-        title="Open"
-        className="flex h-[21px] cursor-pointer items-center gap-1.5 border-t border-black bg-white px-2 hover:bg-neutral-50"
-      >
-        {[0, 1, 2, 3, 4].map((n) => (
-          <span key={n} className="inline-block h-[5px] w-[5px] bg-neutral-300" />
-        ))}
-      </div>
-    )}
     {!collapsed.includes(PERSONAL_ID) && (
       // Same shape as the daily picker: one red framed column per list.
-      <div className="grid grid-cols-3 items-start gap-1.5 border-t border-black bg-white px-2 py-1.5">
+      <div className="grid grid-cols-3 items-start gap-1.5 border-t border-[#C1440E] bg-white px-2 py-1.5">
         {TWOCOLS.map(([k, label]) => (
           <div key={k} className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
@@ -966,9 +954,12 @@ export default function Planning() {
         <div>
           {rows.map((r, i) => {
             if (hidden[i]) return null;
-            // Board headings sit one shade below the main bars they hang under.
+            // Board headings sit one shade below the Daily bar; any other heading is
+            // a plain white row of notes, like Personal order.
             const board = boardOf(r);
-            const bg = r.type === "text" ? "#fff" : board ? HEADER_BG : BAR_BG;
+            const dailyHead = isTodoHeader(r);
+            const plainHead = r.type !== "text" && !dailyHead;
+            const bg = r.type === "text" || plainHead ? "#fff" : board ? HEADER_BG : BAR_BG;
             // The heading the checklist hangs under is locked: no typing, no bin, no dragging.
             const locked = isTodoHeader(r);
             const field = locked ? (
@@ -992,7 +983,7 @@ export default function Planning() {
                   value={r.text}
                   onChange={(e) => update(i, e.target.value)}
                   style={{ width: `${(r.text || "").length * 1.15 + 1}ch` }}
-                  className="bg-transparent py-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900 outline-none"
+                  className={`bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none ${plainHead ? "lowercase" : "font-bold uppercase tracking-[0.06em]"}`}
                 />
                 <button onClick={() => toggleCollapse(r.id)} title={collapsed.includes(r.id) ? "Open" : "Close"} className="text-neutral-900 hover:text-[#9c7c33]">
                   <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(r.id) ? "-rotate-90" : ""}`} />
@@ -1005,8 +996,10 @@ export default function Planning() {
             // without the bar turning into a thick band.
             const isHead = r.type !== "text";
             const prevHeader = i > 0 && rows[i - 1].type !== "text";
-            // Exactly one line between any two bands: each band draws its own top rule only.
-            const topBorder = i === 0 ? "" : "border-t border-black";
+            // Exactly one line between any two bands: each band draws its own top rule
+            // only. The daily block is framed in red, the rest of the table in black.
+            const redRule = dailyHead || inDailyFamily(headingFor(i));
+            const topBorder = i === 0 ? "" : redRule ? "border-t border-[#C1440E]" : "border-t border-black";
             const botBorder = "";
             // A section ends where the next header starts, or at the foot of the table.
             const sectionEnd =
@@ -1031,18 +1024,6 @@ export default function Planning() {
                 {board && renderTodoLines(board)}
                 {/* Personal order is not day planning: it sits as its own row under Master. */}
                 {board === "master" && renderTwoCols()}
-                {/* Folded, but never gone: a blank line with the squares says there is more here. */}
-                {collapsed.includes(r.id) && collapsible(r) && (
-                  <div
-                    onClick={() => toggleCollapse(r.id)}
-                    title="Open"
-                    className="flex h-[21px] cursor-pointer items-center gap-1.5 border-t border-black bg-white px-2 hover:bg-neutral-50"
-                  >
-                    {[0, 1, 2, 3, 4].map((n) => (
-                      <span key={n} className="inline-block h-[5px] w-[5px] bg-neutral-300" />
-                    ))}
-                  </div>
-                )}
                 {addMenu === i ? (
                   <TypeMenu at={i + 1} opts={SECTION_TYPES} />
                 ) : (
