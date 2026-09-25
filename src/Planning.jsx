@@ -320,17 +320,16 @@ const withDailySections = (rawList) => {
       ...out.slice(h + 1),
     ];
   }
-  // Sorting notes rides with Personal order: one word, straight under the Master board.
+  // Sorting notes has moved out of this table; the empty heading goes with it, but
+  // only while nothing is written under it.
   const sortIdx = out.findIndex((r) => r.type !== "text" && /sorting/i.test(String(r.text || "")));
   if (sortIdx >= 0) {
-    // Everything under it moves with it, sub headings included, up to the next board.
     let end = sortIdx + 1;
     while (end < out.length && !isBoardHead(out[end]) && !isDailyHead(out[end])) end++;
-    const block = out.slice(sortIdx, end).map((r, k) => (k === 0 ? { ...r, text: "Sorting notes" } : r));
-    const without = [...out.slice(0, sortIdx), ...out.slice(end)];
-    const masterIdx = without.findIndex((r) => r.type !== "text" && nameOf(r) === "MASTER");
-    const dropAt = masterIdx < 0 ? without.length : masterIdx + 1;
-    out = [...without.slice(0, dropAt), ...block, ...without.slice(dropAt)];
+    const written = out
+      .slice(sortIdx + 1, end)
+      .some((r) => String(r.text || "").trim() || String(r.html || "").replace(/<[^>]*>/g, "").trim());
+    if (!written) out = [...out.slice(0, sortIdx), ...out.slice(end)];
   }
   return out;
 };
