@@ -108,7 +108,7 @@ function Sidebar({ route, onGo, allowed }) {
       className={
         // Sits under the top strip, marked off by one slightly stronger rule.
         "fixed top-7 left-0 z-20 flex h-full w-60 flex-col " +
-        "border-r border-black " + (isHome ? "bg-transparent" : "bg-[#FBEFEC]")
+        "border-r border-black " + (isHome ? "bg-transparent" : "bg-[#FFE9C4]")
       }
     >
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 pt-2">
@@ -179,7 +179,7 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut, onGo }
   return (
     // Secondary top strip: its own region above the page, for the account chip,
     // the admin preview picker and later things like alerts.
-    <div className="fixed top-0 left-0 right-0 z-30 flex h-7 items-center gap-3 border-b border-black bg-[#FBEFEC] pl-3 pr-6">
+    <div className="fixed top-0 left-0 right-0 z-30 flex h-7 items-center gap-3 border-b border-black bg-[#FFE9C4] pl-3 pr-6">
       {/* The mark lives far left up here, and it jumps to Planning. */}
       <button onClick={() => onGo("admin/planning")} title="Planning" aria-label="Planning" className="cursor-pointer">
         <img src={infinityImg} alt="FI" className="h-5 w-auto" />
@@ -192,7 +192,7 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut, onGo }
         </button>
         <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
           {/* Solid page beige behind the words, framed like every table on the site. */}
-          <div className="flex min-w-[220px] flex-col items-stretch border border-black bg-[#FBF3E4] py-1 text-right shadow-sm">
+          <div className="flex min-w-[220px] flex-col items-stretch border border-black bg-[#FFE9C4] py-1 text-right shadow-sm">
             <button
               onClick={onSignOut}
               className="px-3 py-0.5 text-right text-[11px] text-neutral-600 transition-colors hover:text-neutral-900"
@@ -217,7 +217,7 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut, onGo }
           </button>
           <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
             {/* Exactly the Sign out styling: same size, no underline, nothing else. */}
-            <div className="flex max-h-72 min-w-[220px] flex-col items-stretch overflow-y-auto whitespace-nowrap border border-black bg-[#FBF3E4] py-1 text-right shadow-sm">
+            <div className="flex max-h-72 min-w-[220px] flex-col items-stretch overflow-y-auto whitespace-nowrap border border-black bg-[#FFE9C4] py-1 text-right shadow-sm">
               {/* Bold marks whose view you are in right now. */}
               <button
                 onClick={() => onViewAs(null)}
@@ -244,7 +244,7 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut, onGo }
 
 function Notice({ title, body, onSignOut }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#FBF3E4] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#FBF5E9] px-4">
       <div className="w-full max-w-sm rounded-xl border border-black/10 bg-white p-6 text-center shadow-sm">
         <div className="mb-3 text-[13px] font-black uppercase tracking-[0.15em] text-[#9c7c33]">Finestate</div>
         <p className="text-sm font-semibold text-neutral-800">{title}</p>
@@ -319,9 +319,9 @@ export default function App() {
   if (!supabaseReady) {
     return <Notice title="Not configured yet" body="VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY are missing." />;
   }
-  if (!authReady) return <div className="min-h-screen bg-[#FBF3E4]" />;
+  if (!authReady) return <div className="min-h-screen bg-[#FBF5E9]" />;
   if (!session) return <Auth />;
-  if (!profileReady) return <div className="min-h-screen bg-[#FBF3E4]" />;
+  if (!profileReady) return <div className="min-h-screen bg-[#FBF5E9]" />;
   if (!profile) {
     return <Notice title="No profile found" body="Your account exists but has no profile row yet." onSignOut={signOut} />;
   }
@@ -344,7 +344,7 @@ export default function App() {
   const canSee = (id) => id === "home" || allowed.includes(id);
 
   return (
-    <div className="relative min-h-screen bg-[#FBF3E4]">
+    <div className="relative min-h-screen bg-[#FBF5E9]">
       <Sidebar route={route} onGo={go} allowed={allowed} />
       <TopBar
         onGo={go}
