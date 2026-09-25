@@ -1065,8 +1065,8 @@ export default function Planning() {
                     </div>
                   )}
                 </div>
-                {/* One ribbon per section, always there, acting on the row you last clicked. */}
-                {isHead && !locked && !collapsed.includes(r.id) && renderRibbon(i)}
+                {/* Notes areas are plain black text, so they carry no ribbon. */}
+                {isHead && !locked && !plainHead && !collapsed.includes(r.id) && renderRibbon(i)}
                 {board && renderTodoLines(board)}
                 {/* Personal order is not day planning: it sits as its own row under Master. */}
                 {board === "master" && renderTwoCols()}
