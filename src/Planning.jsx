@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, List, ChevronsRight, ChevronsLeft, X, GripVertical } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
@@ -696,6 +696,8 @@ export default function Planning() {
                         ) : (
                           <span className="leading-[15px]">{m.name}</span>
                         )}
+                        {/* Calendar mark after each meeting; no action on it yet. */}
+                        <Calendar size={10} className="shrink-0 text-neutral-400" />
                         <GripVertical size={10} className="shrink-0 cursor-grab text-neutral-400" />
                         <button
                           onClick={(e) => { e.stopPropagation(); ask(() => dropMeeting(b, idx, m.id)); }}
