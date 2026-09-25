@@ -178,14 +178,22 @@ function WrapLine({ text, onChange, className }) {
 // The daily group: one top bar, then a board per company underneath, each with its
 // own pair of mirrored day lines, meetings and points.
 const BOARDS = [
-  ["master", "Daily master"],
-  ["silx", "Daily silx"],
-  ["says", "Daily says"],
-  ["servefast", "Daily servefast"],
+  ["master", "Master"],
+  ["silx", "Silx"],
+  ["says", "Says"],
+  ["servefast", "Servefast"],
 ];
+// They were first called "Daily master" and so on; saved rows are renamed on load.
+const OLD_LABELS = { "DAILY MASTER": "Master", "DAILY SILX": "Silx", "DAILY SAYS": "Says", "DAILY SERVEFAST": "Servefast" };
 const DAILY_GROUP = "Daily";
 // Only Master plans meetings; the company boards are just their two point columns.
 const MEETING_BOARDS = ["master"];
+// On a company day line only the short code shows: "FI (financials)" reads as FI.
+const shortCode = (c) => String(c || "").split("(")[0].trim();
+const shortLine = (prios, rest) =>
+  [prios.length ? `(${prios.map(shortCode).join("-")})` : "", rest.map(shortCode).join("-")]
+    .filter(Boolean)
+    .join("-");
 // What the two point columns are called on each board, blank where they need no label.
 const GROUP_LABELS = {
   master: ["", ""],
@@ -251,8 +259,11 @@ const loadBoards = () => {
 };
 // The Daily bar keeps its place at the top; the four board headings follow it in
 // order, and any blank filler row left from an earlier layout is dropped.
-const withDailySections = (list) => {
+const withDailySections = (rawList) => {
   const nameOf = (r) => String(r?.text || "").trim().toUpperCase();
+  const list = rawList.map((r) =>
+    r.type !== "text" && OLD_LABELS[nameOf(r)] ? { ...r, text: OLD_LABELS[nameOf(r)] } : r
+  );
   const isBoardHead = (r) => r && r.type !== "text" && DAILY_SECTIONS.some((n) => n.toUpperCase() === nameOf(r));
   const isDailyHead = (r) => r && r.type !== "text" && nameOf(r) === DAILY_GROUP.toUpperCase();
   // Anything the old layout inserted under a board heading was a placeholder.
@@ -632,8 +643,20 @@ export default function Planning() {
                     ))}
                   </span>
                 )}
-                {coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}
-                {restCodes.length > 0 && renderCodeLine(b, restCodes, "#171717", idx)}
+                {/* Master spells its points out; a company board shows only the short
+                    codes, prios in brackets and the rest trailing after them. */}
+                {MEETING_BOARDS.includes(b) ? (
+                  <>
+                    {coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}
+                    {restCodes.length > 0 && renderCodeLine(b, restCodes, "#171717", idx)}
+                  </>
+                ) : (
+                  (coreCodes.length > 0 || restCodes.length > 0) && (
+                    <div className="text-[11px] font-semibold leading-[15px] text-neutral-900">
+                      {shortLine(coreCodes, restCodes)}
+                    </div>
+                  )
+                )}
               </div>
 
               {idx === 1 && (
