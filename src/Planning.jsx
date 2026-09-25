@@ -585,8 +585,7 @@ export default function Planning() {
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = (b) => (
-    // Both day lines share one red frame on all four sides, split by a black rule.
-    <div className="border-[3px] border-[#C1440E]">
+    <div>
       {boards[b].lines.map((line, idx) => {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
@@ -595,7 +594,7 @@ export default function Planning() {
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
-          <div key={idx} className={`bg-white ${idx === 0 ? "" : "border-t-2 border-black"}`}>
+          <div key={idx} className="border-t border-black bg-white">
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(b, open ? null : idx)}
@@ -831,7 +830,7 @@ export default function Planning() {
   const renderTwoCols = () => (
     <>
     {/* Not a section bar: a plain white row of notes that opens with the chevron. */}
-    <div className="flex h-[21px] items-center gap-1 border-t border-[#C1440E] bg-white px-2">
+    <div className="flex h-[21px] items-center gap-1 border-t border-black bg-white px-2">
       {/* Same words as a day line point: click them to open, no chevron needed. */}
       <button
         onClick={() => toggleCollapse(PERSONAL_ID)}
@@ -843,7 +842,7 @@ export default function Planning() {
     </div>
     {!collapsed.includes(PERSONAL_ID) && (
       // Same shape as the daily picker: one red framed column per list.
-      <div className="grid grid-cols-3 items-start gap-1.5 border-t border-[#C1440E] bg-white px-2 py-1.5">
+      <div className="grid grid-cols-3 items-start gap-1.5 border-t border-black bg-white px-2 py-1.5">
         {TWOCOLS.map(([k, label]) => (
           <div key={k} className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
@@ -1019,8 +1018,7 @@ export default function Planning() {
             const prevHeader = i > 0 && rows[i - 1].type !== "text";
             // Exactly one line between any two bands: each band draws its own top rule
             // only. The daily block is framed in red, the rest of the table in black.
-            const redRule = dailyHead || inDailyFamily(headingFor(i));
-            const topBorder = i === 0 ? "" : redRule ? "border-t border-[#C1440E]" : "border-t border-black";
+            const topBorder = i === 0 ? "" : "border-t border-black";
             const botBorder = "";
             // A section ends where the next header starts, or at the foot of the table.
             const sectionEnd =
