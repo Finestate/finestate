@@ -191,8 +191,8 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut, onGo }
           <ChevronDown size={12} />
         </button>
         <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
-          {/* No panel, just the words, right aligned under the title. */}
-          <div className="flex flex-col items-end py-1 text-right">
+          {/* Solid page beige behind the words, framed like every table on the site. */}
+          <div className="flex flex-col items-end border border-black bg-[#FBF3E4] py-1 text-right shadow-sm">
             <button
               onClick={onSignOut}
               className="px-3 py-0.5 text-right text-[11px] text-neutral-600 transition-colors hover:text-neutral-900"
@@ -217,7 +217,7 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut, onGo }
           </button>
           <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
             {/* Exactly the Sign out styling: same size, no underline, nothing else. */}
-            <div className="flex max-h-72 flex-col items-end overflow-y-auto whitespace-nowrap py-1 text-right">
+            <div className="flex max-h-72 flex-col items-end overflow-y-auto whitespace-nowrap border border-black bg-[#FBF3E4] py-1 text-right shadow-sm">
               <button
                 onClick={() => onViewAs(null)}
                 className="px-3 py-0.5 text-right text-[11px] text-neutral-600 no-underline transition-colors hover:text-neutral-900"
