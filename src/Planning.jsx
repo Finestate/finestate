@@ -39,7 +39,7 @@ const TODO_REST = [
   { code: "M (twicedaily)" },
   { code: "SC (CCEDB)" },
   { code: "Safetyaudit" },
-  { code: "Ycfoodmd" },
+  { code: "Ycfoodmd ()" },
   { code: "Hydrateheavily" },
   { code: "Mailcheck" },
   { code: "Gardening" },
@@ -68,6 +68,11 @@ const TODO_ITEMS = [...TODO_CORE, ...TODO_REST];
 
 // House style: one space before an opening bracket, e.g. "SC (CCEDB)".
 const spaceBrackets = (s) => String(s || "").replace(/([^\s(])\(/g, "$1 (");
+
+// Points that gained brackets to type into after they were first saved.
+const FILLABLE = ["Ycfoodmd"];
+const addBrackets = (s) => (FILLABLE.includes(String(s || "").trim()) ? `${String(s).trim()} ()` : s);
+const fixCode = (s) => addBrackets(spaceBrackets(s));
 
 const emptyLine = () => ({ codes: [], meetings: [], fills: {} });
 // Older saves held a bare array of codes.
@@ -195,7 +200,7 @@ export default function Planning() {
   const [todoLines, setTodoLines] = useState(() => {
     try {
       const p = JSON.parse(localStorage.getItem(TODO_LINES_KEY) || "null");
-      if (Array.isArray(p) && p.length === 2) return p.map(normaliseLine).map((l) => ({ ...l, codes: l.codes.map(spaceBrackets) }));
+      if (Array.isArray(p) && p.length === 2) return p.map(normaliseLine).map((l) => ({ ...l, codes: l.codes.map(fixCode) }));
     } catch {}
     return [emptyLine(), emptyLine()];
   });
@@ -214,7 +219,7 @@ export default function Planning() {
     try {
       const p = JSON.parse(localStorage.getItem(POINTS_KEY) || "null");
       if (p && Array.isArray(p.core) && Array.isArray(p.rest)) {
-        const fix = (list) => list.map((x) => ({ ...x, code: spaceBrackets(x.code) }));
+        const fix = (list) => list.map((x) => ({ ...x, code: fixCode(x.code) }));
         return { core: fix(p.core), rest: fix(p.rest) };
       }
     } catch {}
