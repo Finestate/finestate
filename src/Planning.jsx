@@ -585,8 +585,8 @@ export default function Planning() {
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = (b) => (
-    // Both day lines share one red frame, split by a strong black rule.
-    <div className="border-y-2 border-[#C1440E]">
+    // Both day lines share one red frame on all four sides, split by a black rule.
+    <div className="border-[3px] border-[#C1440E]">
       {boards[b].lines.map((line, idx) => {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
