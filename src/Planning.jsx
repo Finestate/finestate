@@ -184,6 +184,8 @@ const BOARDS = [
   ["servefast", "Daily servefast"],
 ];
 const DAILY_GROUP = "Daily";
+// Only Master plans meetings; the company boards are just their two point columns.
+const MEETING_BOARDS = ["master"];
 // What the two point columns are called on each board, blank where they need no label.
 const GROUP_LABELS = {
   master: ["", ""],
@@ -637,8 +639,10 @@ export default function Planning() {
             </div>
 
             {open && (
-              // Three columns side by side: meetings, the core codes, then the long list.
-              <div className="grid grid-cols-3 items-start gap-1.5 border-t border-[#C1440E] bg-white px-2 py-1.5">
+              // Master carries a meetings column as well; the company boards are just
+              // their two point columns.
+              <div className={`grid ${MEETING_BOARDS.includes(b) ? "grid-cols-3" : "grid-cols-2"} items-start gap-1.5 border-t border-[#C1440E] bg-white px-2 py-1.5`}>
+                {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => returnToPool(b)}
@@ -714,6 +718,7 @@ export default function Planning() {
                     </button>
                   )}
                 </div>
+                )}
 
                 {["core", "rest"].map((g, gi) => (
                   <div key={g} className="self-stretch border-[3px] border-[#C1440E] p-1.5">
