@@ -199,10 +199,11 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
           <ChevronDown size={12} />
         </button>
         <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
-          <div className="flex min-w-[150px] flex-col rounded-md border border-neutral-200 bg-white py-1 shadow-lg">
+          {/* No panel, just the words sitting on the page. */}
+          <div className="flex min-w-[150px] flex-col py-1">
             <button
               onClick={onSignOut}
-              className="px-3 py-1.5 text-left text-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+              className="px-3 py-1.5 text-left text-[11px] text-neutral-600 transition-colors hover:text-neutral-900"
             >
               Sign out
             </button>
@@ -223,20 +224,20 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
             <ChevronDown size={12} />
           </button>
           <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
-            <div className="flex w-60 flex-col rounded-md border border-neutral-200 bg-white py-1 shadow-lg">
+            <div className="flex w-60 flex-col py-1">
               <button
                 onClick={() => onViewAs(null)}
-                className={`px-3 py-1.5 text-left text-[11px] transition-colors hover:bg-neutral-100 ${!viewAs ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
+                className={`px-3 py-1.5 text-left text-[11px] transition-colors ${!viewAs ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
               >
                 Me (Admin){!viewAs ? " ✓" : ""}
               </button>
-              <div className="my-1 border-t border-neutral-200" />
+              <div className="my-1 border-t border-black/15" />
               <div className="flex max-h-72 flex-col overflow-y-auto">
                 {others.map((u) => (
                   <button
                     key={u.id}
                     onClick={() => onViewAs(u.id)}
-                    className={`px-3 py-1.5 text-left text-[11px] transition-colors hover:bg-neutral-100 ${viewAs === u.id ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
+                    className={`px-3 py-1.5 text-left text-[11px] transition-colors ${viewAs === u.id ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
                   >
                     {u.email}{viewAs === u.id ? " ✓" : ""}
                   </button>
