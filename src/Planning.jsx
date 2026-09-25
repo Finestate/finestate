@@ -302,8 +302,12 @@ const withDailySections = (rawList) => {
     const h = out.findIndex((r) => r.type !== "text" && nameOf(r) === label.toUpperCase());
     if (h < 0) continue;
     const next = out[h + 1];
-    if (next && next.type !== "text" && nameOf(next) === "DEPARTMENTNOTES") continue;
-    out = [...out.slice(0, h + 1), { id: newId(), type: "header", text: "Departmentnotes" }, ...out.slice(h + 1)];
+    if (next && next.type !== "text" && /^DEPARTMENT ?NOTES$/.test(nameOf(next))) {
+      // Renamed since it was first added.
+      if (nameOf(next) !== "DEPARTMENT NOTES") out = out.map((r) => (r.id === next.id ? { ...r, text: "Department notes" } : r));
+      continue;
+    }
+    out = [...out.slice(0, h + 1), { id: newId(), type: "header", text: "Department notes" }, ...out.slice(h + 1)];
   }
   // Sorting notes rides with Personal order: one word, straight under the Master board.
   const sortIdx = out.findIndex((r) => r.type !== "text" && /sorting/i.test(String(r.text || "")));
@@ -311,7 +315,7 @@ const withDailySections = (rawList) => {
     // Everything under it moves with it, sub headings included, up to the next board.
     let end = sortIdx + 1;
     while (end < out.length && !isBoardHead(out[end]) && !isDailyHead(out[end])) end++;
-    const block = out.slice(sortIdx, end).map((r, k) => (k === 0 ? { ...r, text: "Sortingnotes" } : r));
+    const block = out.slice(sortIdx, end).map((r, k) => (k === 0 ? { ...r, text: "Sorting notes" } : r));
     const without = [...out.slice(0, sortIdx), ...out.slice(end)];
     const masterIdx = without.findIndex((r) => r.type !== "text" && nameOf(r) === "MASTER");
     const dropAt = masterIdx < 0 ? without.length : masterIdx + 1;
@@ -849,7 +853,7 @@ export default function Planning() {
       title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"}
       className="flex h-[21px] cursor-pointer items-center gap-1 border-t border-black bg-white px-2"
     >
-      <span className="text-[11px] font-semibold leading-[15px] text-neutral-900">Personalorder</span>
+      <span className="text-[11px] font-semibold leading-[15px] text-neutral-900">Personal order</span>
     </div>
     {!collapsed.includes(PERSONAL_ID) && (
       // Same shape as the daily picker: one red framed column per list.
