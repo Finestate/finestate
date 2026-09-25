@@ -660,7 +660,7 @@ export default function Planning() {
                   </div>
                 )}
                 {line.meetings.length === 0 && coreCodes.length === 0 && restCodes.length === 0 && (
-                  {/* Lined up with the first letter of the rows above. */}
+                  // Lined up with the first letter of the rows above.
                   <span className="my-[4px] ml-[1px] inline-flex items-center gap-1.5">
                     {[0, 1, 2, 3, 4].map((n) => (
                       <span key={n} className="inline-block h-[5px] w-[5px] bg-neutral-300" />
@@ -843,15 +843,13 @@ export default function Planning() {
   const renderTwoCols = () => (
     <>
     {/* Not a section bar: a plain white row of notes that opens with the chevron. */}
-    <div className="flex h-[21px] items-center gap-1 border-t border-black bg-white px-2">
-      {/* Same words as a day line point: click them to open, no chevron needed. */}
-      <button
-        onClick={() => toggleCollapse(PERSONAL_ID)}
-        title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"}
-        className="text-[11px] font-semibold leading-[15px] text-neutral-900 hover:text-[#9c7c33]"
-      >
-        Personalorder
-      </button>
+    {/* Click anywhere on the line to open or close it, no chevron needed. */}
+    <div
+      onClick={() => toggleCollapse(PERSONAL_ID)}
+      title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"}
+      className="flex h-[21px] cursor-pointer items-center gap-1 border-t border-black bg-white px-2"
+    >
+      <span className="text-[11px] font-semibold leading-[15px] text-neutral-900">Personalorder</span>
     </div>
     {!collapsed.includes(PERSONAL_ID) && (
       // Same shape as the daily picker: one red framed column per list.
@@ -1039,7 +1037,9 @@ export default function Planning() {
             return (
               <div key={r.id}>
                 <div
-                  className={`group relative flex gap-2 ${topBorder} ${botBorder} px-2 ${isHead ? `${plainHead ? "h-[21px]" : "h-[18px]"} items-center py-0` : "min-h-[21px] items-start py-[3px]"}`}
+                  onClick={plainHead ? () => toggleCollapse(r.id) : undefined}
+                  title={plainHead ? (collapsed.includes(r.id) ? "Open" : "Close") : undefined}
+                  className={`group relative flex gap-2 ${topBorder} ${botBorder} px-2 ${plainHead ? "cursor-pointer" : ""} ${isHead ? `${plainHead ? "h-[21px]" : "h-[18px]"} items-center py-0` : "min-h-[21px] items-start py-[3px]"}`}
                   style={{ backgroundColor: bg }}
                 >
                   {field}
