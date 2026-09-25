@@ -602,7 +602,7 @@ export default function Planning() {
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => dropOnLine(b, idx)}
               title="Choose to-dos"
-              className="flex min-h-[21px] cursor-pointer items-start hover:bg-neutral-50"
+              className="flex min-h-[21px] cursor-pointer items-start hover:brightness-[0.98]"
             >
               <div className="flex flex-1 flex-col gap-0 px-2 py-[3px]">
                 {line.meetings.length > 0 && (
@@ -686,7 +686,8 @@ export default function Planning() {
             {open && (
               // Master carries a meetings column as well; the company boards are just
               // their two point columns.
-              <div className={`grid ${MEETING_BOARDS.includes(b) ? "grid-cols-3" : "grid-cols-2"} items-start gap-1.5 border-t border-[#C1440E] bg-white px-2 py-1.5`}>
+              // No background of its own, so an open picker keeps the board's colour.
+              <div className={`grid ${MEETING_BOARDS.includes(b) ? "grid-cols-3" : "grid-cols-2"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
