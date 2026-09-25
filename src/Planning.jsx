@@ -585,7 +585,8 @@ export default function Planning() {
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = (b) => (
-    <div>
+    // Both day lines share one red frame, split by a strong black rule.
+    <div className="border-y-2 border-[#C1440E]">
       {boards[b].lines.map((line, idx) => {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
@@ -594,7 +595,7 @@ export default function Planning() {
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
-          <div key={idx} className="border-t border-[#C1440E] bg-white">
+          <div key={idx} className={`bg-white ${idx === 0 ? "" : "border-t-2 border-black"}`}>
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(b, open ? null : idx)}
@@ -1027,7 +1028,7 @@ export default function Planning() {
             return (
               <div key={r.id}>
                 <div
-                  className={`group relative flex gap-2 ${topBorder} ${botBorder} px-2 ${isHead ? "h-[18px] items-center py-0" : "min-h-[21px] items-start py-[3px]"}`}
+                  className={`group relative flex gap-2 ${topBorder} ${botBorder} px-2 ${isHead ? `${plainHead ? "h-[21px]" : "h-[18px]"} items-center py-0` : "min-h-[21px] items-start py-[3px]"}`}
                   style={{ backgroundColor: bg }}
                 >
                   {field}
@@ -1044,28 +1045,15 @@ export default function Planning() {
                 {board && renderTodoLines(board)}
                 {/* Personal order is not day planning: it sits as its own row under Master. */}
                 {board === "master" && renderTwoCols()}
-                {addMenu === i ? (
-                  <TypeMenu at={i + 1} opts={SECTION_TYPES} />
-                ) : (
-                  // Only an open section carries its Add bar; folded, the squares line stands alone.
-                  sectionEnd && !hidden[i] && !collapsed.includes(r.id) && (
-                    <button
-                      onClick={() => setAddMenu(i)}
-                      style={{ color: "#C1440E" }}
-                      className="flex h-[21px] w-full items-center gap-1 border-t border-black bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"
-                    >
-                      <Plus size={12} /> Add
-                    </button>
-                  )
-                )}
+                {addMenu === i && <TypeMenu at={i + 1} opts={SECTION_TYPES} />}
               </div>
             );
           })}
           {rows.length === 0 && <p className="px-2 py-2 text-[11px] italic text-neutral-400">Empty. Use Add below to start.</p>}
         </div>
 
-        {/* No table wide add: each section carries its own, and an empty table starts one. */}
-        {rows.length === 0 && (addMenu === "end" ? <TypeMenu at={0} /> : (
+        {/* One Add for the whole table, at its foot. */}
+        {(addMenu === "end" ? <TypeMenu at={rows.length} /> : (
           <button onClick={() => setAddMenu("end")} style={{ color: "#C1440E" }} className="flex h-[21px] w-full items-center gap-1 border-t border-black bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"><Plus size={12} /> Add</button>
         ))}
 
