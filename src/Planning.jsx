@@ -175,6 +175,28 @@ function WrapLine({ text, onChange, className }) {
   );
 }
 
+// The per company daily sections, each a heading with one blank row, sitting straight
+// after the Daily section. Added once and then yours to edit like any other section.
+const DAILY_SECTIONS = ["Daily silx", "Daily says", "Daily servefast"];
+const withDailySections = (list) => {
+  const has = (name) =>
+    list.some((r) => r.type !== "text" && String(r.text || "").trim().toUpperCase() === name.toUpperCase());
+  const missing = DAILY_SECTIONS.filter((n) => !has(n));
+  if (!missing.length) return list;
+  const fresh = missing.flatMap((name) => [
+    { id: newId(), type: "header", text: name },
+    { id: newId(), type: "text", text: "", html: "" },
+  ]);
+  // Straight after the Daily heading, so Personal order still falls underneath.
+  let anchorId = null;
+  try { anchorId = localStorage.getItem(TODO_ANCHOR_KEY); } catch {}
+  const start = list.findIndex((r) => r.id === anchorId);
+  if (start < 0) return [...list, ...fresh];
+  let at = start + 1;
+  while (at < list.length && list[at].type === "text") at++;
+  return [...list.slice(0, at), ...fresh, ...list.slice(at)];
+};
+
 function AutoTextarea({ value, onChange, ...props }) {
   const ref = useRef(null);
   useEffect(() => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }, [value]);
@@ -189,11 +211,12 @@ export default function Planning() {
       if (!Array.isArray(p)) return [];
       // Text rows written before rich editing carry their words in `text`, and every
       // visual line becomes its own block so it can be bulleted or indented alone.
-      return p.map((r) =>
+      const list = p.map((r) =>
         r.type !== "text"
           ? r
           : { ...r, html: toBlocks(r.html == null ? escapeHtml(r.text).replace(/\n/g, "<br>") : r.html) }
       );
+      return withDailySections(list);
     } catch { return []; }
   });
   const [addMenu, setAddMenu] = useState(null); // row index whose insert menu is open, or "end"
@@ -428,6 +451,16 @@ export default function Planning() {
   }, [anchorIdx, rows, todoAnchor]);
 
   const isTodoHeader = (r) => anchorIdx >= 0 && r && rows[anchorIdx] && r.id === rows[anchorIdx].id;
+
+  // Personal order sits under the whole daily family: the Daily section and the per
+  // company ones that follow it. This is the last row of that run.
+  const inDailyFamily = (r) =>
+    !!r && (isTodoHeader(r) || DAILY_SECTIONS.some((n) => String(r.text || "").trim().toUpperCase() === n.toUpperCase()));
+  const personalIdx = (() => {
+    let last = -1;
+    rows.forEach((r, i) => { if (inDailyFamily(headingFor(i))) last = i; });
+    return last;
+  })();
 
   // Codes on a line are split by a small solid gold square rather than a dot.
   // A point ending in empty brackets, like Errandsprios (), takes free text between
@@ -686,7 +719,8 @@ export default function Planning() {
           </div>
         );
       })}
-      {renderTwoCols()}
+      {/* With no per company daily sections yet, Personal order follows the day lines. */}
+      {personalIdx < 0 && renderTwoCols()}
     </div>
   );
 
@@ -850,13 +884,14 @@ export default function Planning() {
               <span className="flex-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{r.text}</span>
             ) : r.type === "text" ? (
               // One block, formatted line by line exactly as a Word document would be.
-              <div className="flex flex-1 items-start gap-1">
+              // min-w-0 lets the words wrap instead of the row pushing past the table.
+              <div className="flex min-w-0 flex-1 items-start gap-1">
                 <RichLine
                   html={r.html ?? escapeHtml(r.text)}
                   innerRef={(el) => { lineRefs.current[r.id] = el; }}
                   onFocus={() => setActiveRow(r.id)}
                   onInput={(html) => updateHtml(i, html)}
-                  className="rich-line min-h-[15px] flex-1 whitespace-pre-wrap break-words bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
+                  className="rich-line min-h-[15px] min-w-0 flex-1 whitespace-pre-wrap break-words bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
                 />
               </div>
             ) : collapsible(r) ? (
@@ -929,6 +964,8 @@ export default function Planning() {
                     </button>
                   )
                 )}
+                {/* Personal order closes the daily family, under the last company section. */}
+                {i === personalIdx && renderTwoCols()}
               </div>
             );
           })}

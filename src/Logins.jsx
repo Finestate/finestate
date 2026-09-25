@@ -45,8 +45,9 @@ export default function Logins({ myId }) {
   };
 
   return (
-    <div className="w-full">
-      <div className="w-full border border-black shadow-sm overflow-hidden bg-white">
+    // Narrow windows scroll the table sideways rather than squashing the columns.
+    <div className="w-full overflow-x-auto">
+      <div className="w-full min-w-[640px] border border-black shadow-sm overflow-hidden bg-white">
         <div className="flex h-[18px] items-center gap-2 border-b border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={`${col} ${head}`}>Name</span>
           <span className={`${col} ${head}`}>Role</span>

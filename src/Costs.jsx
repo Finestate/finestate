@@ -188,8 +188,9 @@ export default function Costs({ seed }) {
   if (!loaded) return <p className="px-2 py-3 text-[11px] italic text-neutral-400">Loading…</p>;
 
   return (
-    <div className="w-full">
-      <div spellCheck={false} className="w-full overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
+    // Narrow windows scroll the table sideways rather than squashing the columns.
+    <div className="w-full overflow-x-auto">
+      <div spellCheck={false} className="w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
         {/* Exchange rates are hidden for now; the saved ones still convert income to EUR. */}
         {/* Title bar: page name with the current month, and the headline balance on the right. */}
         <div className="flex h-[22px] items-center gap-1.5 px-2" style={{ backgroundColor: MAIN_BG }}>

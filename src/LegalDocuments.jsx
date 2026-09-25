@@ -203,8 +203,9 @@ export default function LegalDocuments() {
     save([...items, kind === "section" ? { id: newId(), kind: "section", label: "" } : { id: newId(), kind: "row", item: "", number: "", issued: "", expiry: "", scan: "" }]);
 
   return (
-    <div className="w-full">
-      <div spellCheck={false} className="w-full overflow-hidden border border-black bg-white shadow-sm">
+    // Narrow windows scroll the table sideways rather than squashing the columns.
+    <div className="w-full overflow-x-auto">
+      <div spellCheck={false} className="w-full min-w-[760px] overflow-hidden border border-black bg-white shadow-sm">
         {!loaded ? (
           <p className="px-2 py-2 text-[11px] italic text-neutral-400">Loading…</p>
         ) : (

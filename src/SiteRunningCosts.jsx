@@ -24,8 +24,9 @@ export default function SiteRunningCosts() {
   const total = COSTS.reduce((sum, c) => sum + (parseFloat(c.price) || 0), 0);
 
   return (
-    <div className="w-full">
-      <div className="w-full border border-black bg-white shadow-sm overflow-hidden">
+    // Narrow windows scroll the table sideways rather than squashing the columns.
+    <div className="w-full overflow-x-auto">
+      <div className="w-full min-w-[560px] border border-black bg-white shadow-sm overflow-hidden">
         <div className="flex h-[18px] items-center gap-2 border-b border-black pl-2 pr-4" style={{ backgroundColor: BAR_BG }}>
           <span className={`flex-1 ${head}`}>{TITLE}</span>
           <span className={`w-32 shrink-0 whitespace-nowrap text-right ${head}`}>Monthly cost</span>
