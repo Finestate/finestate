@@ -811,16 +811,14 @@ export default function Planning() {
           </div>
         );
       })}
-      {/* With no per company daily sections yet, Personal order follows the day lines. */}
-      {personalIdx < 0 && renderTwoCols()}
     </div>
   );
 
   // Errands prios on the left, H+F order on the right, each line its own row.
   const renderTwoCols = () => (
     <>
-    {/* One bar across the pair, same colour as the Daily and Co sorting bars, and it folds. */}
-    <div className="flex h-[18px] items-center gap-1 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+    {/* Not a section bar: a plain white row of notes that opens with the chevron. */}
+    <div className="flex h-[21px] items-center gap-1 border-t border-black bg-white px-2">
       <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Personal order</span>
       <button onClick={() => toggleCollapse(PERSONAL_ID)} title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"} className="text-neutral-900 hover:text-[#9c7c33]">
         <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(PERSONAL_ID) ? "-rotate-90" : ""}`} />
@@ -1031,6 +1029,8 @@ export default function Planning() {
                 {/* One ribbon per section, always there, acting on the row you last clicked. */}
                 {isHead && !locked && !collapsed.includes(r.id) && renderRibbon(i)}
                 {board && renderTodoLines(board)}
+                {/* Personal order is not day planning: it sits as its own row under Master. */}
+                {board === "master" && renderTwoCols()}
                 {/* Folded, but never gone: a blank line with the squares says there is more here. */}
                 {collapsed.includes(r.id) && collapsible(r) && (
                   <div
@@ -1057,8 +1057,6 @@ export default function Planning() {
                     </button>
                   )
                 )}
-                {/* Personal order closes the daily family, under the last company section. */}
-                {i === personalIdx && renderTwoCols()}
               </div>
             );
           })}
