@@ -585,8 +585,8 @@ export default function Planning() {
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = (b) => (
-    // Trying the shade on Master only: the pair reads as one block behind a faint tint.
-    <div className={`border-t border-black ${b === "master" ? "bg-neutral-100" : ""}`}>
+    // Trying the shade on Master only: the faintest wash of the table red.
+    <div className="border-t border-black" style={b === "master" ? { backgroundColor: "#FBEFEC" } : undefined}>
       {boards[b].lines.map((line, idx) => {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
