@@ -388,6 +388,7 @@ export default function Planning() {
   const addColRow = (k, sub = false) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "", sub }] });
   const setColRow = (k, id, text) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) });
   const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
+  const setColSub = (k, id, sub) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, sub } : r)) });
   // Drag and drop moves a line to where it was dropped, not by a step.
   const moveColRow = (k, from, to) => {
     if (from == null || to == null || from === to) return;
@@ -887,6 +888,14 @@ export default function Planning() {
                     onChange={(t) => setColRow(k, r.id, t)}
                     className="min-w-0 flex-1 whitespace-pre-wrap break-words bg-transparent leading-[15px] outline-none"
                   />
+                  {/* Steps the line in from the left, pressed again it steps back. */}
+                  <button
+                    onClick={() => setColSub(k, r.id, !r.sub)}
+                    title={r.sub ? "Move back out" : "Indent"}
+                    className="shrink-0 text-neutral-400 hover:text-neutral-900"
+                  >
+                    {r.sub ? <ChevronsLeft size={11} /> : <ChevronsRight size={11} />}
+                  </button>
                   {/* The line is typed in, so dragging starts from the handle only. */}
                   <span
                     draggable
@@ -902,23 +911,14 @@ export default function Planning() {
                   </button>
                 </div>
               ))}
-              {/* The two adds sit on the floor of the column, right under the last line. */}
-              <div className="mt-auto flex w-full gap-1">
-                <button
-                  onClick={() => addColRow(k, false)}
-                  title="Add a line"
-                  className="flex h-[19px] flex-1 items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
-                >
-                  <Plus size={12} />
-                </button>
-                <button
-                  onClick={() => addColRow(k, true)}
-                  title="Add a sub line"
-                  className="flex h-[19px] flex-1 items-center justify-center gap-0.5 rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
-                >
-                  <ChevronsRight size={11} /> <Plus size={12} />
-                </button>
-              </div>
+              {/* One add on the floor of the column; indent is set on the line itself. */}
+              <button
+                onClick={() => addColRow(k, false)}
+                title="Add a line"
+                className="mt-auto flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+              >
+                <Plus size={12} />
+              </button>
             </div>
           </div>
         ))}
