@@ -188,6 +188,8 @@ const BOARDS = [
 // They were first called "Daily master" and so on; saved rows are renamed on load.
 const OLD_LABELS = { "DAILY MASTER": "Master", "DAILY SILX": "Silx", "DAILY SAYS": "Says", "DAILY SERVEFAST": "Servefast" };
 const DAILY_GROUP = "Daily";
+// A solid burgundy for the marks on a meeting, so they read clearly.
+const MEETING_ICON = "#7B1E3A";
 // The faintest wash of the table red, behind every pair of day lines.
 const DAY_BG = "#FBEFEC";
 // Only Master plans meetings; the company boards are just their two point columns.
@@ -696,13 +698,14 @@ export default function Planning() {
                         ) : (
                           <span className="leading-[15px]">{m.name}</span>
                         )}
-                        {/* Calendar mark after each meeting; no action on it yet. */}
-                        <Calendar size={10} className="shrink-0 text-neutral-400" />
-                        <GripVertical size={10} className="shrink-0 cursor-grab text-neutral-400" />
+                        {/* The three marks on a meeting share one burgundy. */}
+                        <Calendar size={10} className="shrink-0" style={{ color: MEETING_ICON }} />
+                        <GripVertical size={10} className="shrink-0 cursor-grab" style={{ color: MEETING_ICON }} />
                         <button
                           onClick={(e) => { e.stopPropagation(); ask(() => dropMeeting(b, idx, m.id)); }}
                           title="Remove"
-                          className="flex shrink-0 items-center self-center leading-none text-neutral-900 hover:text-[#C1440E]"
+                          style={{ color: MEETING_ICON }}
+                          className="flex shrink-0 items-center self-center leading-none transition-opacity hover:opacity-70"
                         >
                           <Trash2 size={10} />
                         </button>
