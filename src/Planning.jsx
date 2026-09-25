@@ -205,6 +205,15 @@ const BOARD_SEEDS = {
       "DM (dibtomortgagepayment)", "FU (financialworksheetupdates)", "NY (newtaxyearsetup)", "TF (taxfilings)",
     ],
   },
+  says: {
+    core: [
+      "RE (contentpeoplecantwaittowatchworkonbusinessnotinit)", "FI (financials)",
+      "SC (dropboxdesktopbookmarkswhatasappemailsdepartmentnotessaysopsf)", "TM (teammeets)",
+      "PR (production)", "OW (operationswebsite)", "MA (marcomms)", "SA (sales)",
+      "HR (dubaisateamsofficesstudios)", "LE (licensespermitslawyers)",
+    ],
+    rest: [],
+  },
 };
 const DAILY_SECTIONS = BOARDS.map(([, label]) => label);
 const boardOf = (r) => {
