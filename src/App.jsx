@@ -108,7 +108,7 @@ function Sidebar({ route, onGo, allowed }) {
       className={
         // Sits under the top strip, marked off by one slightly stronger rule.
         "fixed top-7 left-0 z-20 flex h-full w-60 flex-col " +
-        "border-r border-black/15 " + (isHome ? "bg-transparent" : "bg-[#FBF3E4]")
+        "border-r border-black " + (isHome ? "bg-transparent" : "bg-[#FBF3E4]")
       }
     >
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 pt-2">
@@ -179,7 +179,7 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut, onGo }
   return (
     // Secondary top strip: its own region above the page, for the account chip,
     // the admin preview picker and later things like alerts.
-    <div className="fixed top-0 left-0 right-0 z-30 flex h-7 items-center gap-3 border-b border-black/15 bg-[#FBF3E4] pl-3 pr-6">
+    <div className="fixed top-0 left-0 right-0 z-30 flex h-7 items-center gap-3 border-b border-black bg-[#FBF3E4] pl-3 pr-6">
       {/* The mark lives far left up here, and it jumps to Planning. */}
       <button onClick={() => onGo("admin/planning")} title="Planning" aria-label="Planning" className="cursor-pointer">
         <img src={infinityImg} alt="FI" className="h-5 w-auto" />
