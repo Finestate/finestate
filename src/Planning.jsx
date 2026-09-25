@@ -662,9 +662,10 @@ export default function Planning() {
               title="Choose to-dos"
               className="flex min-h-[21px] cursor-pointer items-start hover:brightness-[0.98]"
             >
+              {/* The core codes lead, meetings sit under them, then the long list. */}
               <div className="flex flex-1 flex-col gap-0 px-2 py-[3px]">
                 {line.meetings.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-x-1 gap-y-0 leading-[15px]">
+                  <div className="order-2 flex flex-wrap items-center gap-x-1 gap-y-0 leading-[15px]">
                     {line.meetings.map((m, mi) => (
                       <span
                         key={m.id}
@@ -719,8 +720,8 @@ export default function Planning() {
                     codes, prios in brackets and the rest trailing after them. */}
                 {MEETING_BOARDS.includes(b) ? (
                   <>
-                    {coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}
-                    {restCodes.length > 0 && renderCodeLine(b, restCodes, "#171717", idx)}
+                    <div className="order-1">{coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}</div>
+                    <div className="order-3">{restCodes.length > 0 && renderCodeLine(b, restCodes, "#171717", idx)}</div>
                   </>
                 ) : (
                   (coreCodes.length > 0 || restCodes.length > 0) && (
