@@ -840,13 +840,16 @@ export default function Planning() {
                           onDrop={() => { if (dragP?.group === g && dragP.board === b) movePoint(b, g, dragP.index, pi); setDragP(null); }}
                           className={`flex w-full cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
                         >
-                          <input
-                            type="checkbox"
-                            checked={line.codes.includes(it.code)}
-                            onChange={() => toggleTodo(b, idx, it.code)}
-                            className="h-3.5 w-3.5 shrink-0 self-start"
-                            style={{ accentColor: GOLD }}
-                          />
+                          {/* Boxed to the line height so it sits dead centre on the words. */}
+                          <span className="flex h-[15px] shrink-0 items-center">
+                            <input
+                              type="checkbox"
+                              checked={line.codes.includes(it.code)}
+                              onChange={() => toggleTodo(b, idx, it.code)}
+                              className="block h-3 w-3 cursor-pointer"
+                              style={{ accentColor: GOLD, margin: 0 }}
+                            />
+                          </span>
                           <input
                             ref={(el) => { if (el && editing === it.id && document.activeElement !== el) el.focus(); }}
                             value={it.code}
@@ -855,11 +858,11 @@ export default function Planning() {
                             onBlur={() => setEditing(null)}
                             className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
-                          <GripVertical size={11} className="shrink-0 cursor-grab self-start text-neutral-400" />
+                          <GripVertical size={11} className="h-[15px] shrink-0 cursor-grab text-neutral-400" />
                           <button
                             onClick={() => ask(() => removePoint(b, g, it.id))}
                             title="Remove this point"
-                            className="shrink-0 self-start text-neutral-900 hover:text-[#C1440E]"
+                            className="flex h-[15px] shrink-0 items-center text-neutral-900 hover:text-[#C1440E]"
                           >
                             <Trash2 size={11} />
                           </button>
@@ -948,7 +951,7 @@ export default function Planning() {
                   <button
                     onClick={() => setColSub(k, r.id, !r.sub)}
                     title={r.sub ? "Move back out" : "Indent"}
-                    className="shrink-0 text-neutral-400 hover:text-neutral-900"
+                    className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900"
                   >
                     {r.sub ? <ChevronsLeft size={11} /> : <ChevronsRight size={11} />}
                   </button>
@@ -958,11 +961,11 @@ export default function Planning() {
                     onDragStart={() => setDragC({ col: k, index: i })}
                     onDragEnd={() => { setDragC(null); setDropAt(null); }}
                     title="Drag to move"
-                    className="shrink-0 cursor-grab text-neutral-400 active:cursor-grabbing"
+                    className="flex h-[15px] shrink-0 cursor-grab items-center text-neutral-400 active:cursor-grabbing"
                   >
                     <GripVertical size={11} />
                   </span>
-                  <button onClick={() => ask(() => removeColRow(k, r.id))} title="Remove this line" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
+                  <button onClick={() => ask(() => removeColRow(k, r.id))} title="Remove this line" className="flex h-[15px] shrink-0 items-center text-neutral-900 hover:text-[#C1440E]">
                     <Trash2 size={11} />
                   </button>
                 </div>
