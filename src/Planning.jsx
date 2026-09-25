@@ -1031,7 +1031,8 @@ export default function Planning() {
                   style={{ backgroundColor: bg }}
                 >
                   {field}
-                  {!locked && (
+                  {/* A plain heading like Sortingnotes stays put: no move, no bin. */}
+                  {!locked && !plainHead && (
                     <div className="flex shrink-0 items-center gap-1 leading-none">
                       <button onClick={() => moveRow(i, -1)} disabled={i === 0} title="Move up" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronUp size={12} /></button>
                       <button onClick={() => moveRow(i, 1)} disabled={i === rows.length - 1} title="Move down" className="text-neutral-900 hover:text-[#9c7c33] disabled:opacity-25"><ChevronDown size={12} /></button>
