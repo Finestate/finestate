@@ -751,7 +751,8 @@ export default function Planning() {
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => returnToPool(b)}
-                  className="flex flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
+                  // Meetings sit in the middle: the core codes come first.
+                  className="order-2 flex flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
                 >
                   {meetings.map((m, mi) => (
                     <div
@@ -826,7 +827,7 @@ export default function Planning() {
                 )}
 
                 {["core", "rest"].map((g, gi) => (
-                  <div key={g} className="self-stretch border-[3px] border-[#C1440E] p-1.5">
+                  <div key={g} className={`${g === "core" ? "order-1" : "order-3"} self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     <div className="flex h-full flex-col gap-1">
                       {(GROUP_LABELS[b] || [])[gi] && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
