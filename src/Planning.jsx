@@ -20,7 +20,7 @@ const COLLAPSED_KEY = "finestate.planning.collapsed";
 const TWOCOL_KEY = "personal-order"; // row id in the private admin_docs table
 
 // The lists that sit under the daily area, side by side, under one folding bar.
-const TWOCOLS = [["quicks", "Health management"], ["errands", "Errands prios"], ["hf", "H+F order"]];
+const TWOCOLS = [["quicks", "H management"], ["errands", "Errands prios"], ["hf", "H+F order"]];
 const PERSONAL_ID = "personal-order";
 
 // Two identical checklist lines under the Daily routine heading: today, and the
