@@ -1166,10 +1166,7 @@ export default function Planning() {
           {rows.length === 0 && <p className="px-2 py-2 text-[11px] italic text-neutral-400">Empty. Use Add below to start.</p>}
         </div>
 
-        {/* One Add for the whole table, at its foot. */}
-        {(addMenu === "end" ? <TypeMenu at={rows.length} /> : (
-          <button onClick={() => setAddMenu("end")} style={{ color: "#C1440E" }} className="flex h-[21px] w-full items-center gap-1 border-t border-black bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"><Plus size={12} /> Add</button>
-        ))}
+        {/* The table's shape is fixed now, so there is no Add at the foot. */}
 
       </div>
 
