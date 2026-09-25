@@ -225,28 +225,23 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
             <ChevronDown size={12} />
           </button>
           <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
-            <div className="flex flex-col items-end whitespace-nowrap py-1 text-right">
+            {/* Exactly the Sign out styling: same size, no underline, nothing else. */}
+            <div className="flex max-h-72 flex-col items-end overflow-y-auto whitespace-nowrap py-1 text-right">
               <button
                 onClick={() => onViewAs(null)}
-                className={`px-3 py-0.5 text-right text-[11px] transition-colors ${!viewAs ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
+                className="px-3 py-0.5 text-right text-[11px] text-neutral-600 no-underline transition-colors hover:text-neutral-900"
               >
-                Me (Admin){!viewAs ? " ✓" : ""}
+                Me (Admin)
               </button>
-              <div className="my-1 w-full border-t border-black/15" />
-              <div className="flex max-h-72 flex-col items-end overflow-y-auto">
-                {others.map((u) => (
-                  <button
-                    key={u.id}
-                    onClick={() => onViewAs(u.id)}
-                    className={`px-3 py-0.5 text-right text-[11px] transition-colors ${viewAs === u.id ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
-                  >
-                    {u.email}{viewAs === u.id ? " ✓" : ""}
-                  </button>
-                ))}
-                {others.length === 0 && (
-                  <p className="px-3 py-1.5 text-[11px] italic text-neutral-300">No other users yet.</p>
-                )}
-              </div>
+              {others.map((u) => (
+                <button
+                  key={u.id}
+                  onClick={() => onViewAs(u.id)}
+                  className="px-3 py-0.5 text-right text-[11px] text-neutral-600 no-underline transition-colors hover:text-neutral-900"
+                >
+                  {u.email}
+                </button>
+              ))}
             </div>
           </div>
         </div>
