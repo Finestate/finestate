@@ -218,17 +218,18 @@ function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut, onGo }
           <div className="absolute right-0 top-full z-30 hidden pt-1 group-hover:block">
             {/* Exactly the Sign out styling: same size, no underline, nothing else. */}
             <div className="flex max-h-72 min-w-[220px] flex-col items-stretch overflow-y-auto whitespace-nowrap border border-black bg-[#FBF3E4] py-1 text-right shadow-sm">
+              {/* Bold marks whose view you are in right now. */}
               <button
                 onClick={() => onViewAs(null)}
-                className="px-3 py-0.5 text-right text-[11px] text-neutral-600 no-underline transition-colors hover:text-neutral-900"
+                className={`px-3 py-0.5 text-right text-[11px] no-underline transition-colors ${!viewAs ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
               >
-                Me
+                Me (Admin)
               </button>
               {others.map((u) => (
                 <button
                   key={u.id}
                   onClick={() => onViewAs(u.id)}
-                  className="px-3 py-0.5 text-right text-[11px] text-neutral-600 no-underline transition-colors hover:text-neutral-900"
+                  className={`px-3 py-0.5 text-right text-[11px] no-underline transition-colors ${viewAs === u.id ? "font-semibold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
                 >
                   {u.email}
                 </button>
