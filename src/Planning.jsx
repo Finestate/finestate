@@ -303,11 +303,20 @@ const withDailySections = (rawList) => {
     if (h < 0) continue;
     const next = out[h + 1];
     if (next && next.type !== "text" && /^DEPARTMENT ?NOTES$/.test(nameOf(next))) {
-      // Renamed since it was first added.
+      // Renamed since it was first added, and it keeps at least one line to write in.
       if (nameOf(next) !== "DEPARTMENT NOTES") out = out.map((r) => (r.id === next.id ? { ...r, text: "Department notes" } : r));
+      if (!out[h + 2] || out[h + 2].type !== "text") {
+        out = [...out.slice(0, h + 2), { id: newId(), type: "text", text: "", html: "" }, ...out.slice(h + 2)];
+      }
       continue;
     }
-    out = [...out.slice(0, h + 1), { id: newId(), type: "header", text: "Department notes" }, ...out.slice(h + 1)];
+    // The heading plus one blank line to write in, the same as Sorting notes.
+    out = [
+      ...out.slice(0, h + 1),
+      { id: newId(), type: "header", text: "Department notes" },
+      { id: newId(), type: "text", text: "", html: "" },
+      ...out.slice(h + 1),
+    ];
   }
   // Sorting notes rides with Personal order: one word, straight under the Master board.
   const sortIdx = out.findIndex((r) => r.type !== "text" && /sorting/i.test(String(r.text || "")));
