@@ -108,7 +108,8 @@ function Sidebar({ route, onGo, allowed }) {
       className={
         "fixed top-0 left-0 z-20 flex h-full w-60 flex-col " +
         // Same beige as the page, marked off by one slightly stronger rule.
-        (isHome ? "bg-transparent" : "border-r border-black/25 bg-[#FBF3E4]")
+        // The dividing rule runs the full height on every page, home included.
+        "border-r border-black/25 " + (isHome ? "bg-transparent" : "bg-[#FBF3E4]")
       }
     >
       {/* The logo is the shortcut: clicking it goes straight to Planning. */}
@@ -379,11 +380,6 @@ export default function App() {
             {route === "costs/monthly" && <Costs />}
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
-            {route === "home" && (
-              <p className="text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
-                Welcome{eff.full_name ? `, ${eff.full_name}` : ""}.
-              </p>
-            )}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}
           </>
