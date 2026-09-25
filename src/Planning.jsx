@@ -398,6 +398,16 @@ export default function Planning() {
     saveCols({ ...cols, [k]: next });
   };
   const [dragC, setDragC] = useState(null); // personal order line being dragged inside its column
+  const [dropAt, setDropAt] = useState(null); // where that line would land: { col, index }
+  // Drop the dragged line where the marker sits, counting the gap it leaves behind.
+  const dropColRow = (k) => {
+    if (dragC?.col === k && dropAt?.col === k) {
+      const to = dropAt.index > dragC.index ? dropAt.index - 1 : dropAt.index;
+      moveColRow(k, dragC.index, to);
+    }
+    setDragC(null);
+    setDropAt(null);
+  };
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
   const [activeRow, setActiveRow] = useState(null); // row the ribbon acts on
   const [confirm, setConfirm] = useState(null); // delete waiting on Yes or Cancel
@@ -872,12 +882,26 @@ export default function Planning() {
         {TWOCOLS.map(([k, label]) => (
           <div key={k} className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
-            <div className="flex flex-1 flex-col gap-1">
+            <div
+              className="flex flex-1 flex-col gap-1"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => dropColRow(k)}
+              onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropAt(null); }}
+            >
               {cols[k].map((r, i) => (
+                <div key={r.id}>
+                {/* A red marker shows exactly where the line will land. */}
+                {dragC?.col === k && dropAt?.col === k && dropAt.index === i && (
+                  <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />
+                )}
                 <div
-                  key={r.id}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => { if (dragC?.col === k) moveColRow(k, dragC.index, i); setDragC(null); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    const box = e.currentTarget.getBoundingClientRect();
+                    const before = e.clientY < box.top + box.height / 2;
+                    setDropAt({ col: k, index: before ? i : i + 1 });
+                  }}
+                  onDrop={(e) => { e.stopPropagation(); dropColRow(k); }}
                   // A sub line is the same row, stepped in from the left.
                   style={r.sub ? { marginLeft: "20px" } : undefined}
                   className={`flex items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
@@ -900,7 +924,7 @@ export default function Planning() {
                   <span
                     draggable
                     onDragStart={() => setDragC({ col: k, index: i })}
-                    onDragEnd={() => setDragC(null)}
+                    onDragEnd={() => { setDragC(null); setDropAt(null); }}
                     title="Drag to move"
                     className="shrink-0 cursor-grab text-neutral-400 active:cursor-grabbing"
                   >
@@ -910,7 +934,11 @@ export default function Planning() {
                     <Trash2 size={11} />
                   </button>
                 </div>
+                </div>
               ))}
+              {dragC?.col === k && dropAt?.col === k && dropAt.index === cols[k].length && (
+                <div className="h-[2px] w-full bg-[#C1440E]" />
+              )}
               {/* One add on the floor of the column; indent is set on the line itself. */}
               <button
                 onClick={() => addColRow(k, false)}
