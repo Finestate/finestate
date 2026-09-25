@@ -422,6 +422,7 @@ export default function Planning() {
   };
   const [dragC, setDragC] = useState(null); // personal order line being dragged inside its column
   const [dropAt, setDropAt] = useState(null); // where that line would land: { col, index }
+  const [flash, setFlash] = useState(null); // column whose add button just fired
   // Drop the dragged line where the marker sits, counting the gap it leaves behind.
   const dropColRow = (k) => {
     if (dragC?.col === k && dropAt?.col === k) {
@@ -978,9 +979,14 @@ export default function Planning() {
               )}
               {/* One add on the floor of the column; indent is set on the line itself. */}
               <button
-                onClick={() => addColRow(k, false)}
+                onClick={() => { addColRow(k, false); setFlash(k); setTimeout(() => setFlash((f) => (f === k ? null : f)), 400); }}
                 title="Add a line"
-                className="mt-auto flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                // It flashes red for a moment so you can see the line went in.
+                className={`mt-auto flex h-[19px] w-full items-center justify-center rounded border px-1.5 transition-colors ${
+                  flash === k
+                    ? "border-[#C1440E] bg-[#C1440E] text-white"
+                    : "border-neutral-300 bg-white text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                }`}
               >
                 <Plus size={12} />
               </button>
