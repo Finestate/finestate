@@ -106,25 +106,12 @@ function Sidebar({ route, onGo, allowed }) {
   return (
     <aside
       className={
-        "fixed top-0 left-0 z-20 flex h-full w-60 flex-col " +
-        // Same beige as the page, marked off by one slightly stronger rule.
-        // The dividing rule runs the full height on every page, home included.
+        // Sits under the top strip, marked off by one slightly stronger rule.
+        "fixed top-7 left-0 z-20 flex h-full w-60 flex-col " +
         "border-r border-black/25 " + (isHome ? "bg-transparent" : "bg-[#FBF3E4]")
       }
     >
-      {/* The logo is the shortcut: clicking it goes straight to Planning. */}
-      <div className="relative flex items-center px-6 pt-3 pb-1">
-        <button
-          onClick={() => { setOpenId(null); onGo("admin/planning"); }}
-          title="Planning"
-          aria-label="Planning"
-          className="cursor-pointer"
-        >
-          <img src={infinityImg} alt="FI" className="h-9 w-auto" />
-        </button>
-      </div>
-
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 pt-0">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 pt-2">
         {NAV.map((sec) => {
           const Icon = sec.icon;
           if (!sec.children) {
@@ -185,14 +172,18 @@ function Sidebar({ route, onGo, allowed }) {
 }
 
 // Top-right: who is signed in, plus the admin's "view as" preview picker.
-function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut }) {
+function TopBar({ email, isRealAdmin, users, viewAs, onViewAs, onSignOut, onGo }) {
   const viewing = viewAs ? users.find((u) => u.id === viewAs) : null;
   const others = users.filter((u) => !u.isMe);
 
   return (
     // Secondary top strip: its own region above the page, for the account chip,
     // the admin preview picker and later things like alerts.
-    <div className="fixed top-0 left-60 right-0 z-30 flex h-7 items-center gap-3 border-b border-black/25 bg-[#FBF3E4] px-6">
+    <div className="fixed top-0 left-0 right-0 z-30 flex h-7 items-center gap-3 border-b border-black/25 bg-[#FBF3E4] pl-3 pr-6">
+      {/* The mark lives far left up here, and it jumps to Planning. */}
+      <button onClick={() => onGo("admin/planning")} title="Planning" aria-label="Planning" className="cursor-pointer">
+        <img src={infinityImg} alt="FI" className="h-5 w-auto" />
+      </button>
       <div className="flex-1" />
       <div className="group relative flex items-center">
         <button className="inline-flex items-center gap-1 text-[11px] text-neutral-500 transition-colors group-hover:text-neutral-800">
@@ -355,6 +346,7 @@ export default function App() {
     <div className="relative min-h-screen bg-[#FBF3E4]">
       <Sidebar route={route} onGo={go} allowed={allowed} />
       <TopBar
+        onGo={go}
         email={eff.email}
         isRealAdmin={realIsAdmin}
         users={allUsers.map((u) => ({ ...u, isMe: u.id === profile.id }))}
