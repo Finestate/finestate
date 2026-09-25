@@ -175,26 +175,105 @@ function WrapLine({ text, onChange, className }) {
   );
 }
 
-// The per company daily sections, each a heading with one blank row, sitting straight
-// after the Daily section. Added once and then yours to edit like any other section.
-const DAILY_SECTIONS = ["Daily silx", "Daily says", "Daily servefast"];
+// The daily group: one top bar, then a board per company underneath, each with its
+// own pair of mirrored day lines, meetings and points.
+const BOARDS = [
+  ["master", "Daily master"],
+  ["silx", "Daily silx"],
+  ["says", "Daily says"],
+  ["servefast", "Daily servefast"],
+];
+const DAILY_GROUP = "Daily";
+// What the two point columns are called on each board, blank where they need no label.
+const GROUP_LABELS = {
+  master: ["", ""],
+  silx: ["Prios", "Non-prios"],
+  says: ["Prios", "Non-prios"],
+  servefast: ["Prios", "Non-prios"],
+};
+// Points a board starts with, taken from the site it came from.
+const BOARD_SEEDS = {
+  silx: {
+    core: ["FI (finances)", "CS (clientservices)", "YU (youandteamclientupdates)", "BD (businessdevelopment)", "TM (talentmanagement)", "OW (operationswebsite)"],
+    rest: [
+      "EU (emaillistupdates)", "CR (creativerefresh)", "WS (workflownewmonthsetups)", "OP (organictrafficpurchases)",
+      "RE (reporting)", "TB (thirdpartybilling)", "SS (samirsalary)", "FR (freelancerinvoicesubmissionreminder)",
+      "AP (accountspayablesilxsays)", "AR (accountsreceivable)", "CP (creditcardpayment)", "IN (invoicing)",
+      "NM (newmonthsetup)", "VA (vat)", "MF (monthlyfinancials)", "MP (mdpayment)", "DS (dibtoswissquote)",
+      "DM (dibtomortgagepayment)", "FU (financialworksheetupdates)", "NY (newtaxyearsetup)", "TF (taxfilings)",
+    ],
+  },
+};
+const DAILY_SECTIONS = BOARDS.map(([, label]) => label);
+const boardOf = (r) => {
+  const t = String(r?.text || "").trim().toUpperCase();
+  const hit = BOARDS.find(([, label]) => label.toUpperCase() === t);
+  return hit ? hit[0] : null;
+};
+// Master keeps the original storage keys so nothing already saved moves.
+const keyFor = (base, b) => (b === "master" ? base : `${base}.${b}`);
+const readJson = (key, fallback) => {
+  try { const p = JSON.parse(localStorage.getItem(key) || "null"); return p == null ? fallback : p; } catch { return fallback; }
+};
+const loadBoards = () => {
+  const out = {};
+  for (const [b] of BOARDS) {
+    const savedLines = readJson(keyFor(TODO_LINES_KEY, b), null);
+    const lines = Array.isArray(savedLines) && savedLines.length === 2
+      ? savedLines.map(normaliseLine).map((l) => ({ ...l, codes: l.codes.map(fixCode) }))
+      : [emptyLine(), emptyLine()];
+    const savedPoints = readJson(keyFor(POINTS_KEY, b), null);
+    const points = savedPoints && Array.isArray(savedPoints.core) && Array.isArray(savedPoints.rest)
+      ? { core: savedPoints.core.map((x) => ({ ...x, code: fixCode(x.code) })), rest: savedPoints.rest.map((x) => ({ ...x, code: fixCode(x.code) })) }
+      // A board arrives with the points its site already used, where I have them.
+      : b === "master"
+        ? { core: TODO_CORE.map((it) => ({ id: newId(), code: it.code })), rest: TODO_REST.map((it) => ({ id: newId(), code: it.code })) }
+        : BOARD_SEEDS[b]
+          ? { core: BOARD_SEEDS[b].core.map((c) => ({ id: newId(), code: c })), rest: BOARD_SEEDS[b].rest.map((c) => ({ id: newId(), code: c })) }
+          : { core: [], rest: [] };
+    const meetings = readJson(keyFor(MEETINGS_KEY, b), []);
+    let open = null;
+    try { const v = localStorage.getItem(keyFor(TODO_OPEN_KEY, b)); open = v == null || v === "" ? null : Number(v); } catch {}
+    out[b] = { lines, points, meetings: Array.isArray(meetings) ? meetings : [], open };
+  }
+  return out;
+};
+// The Daily bar keeps its place at the top; the four board headings follow it in
+// order, and any blank filler row left from an earlier layout is dropped.
 const withDailySections = (list) => {
-  const has = (name) =>
-    list.some((r) => r.type !== "text" && String(r.text || "").trim().toUpperCase() === name.toUpperCase());
-  const missing = DAILY_SECTIONS.filter((n) => !has(n));
-  if (!missing.length) return list;
-  const fresh = missing.flatMap((name) => [
-    { id: newId(), type: "header", text: name },
-    { id: newId(), type: "text", text: "", html: "" },
-  ]);
-  // Straight after the Daily heading, so Personal order still falls underneath.
-  let anchorId = null;
-  try { anchorId = localStorage.getItem(TODO_ANCHOR_KEY); } catch {}
-  const start = list.findIndex((r) => r.id === anchorId);
-  if (start < 0) return [...list, ...fresh];
-  let at = start + 1;
-  while (at < list.length && list[at].type === "text") at++;
-  return [...list.slice(0, at), ...fresh, ...list.slice(at)];
+  const nameOf = (r) => String(r?.text || "").trim().toUpperCase();
+  const isBoardHead = (r) => r && r.type !== "text" && DAILY_SECTIONS.some((n) => n.toUpperCase() === nameOf(r));
+  const isDailyHead = (r) => r && r.type !== "text" && nameOf(r) === DAILY_GROUP.toUpperCase();
+  // Anything the old layout inserted under a board heading was a placeholder.
+  const cleaned = list.filter((r, i) => {
+    if (r.type !== "text") return true;
+    const prev = list[i - 1];
+    return !(isBoardHead(prev) && !String(r.text || "").trim() && !String(r.html || "").replace(/<[^>]*>/g, "").trim());
+  });
+  let out = cleaned;
+  // The old Daily heading carried the checklist; it becomes the group bar.
+  let dailyIdx = out.findIndex(isDailyHead);
+  if (dailyIdx < 0) {
+    let anchorId = null;
+    try { anchorId = localStorage.getItem(TODO_ANCHOR_KEY); } catch {}
+    dailyIdx = out.findIndex((r) => r.id === anchorId);
+    if (dailyIdx < 0) {
+      out = [{ id: newId(), type: "header", text: DAILY_GROUP }, ...out];
+      dailyIdx = 0;
+    } else {
+      out = out.map((r, i) => (i === dailyIdx ? { ...r, text: DAILY_GROUP } : r));
+    }
+  }
+  // Each board heading sits under the Daily bar, in board order.
+  let at = dailyIdx + 1;
+  for (const label of DAILY_SECTIONS) {
+    const found = out.findIndex((r) => r.type !== "text" && nameOf(r) === label.toUpperCase());
+    if (found < 0) {
+      out = [...out.slice(0, at), { id: newId(), type: "header", text: label }, ...out.slice(at)];
+    }
+    at = out.findIndex((r) => r.type !== "text" && nameOf(r) === label.toUpperCase()) + 1;
+  }
+  return out;
 };
 
 function AutoTextarea({ value, onChange, ...props }) {
@@ -220,16 +299,9 @@ export default function Planning() {
     } catch { return []; }
   });
   const [addMenu, setAddMenu] = useState(null); // row index whose insert menu is open, or "end"
-  const [todoLines, setTodoLines] = useState(() => {
-    try {
-      const p = JSON.parse(localStorage.getItem(TODO_LINES_KEY) || "null");
-      if (Array.isArray(p) && p.length === 2) return p.map(normaliseLine).map((l) => ({ ...l, codes: l.codes.map(fixCode) }));
-    } catch {}
-    return [emptyLine(), emptyLine()];
-  });
-  // Meetings are typed in by hand. Permanent ones stay in the picker after being
-  // used; one-offs move onto the line and leave the picker.
-  const [meetings, setMeetings] = useState(() => { try { const p = JSON.parse(localStorage.getItem(MEETINGS_KEY) || "null"); return Array.isArray(p) ? p : []; } catch { return []; } });
+  // One board per daily heading: Master keeps the original saves, the company ones
+  // start empty and are stored beside them.
+  const [boards, setBoards] = useState(loadBoards);
   const [newMeeting, setNewMeeting] = useState("");
   const [newPermanent, setNewPermanent] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -237,20 +309,6 @@ export default function Planning() {
   const [drag, setDrag] = useState(null);
   const [editing, setEditing] = useState(null); // meeting being typed in, so dragging steps aside
   const [todoAnchor, setTodoAnchor] = useState(() => { try { return localStorage.getItem(TODO_ANCHOR_KEY) || null; } catch { return null; } });
-  // The two fixed groups of points, seeded once and then yours to edit.
-  const [points, setPoints] = useState(() => {
-    try {
-      const p = JSON.parse(localStorage.getItem(POINTS_KEY) || "null");
-      if (p && Array.isArray(p.core) && Array.isArray(p.rest)) {
-        const fix = (list) => list.map((x) => ({ ...x, code: fixCode(x.code) }));
-        return { core: fix(p.core), rest: fix(p.rest) };
-      }
-    } catch {}
-    return {
-      core: TODO_CORE.map((it) => ({ id: newId(), code: it.code })),
-      rest: TODO_REST.map((it) => ({ id: newId(), code: it.code })),
-    };
-  });
   // Errands prios and H+F order: plain lists, each line typed, moved or binned.
   // These hold door codes and names, so they live in Supabase, never in this public repo.
   const [cols, setCols] = useState({ quicks: [], errands: [], hf: [] });
@@ -287,7 +345,6 @@ export default function Planning() {
   // Headings folded shut, remembered across refreshes and visits.
   const [collapsed, setCollapsed] = useState(() => { try { const p = JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "null"); return Array.isArray(p) ? p : []; } catch { return []; } });
   const ask = (run) => setConfirm({ run });
-  const [todoOpen, setTodoOpen] = useState(() => { try { const v = localStorage.getItem(TODO_OPEN_KEY); return v == null || v === "" ? null : Number(v); } catch { return null; } });
 
 
   const lineRefs = useRef({}); // row id -> its editable element, for the ribbon
@@ -331,131 +388,125 @@ export default function Planning() {
   const insertAt = (i, type) => { persistRows([...rows.slice(0, i), { id: newId(), type, text: "" }, ...rows.slice(i)]); setAddMenu(null); };
 
 
-  const saveLines = (next) => { setTodoLines(next); try { localStorage.setItem(TODO_LINES_KEY, JSON.stringify(next)); } catch {} };
-  const openLine = (idx) => { setTodoOpen(idx); try { idx == null ? localStorage.removeItem(TODO_OPEN_KEY) : localStorage.setItem(TODO_OPEN_KEY, String(idx)); } catch {} };
-  const saveMeetings = (next) => { setMeetings(next); try { localStorage.setItem(MEETINGS_KEY, JSON.stringify(next)); } catch {} };
-  const patchLine = (idx, fields) => saveLines(todoLines.map((l, i) => (i === idx ? { ...l, ...fields } : l)));
+  // Every board writes to its own saves; Master keeps the original keys.
+  const patchBoard = (b, fields) => setBoards((prev) => ({ ...prev, [b]: { ...prev[b], ...fields } }));
+  const saveLines = (b, next) => { patchBoard(b, { lines: next }); try { localStorage.setItem(keyFor(TODO_LINES_KEY, b), JSON.stringify(next)); } catch {} };
+  const openLine = (b, idx) => { patchBoard(b, { open: idx }); try { idx == null ? localStorage.removeItem(keyFor(TODO_OPEN_KEY, b)) : localStorage.setItem(keyFor(TODO_OPEN_KEY, b), String(idx)); } catch {} };
+  const saveMeetings = (b, next) => { patchBoard(b, { meetings: next }); try { localStorage.setItem(keyFor(MEETINGS_KEY, b), JSON.stringify(next)); } catch {} };
+  const savePoints = (b, next) => { patchBoard(b, { points: next }); try { localStorage.setItem(keyFor(POINTS_KEY, b), JSON.stringify(next)); } catch {} };
+  const patchLine = (b, idx, fields) => saveLines(b, boards[b].lines.map((l, i) => (i === idx ? { ...l, ...fields } : l)));
 
-  const toggleTodo = (idx, code) => {
-    const line = todoLines[idx];
+  const toggleTodo = (b, idx, code) => {
+    const line = boards[b].lines[idx];
     const has = line.codes.includes(code);
     const fills = { ...(line.fills || {}) };
     if (has) delete fills[code];
-    patchLine(idx, { codes: has ? line.codes.filter((c) => c !== code) : [...line.codes, code], fills });
+    patchLine(b, idx, { codes: has ? line.codes.filter((c) => c !== code) : [...line.codes, code], fills });
   };
 
   // Picking a meeting moves it onto the line. A one-off also leaves the picker.
-  const pickMeeting = (idx, m) => {
-    const line = todoLines[idx];
+  const pickMeeting = (b, idx, m) => {
+    const line = boards[b].lines[idx];
     if (line.meetings.some((x) => x.id === m.id)) {
-      patchLine(idx, { meetings: line.meetings.filter((x) => x.id !== m.id) });
+      patchLine(b, idx, { meetings: line.meetings.filter((x) => x.id !== m.id) });
       return;
     }
-    patchLine(idx, { meetings: [...line.meetings, m] });
-    if (!m.permanent) saveMeetings(meetings.filter((x) => x.id !== m.id));
+    patchLine(b, idx, { meetings: [...line.meetings, m] });
+    if (!m.permanent) saveMeetings(b, boards[b].meetings.filter((x) => x.id !== m.id));
   };
-  const moveInLine = (lineIdx, from, to) => {
+  const moveInLine = (b, lineIdx, from, to) => {
     if (from == null || to == null || from === to) return;
-    const arr = todoLines[lineIdx].meetings.slice();
+    const arr = boards[b].lines[lineIdx].meetings.slice();
     const [moved] = arr.splice(from, 1);
     arr.splice(to, 0, moved);
-    patchLine(lineIdx, { meetings: arr });
+    patchLine(b, lineIdx, { meetings: arr });
   };
   // Dropping a picker box anywhere on a line adds it to that line.
-  const dropOnLine = (lineIdx) => {
-    if (drag?.from === "pool") {
-      const m = meetings.find((x) => x.id === drag.id);
-      if (m && !todoLines[lineIdx].meetings.some((x) => x.id === m.id)) pickMeeting(lineIdx, m);
+  const dropOnLine = (b, lineIdx) => {
+    if (drag?.from === "pool" && drag.board === b) {
+      const m = boards[b].meetings.find((x) => x.id === drag.id);
+      if (m && !boards[b].lines[lineIdx].meetings.some((x) => x.id === m.id)) pickMeeting(b, lineIdx, m);
     }
     setDrag(null);
   };
   // Dragging a name off a line and into the picker puts it back in the list.
-  const returnToPool = (lineIdx) => {
-    if (drag?.from === "line") {
-      const m = todoLines[drag.lineIdx].meetings.find((x) => x.id === drag.id);
-      patchLine(drag.lineIdx, { meetings: todoLines[drag.lineIdx].meetings.filter((x) => x.id !== drag.id) });
-      if (m && !meetings.some((x) => x.id === m.id)) saveMeetings([...meetings, m]);
+  const returnToPool = (b) => {
+    if (drag?.from === "line" && drag.board === b) {
+      const m = boards[b].lines[drag.lineIdx].meetings.find((x) => x.id === drag.id);
+      patchLine(b, drag.lineIdx, { meetings: boards[b].lines[drag.lineIdx].meetings.filter((x) => x.id !== drag.id) });
+      if (m && !boards[b].meetings.some((x) => x.id === m.id)) saveMeetings(b, [...boards[b].meetings, m]);
     }
     setDrag(null);
   };
-  const moveMeeting = (from, to) => {
+  const moveMeeting = (b, from, to) => {
     if (from == null || to == null || from === to) return;
-    const next = meetings.slice();
+    const next = boards[b].meetings.slice();
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
-    saveMeetings(next);
+    saveMeetings(b, next);
   };
-  const savePoints = (next) => { setPoints(next); try { localStorage.setItem(POINTS_KEY, JSON.stringify(next)); } catch {} };
   // A renamed point carries its new wording onto any line already holding it.
-  const renamePoint = (g, id, raw) => {
+  const renamePoint = (b, g, id, raw) => {
     const code = spaceBrackets(raw);
-    const old = points[g].find((p) => p.id === id)?.code;
-    savePoints({ ...points, [g]: points[g].map((p) => (p.id === id ? { ...p, code } : p)) });
+    const pts = boards[b].points;
+    const old = pts[g].find((p) => p.id === id)?.code;
+    savePoints(b, { ...pts, [g]: pts[g].map((p) => (p.id === id ? { ...p, code } : p)) });
     if (old && old !== code) {
-      saveLines(todoLines.map((l) => ({ ...l, codes: l.codes.map((c) => (c === old ? code : c)) })));
+      saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.map((c) => (c === old ? code : c)) })));
     }
   };
-  const removePoint = (g, id) => {
-    const gone = points[g].find((p) => p.id === id)?.code;
-    savePoints({ ...points, [g]: points[g].filter((p) => p.id !== id) });
-    if (gone) saveLines(todoLines.map((l) => ({ ...l, codes: l.codes.filter((c) => c !== gone) })));
+  const removePoint = (b, g, id) => {
+    const pts = boards[b].points;
+    const gone = pts[g].find((p) => p.id === id)?.code;
+    savePoints(b, { ...pts, [g]: pts[g].filter((p) => p.id !== id) });
+    if (gone) saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.filter((c) => c !== gone) })));
   };
-  const addPoint = (g) => {
+  const addPoint = (b, g) => {
     const p = { id: newId(), code: "" };
-    savePoints({ ...points, [g]: [...points[g], p] });
+    savePoints(b, { ...boards[b].points, [g]: [...boards[b].points[g], p] });
     setEditing(p.id);
   };
-  const movePoint = (g, from, to) => {
+  const movePoint = (b, g, from, to) => {
     if (from == null || to == null || from === to) return;
-    const arr = points[g].slice();
+    const arr = boards[b].points[g].slice();
     const [moved] = arr.splice(from, 1);
     arr.splice(to, 0, moved);
-    savePoints({ ...points, [g]: arr });
+    savePoints(b, { ...boards[b].points, [g]: arr });
   };
 
   // Renaming reaches the picker copy and every line that already carries it.
-  const renameMeeting = (id, name) => {
-    saveMeetings(meetings.map((m) => (m.id === id ? { ...m, name } : m)));
-    saveLines(todoLines.map((l) => ({ ...l, meetings: l.meetings.map((m) => (m.id === id ? { ...m, name } : m)) })));
+  const renameMeeting = (b, id, name) => {
+    saveMeetings(b, boards[b].meetings.map((m) => (m.id === id ? { ...m, name } : m)));
+    saveLines(b, boards[b].lines.map((l) => ({ ...l, meetings: l.meetings.map((m) => (m.id === id ? { ...m, name } : m)) })));
   };
-  const dropMeeting = (idx, id) => patchLine(idx, { meetings: todoLines[idx].meetings.filter((x) => x.id !== id) });
-  const addMeeting = () => {
+  const dropMeeting = (b, idx, id) => patchLine(b, idx, { meetings: boards[b].lines[idx].meetings.filter((x) => x.id !== id) });
+  const addMeeting = (b) => {
     const name = newMeeting.trim();
     if (!name) return;
-    saveMeetings([...meetings, { id: newId(), name, permanent: newPermanent }]);
+    saveMeetings(b, [...boards[b].meetings, { id: newId(), name, permanent: newPermanent }]);
     setNewMeeting("");
     setNewPermanent(false);
   };
 
   // The up arrow on the second line rolls the next day's plan into today.
-  const swapLines = () => { saveLines([todoLines[1], todoLines[0]]); openLine(todoOpen === 0 ? 1 : todoOpen === 1 ? 0 : todoOpen); };
+  const swapLines = (b) => {
+    const { lines, open } = boards[b];
+    saveLines(b, [lines[1], lines[0]]);
+    openLine(b, open === 0 ? 1 : open === 1 ? 0 : open);
+  };
 
   // The heading a given row sits under, so the Daily routine section can hide its Add bar.
   const headingFor = (i) => { for (let j = i; j >= 0; j--) if (rows[j].type !== "text") return rows[j]; return null; };
 
-  // The two checklist lines hang under one heading. It is found by name the first
-  // time, then remembered by id, so renaming that heading cannot detach them.
-  const matchesTodoName = (r) =>
-    r.type !== "text" && /dailyroutine|todo|todos/.test((r.text || "").toLowerCase().replace(/[^a-z]/g, ""));
+  // The Daily bar heads the group; each board heading under it carries its own lines.
+  const nameOf = (r) => String(r?.text || "").trim().toUpperCase();
+  const isDailyGroup = (r) => !!r && r.type !== "text" && nameOf(r) === DAILY_GROUP.toUpperCase();
+  const anchorIdx = rows.findIndex(isDailyGroup);
+  const isTodoHeader = (r) => isDailyGroup(r) || !!boardOf(r);
 
-  let anchorIdx = rows.findIndex((r) => r.id === todoAnchor && r.type !== "text");
-  if (anchorIdx < 0) anchorIdx = rows.findIndex(matchesTodoName);
-  // No such heading: the checklist sits at the top and no heading gets locked.
-
-  useEffect(() => {
-    const r = rows[anchorIdx];
-    if (r && r.id !== todoAnchor) {
-      setTodoAnchor(r.id);
-      try { localStorage.setItem(TODO_ANCHOR_KEY, r.id); } catch {}
-    }
-  }, [anchorIdx, rows, todoAnchor]);
-
-  const isTodoHeader = (r) => anchorIdx >= 0 && r && rows[anchorIdx] && r.id === rows[anchorIdx].id;
-
-  // Personal order sits under the whole daily family: the Daily section and the per
-  // company ones that follow it. This is the last row of that run.
-  const inDailyFamily = (r) =>
-    !!r && (isTodoHeader(r) || DAILY_SECTIONS.some((n) => String(r.text || "").trim().toUpperCase() === n.toUpperCase()));
+  // Personal order sits under the whole daily family: the Daily bar and the four
+  // boards. This is the last row of that run.
+  const inDailyFamily = (r) => isTodoHeader(r);
   const personalIdx = (() => {
     let last = -1;
     rows.forEach((r, i) => { if (inDailyFamily(headingFor(i))) last = i; });
@@ -465,15 +516,15 @@ export default function Planning() {
   // Codes on a line are split by a small solid gold square rather than a dot.
   // A point ending in empty brackets, like Errandsprios (), takes free text between
   // them on the line itself. Unticking the point clears it again.
-  const setFill = (idx, code, text) => {
-    const line = todoLines[idx];
-    patchLine(idx, { fills: { ...(line.fills || {}), [code]: text } });
+  const setFill = (b, idx, code, text) => {
+    const line = boards[b].lines[idx];
+    patchLine(b, idx, { fills: { ...(line.fills || {}), [code]: text } });
   };
-  const renderCodeLine = (list, colour, idx) => (
+  const renderCodeLine = (b, list, colour, idx) => (
     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 text-[11px] font-semibold leading-[15px]" style={{ color: colour }}>
       {list.map((c, i) => {
         const fillable = /\(\)$/.test(c);
-        const fill = todoLines[idx]?.fills?.[c] || "";
+        const fill = boards[b].lines[idx]?.fills?.[c] || "";
         return (
           <span key={c} className="inline-flex items-center gap-1.5">
             {fillable ? (
@@ -484,7 +535,7 @@ export default function Planning() {
                 className="inline-flex cursor-text items-center"
               >
                 {c.slice(0, -1)}
-                <FillText key={`${idx}-${c}`} text={fill} onChange={(t) => setFill(idx, c, t)} />
+                <FillText key={`${b}-${idx}-${c}`} text={fill} onChange={(t) => setFill(b, idx, c, t)} />
                 )
               </span>
             ) : (
@@ -499,10 +550,11 @@ export default function Planning() {
 
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
-  const renderTodoLines = () => (
+  const renderTodoLines = (b) => (
     <div>
-      {todoLines.map((line, idx) => {
-        const open = todoOpen === idx;
+      {boards[b].lines.map((line, idx) => {
+        const open = boards[b].open === idx;
+        const { meetings, points } = boards[b];
         // Selected points keep their group on the line: meetings, core codes, then the rest.
         const coreCodes = points.core.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
@@ -511,9 +563,9 @@ export default function Planning() {
           <div key={idx} className={`bg-white border-t border-black`}>
             {/* The whole line is the toggle – no chevron. */}
             <div
-              onClick={() => openLine(open ? null : idx)}
+              onClick={() => openLine(b, open ? null : idx)}
               onDragOver={(e) => e.preventDefault()}
-              onDrop={() => dropOnLine(idx)}
+              onDrop={() => dropOnLine(b, idx)}
               title="Choose to-dos"
               className="flex min-h-[21px] cursor-pointer items-start hover:bg-neutral-50"
             >
@@ -525,13 +577,13 @@ export default function Planning() {
                         key={m.id}
                         draggable={editing !== m.id}
                         onDoubleClick={(e) => { e.stopPropagation(); setEditing(m.id); }}
-                        onDragStart={(e) => { e.stopPropagation(); setDrag({ from: "line", lineIdx: idx, index: mi, id: m.id }); }}
+                        onDragStart={(e) => { e.stopPropagation(); setDrag({ from: "line", board: b, lineIdx: idx, index: mi, id: m.id }); }}
                         onDragEnd={() => setDrag(null)}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => {
                           e.stopPropagation();
-                          if (drag?.from === "line" && drag.lineIdx === idx) moveInLine(idx, drag.index, mi);
-                          else dropOnLine(idx);
+                          if (drag?.from === "line" && drag.board === b && drag.lineIdx === idx) moveInLine(b, idx, drag.index, mi);
+                          else dropOnLine(b, idx);
                           setDrag(null);
                         }}
                         className={`inline-flex cursor-grab items-center gap-1 text-[11px] font-semibold leading-[15px] text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
@@ -542,7 +594,7 @@ export default function Planning() {
                             ref={(el) => { if (el && document.activeElement !== el) el.focus(); }}
                             value={m.name}
                             onClick={(e) => e.stopPropagation()}
-                            onChange={(e) => renameMeeting(m.id, e.target.value)}
+                            onChange={(e) => renameMeeting(b, m.id, e.target.value)}
                             onBlur={() => setEditing(null)}
                             style={{ width: `${Math.max(2, m.name.length)}ch` }}
                             className="bg-transparent text-[11px] leading-[15px] outline-none"
@@ -552,7 +604,7 @@ export default function Planning() {
                         )}
                         <GripVertical size={10} className="shrink-0 cursor-grab text-neutral-400" />
                         <button
-                          onClick={(e) => { e.stopPropagation(); ask(() => dropMeeting(idx, m.id)); }}
+                          onClick={(e) => { e.stopPropagation(); ask(() => dropMeeting(b, idx, m.id)); }}
                           title="Remove"
                           className="flex shrink-0 items-center self-center leading-none text-neutral-900 hover:text-[#C1440E]"
                         >
@@ -569,13 +621,13 @@ export default function Planning() {
                     ))}
                   </span>
                 )}
-                {coreCodes.length > 0 && renderCodeLine(coreCodes, "#171717", idx)}
-                {restCodes.length > 0 && renderCodeLine(restCodes, "#171717", idx)}
+                {coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}
+                {restCodes.length > 0 && renderCodeLine(b, restCodes, "#171717", idx)}
               </div>
 
               {idx === 1 && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); swapLines(); }}
+                  onClick={(e) => { e.stopPropagation(); swapLines(b); }}
                   title="Make this today"
                   className="shrink-0 px-2 py-0.5 text-neutral-400 hover:text-[#9c7c33]"
                 >
@@ -589,7 +641,7 @@ export default function Planning() {
               <div className="grid grid-cols-3 items-start gap-1.5 border-t border-[#C1440E] bg-white px-2 py-1.5">
                 <div
                   onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => returnToPool(idx)}
+                  onDrop={() => returnToPool(b)}
                   className="flex flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
                 >
                   {meetings.map((m, mi) => (
@@ -597,23 +649,23 @@ export default function Planning() {
                       key={m.id}
                       draggable={editing !== m.id}
                       onDoubleClick={() => setEditing(m.id)}
-                      onDragStart={() => setDrag({ from: "pool", index: mi, id: m.id })}
+                      onDragStart={() => setDrag({ from: "pool", board: b, index: mi, id: m.id })}
                       onDragEnd={() => setDrag(null)}
                       onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => { if (drag?.from === "pool") moveMeeting(drag.index, mi); setDrag(null); }}
-                      className={`flex w-full cursor-grab items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 active:cursor-grabbing ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.index === mi ? "opacity-40" : ""}`}
+                      onDrop={() => { if (drag?.from === "pool" && drag.board === b) moveMeeting(b, drag.index, mi); setDrag(null); }}
+                      className={`flex w-full cursor-grab items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 active:cursor-grabbing ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.board === b && drag.index === mi ? "opacity-40" : ""}`}
                     >
                       <input
                         ref={(el) => { if (el && editing === m.id && document.activeElement !== el) el.focus(); }}
                         value={m.name}
                         readOnly={editing !== m.id}
-                        onChange={(e) => renameMeeting(m.id, e.target.value)}
+                        onChange={(e) => renameMeeting(b, m.id, e.target.value)}
                         onBlur={() => setEditing(null)}
                         className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
                       />
                       <GripVertical size={11} className="shrink-0 cursor-grab text-neutral-400" />
                       <button
-                        onClick={() => ask(() => saveMeetings(meetings.filter((x) => x.id !== m.id)))}
+                        onClick={() => ask(() => saveMeetings(b, meetings.filter((x) => x.id !== m.id)))}
                         title="Remove this meeting"
                         className="shrink-0 text-neutral-900 hover:text-[#C1440E]"
                       >
@@ -630,7 +682,7 @@ export default function Planning() {
                         value={newMeeting}
                         onChange={(e) => setNewMeeting(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") { addMeeting(); setAdding(false); }
+                          if (e.key === "Enter") { addMeeting(b); setAdding(false); }
                           if (e.key === "Escape") { setNewMeeting(""); setAdding(false); }
                         }}
                         placeholder="Meeting"
@@ -644,7 +696,7 @@ export default function Planning() {
                         className="h-3.5 w-3.5 shrink-0"
                         style={{ accentColor: "#C1440E" }}
                       />
-                      <button onClick={() => { addMeeting(); setAdding(false); }} title="Save" className="shrink-0 text-[#9c7c33] hover:opacity-70">
+                      <button onClick={() => { addMeeting(b); setAdding(false); }} title="Save" className="shrink-0 text-[#9c7c33] hover:opacity-70">
                         <Plus size={12} />
                       </button>
                       {/* Changed your mind: drop the half typed meeting. */}
@@ -663,24 +715,27 @@ export default function Planning() {
                   )}
                 </div>
 
-                {["core", "rest"].map((g) => (
+                {["core", "rest"].map((g, gi) => (
                   <div key={g} className="self-stretch border-[3px] border-[#C1440E] p-1.5">
                     <div className="flex h-full flex-col gap-1">
+                      {(GROUP_LABELS[b] || [])[gi] && (
+                        <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
+                      )}
                       {points[g].map((it, pi) => (
                         <div
                           key={it.id}
                           draggable={editing !== it.id}
                           onDoubleClick={() => setEditing(it.id)}
-                          onDragStart={() => setDragP({ group: g, index: pi })}
+                          onDragStart={() => setDragP({ board: b, group: g, index: pi })}
                           onDragEnd={() => setDragP(null)}
                           onDragOver={(e) => e.preventDefault()}
-                          onDrop={() => { if (dragP?.group === g) movePoint(g, dragP.index, pi); setDragP(null); }}
-                          className={`flex w-full cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragP?.group === g && dragP.index === pi ? "opacity-40" : ""}`}
+                          onDrop={() => { if (dragP?.group === g && dragP.board === b) movePoint(b, g, dragP.index, pi); setDragP(null); }}
+                          className={`flex w-full cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
                         >
                           <input
                             type="checkbox"
                             checked={line.codes.includes(it.code)}
-                            onChange={() => toggleTodo(idx, it.code)}
+                            onChange={() => toggleTodo(b, idx, it.code)}
                             className="h-3.5 w-3.5 shrink-0 self-start"
                             style={{ accentColor: GOLD }}
                           />
@@ -688,13 +743,13 @@ export default function Planning() {
                             ref={(el) => { if (el && editing === it.id && document.activeElement !== el) el.focus(); }}
                             value={it.code}
                             readOnly={editing !== it.id}
-                            onChange={(e) => renamePoint(g, it.id, e.target.value)}
+                            onChange={(e) => renamePoint(b, g, it.id, e.target.value)}
                             onBlur={() => setEditing(null)}
                             className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
                           <GripVertical size={11} className="shrink-0 cursor-grab self-start text-neutral-400" />
                           <button
-                            onClick={() => ask(() => removePoint(g, it.id))}
+                            onClick={() => ask(() => removePoint(b, g, it.id))}
                             title="Remove this point"
                             className="shrink-0 self-start text-neutral-900 hover:text-[#C1440E]"
                           >
@@ -705,7 +760,7 @@ export default function Planning() {
 
                       {/* Both groups take new points straight from here, on the floor of the column. */}
                       <button
-                        onClick={() => addPoint(g)}
+                        onClick={() => addPoint(b, g)}
                         title="Add a point"
                         className="mt-auto flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
                       >
@@ -870,14 +925,15 @@ export default function Planning() {
   return (
     <div className="w-full">
       <div spellCheck={false} className="w-full border border-black shadow-sm overflow-hidden bg-white">
-        {/* With no Daily routine heading to hang under, the checklist sits up here. */}
-        {anchorIdx < 0 && renderTodoLines()}
+        {/* With no Daily bar to hang under, the master checklist sits up here. */}
+        {anchorIdx < 0 && renderTodoLines("master")}
 
         <div>
           {rows.map((r, i) => {
             if (hidden[i]) return null;
-            // Every heading in this table is a main heading, so they share one colour.
-            const bg = r.type === "text" ? "#fff" : BAR_BG;
+            // Board headings sit one shade below the main bars they hang under.
+            const board = boardOf(r);
+            const bg = r.type === "text" ? "#fff" : board ? HEADER_BG : BAR_BG;
             // The heading the checklist hangs under is locked: no typing, no bin, no dragging.
             const locked = isTodoHeader(r);
             const field = locked ? (
@@ -937,7 +993,7 @@ export default function Planning() {
                 </div>
                 {/* One ribbon per section, always there, acting on the row you last clicked. */}
                 {isHead && !locked && !collapsed.includes(r.id) && renderRibbon(i)}
-                {isTodoHeader(r) && renderTodoLines()}
+                {board && renderTodoLines(board)}
                 {/* Folded, but never gone: a blank line with the squares says there is more here. */}
                 {collapsed.includes(r.id) && collapsible(r) && (
                   <div
