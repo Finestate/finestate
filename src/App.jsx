@@ -9,7 +9,7 @@ import {
   Shield,
   Receipt,
   FileText,
-  HeartPulse,
+  Leaf,
   KeyRound,
   Users,
   ChevronDown,
@@ -31,7 +31,7 @@ import { ALL_PAGE_IDS } from "./pages.js";
 const NAV = [
   // Planning stands on its own at the top; its route keeps the old id so access lists still match.
   { id: "admin/planning", name: "Planning", icon: CalendarDays },
-  { id: "hw", name: "HW", icon: HeartPulse },
+  { id: "hw", name: "HW", icon: Leaf },
   {
     id: "admin",
     name: "Admin",
