@@ -10,6 +10,7 @@ export const PAGES = [
   { id: "assets/investing", label: "Assets – Investing" },
   { id: "assets/estate", label: "Assets – Estate" },
   { id: "costs/monthly", label: "Income+Costs – Monthly" },
+  { id: "hw", label: "HW" },
 ];
 
 export const ALL_PAGE_IDS = PAGES.map((p) => p.id);

@@ -9,6 +9,7 @@ import {
   Shield,
   Receipt,
   FileText,
+  HeartPulse,
   KeyRound,
   Users,
   ChevronDown,
@@ -20,6 +21,7 @@ import SiteRunningCosts from "./SiteRunningCosts.jsx";
 import Logins from "./Logins.jsx";
 import LegalDocuments from "./LegalDocuments.jsx";
 import Costs from "./Costs.jsx";
+import HW from "./HW.jsx";
 import Auth from "./Auth.jsx";
 import { supabase, supabaseReady } from "./lib/supabaseClient.js";
 import infinityImg from "../Website Images/Infinity.webp";
@@ -56,6 +58,7 @@ const NAV = [
       { id: "assets/estate", name: "Estate" },
     ],
   },
+  { id: "hw", name: "HW", icon: HeartPulse },
 ];
 
 const VIEW_AS_KEY = "finestate.viewAs";
@@ -366,6 +369,7 @@ export default function App() {
             {route === "admin/planning" && <Planning />}
             {route === "admin/legal-documents" && <LegalDocuments />}
             {route === "costs/monthly" && <Costs />}
+            {route === "hw" && <HW />}
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
             {route === "investing/opportunities" && <Opportunities />}

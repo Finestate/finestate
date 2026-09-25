@@ -370,7 +370,7 @@ export default function Planning() {
   const [todoAnchor, setTodoAnchor] = useState(() => { try { return localStorage.getItem(TODO_ANCHOR_KEY) || null; } catch { return null; } });
   // Errands prios and H+F order: plain lists, each line typed, moved or binned.
   // These hold door codes and names, so they live in Supabase, never in this public repo.
-  const [cols, setCols] = useState({ quicks: [], errands: [], hf: [] });
+  const [cols, setCols] = useState({ quicks: [], errands: [], hf: [], notes: "" });
   useEffect(() => {
     supabase
       .from("admin_docs")
@@ -380,7 +380,7 @@ export default function Planning() {
       .then(({ data }) => {
         const d = data?.data;
         // A column added later starts empty rather than undefined.
-        if (d) setCols({ quicks: d.quicks || [], errands: d.errands || [], hf: d.hf || [] });
+        if (d) setCols({ quicks: d.quicks || [], errands: d.errands || [], hf: d.hf || [], notes: d.notes || "" });
       });
   }, []);
   const saveCols = (next) => {
@@ -993,6 +993,14 @@ export default function Planning() {
             </div>
           </div>
         ))}
+        {/* One rough notes block across all three columns. */}
+        <div className="col-span-3 border-[3px] border-[#C1440E] p-1.5">
+          <WrapLine
+            text={cols.notes || ""}
+            onChange={(t) => saveCols({ ...cols, notes: t })}
+            className="block min-h-[30px] w-full whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
+          />
+        </div>
       </div>
     )}
     </>
