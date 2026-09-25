@@ -295,6 +295,17 @@ const withDailySections = (rawList) => {
     }
     at = out.findIndex((r) => r.type !== "text" && nameOf(r) === label.toUpperCase()) + 1;
   }
+  // Sorting notes rides with Personal order: one word, straight under the Master board.
+  const sortIdx = out.findIndex((r) => r.type !== "text" && /sorting/i.test(String(r.text || "")));
+  if (sortIdx >= 0) {
+    let end = sortIdx + 1;
+    while (end < out.length && out[end].type === "text") end++;
+    const block = out.slice(sortIdx, end).map((r, k) => (k === 0 ? { ...r, text: "Sortingnotes" } : r));
+    const without = [...out.slice(0, sortIdx), ...out.slice(end)];
+    const masterIdx = without.findIndex((r) => r.type !== "text" && nameOf(r) === "MASTER");
+    const dropAt = masterIdx < 0 ? without.length : masterIdx + 1;
+    out = [...without.slice(0, dropAt), ...block, ...without.slice(dropAt)];
+  }
   return out;
 };
 
@@ -819,8 +830,8 @@ export default function Planning() {
     <>
     {/* Not a section bar: a plain white row of notes that opens with the chevron. */}
     <div className="flex h-[21px] items-center gap-1 border-t border-[#C1440E] bg-white px-2">
-      <span className="text-[11px] lowercase leading-[15px] text-neutral-900">Personal order</span>
-      <button onClick={() => toggleCollapse(PERSONAL_ID)} title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"} className="text-neutral-900 hover:text-[#9c7c33]">
+      <span className="text-[11px] leading-[15px] text-neutral-900">Personalorder</span>
+      <button onClick={() => toggleCollapse(PERSONAL_ID)} title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"} className="flex h-[15px] items-center text-neutral-900 hover:text-[#9c7c33]">
         <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(PERSONAL_ID) ? "-rotate-90" : ""}`} />
       </button>
     </div>
@@ -983,9 +994,9 @@ export default function Planning() {
                   value={r.text}
                   onChange={(e) => update(i, e.target.value)}
                   style={{ width: `${(r.text || "").length * 1.15 + 1}ch` }}
-                  className={`bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none ${plainHead ? "lowercase" : "font-bold uppercase tracking-[0.06em]"}`}
+                  className={`bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none ${plainHead ? "" : "font-bold uppercase tracking-[0.06em]"}`}
                 />
-                <button onClick={() => toggleCollapse(r.id)} title={collapsed.includes(r.id) ? "Open" : "Close"} className="text-neutral-900 hover:text-[#9c7c33]">
+                <button onClick={() => toggleCollapse(r.id)} title={collapsed.includes(r.id) ? "Open" : "Close"} className="flex h-[15px] items-center text-neutral-900 hover:text-[#9c7c33]">
                   <ChevronDown size={12} className={`block transition-transform ${collapsed.includes(r.id) ? "-rotate-90" : ""}`} />
                 </button>
               </span>
