@@ -927,6 +927,17 @@ export default function Planning() {
                   style={r.sub ? { marginLeft: "20px" } : undefined}
                   className={`flex items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
                 >
+                  {/* Boxed to the exact line height, so it sits dead centre on the first line. */}
+                  <span className="flex h-[15px] shrink-0 items-center">
+                    <input
+                      type="checkbox"
+                      checked={!!r.picked}
+                      onChange={() => toggleColPick(k, r.id)}
+                      title="Send to Errandsprios"
+                      className="block h-[11px] w-[11px] cursor-pointer"
+                      style={{ accentColor: "#C1440E", margin: 0 }}
+                    />
+                  </span>
                   <WrapLine
                     key={r.id}
                     text={r.text}
@@ -951,15 +962,6 @@ export default function Planning() {
                   >
                     <GripVertical size={11} />
                   </span>
-                  {/* Ticked lines land in the Errandsprios brackets on today's line. */}
-                  <input
-                    type="checkbox"
-                    checked={!!r.picked}
-                    onChange={() => toggleColPick(k, r.id)}
-                    title="Send to Errandsprios"
-                    className="my-[2px] h-[11px] w-[11px] shrink-0 cursor-pointer"
-                    style={{ accentColor: "#C1440E" }}
-                  />
                   <button onClick={() => ask(() => removeColRow(k, r.id))} title="Remove this line" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
                     <Trash2 size={11} />
                   </button>
