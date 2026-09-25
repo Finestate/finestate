@@ -389,6 +389,27 @@ export default function Planning() {
   const setColRow = (k, id, text) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) });
   const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
   const setColSub = (k, id, sub) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, sub } : r)) });
+  // Ticked lines write themselves into the Errandsprios brackets on today's line,
+  // joined by a dash with no spaces, in the red the brackets already use.
+  const syncErrands = (next) => {
+    const master = boards.master;
+    const code = [...master.points.core, ...master.points.rest]
+      .map((p) => p.code)
+      .find((c) => /^errandsprios\s*\(\)$/i.test(String(c).trim()));
+    if (!code) return;
+    const text = TWOCOLS
+      .flatMap(([k]) => (next[k] || []).filter((r) => r.picked).map((r) => String(r.text || "").trim()))
+      .filter(Boolean)
+      .join("-");
+    const line = master.lines[0];
+    const codes = line.codes.includes(code) ? line.codes : [...line.codes, code];
+    saveLines("master", master.lines.map((l, i) => (i === 0 ? { ...l, codes, fills: { ...(l.fills || {}), [code]: text } } : l)));
+  };
+  const toggleColPick = (k, id) => {
+    const next = { ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, picked: !r.picked } : r)) };
+    saveCols(next);
+    syncErrands(next);
+  };
   // Drag and drop moves a line to where it was dropped, not by a step.
   const moveColRow = (k, from, to) => {
     if (from == null || to == null || from === to) return;
@@ -906,6 +927,15 @@ export default function Planning() {
                   style={r.sub ? { marginLeft: "20px" } : undefined}
                   className={`flex items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
                 >
+                  {/* Ticked lines land in the Errandsprios brackets on today's line. */}
+                  <input
+                    type="checkbox"
+                    checked={!!r.picked}
+                    onChange={() => toggleColPick(k, r.id)}
+                    title="Send to Errandsprios"
+                    className="mt-[1px] h-3 w-3 shrink-0"
+                    style={{ accentColor: "#C1440E" }}
+                  />
                   <WrapLine
                     key={r.id}
                     text={r.text}
