@@ -126,10 +126,12 @@ function RichLine({ html, onInput, onFocus, onEnter, innerRef, className }) {
 // side – and stays uncontrolled so the caret never jumps while typing.
 function FillText({ text, onChange }) {
   const ref = useRef(null);
+  // Follows changes made elsewhere, such as ticking a personal order line, but
+  // never rewrites itself while the caret is in it.
   useEffect(() => {
-    if (ref.current) ref.current.textContent = text || "";
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const el = ref.current;
+    if (el && document.activeElement !== el && el.textContent !== (text || "")) el.textContent = text || "";
+  }, [text]);
   return (
     <span
       ref={ref}
