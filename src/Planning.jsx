@@ -963,7 +963,8 @@ export default function Planning() {
                       key={`notes-${b}`}
                       text={boards[b].notes || ""}
                       onChange={(t) => saveNotes(b, t)}
-                      className="block min-h-[30px] w-full whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
+                      // Empty, it is one line tall and grows as you type.
+                      className="block min-h-[15px] w-full whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
                     />
                   </div>
                 )}
