@@ -387,9 +387,10 @@ export default function Planning() {
   // joined by a dash with no spaces, in the red the brackets already use.
   const syncErrands = (next, lineIdx = 0) => {
     const master = boards.master;
+    // Whatever the point is called now, it is the one about errands with brackets.
     const code = [...master.points.core, ...master.points.rest]
-      .map((p) => p.code)
-      .find((c) => /^errandsprios\s*\(\)$/i.test(String(c).trim()));
+      .map((p) => String(p.code).trim())
+      .find((c) => /errands/i.test(c) && /\(\s*\)$/.test(c));
     if (!code) return;
     const text = TWOCOLS
       .flatMap(([k]) => (next[k] || []).filter((r) => r.picked).map((r) => String(r.text || "").trim()))
