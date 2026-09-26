@@ -250,7 +250,8 @@ const loadBoards = () => {
   const out = {};
   for (const [b] of BOARDS) {
     const savedLines = readJson(keyFor(TODO_LINES_KEY, b), null);
-    const styleCode = b === "master" ? fixCode : (c) => tightBrackets(fixCode(c));
+    // Every board keeps the house spacing: one space before an opening bracket.
+    const styleCode = fixCode;
     const lines = Array.isArray(savedLines) && savedLines.length === 2
       ? savedLines.map(normaliseLine).map((l) => ({
           ...l,
@@ -572,7 +573,7 @@ export default function Planning() {
   };
   // A renamed point carries its new wording onto any line already holding it.
   const renamePoint = (b, g, id, raw) => {
-    const code = b === "master" ? spaceBrackets(raw) : tightBrackets(raw);
+    const code = spaceBrackets(raw);
     const pts = boards[b].points;
     const old = pts[g].find((p) => p.id === id)?.code;
     savePoints(b, { ...pts, [g]: pts[g].map((p) => (p.id === id ? { ...p, code } : p)) });
