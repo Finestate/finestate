@@ -434,6 +434,24 @@ export default function Planning() {
     setDropAt(null);
   };
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
+  const [dropP, setDropP] = useState(null); // where that point would land: { board, group, index }
+  const [dropM, setDropM] = useState(null); // where a picker meeting would land: { board, index }
+  // Both use the same rule as the personal order lines: land on the marker, counting
+  // the gap the dragged box leaves behind.
+  const dropPoint = (b, g) => {
+    if (dragP?.board === b && dragP.group === g && dropP?.board === b && dropP.group === g) {
+      movePoint(b, g, dragP.index, dropP.index > dragP.index ? dropP.index - 1 : dropP.index);
+    }
+    setDragP(null);
+    setDropP(null);
+  };
+  const dropPoolMeeting = (b) => {
+    if (drag?.from === "pool" && drag.board === b && dropM?.board === b) {
+      moveMeeting(b, drag.index, dropM.index > drag.index ? dropM.index - 1 : dropM.index);
+    }
+    setDrag(null);
+    setDropM(null);
+  };
   const [activeRow, setActiveRow] = useState(null); // row the ribbon acts on
   const [confirm, setConfirm] = useState(null); // delete waiting on Yes or Cancel
   // Headings folded shut, remembered across refreshes and visits.
@@ -756,20 +774,26 @@ export default function Planning() {
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => returnToPool(b)}
+                  onDrop={() => { if (drag?.from === "pool") dropPoolMeeting(b); else returnToPool(b); }}
+                  onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropM(null); }}
                   // Meetings sit in the middle: the core codes come first.
                   className="order-2 flex flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
                 >
                   {meetings.map((m, mi) => (
+                    <div key={m.id}>
+                    {/* A red marker shows exactly where the meeting will land. */}
+                    {drag?.from === "pool" && drag.board === b && dropM?.board === b && dropM.index === mi && (
+                      <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />
+                    )}
                     <div
-                      key={m.id}
-                      draggable={editing !== m.id}
                       onDoubleClick={() => setEditing(m.id)}
-                      onDragStart={() => setDrag({ from: "pool", board: b, index: mi, id: m.id })}
-                      onDragEnd={() => setDrag(null)}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => { if (drag?.from === "pool" && drag.board === b) moveMeeting(b, drag.index, mi); setDrag(null); }}
-                      className={`flex w-full cursor-grab items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 active:cursor-grabbing ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.board === b && drag.index === mi ? "opacity-40" : ""}`}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        const box = e.currentTarget.getBoundingClientRect();
+                        setDropM({ board: b, index: e.clientY < box.top + box.height / 2 ? mi : mi + 1 });
+                      }}
+                      onDrop={(e) => { e.stopPropagation(); dropPoolMeeting(b); }}
+                      className={`flex w-full items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.board === b && drag.index === mi ? "opacity-40" : ""}`}
                     >
                       <input
                         ref={(el) => { if (el && editing === m.id && document.activeElement !== el) el.focus(); }}
@@ -779,16 +803,29 @@ export default function Planning() {
                         onBlur={() => setEditing(null)}
                         className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
                       />
-                      <GripVertical size={11} className="shrink-0 cursor-grab text-neutral-400" />
+                      {/* The box holds a text field, so dragging starts from the handle. */}
+                      <span
+                        draggable
+                        onDragStart={() => setDrag({ from: "pool", board: b, index: mi, id: m.id })}
+                        onDragEnd={() => { setDrag(null); setDropM(null); }}
+                        title="Drag to move"
+                        className="flex h-[15px] shrink-0 cursor-grab items-center text-neutral-400 active:cursor-grabbing"
+                      >
+                        <GripVertical size={11} />
+                      </span>
                       <button
                         onClick={() => ask(() => saveMeetings(b, meetings.filter((x) => x.id !== m.id)))}
                         title="Remove this meeting"
-                        className="shrink-0 text-neutral-900 hover:text-[#C1440E]"
+                        className="flex h-[15px] shrink-0 items-center text-neutral-900 hover:text-[#C1440E]"
                       >
                         <Trash2 size={11} />
                       </button>
                     </div>
+                    </div>
                   ))}
+                  {drag?.from === "pool" && drag.board === b && dropM?.board === b && dropM.index === meetings.length && (
+                    <div className="h-[2px] w-full bg-[#C1440E]" />
+                  )}
 
                   {/* The add sits on the floor of the column, right under the last box. */}
                   {adding ? (
@@ -834,20 +871,30 @@ export default function Planning() {
 
                 {["core", "rest"].map((g, gi) => (
                   <div key={g} className={`${g === "core" ? "order-1" : "order-3"} self-stretch border-[3px] border-[#C1440E] p-1.5`}>
-                    <div className="flex h-full flex-col gap-1">
+                    <div
+                      className="flex h-full flex-col gap-1"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => dropPoint(b, g)}
+                      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropP(null); }}
+                    >
                       {(GROUP_LABELS[b] || [])[gi] && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
                       )}
                       {points[g].map((it, pi) => (
+                        <div key={it.id}>
+                        {/* A red marker shows exactly where the point will land. */}
+                        {dragP?.board === b && dragP.group === g && dropP?.board === b && dropP.group === g && dropP.index === pi && (
+                          <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />
+                        )}
                         <div
-                          key={it.id}
-                          draggable={editing !== it.id}
                           onDoubleClick={() => setEditing(it.id)}
-                          onDragStart={() => setDragP({ board: b, group: g, index: pi })}
-                          onDragEnd={() => setDragP(null)}
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={() => { if (dragP?.group === g && dragP.board === b) movePoint(b, g, dragP.index, pi); setDragP(null); }}
-                          className={`flex w-full cursor-grab items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 active:cursor-grabbing ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            const box = e.currentTarget.getBoundingClientRect();
+                            setDropP({ board: b, group: g, index: e.clientY < box.top + box.height / 2 ? pi : pi + 1 });
+                          }}
+                          onDrop={(e) => { e.stopPropagation(); dropPoint(b, g); }}
+                          className={`flex w-full items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
                         >
                           {/* Boxed to the line height so it sits dead centre on the words. */}
                           <span className="flex h-[15px] shrink-0 items-center">
@@ -867,7 +914,16 @@ export default function Planning() {
                             onBlur={() => setEditing(null)}
                             className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
-                          <GripVertical size={11} className="h-[15px] shrink-0 cursor-grab text-neutral-400" />
+                          {/* The box holds a text field, so dragging starts from the handle. */}
+                          <span
+                            draggable
+                            onDragStart={() => setDragP({ board: b, group: g, index: pi })}
+                            onDragEnd={() => { setDragP(null); setDropP(null); }}
+                            title="Drag to move"
+                            className="flex h-[15px] shrink-0 cursor-grab items-center text-neutral-400 active:cursor-grabbing"
+                          >
+                            <GripVertical size={11} />
+                          </span>
                           <button
                             onClick={() => ask(() => removePoint(b, g, it.id))}
                             title="Remove this point"
@@ -876,7 +932,11 @@ export default function Planning() {
                             <Trash2 size={11} />
                           </button>
                         </div>
+                        </div>
                       ))}
+                      {dragP?.board === b && dragP.group === g && dropP?.board === b && dropP.group === g && dropP.index === points[g].length && (
+                        <div className="h-[2px] w-full bg-[#C1440E]" />
+                      )}
 
                       {/* Both groups take new points straight from here, on the floor of the column. */}
                       <button
