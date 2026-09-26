@@ -679,16 +679,24 @@ export default function Planning() {
     <div className="flex flex-wrap items-center text-[11px] font-semibold leading-[15px] text-neutral-900">
       {codes.map((c, i) => {
         const fill = boards[b].lines[idx]?.fills?.[c] || "";
+        // A point written as XX() takes typed words between its brackets; anything
+        // else shows exactly as it reads in the picker, brackets and all.
+        const fillable = /\(\)$/.test(c);
         return (
           <span
             key={c}
             onClick={(e) => { e.stopPropagation(); focusEnd(e.currentTarget.querySelector("[contenteditable]")); }}
             className="inline-flex cursor-text items-center"
           >
-            {shortCode(c)}
-            {fill ? "(" : ""}
-            <FillText key={`${b}-${idx}-${c}`} text={fill} onChange={(t) => setFill(b, idx, c, t)} />
-            {fill ? ")" : ""}
+            {fillable ? (
+              <>
+                {c.slice(0, -1)}
+                <FillText key={`${b}-${idx}-${c}`} text={fill} onChange={(t) => setFill(b, idx, c, t)} />
+                )
+              </>
+            ) : (
+              c
+            )}
             {i < codes.length - 1 ? "-" : ""}
           </span>
         );
