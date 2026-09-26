@@ -23,6 +23,9 @@ const NOTES_KEY = "finestate.planning.notes"; // department notes, one per compa
 // The lists that sit under the daily area, side by side, under one folding bar.
 const TWOCOLS = [["quicks", "Errands quicks"], ["errands", "Errands prios"], ["hf", "H+F order"]];
 const PERSONAL_ID = "personal-order";
+// A tick lives on one day line. Older saves ticked the list itself, and those count
+// as ticks on the first line.
+const isPicked = (r, lineIdx) => (r?.pick ? !!r.pick[lineIdx] : lineIdx === 0 && !!r?.picked);
 
 // Two identical checklist lines under the Daily routine heading: today, and the
 // next day being planned while today is still in front of you.
@@ -393,7 +396,7 @@ export default function Planning() {
       .find((c) => /errands/i.test(c) && /\(\s*\)$/.test(c));
     if (!code) return;
     const text = TWOCOLS
-      .flatMap(([k]) => (next[k] || []).filter((r) => r.picked).map((r) => String(r.text || "").trim()))
+      .flatMap(([k]) => (next[k] || []).filter((r) => isPicked(r, lineIdx)).map((r) => String(r.text || "").trim()))
       .filter(Boolean)
       .join("-");
     // It lands on the day line whose picker is open, not always today's.
@@ -401,8 +404,15 @@ export default function Planning() {
     const codes = line.codes.includes(code) ? line.codes : [...line.codes, code];
     saveLines("master", master.lines.map((l, i) => (i === lineIdx ? { ...l, codes, fills: { ...(l.fills || {}), [code]: text } } : l)));
   };
+  // The lists themselves are shared between the two day lines, but a tick belongs to
+  // the line it was made on, so each day carries its own errands.
   const toggleColPick = (k, id, lineIdx) => {
-    const next = { ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, picked: !r.picked } : r)) };
+    const next = {
+      ...cols,
+      [k]: cols[k].map((r) =>
+        r.id === id ? { ...r, picked: undefined, pick: { ...(r.pick || {}), [lineIdx]: !isPicked(r, lineIdx) } } : r
+      ),
+    };
     saveCols(next);
     syncErrands(next, lineIdx);
   };
@@ -1001,7 +1011,7 @@ export default function Planning() {
                   <span className="flex h-[15px] shrink-0 items-center">
                     <input
                       type="checkbox"
-                      checked={!!r.picked}
+                      checked={isPicked(r, lineIdx)}
                       onChange={() => toggleColPick(k, r.id, lineIdx)}
                       title="Send to Errandsprios"
                       className="block h-[11px] w-[11px] cursor-pointer"
