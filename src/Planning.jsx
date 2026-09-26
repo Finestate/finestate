@@ -949,7 +949,7 @@ export default function Planning() {
                 {MEETING_BOARDS.includes(b) && renderTwoCols(idx)}
                 {/* A company board closes with its department notes instead. */}
                 {!MEETING_BOARDS.includes(b) && (
-                  <div className="col-span-2 flex flex-col border-[3px] border-[#C1440E] p-1.5">
+                  <div className="order-4 col-span-2 flex flex-col border-[3px] border-[#C1440E] p-1.5">
                     <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Department notes</p>
                     <WrapLine
                       key={`notes-${b}`}
@@ -971,7 +971,7 @@ export default function Planning() {
   // sitting at the foot of Master's open day line.
   const renderTwoCols = (lineIdx) => (
     <>
-      <div className="col-span-3 grid grid-cols-3 items-start gap-1.5">
+      <div className="order-4 col-span-3 grid grid-cols-3 items-start gap-1.5">
         {TWOCOLS.map(([k, label]) => (
           <div key={k} className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
