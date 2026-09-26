@@ -29,10 +29,10 @@ import { ALL_PAGE_IDS } from "./pages.js";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
 const NAV = [
-  // Master heads the sidebar. Planning keeps its old route id so access lists still match.
+  // Coordinating heads the sidebar. Planning keeps its old route id so access lists still match.
   {
-    id: "master",
-    name: "Master",
+    id: "coordinating",
+    name: "Coordinating",
     icon: CalendarDays,
     children: [
       { id: "admin/planning", name: "Planning", icon: CalendarDays },
