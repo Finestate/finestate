@@ -654,14 +654,11 @@ export default function Planning() {
         return (
           <span key={c} className="inline-flex items-center gap-1.5">
             {fillable ? (
-              // Clicking anywhere on the point drops the caret between its brackets.
-              // Empty, the field is one space wide – typing fills that space.
-              <span
-                onClick={(e) => { e.stopPropagation(); focusEnd(e.currentTarget.querySelector("[contenteditable]")); }}
-                className="inline-flex cursor-text items-center"
-              >
+              // What sits between the brackets comes from the ticks below, so the
+              // line itself is read only and a click just opens the picker.
+              <span className="inline-flex items-center">
                 {c.slice(0, -1)}
-                <FillText key={`${b}-${idx}-${c}`} text={fill} onChange={(t) => setFill(b, idx, c, t)} />
+                <span className="whitespace-pre" style={{ color: "#B01E2F" }}>{fill}</span>
                 )
               </span>
             ) : (
