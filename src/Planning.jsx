@@ -686,8 +686,10 @@ export default function Planning() {
         return (
           <span
             key={c}
-            onClick={(e) => { e.stopPropagation(); focusEnd(e.currentTarget.querySelector("[contenteditable]")); }}
-            className="inline-flex cursor-text items-center"
+            // Only a point with brackets swallows the click to take the caret; the
+            // rest let it through so the line opens and closes as usual.
+            onClick={fillable ? (e) => { e.stopPropagation(); focusEnd(e.currentTarget.querySelector("[contenteditable]")); } : undefined}
+            className={`inline-flex items-center ${fillable ? "cursor-text" : "cursor-pointer"}`}
           >
             {fillable ? (
               <>
