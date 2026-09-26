@@ -664,6 +664,29 @@ export default function Planning() {
     </div>
   );
 
+  // A company day line: short codes only, each carrying its own typed detail in
+  // brackets, dash separated, as in AO(xxx)-CP(yyy).
+  const renderShortLine = (b, codes, idx) => (
+    <div className="flex flex-wrap items-center text-[11px] font-semibold leading-[15px] text-neutral-900">
+      {codes.map((c, i) => {
+        const fill = boards[b].lines[idx]?.fills?.[c] || "";
+        return (
+          <span
+            key={c}
+            onClick={(e) => { e.stopPropagation(); focusEnd(e.currentTarget.querySelector("[contenteditable]")); }}
+            className="inline-flex cursor-text items-center"
+          >
+            {shortCode(c)}
+            {fill ? "(" : ""}
+            <FillText key={`${b}-${idx}-${c}`} text={fill} onChange={(t) => setFill(b, idx, c, t)} />
+            {fill ? ")" : ""}
+            {i < codes.length - 1 ? "-" : ""}
+          </span>
+        );
+      })}
+    </div>
+  );
+
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = (b) => (
@@ -751,11 +774,8 @@ export default function Planning() {
                     <div className="order-3">{restCodes.length > 0 && renderCodeLine(b, restCodes, "#171717", idx)}</div>
                   </>
                 ) : (
-                  (coreCodes.length > 0 || restCodes.length > 0) && (
-                    <div className="text-[11px] font-semibold leading-[15px] text-neutral-900">
-                      {shortLine(coreCodes, restCodes)}
-                    </div>
-                  )
+                  (coreCodes.length > 0 || restCodes.length > 0) &&
+                    renderShortLine(b, [...coreCodes, ...restCodes], idx)
                 )}
               </div>
 
