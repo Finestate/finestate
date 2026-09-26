@@ -18,6 +18,7 @@ const TODO_ANCHOR_KEY = "finestate.planning.todoAnchor";
 const POINTS_KEY = "finestate.planning.points";
 const COLLAPSED_KEY = "finestate.planning.collapsed";
 const TWOCOL_KEY = "personal-order"; // row id in the private admin_docs table
+const NOTES_KEY = "finestate.planning.notes"; // department notes, one per company board
 
 // The lists that sit under the daily area, side by side, under one folding bar.
 const TWOCOLS = [["quicks", "Errands quicks"], ["errands", "Errands prios"], ["hf", "H+F order"]];
@@ -259,7 +260,9 @@ const loadBoards = () => {
     const meetings = readJson(keyFor(MEETINGS_KEY, b), []);
     let open = null;
     try { const v = localStorage.getItem(keyFor(TODO_OPEN_KEY, b)); open = v == null || v === "" ? null : Number(v); } catch {}
-    out[b] = { lines, points, meetings: Array.isArray(meetings) ? meetings : [], open };
+    let notes = "";
+    try { notes = localStorage.getItem(keyFor(NOTES_KEY, b)) || ""; } catch {}
+    out[b] = { lines, points, meetings: Array.isArray(meetings) ? meetings : [], open, notes };
   }
   return out;
 };
@@ -301,26 +304,17 @@ const withDailySections = (rawList) => {
     }
     at = out.findIndex((r) => r.type !== "text" && nameOf(r) === label.toUpperCase()) + 1;
   }
-  // Each company board carries its own notes row, the way Master carries Sortingnotes.
-  for (const [, label] of BOARDS.slice(1)) {
-    const h = out.findIndex((r) => r.type !== "text" && nameOf(r) === label.toUpperCase());
-    if (h < 0) continue;
-    const next = out[h + 1];
-    if (next && next.type !== "text" && /^DEPARTMENT ?NOTES$/.test(nameOf(next))) {
-      // Renamed since it was first added, and it keeps at least one line to write in.
-      if (nameOf(next) !== "DEPARTMENT NOTES") out = out.map((r) => (r.id === next.id ? { ...r, text: "Department notes" } : r));
-      if (!out[h + 2] || out[h + 2].type !== "text") {
-        out = [...out.slice(0, h + 2), { id: newId(), type: "text", text: "", html: "" }, ...out.slice(h + 2)];
-      }
-      continue;
-    }
-    // The heading plus one blank line to write in, the same as Sorting notes.
-    out = [
-      ...out.slice(0, h + 1),
-      { id: newId(), type: "header", text: "Department notes" },
-      { id: newId(), type: "text", text: "", html: "" },
-      ...out.slice(h + 1),
-    ];
+  // Department notes now live at the foot of each board's dropdown, so the old
+  // heading goes, as long as nothing was written under it.
+  for (let i = out.length - 1; i >= 0; i--) {
+    const r = out[i];
+    if (r.type === "text" || !/^DEPARTMENT ?NOTES$/.test(nameOf(r))) continue;
+    let end = i + 1;
+    while (end < out.length && out[end].type === "text") end++;
+    const written = out
+      .slice(i + 1, end)
+      .some((x) => String(x.text || "").trim() || String(x.html || "").replace(/<[^>]*>/g, "").trim());
+    if (!written) out = [...out.slice(0, i), ...out.slice(end)];
   }
   // Sorting notes has moved out of this table; the empty heading goes with it, but
   // only while nothing is written under it.
@@ -394,7 +388,7 @@ export default function Planning() {
   const setColSub = (k, id, sub) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, sub } : r)) });
   // Ticked lines write themselves into the Errandsprios brackets on today's line,
   // joined by a dash with no spaces, in the red the brackets already use.
-  const syncErrands = (next) => {
+  const syncErrands = (next, lineIdx = 0) => {
     const master = boards.master;
     const code = [...master.points.core, ...master.points.rest]
       .map((p) => p.code)
@@ -404,14 +398,15 @@ export default function Planning() {
       .flatMap(([k]) => (next[k] || []).filter((r) => r.picked).map((r) => String(r.text || "").trim()))
       .filter(Boolean)
       .join("-");
-    const line = master.lines[0];
+    // It lands on the day line whose picker is open, not always today's.
+    const line = master.lines[lineIdx] || master.lines[0];
     const codes = line.codes.includes(code) ? line.codes : [...line.codes, code];
-    saveLines("master", master.lines.map((l, i) => (i === 0 ? { ...l, codes, fills: { ...(l.fills || {}), [code]: text } } : l)));
+    saveLines("master", master.lines.map((l, i) => (i === lineIdx ? { ...l, codes, fills: { ...(l.fills || {}), [code]: text } } : l)));
   };
-  const toggleColPick = (k, id) => {
+  const toggleColPick = (k, id, lineIdx) => {
     const next = { ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, picked: !r.picked } : r)) };
     saveCols(next);
-    syncErrands(next);
+    syncErrands(next, lineIdx);
   };
   // Drag and drop moves a line to where it was dropped, not by a step.
   const moveColRow = (k, from, to) => {
@@ -506,6 +501,7 @@ export default function Planning() {
   const openLine = (b, idx) => { patchBoard(b, { open: idx }); try { idx == null ? localStorage.removeItem(keyFor(TODO_OPEN_KEY, b)) : localStorage.setItem(keyFor(TODO_OPEN_KEY, b), String(idx)); } catch {} };
   const saveMeetings = (b, next) => { patchBoard(b, { meetings: next }); try { localStorage.setItem(keyFor(MEETINGS_KEY, b), JSON.stringify(next)); } catch {} };
   const savePoints = (b, next) => { patchBoard(b, { points: next }); try { localStorage.setItem(keyFor(POINTS_KEY, b), JSON.stringify(next)); } catch {} };
+  const saveNotes = (b, text) => { patchBoard(b, { notes: text }); try { localStorage.setItem(keyFor(NOTES_KEY, b), text); } catch {} };
   const patchLine = (b, idx, fields) => saveLines(b, boards[b].lines.map((l, i) => (i === idx ? { ...l, ...fields } : l)));
 
   const toggleTodo = (b, idx, code) => {
@@ -664,7 +660,7 @@ export default function Planning() {
   // keystroke and throw the caret to the end of the field.
   const renderTodoLines = (b) => (
     // Every board's pair sits on the same faint wash of the table red.
-    <div className="border-t border-black" style={{ backgroundColor: DAY_BG }}>
+    <div className="border-t border-black bg-white">
       {boards[b].lines.map((line, idx) => {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
@@ -949,6 +945,20 @@ export default function Planning() {
                     </div>
                   </div>
                 ))}
+                {/* Master's personal lists sit at the very bottom of the open picker. */}
+                {MEETING_BOARDS.includes(b) && renderTwoCols(idx)}
+                {/* A company board closes with its department notes instead. */}
+                {!MEETING_BOARDS.includes(b) && (
+                  <div className="col-span-2 flex flex-col border-[3px] border-[#C1440E] p-1.5">
+                    <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Department notes</p>
+                    <WrapLine
+                      key={`notes-${b}`}
+                      text={boards[b].notes || ""}
+                      onChange={(t) => saveNotes(b, t)}
+                      className="block min-h-[30px] w-full whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -957,21 +967,11 @@ export default function Planning() {
     </div>
   );
 
-  // Errands prios on the left, H+F order on the right, each line its own row.
-  const renderTwoCols = () => (
+  // Errands quicks, prios and H+F order: the same three columns as the picker above,
+  // sitting at the foot of Master's open day line.
+  const renderTwoCols = (lineIdx) => (
     <>
-    {/* Not a section bar: a plain white row of notes that opens with the chevron. */}
-    {/* Click anywhere on the line to open or close it, no chevron needed. */}
-    <div
-      onClick={() => toggleCollapse(PERSONAL_ID)}
-      title={collapsed.includes(PERSONAL_ID) ? "Open" : "Close"}
-      className="flex h-[21px] cursor-pointer items-center gap-1 border-t border-black bg-white px-2"
-    >
-      <span className="text-[11px] font-semibold leading-[15px] text-neutral-900">Personal order</span>
-    </div>
-    {!collapsed.includes(PERSONAL_ID) && (
-      // Same shape as the daily picker: one red framed column per list.
-      <div className="grid grid-cols-3 items-start gap-1.5 border-t border-black bg-white px-2 py-1.5">
+      <div className="col-span-3 grid grid-cols-3 items-start gap-1.5">
         {TWOCOLS.map(([k, label]) => (
           <div key={k} className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
@@ -1004,7 +1004,7 @@ export default function Planning() {
                     <input
                       type="checkbox"
                       checked={!!r.picked}
-                      onChange={() => toggleColPick(k, r.id)}
+                      onChange={() => toggleColPick(k, r.id, lineIdx)}
                       title="Send to Errandsprios"
                       className="block h-[11px] w-[11px] cursor-pointer"
                       style={{ accentColor: "#C1440E", margin: 0 }}
@@ -1068,7 +1068,6 @@ export default function Planning() {
           />
         </div>
       </div>
-    )}
     </>
   );
 
@@ -1224,8 +1223,6 @@ export default function Planning() {
                 {/* Notes areas are plain black text, so they carry no ribbon. */}
                 {isHead && !locked && !plainHead && !collapsed.includes(r.id) && renderRibbon(i)}
                 {board && renderTodoLines(board)}
-                {/* Personal order is not day planning: it sits as its own row under Master. */}
-                {board === "master" && renderTwoCols()}
                 {addMenu === i && <TypeMenu at={i + 1} opts={SECTION_TYPES} />}
               </div>
             );
