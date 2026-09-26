@@ -72,6 +72,8 @@ const TODO_ITEMS = [...TODO_CORE, ...TODO_REST];
 
 // House style: one space before an opening bracket, e.g. "SC (CCEDB)".
 const spaceBrackets = (s) => String(s || "").replace(/([^\s(])\(/g, "$1 (");
+// The company boards run them together instead: "SC(CCEDB)".
+const tightBrackets = (s) => String(s || "").replace(/\s+\(/g, "(");
 
 // Points that gained brackets to type into after they were first saved.
 const FILLABLE = ["Ycfoodmd"];
@@ -248,17 +250,24 @@ const loadBoards = () => {
   const out = {};
   for (const [b] of BOARDS) {
     const savedLines = readJson(keyFor(TODO_LINES_KEY, b), null);
+    const styleCode = b === "master" ? fixCode : (c) => tightBrackets(fixCode(c));
     const lines = Array.isArray(savedLines) && savedLines.length === 2
-      ? savedLines.map(normaliseLine).map((l) => ({ ...l, codes: l.codes.map(fixCode) }))
+      ? savedLines.map(normaliseLine).map((l) => ({
+          ...l,
+          codes: l.codes.map(styleCode),
+          // Anything typed in brackets follows its code to the new spelling.
+          fills: Object.fromEntries(Object.entries(l.fills || {}).map(([c, v]) => [styleCode(c), v])),
+        }))
       : [emptyLine(), emptyLine()];
+    const style = styleCode;
     const savedPoints = readJson(keyFor(POINTS_KEY, b), null);
     const points = savedPoints && Array.isArray(savedPoints.core) && Array.isArray(savedPoints.rest)
-      ? { core: savedPoints.core.map((x) => ({ ...x, code: fixCode(x.code) })), rest: savedPoints.rest.map((x) => ({ ...x, code: fixCode(x.code) })) }
+      ? { core: savedPoints.core.map((x) => ({ ...x, code: style(x.code) })), rest: savedPoints.rest.map((x) => ({ ...x, code: style(x.code) })) }
       // A board arrives with the points its site already used, where I have them.
       : b === "master"
         ? { core: TODO_CORE.map((it) => ({ id: newId(), code: it.code })), rest: TODO_REST.map((it) => ({ id: newId(), code: it.code })) }
         : BOARD_SEEDS[b]
-          ? { core: BOARD_SEEDS[b].core.map((c) => ({ id: newId(), code: c })), rest: BOARD_SEEDS[b].rest.map((c) => ({ id: newId(), code: c })) }
+          ? { core: BOARD_SEEDS[b].core.map((c) => ({ id: newId(), code: style(c) })), rest: BOARD_SEEDS[b].rest.map((c) => ({ id: newId(), code: style(c) })) }
           : { core: [], rest: [] };
     const meetings = readJson(keyFor(MEETINGS_KEY, b), []);
     let open = null;
@@ -563,7 +572,7 @@ export default function Planning() {
   };
   // A renamed point carries its new wording onto any line already holding it.
   const renamePoint = (b, g, id, raw) => {
-    const code = spaceBrackets(raw);
+    const code = b === "master" ? spaceBrackets(raw) : tightBrackets(raw);
     const pts = boards[b].points;
     const old = pts[g].find((p) => p.id === id)?.code;
     savePoints(b, { ...pts, [g]: pts[g].map((p) => (p.id === id ? { ...p, code } : p)) });
