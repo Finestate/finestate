@@ -304,17 +304,14 @@ const withDailySections = (rawList) => {
     }
     at = out.findIndex((r) => r.type !== "text" && nameOf(r) === label.toUpperCase()) + 1;
   }
-  // Department notes now live at the foot of each board's dropdown, so the old
-  // heading goes, as long as nothing was written under it.
+  // Department notes live at the foot of each board's dropdown now, so any leftover
+  // heading in the table goes, its lines having been moved across.
   for (let i = out.length - 1; i >= 0; i--) {
     const r = out[i];
     if (r.type === "text" || !/^DEPARTMENT ?NOTES$/.test(nameOf(r))) continue;
     let end = i + 1;
     while (end < out.length && out[end].type === "text") end++;
-    const written = out
-      .slice(i + 1, end)
-      .some((x) => String(x.text || "").trim() || String(x.html || "").replace(/<[^>]*>/g, "").trim());
-    if (!written) out = [...out.slice(0, i), ...out.slice(end)];
+    out = [...out.slice(0, i), ...out.slice(end)];
   }
   // Sorting notes has moved out of this table; the empty heading goes with it, but
   // only while nothing is written under it.
