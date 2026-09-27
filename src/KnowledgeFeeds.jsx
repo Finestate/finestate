@@ -398,6 +398,26 @@ export default function KnowledgeFeeds() {
               </button>
             </div>
 
+            {/* Every other tab's feeds, so all the keyword sets stay in one view. */}
+            {slots.some((s, i) => i !== open && s.urls.length) && (
+              <>
+                <div className="flex h-[18px] items-center border-t border-black px-2" style={{ backgroundColor: TAB_BG }}>
+                  <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Other tabs</span>
+                </div>
+                {slots.map((s, i) =>
+                  i === open
+                    ? null
+                    : s.urls.map((u) => (
+                        <div key={u.id} className="flex h-[21px] items-center gap-2 border-t border-black px-2">
+                          <span className="w-24 shrink-0 truncate text-[10px] font-bold uppercase leading-[15px] tracking-wide text-neutral-500">{s.name || "–"}</span>
+                          <span className="w-48 shrink-0 truncate text-[11px] leading-[15px] text-neutral-900">{u.name}</span>
+                          <span className="min-w-0 flex-1 truncate text-[11px] leading-[15px] text-neutral-500">{u.url}</span>
+                        </div>
+                      ))
+                )}
+              </>
+            )}
+
             <button
               onClick={() => setSettings(false)}
               style={{ color: RED }}
