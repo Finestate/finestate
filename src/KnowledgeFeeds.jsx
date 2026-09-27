@@ -186,9 +186,13 @@ export default function KnowledgeFeeds() {
   return (
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[720px] border border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        {/* Centred title over the tab rows, as on the Says feeds box. */}
-        <div className="border-b-2 border-neutral-400 py-1.5 text-center" style={{ backgroundColor: BODY_BG }}>
-          <span className={head}>Knowledge feeds</span>
+        {/* One slim gold bar, as on every other table here, with the count on the right. */}
+        <div className="flex h-[18px] items-center gap-2 px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.18em] text-neutral-900">Knowledge feeds</span>
+          <span className="flex-1" />
+          <span className="text-[10px] font-bold uppercase leading-[15px] tracking-wide text-neutral-700">
+            {feeds.length} feeds
+          </span>
         </div>
 
         {tabRows.map((row, ri) => (
