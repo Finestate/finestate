@@ -9,7 +9,8 @@ const DOC_ID = "knowledge-feeds";
 // Five tabs to start with; the plus at the end adds the next one when they fill up.
 const SLOTS = 5;
 const BAR_BG = "#F2C46D";  // title bar, as on every other table here
-const TAB_BG = "#FFE4B3";  // one step down, for the tabs
+const TAB_BG = "#FFE4B3";  // the strip the folder tabs sit on
+const FOLD_BG = "#F7D9A3"; // a closed folder tab
 const BODY_BG = "#FFFFFF"; // the sheet the stories sit on
 const RED = "#C1440E";
 
@@ -210,23 +211,22 @@ export default function KnowledgeFeeds() {
         {/* Every tab opens, named or not; the cog names it and adds feeds. The plus at
             the end opens one more tab once these are used up. */}
         {/* Tabs on the second gold, one hairline each, the open one white. */}
-        {/* The open tab loses its bottom line so it reads as part of the sheet. */}
-        <div className="flex border-t border-b border-black" style={{ backgroundColor: TAB_BG }}>
+        {/* File folder tabs: each one cut to the shape of a folder and set to overlap
+            its neighbour, the open one white and sitting on top. */}
+        <div className="flex items-end gap-0 border-t border-black px-1 pt-1" style={{ backgroundColor: TAB_BG }}>
           {slots.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setOpen(i)}
               title={s.name || "Free tab"}
-              className={`-mb-px flex h-[24px] min-w-0 flex-1 items-center gap-1.5 border-b px-2 text-[10px] font-bold uppercase leading-none tracking-[0.08em] transition-colors ${
-                i === 0 ? "" : "border-l border-l-black"
-              } ${
-                i === open
-                  ? "border-b-white bg-white text-neutral-900"
-                  : "border-b-black text-neutral-600 hover:text-neutral-900"
+              className={`-mr-2 flex h-[22px] min-w-0 flex-1 items-center gap-1.5 pl-3.5 pr-4 text-[10px] font-bold uppercase leading-none tracking-[0.08em] transition-colors ${
+                i === open ? "relative z-10 text-neutral-900" : "text-neutral-600 hover:text-neutral-900"
               }`}
+              style={{
+                clipPath: "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)",
+                backgroundColor: i === open ? "#FFFFFF" : FOLD_BG,
+              }}
             >
-              {/* A folder mark, then the name, then how many stories it is holding. */}
-              <Folder size={11} className="shrink-0" style={{ color: i === open ? RED : "#8a8a8a" }} />
               <span className="min-w-0 flex-1 truncate text-left">{s.name || "–"}</span>
               {(items[s.id]?.length || 0) > 0 && (
                 <span className="shrink-0 text-[9px] font-semibold tabular-nums text-neutral-500">{items[s.id].length}</span>
@@ -236,7 +236,8 @@ export default function KnowledgeFeeds() {
           <button
             onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpen(next.length - 1); setSettings(true); }}
             title="Add another tab"
-            className="-mb-px flex h-[24px] w-8 shrink-0 items-center justify-center border-b border-b-black border-l border-l-black text-neutral-600 transition-colors hover:text-neutral-900"
+            className="flex h-[22px] w-9 shrink-0 items-center justify-center pl-2 text-neutral-600 transition-colors hover:text-neutral-900"
+            style={{ clipPath: "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)", backgroundColor: FOLD_BG }}
           >
             <Plus size={11} />
           </button>
