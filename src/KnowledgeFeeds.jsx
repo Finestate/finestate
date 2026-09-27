@@ -283,17 +283,30 @@ export default function KnowledgeFeeds() {
           {rows.map((r, i) => {
             const shown = story[r.link];
             return (
-              <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t border-neutral-300"}`}>
-                <a
-                  href={r.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block text-[11px] font-medium leading-[15px] underline underline-offset-2"
-                  style={{ color: "#0f766e" }}
-                >
-                  {r.title}
-                </a>
-                {!shown && r.summary && <p className="mt-0.5 text-[11px] leading-[15px] text-neutral-500">{r.summary}</p>}
+              <div key={`${r.link}-${i}`} className={`py-[2px] ${i === 0 ? "" : "border-t border-neutral-300"}`}>
+                {/* Headline and date on one line, the mark to open it on the right. */}
+                <div className="flex items-start gap-2">
+                  <a
+                    href={r.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="min-w-0 flex-1 truncate text-[11px] font-medium leading-[15px] underline underline-offset-2"
+                    style={{ color: "#0f766e" }}
+                    title={r.title}
+                  >
+                    {r.title}
+                  </a>
+                  <span className="shrink-0 whitespace-nowrap text-[10px] leading-[15px] tabular-nums text-neutral-400">{when(r.published)}</span>
+                  <button
+                    onClick={() => readStory(r.link)}
+                    title={shown ? "Close the story" : "Read the story here"}
+                    className="flex h-[15px] shrink-0 items-center transition-opacity hover:opacity-70"
+                    style={{ color: RED }}
+                  >
+                    <ChevronDown size={12} strokeWidth={3} className={`block transition-transform ${shown ? "rotate-180" : ""}`} />
+                  </button>
+                </div>
+                {!shown && r.summary && <p className="truncate text-[10px] leading-[14px] text-neutral-500">{r.summary}</p>}
                 {shown && shown !== "loading" && (
                   // Even blocks of text rather than the page's own short paragraphs.
                   <div className="mt-1">
@@ -304,17 +317,7 @@ export default function KnowledgeFeeds() {
                     ))}
                   </div>
                 )}
-                {shown === "loading" && <p className="mt-1 text-[11px] leading-[16px] text-neutral-400">Reading…</p>}
-                {r.published && <p className="mt-0.5 text-[10px] leading-[14px] text-neutral-400">Published: {when(r.published)}</p>}
-                {/* The story opens and closes from this mark, centred under the line. */}
-                <button
-                  onClick={() => readStory(r.link)}
-                  title={shown ? "Close the story" : "Read the story here"}
-                  className="mt-1 flex w-full items-center justify-center transition-colors hover:opacity-70"
-                  style={{ color: RED }}
-                >
-                  <ChevronDown size={14} strokeWidth={3} className={`block transition-transform ${shown ? "rotate-180" : ""}`} />
-                </button>
+                {shown === "loading" && <p className="text-[10px] leading-[14px] text-neutral-400">Reading…</p>}
               </div>
             );
           })}
