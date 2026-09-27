@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Trash2, RefreshCw, Settings, ChevronDown } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Settings, ChevronDown, Folder } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Intel: ten tabs, each one named by you and holding as many RSS or Google Alerts
@@ -210,25 +210,33 @@ export default function KnowledgeFeeds() {
         {/* Every tab opens, named or not; the cog names it and adds feeds. The plus at
             the end opens one more tab once these are used up. */}
         {/* Tabs on the second gold, one hairline each, the open one white. */}
-        <div className="flex border-t border-black">
+        {/* The open tab loses its bottom line so it reads as part of the sheet. */}
+        <div className="flex border-t border-b border-black" style={{ backgroundColor: TAB_BG }}>
           {slots.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setOpen(i)}
               title={s.name || "Free tab"}
-              className={`h-[18px] min-w-0 flex-1 truncate px-1 text-[10px] uppercase leading-none tracking-wide transition-colors ${
-                i === 0 ? "" : "border-l border-black"
-              } ${i === open ? "bg-white font-bold text-neutral-900" : "font-semibold text-neutral-700 hover:text-neutral-900"}`}
-              style={i === open ? undefined : { backgroundColor: TAB_BG }}
+              className={`-mb-px flex h-[24px] min-w-0 flex-1 items-center gap-1.5 border-b px-2 text-[10px] font-bold uppercase leading-none tracking-[0.08em] transition-colors ${
+                i === 0 ? "" : "border-l border-l-black"
+              } ${
+                i === open
+                  ? "border-b-white bg-white text-neutral-900"
+                  : "border-b-black text-neutral-600 hover:text-neutral-900"
+              }`}
             >
-              {s.name || " "}
+              {/* A folder mark, then the name, then how many stories it is holding. */}
+              <Folder size={11} className="shrink-0" style={{ color: i === open ? RED : "#8a8a8a" }} />
+              <span className="min-w-0 flex-1 truncate text-left">{s.name || "–"}</span>
+              {(items[s.id]?.length || 0) > 0 && (
+                <span className="shrink-0 text-[9px] font-semibold tabular-nums text-neutral-500">{items[s.id].length}</span>
+              )}
             </button>
           ))}
           <button
             onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpen(next.length - 1); setSettings(true); }}
             title="Add another tab"
-            className="flex h-[18px] w-7 shrink-0 items-center justify-center border-l border-black text-neutral-700 transition-colors hover:text-neutral-900"
-            style={{ backgroundColor: TAB_BG }}
+            className="-mb-px flex h-[24px] w-8 shrink-0 items-center justify-center border-b border-b-black border-l border-l-black text-neutral-600 transition-colors hover:text-neutral-900"
           >
             <Plus size={11} />
           </button>
