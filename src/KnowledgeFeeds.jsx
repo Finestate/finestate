@@ -336,8 +336,8 @@ export default function KnowledgeFeeds() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setSettings(false)}>
           {/* A table like every other one here: title bar, column heads, then a row
               per feed with its name on the left and its address on the right. */}
-          <div className="w-full max-w-2xl border border-black bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex h-[18px] items-center gap-2 px-2" style={{ backgroundColor: BAR_BG }}>
+          <div className="w-full max-w-2xl border-[3px] border-black bg-white p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex h-[21px] items-center gap-2">
               <input
                 autoFocus
                 value={slot.name}
@@ -347,14 +347,14 @@ export default function KnowledgeFeeds() {
               />
             </div>
 
-            <div className="flex h-[18px] items-center gap-2 border-t border-black px-2" style={{ backgroundColor: TAB_BG }}>
+            <div className="mt-2 flex h-[18px] items-center gap-2">
               <span className="w-48 shrink-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Feed name</span>
               <span className="min-w-0 flex-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Link</span>
               <span className="w-4 shrink-0" />
             </div>
 
             {slot.urls.map((u) => (
-              <div key={u.id} className="flex h-[21px] items-center gap-2 border-t border-black px-2">
+              <div key={u.id} className="flex h-[21px] items-center gap-2">
                 <input
                   value={u.name}
                   onChange={(e) => patchUrl(u.id, { name: e.target.value })}
@@ -373,7 +373,7 @@ export default function KnowledgeFeeds() {
             ))}
 
             {/* The row that adds the next feed. */}
-            <div className="flex h-[21px] items-center gap-2 border-t border-black px-2">
+            <div className="flex h-[21px] items-center gap-2">
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
@@ -395,14 +395,14 @@ export default function KnowledgeFeeds() {
             {/* Every other tab's feeds, so all the keyword sets stay in one view. */}
             {slots.some((s, i) => i !== open && s.urls.length) && (
               <>
-                <div className="flex h-[18px] items-center border-t border-black px-2" style={{ backgroundColor: TAB_BG }}>
+                <div className="mt-3 flex h-[18px] items-center">
                   <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Other tabs</span>
                 </div>
                 {slots.map((s, i) =>
                   i === open
                     ? null
                     : s.urls.map((u) => (
-                        <div key={u.id} className="flex h-[21px] items-center gap-2 border-t border-black px-2">
+                        <div key={u.id} className="flex h-[21px] items-center gap-2">
                           <span className="w-24 shrink-0 truncate text-[10px] font-bold uppercase leading-[15px] tracking-wide text-neutral-500">{s.name || "–"}</span>
                           <span className="w-48 shrink-0 truncate text-[11px] leading-[15px] text-neutral-900">{u.name}</span>
                           <span className="min-w-0 flex-1 truncate text-[11px] leading-[15px] text-neutral-500">{u.url}</span>
@@ -415,7 +415,7 @@ export default function KnowledgeFeeds() {
             <button
               onClick={() => setSettings(false)}
               style={{ color: RED }}
-              className="flex h-[21px] w-full items-center justify-center border-t border-black bg-neutral-50 text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"
+              className="mt-3 flex h-[21px] w-full items-center justify-center text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"
             >
               Done
             </button>
