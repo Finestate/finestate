@@ -180,25 +180,25 @@ export default function KnowledgeFeeds() {
   return (
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[720px] border border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        {/* Title centred on the same pink as the tab strip, plain type. */}
-        <div className="relative flex h-[21px] items-center justify-center border-b border-black px-2" style={{ backgroundColor: TAB_BG }}>
-          <span className="text-[11px] font-semibold leading-[15px] text-neutral-900">INTEL</span>
-          <button
-            onClick={() => setTab("manage")}
-            title="Feeds"
-            className="absolute right-2 flex h-[15px] items-center text-neutral-900 transition-opacity hover:opacity-70"
-          >
+        {/* Section bar exactly as on Legal documents: gold, 18px, name on the left. */}
+        <div className="flex h-[18px] items-center gap-2 px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={`flex-1 ${head}`}>Intel</span>
+          <button onClick={() => setTab("manage")} title="Feeds" className="flex h-[15px] items-center text-neutral-900 transition-opacity hover:opacity-70">
             <Plus size={12} />
           </button>
         </div>
 
-        <div className="flex gap-1 px-2 py-1" style={{ backgroundColor: TAB_BG }}>
-          {slots.map((t) => (
+        {/* Feed tabs as a plain row of cells, the open one white. */}
+        <div className="flex border-t border-black">
+          {slots.map((t, i) => (
             <button
               key={t.key}
               onClick={() => setTab(t.empty ? "manage" : t.key)}
               title={t.empty ? "Free slot, add a feed" : t.name}
-              className={tabClass(tab === t.key)}
+              className={`h-[18px] min-w-0 flex-1 truncate px-1 text-[10px] uppercase leading-none tracking-wide transition-colors ${i === 0 ? "" : "border-l border-black"} ${
+                tab === t.key ? "bg-white font-bold text-neutral-900" : "font-semibold text-neutral-600 hover:text-neutral-900"
+              }`}
+              style={tab === t.key ? undefined : { backgroundColor: TAB_BG }}
             >
               {t.name || " "}
             </button>
@@ -206,8 +206,13 @@ export default function KnowledgeFeeds() {
         </div>
 
         {tab === "manage" ? (
-          <div className="border-t border-black">
-            <div className="flex h-[21px] items-center gap-1 border-b border-black px-2">
+          <div className="border-t border-black bg-white">
+            <div className="flex h-[18px] items-center gap-2 border-b border-black px-2" style={{ backgroundColor: TAB_BG }}>
+              <span className={`w-40 shrink-0 ${head}`}>Name</span>
+              <span className={`flex-1 ${head}`}>Feed address</span>
+              <span className="w-4 shrink-0" />
+            </div>
+            <div className="flex h-[21px] items-center gap-2 border-b border-black px-2">
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
