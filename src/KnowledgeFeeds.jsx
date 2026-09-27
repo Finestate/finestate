@@ -67,12 +67,14 @@ const dedupe = (items) => {
 };
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+// "27 SEP 2026, 19:01 (20 min)" – the same reading as the other sites.
 const when = (s) => {
   const d = new Date(s);
   if (isNaN(d)) return "";
   const mins = Math.round((Date.now() - d) / 60000);
-  const age = mins < 60 ? `${Math.max(mins, 1)}m` : mins < 1440 ? `${Math.round(mins / 60)}h` : `${Math.round(mins / 1440)}d`;
-  return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} · ${age}`;
+  const age = mins < 60 ? `${Math.max(mins, 1)} min` : mins < 1440 ? `${Math.round(mins / 60)} h` : `${Math.round(mins / 1440)} d`;
+  const time = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${time} (${age})`;
 };
 
 export default function KnowledgeFeeds() {
@@ -163,45 +165,47 @@ export default function KnowledgeFeeds() {
     else if (tab !== "manage") pull(feeds.find((f) => f.id === tab), true);
   };
 
-  // Tabs: square cornered, one hairline, the open one carrying the panel colour so it
-  // reads as part of the sheet below it.
+  // Tabs as on the Says feeds box: they share the row, the open one rises out of the
+  // strip in the panel colour.
   const tabClass = (on) =>
-    `h-[19px] shrink-0 whitespace-nowrap border px-2 text-[10px] font-bold uppercase leading-none tracking-wide transition-colors ${
-      on
-        ? "relative z-10 border-black border-b-transparent text-neutral-900"
-        : "border-transparent text-neutral-500 hover:text-neutral-900"
+    `min-w-0 flex-1 truncate rounded-t border border-neutral-400 px-1 py-1 text-[10px] font-bold uppercase leading-none tracking-tight transition-colors ${
+      on ? "relative z-10 border-b-transparent text-neutral-900" : "bg-neutral-200 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
     }`;
+  // Feeds wrap onto rows of five, so no tab is ever squeezed thin.
+  const tabRows = (() => {
+    const all = [
+      { key: "all", name: "All" },
+      ...feeds.map((f) => ({ key: f.id, name: f.name })),
+      { key: "manage", name: "Feeds manager" },
+    ];
+    const out = [];
+    for (let i = 0; i < all.length; i += 5) out.push(all.slice(i, i + 5));
+    return out;
+  })();
 
   return (
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[720px] border border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        <div className="flex h-[18px] items-center gap-2 px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={`flex-1 ${head}`}>Knowledge feeds</span>
-          <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-700">{rows.length}</span>
-          <button onClick={refresh} title="Refresh" className="flex h-[15px] items-center text-neutral-900 transition-opacity hover:opacity-70">
-            <RefreshCw size={11} className={busy ? "animate-spin" : ""} />
-          </button>
+        {/* Centred title over the tab rows, as on the Says feeds box. */}
+        <div className="border-b-2 border-neutral-400 py-1.5 text-center" style={{ backgroundColor: BODY_BG }}>
+          <span className={head}>Knowledge feeds</span>
         </div>
 
-        <div className="flex items-end gap-0.5 border-t border-black px-2 pt-1" style={{ backgroundColor: BAR_BG }}>
-          <button onClick={() => setTab("all")} className={tabClass(tab === "all")} style={tab === "all" ? { backgroundColor: BODY_BG } : undefined}>
-            All
-          </button>
-          {feeds.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setTab(f.id)}
-              title={f.name}
-              className={tabClass(tab === f.id)}
-              style={tab === f.id ? { backgroundColor: BODY_BG } : undefined}
-            >
-              {f.name}
-            </button>
-          ))}
-          <button onClick={() => setTab("manage")} className={tabClass(tab === "manage")} style={tab === "manage" ? { backgroundColor: BODY_BG } : undefined}>
-            Feeds
-          </button>
-        </div>
+        {tabRows.map((row, ri) => (
+          <div key={ri} className="flex gap-1 border-t border-neutral-400 bg-neutral-100 px-2 pt-1">
+            {row.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                title={t.name}
+                className={tabClass(tab === t.key)}
+                style={tab === t.key ? { backgroundColor: BODY_BG } : undefined}
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+        ))}
 
         {tab === "manage" ? (
           <div className="border-t border-black">
@@ -235,25 +239,28 @@ export default function KnowledgeFeeds() {
             {!feeds.length && <p className="px-2 py-2 text-[11px] italic text-neutral-400">No feeds yet. Paste a Google Alerts or RSS address above.</p>}
           </div>
         ) : (
-          <div className="border-t border-black">
+          <div className="border-t border-neutral-400 px-3 py-2">
+            <div className="mb-1 flex items-center gap-2">
+              <button onClick={refresh} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
+                <RefreshCw size={12} className={busy ? "animate-spin" : ""} />
+              </button>
+              <span className="text-[10px] text-neutral-400">{rows.length} stories</span>
+            </div>
             {rows.map((r, i) => (
-              <div key={`${r.link}-${i}`} className={`px-2 py-[3px] ${i === 0 ? "" : "border-t border-neutral-300"}`}>
-                <div className="flex items-start gap-2">
-                  <a
-                    href={r.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={r.title}
-                    className="min-w-0 flex-1 truncate text-[11px] leading-[15px] underline underline-offset-2"
-                    style={{ color: "#171717" }}
-                  >
-                    <span className="font-bold uppercase" style={{ color: GOLD }}>{r.feedName}: </span>
-                    {r.title}
-                  </a>
-                  <span className="shrink-0 whitespace-nowrap text-[10px] leading-[15px] tabular-nums text-neutral-500">{when(r.published)}</span>
-                </div>
-                {r.summary && (
-                  <p className="truncate text-[10px] leading-[14px] text-neutral-500">{r.summary}</p>
+              <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t-2 border-neutral-300"}`}>
+                <a
+                  href={r.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[11px] font-medium leading-[15px] underline underline-offset-2"
+                  style={{ color: "#0f766e" }}
+                >
+                  <span className="font-bold uppercase">{r.feedName}: </span>
+                  {r.title}
+                </a>
+                {r.summary && <p className="mt-0.5 text-[11px] leading-[15px] text-neutral-500">{r.summary}</p>}
+                {r.published && (
+                  <p className="mt-0.5 text-[10px] leading-[14px] text-neutral-400">Published: {when(r.published)}</p>
                 )}
               </div>
             ))}
