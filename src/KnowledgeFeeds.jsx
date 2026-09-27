@@ -269,8 +269,9 @@ export default function KnowledgeFeeds() {
           </button>
         </div>
 
-        <div className="min-h-[200px] p-2">
-          <div className="mb-2 flex items-center gap-2">
+        {/* No padding on the sheet, so every rule runs edge to edge. */}
+        <div className="min-h-[200px]">
+          <div className="flex items-center gap-2 px-2 py-1">
             <span className="flex-1" />
             <button onClick={() => pull(slot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
               <RefreshCw size={12} className={busy ? "animate-spin" : ""} />
@@ -283,7 +284,7 @@ export default function KnowledgeFeeds() {
           {rows.map((r, i) => {
             const shown = story[r.link];
             return (
-              <div key={`${r.link}-${i}`} className={`py-[2px] ${i === 0 ? "" : "border-t border-neutral-300"}`}>
+              <div key={`${r.link}-${i}`} className="border-t border-black px-2 py-1">
                 {/* Headline and date on one line, the mark to open it on the right. */}
                 <div className="flex items-start gap-2">
                   <a
@@ -306,7 +307,7 @@ export default function KnowledgeFeeds() {
                     <ChevronDown size={12} strokeWidth={3} className={`block transition-transform ${shown ? "rotate-180" : ""}`} />
                   </button>
                 </div>
-                {!shown && r.summary && <p className="truncate text-[10px] leading-[14px] text-neutral-500">{r.summary}</p>}
+                {!shown && r.summary && <p className="mt-0.5 truncate text-[10px] leading-[14px] text-neutral-500">{r.summary}</p>}
                 {shown && shown !== "loading" && (
                   // Even blocks of text rather than the page's own short paragraphs.
                   <div className="mt-1">
