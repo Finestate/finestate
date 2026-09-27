@@ -136,7 +136,7 @@ export default function KnowledgeFeeds() {
   const [story, setStory] = useState({}); // link -> text, or "loading"
   const pulled = useRef({});
 
-  // Fetches the page behind a headline and shows its text in place.
+  // The arrow asks for a short summary of whatever in the story bears on investing.
   const readStory = async (link) => {
     if (story[link]) {
       setStory((prev) => ({ ...prev, [link]: undefined }));
@@ -144,12 +144,12 @@ export default function KnowledgeFeeds() {
     }
     setStory((prev) => ({ ...prev, [link]: "loading" }));
     try {
-      const res = await fetch(`/api/article?url=${encodeURIComponent(link)}`);
+      const res = await fetch(`/api/summarise?url=${encodeURIComponent(link)}`);
       const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || "Could not read that page");
-      setStory((prev) => ({ ...prev, [link]: data.text || "Nothing readable on that page." }));
+      if (!res.ok || data.error) throw new Error(data.error || "Could not summarise that page");
+      setStory((prev) => ({ ...prev, [link]: data.summary || "No summary came back." }));
     } catch (e) {
-      setStory((prev) => ({ ...prev, [link]: e.message || "Could not read that page." }));
+      setStory((prev) => ({ ...prev, [link]: e.message || "Could not summarise that page." }));
     }
   };
 
@@ -295,8 +295,7 @@ export default function KnowledgeFeeds() {
           {rows.map((r, i) => {
             const shown = story[r.link];
             return (
-              <div key={`${r.link}-${i}`} className="border-t border-black px-2 py-1">
-                {/* Headline and date on one line, the mark to open it on the right. */}
+              <div key={`${r.link}-${i}`} className={`px-2 py-1 ${i === 0 ? "" : "border-t border-black"}`}>
                 <div className="flex items-start gap-2">
                   <a
                     href={r.link}
@@ -309,27 +308,21 @@ export default function KnowledgeFeeds() {
                     {r.title}
                   </a>
                   <span className="shrink-0 whitespace-nowrap text-[10px] leading-[15px] tabular-nums text-neutral-400">{when(r.published)}</span>
-                  <button
-                    onClick={() => readStory(r.link)}
-                    title={shown ? "Close the story" : "Read the story here"}
-                    className="flex h-[15px] shrink-0 items-center transition-opacity hover:opacity-70"
-                    style={{ color: RED }}
-                  >
-                    <ChevronDown size={12} strokeWidth={3} className={`block transition-transform ${shown ? "rotate-180" : ""}`} />
-                  </button>
                 </div>
                 {!shown && r.summary && <p className="mt-0.5 truncate text-[10px] leading-[14px] text-neutral-500">{r.summary}</p>}
                 {shown && shown !== "loading" && (
-                  // Even blocks of text rather than the page's own short paragraphs.
-                  <div className="mt-1">
-                    {blocks(shown).map((b, bi) => (
-                      <p key={bi} className={`text-[11px] leading-[16px] text-neutral-700 ${bi === 0 ? "" : "mt-1 border-t border-neutral-200 pt-1"}`}>
-                        {b}
-                      </p>
-                    ))}
-                  </div>
+                  <p className="mt-1 text-[11px] leading-[16px] text-neutral-700">{shown}</p>
                 )}
-                {shown === "loading" && <p className="text-[10px] leading-[14px] text-neutral-400">Reading…</p>}
+                {shown === "loading" && <p className="mt-1 text-[10px] leading-[14px] text-neutral-400">Summarising…</p>}
+                {/* The arrow sits centred under the line and asks for the summary. */}
+                <button
+                  onClick={() => readStory(r.link)}
+                  title={shown ? "Close" : "Summary for investing"}
+                  className="mt-0.5 flex w-full items-center justify-center transition-opacity hover:opacity-70"
+                  style={{ color: RED }}
+                >
+                  <ChevronDown size={13} strokeWidth={3} className={`block transition-transform ${shown ? "rotate-180" : ""}`} />
+                </button>
               </div>
             );
           })}

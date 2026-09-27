@@ -30,9 +30,9 @@ function rssDevServer() {
     name: "rss-dev",
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (req.url && req.url.startsWith("/api/article?")) {
+        if (req.url && (req.url.startsWith("/api/article?") || req.url.startsWith("/api/summarise?"))) {
           const target = new URL(req.url, "http://localhost").searchParams.get("url");
-          const mod = await import("./api/article.js");
+          const mod = await import(req.url.startsWith("/api/summarise") ? "./api/summarise.js" : "./api/article.js");
           await mod.default({ query: { url: target } }, {
             status(code) { res.statusCode = code; return this; },
             setHeader(k, v) { res.setHeader(k, v); },
