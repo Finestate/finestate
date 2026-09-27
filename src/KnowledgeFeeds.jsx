@@ -20,15 +20,17 @@ const RED = "#C1440E";
 let _idc = 0;
 const newId = () => "s" + Date.now().toString(36) + "-" + (_idc++);
 
+// A tab holds feeds, each one a name and its address, so the keywords stay readable.
 const blankSlot = () => ({ id: newId(), name: "", urls: [] });
+const toFeed = (u) => (typeof u === "string" ? { id: newId(), name: "", url: u } : { id: u.id || newId(), name: u.name || "", url: u.url || "" });
 
 // Older saves held one address per tab; they become tabs with a single address.
 const toSlots = (data) => {
   const list = Array.isArray(data) ? data : [];
   const slots = list.map((x) =>
     x && Array.isArray(x.urls)
-      ? { id: x.id || newId(), name: x.name || "", urls: x.urls }
-      : { id: x?.id || newId(), name: x?.name || "", urls: x?.url ? [x.url] : [] }
+      ? { id: x.id || newId(), name: x.name || "", urls: x.urls.map(toFeed) }
+      : { id: x?.id || newId(), name: x?.name || "", urls: x?.url ? [toFeed(x.url)] : [] }
   );
   // Trailing empties from an earlier ten tab layout are dropped, then the row is
   // padded back up to five.
@@ -155,7 +157,7 @@ export default function KnowledgeFeeds() {
     setBusy(true);
     try {
       const all = await Promise.all(
-        s.urls.map(async (url) => {
+        s.urls.map(async ({ url }) => {
           const res = await fetch(`/api/rss?url=${encodeURIComponent(url)}`);
           const xml = await res.text();
           if (!res.ok) throw new Error(plain(xml).slice(0, 80));
@@ -188,17 +190,20 @@ export default function KnowledgeFeeds() {
       setErr("Paste an https feed address.");
       return;
     }
-    const next = { ...slot, urls: [...slot.urls, url] };
+    const next = { ...slot, urls: [...slot.urls, { id: newId(), name: newName.trim(), url }] };
     patchSlot({ urls: next.urls });
     pulled.current[slot.id] = false;
     setNewUrl("");
+    setNewName("");
     setErr("");
     // Read it straight away rather than waiting for the tab to be opened again.
     pull(next, true);
   };
 
-  const removeUrl = (url) => {
-    patchSlot({ urls: slot.urls.filter((u) => u !== url) });
+  const patchUrl = (id, fields) => patchSlot({ urls: slot.urls.map((u) => (u.id === id ? { ...u, ...fields } : u)) });
+
+  const removeUrl = (id) => {
+    patchSlot({ urls: slot.urls.filter((u) => u.id !== id) });
     pulled.current[slot.id] = false;
     setItems((prev) => ({ ...prev, [slot.id]: [] }));
   };
@@ -216,42 +221,31 @@ export default function KnowledgeFeeds() {
         {/* Tabs on the second gold, one hairline each, the open one white. */}
         {/* File folder tabs: each one cut to the shape of a folder and set to overlap
             its neighbour, the open one white and sitting on top. */}
-        <div className="flex items-end gap-0 border-t border-b border-black px-1 pt-1" style={{ backgroundColor: TAB_BG }}>
+        {/* Plain square tabs, flush against each other, no gaps anywhere. */}
+        <div className="flex border-t border-b border-black">
           {slots.map((s, i) => (
-            // Black outer shape, the colour cut a hair smaller inside it: that is the
-            // outline around a folder tab, since a cut shape cannot carry a border.
             <button
               key={s.id}
               onClick={() => setOpen(i)}
               title={s.name || "Free tab"}
-              className={`-mr-2 h-[22px] min-w-0 flex-1 ${i === open ? "relative z-10" : ""}`}
-              style={{ clipPath: FOLD_CUT, backgroundColor: "#000" }}
+              className={`flex h-[21px] min-w-0 flex-1 items-center gap-1.5 px-2 text-[10px] font-bold uppercase leading-none tracking-[0.08em] transition-colors ${
+                i === 0 ? "" : "border-l border-black"
+              } ${i === open ? "text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
+              style={{ backgroundColor: i === open ? "#FFFFFF" : TAB_BG }}
             >
-              <span
-                className={`flex h-full w-full items-center gap-1.5 pl-4 pr-5 text-[10px] font-bold uppercase leading-none tracking-[0.08em] ${
-                  i === open ? "text-neutral-900" : "text-neutral-600"
-                }`}
-                style={{ clipPath: FOLD_CUT_INNER, backgroundColor: i === open ? BAR_BG : FOLD_BG }}
-              >
-                <span className="min-w-0 flex-1 truncate text-left">{s.name || "–"}</span>
-                {(items[s.id]?.length || 0) > 0 && (
-                  <span className="shrink-0 text-[9px] font-semibold tabular-nums text-neutral-500">{items[s.id].length}</span>
-                )}
-              </span>
+              <span className="min-w-0 flex-1 truncate text-left">{s.name || "–"}</span>
+              {(items[s.id]?.length || 0) > 0 && (
+                <span className="shrink-0 text-[9px] font-semibold tabular-nums text-neutral-500">{items[s.id].length}</span>
+              )}
             </button>
           ))}
           <button
             onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpen(next.length - 1); setSettings(true); }}
             title="Add another tab"
-            className="h-[22px] w-10 shrink-0"
-            style={{ clipPath: FOLD_CUT, backgroundColor: "#000" }}
+            className="flex h-[21px] w-8 shrink-0 items-center justify-center border-l border-black text-neutral-600 transition-colors hover:text-neutral-900"
+            style={{ backgroundColor: TAB_BG }}
           >
-            <span
-              className="flex h-full w-full items-center justify-center pl-1 text-neutral-600"
-              style={{ clipPath: FOLD_CUT_INNER, backgroundColor: FOLD_BG }}
-            >
-              <Plus size={11} />
-            </span>
+            <Plus size={11} />
           </button>
         </div>
 
@@ -306,46 +300,71 @@ export default function KnowledgeFeeds() {
 
       {settings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setSettings(false)}>
-          <div className="w-full max-w-md border-[3px] bg-white p-5 shadow-2xl" style={{ borderColor: RED }} onClick={(e) => e.stopPropagation()}>
-            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900">Tab {open + 1}</p>
+          {/* A table like every other one here: title bar, column heads, then a row
+              per feed with its name on the left and its address on the right. */}
+          <div className="w-full max-w-2xl border border-black bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex h-[18px] items-center gap-2 px-2" style={{ backgroundColor: BAR_BG }}>
+              <input
+                autoFocus
+                value={slot.name}
+                onChange={(e) => patchSlot({ name: e.target.value.toUpperCase() })}
+                placeholder="TAB NAME"
+                className="min-w-0 flex-1 bg-transparent text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900 outline-none placeholder:text-neutral-500"
+              />
+            </div>
 
-            {/* The tab name, always in capitals. */}
-            <input
-              autoFocus
-              value={slot.name}
-              onChange={(e) => patchSlot({ name: e.target.value.toUpperCase() })}
-              placeholder="TAB NAME"
-              className="mb-3 w-full border border-neutral-400 px-2 py-1 text-[11px] font-bold uppercase leading-[15px] outline-none focus:border-black"
-            />
+            <div className="flex h-[18px] items-center gap-2 border-t border-black px-2" style={{ backgroundColor: TAB_BG }}>
+              <span className="w-48 shrink-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Feed name</span>
+              <span className="min-w-0 flex-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Link</span>
+              <span className="w-4 shrink-0" />
+            </div>
 
-            {/* Its feeds, each one visible so the keywords stay in view. */}
             {slot.urls.map((u) => (
-              <div key={u} className="flex items-start gap-2 border-t border-neutral-200 py-1">
-                <span className="min-w-0 flex-1 break-all text-[10px] leading-[14px] text-neutral-500">{u}</span>
-                <button onClick={() => removeUrl(u)} title="Remove this feed" className="shrink-0 text-neutral-400 transition-colors hover:text-[#C1440E]">
-                  <Trash2 size={12} />
+              <div key={u.id} className="flex h-[21px] items-center gap-2 border-t border-black px-2">
+                <input
+                  value={u.name}
+                  onChange={(e) => patchUrl(u.id, { name: e.target.value })}
+                  placeholder="Keywords"
+                  className="w-48 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
+                />
+                <input
+                  value={u.url}
+                  onChange={(e) => patchUrl(u.id, { url: e.target.value })}
+                  className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-500 outline-none"
+                />
+                <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="flex h-[15px] w-4 shrink-0 items-center text-neutral-900 hover:text-[#C1440E]">
+                  <Trash2 size={11} />
                 </button>
               </div>
             ))}
 
-            <div className="mt-3 flex items-center gap-2">
+            {/* The row that adds the next feed. */}
+            <div className="flex h-[21px] items-center gap-2 border-t border-black px-2">
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Keywords"
+                className="w-48 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
+              />
               <input
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(false); }}
-                placeholder="https:// RSS or Google Alerts address"
-                className="min-w-0 flex-1 border border-neutral-400 px-2 py-1 text-[11px] leading-[15px] outline-none focus:border-black"
+                placeholder="https:// feed address"
+                className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-500 outline-none placeholder:text-neutral-300"
               />
-              <button onClick={addUrl} title="Add this feed" className="shrink-0 text-neutral-600 hover:text-neutral-900">
-                <Plus size={14} />
+              <button onClick={addUrl} title="Add this feed" className="flex h-[15px] w-4 shrink-0 items-center" style={{ color: RED }}>
+                <Plus size={12} />
               </button>
             </div>
 
-            <div className="mt-4 flex justify-end text-[12px] font-bold uppercase tracking-wide">
-              <button onClick={() => setSettings(false)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: RED, color: RED }}>
-                Done
-              </button>
-            </div>
+            <button
+              onClick={() => setSettings(false)}
+              style={{ color: RED }}
+              className="flex h-[21px] w-full items-center justify-center border-t border-black bg-neutral-50 text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"
+            >
+              Done
+            </button>
           </div>
         </div>
       )}
