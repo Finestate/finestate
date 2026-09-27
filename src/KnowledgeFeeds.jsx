@@ -132,6 +132,7 @@ export default function KnowledgeFeeds() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [settings, setSettings] = useState(false); // the popup for the open tab
+  const [newName, setNewName] = useState(""); // the keywords for the feed being added
   const [newUrl, setNewUrl] = useState("");
   const [story, setStory] = useState({}); // link -> text, or "loading"
   const pulled = useRef({});
