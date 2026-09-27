@@ -88,6 +88,7 @@ export default function KnowledgeFeeds() {
   const [newName, setNewName] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [confirm, setConfirm] = useState(null);
+  const [addOpen, setAddOpen] = useState(false); // the add a feed popup
   const pulled = useRef({});
 
   useEffect(() => {
@@ -147,10 +148,13 @@ export default function KnowledgeFeeds() {
       setErr("A name and an https feed address are needed.");
       return;
     }
-    save([...feeds, { id: newId(), name, url }].sort((a, b) => a.name.localeCompare(b.name)));
+    const feed = { id: newId(), name, url };
+    save([...feeds, feed].sort((a, b) => a.name.localeCompare(b.name)));
     setNewName("");
     setNewUrl("");
     setErr("");
+    setAddOpen(false);
+    setTab(feed.id);
   };
 
   const removeFeed = () => {
@@ -189,8 +193,8 @@ export default function KnowledgeFeeds() {
           {slots.map((t) => (
             <button
               key={t.key}
-              onClick={() => setTab(t.empty ? "manage" : t.key)}
-              title={t.empty ? "Free slot, add a feed" : t.name}
+              onClick={() => (t.empty ? setAddOpen(true) : setTab(t.key))}
+              title={t.empty ? "Free slot, click to add a feed" : t.name}
               className={`min-w-0 flex-1 truncate rounded-t-lg border border-neutral-300 px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-colors ${
                 tab === t.key
                   ? "relative z-10 text-neutral-800"
@@ -276,6 +280,37 @@ export default function KnowledgeFeeds() {
       </div>
 
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
+
+      {/* Clicking a free tab asks for the feed here. */}
+      {addOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setAddOpen(false)}>
+          <div className="w-full max-w-md border-[3px] bg-white p-5 shadow-2xl" style={{ borderColor: RED }} onClick={(e) => e.stopPropagation()}>
+            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900">Add a feed</p>
+            <input
+              autoFocus
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Tab name"
+              className="mb-2 w-full border border-neutral-400 px-2 py-1 text-[11px] leading-[15px] outline-none focus:border-black"
+            />
+            <input
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") addFeed(); if (e.key === "Escape") setAddOpen(false); }}
+              placeholder="https:// RSS or Google Alerts address"
+              className="w-full border border-neutral-400 px-2 py-1 text-[11px] leading-[15px] outline-none focus:border-black"
+            />
+            <div className="mt-4 flex justify-end gap-3 text-[12px] font-bold uppercase tracking-wide">
+              <button onClick={addFeed} className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80" style={{ backgroundColor: RED, borderColor: RED }}>
+                Add
+              </button>
+              <button onClick={() => setAddOpen(false)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: RED, color: RED }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setConfirm(null)}>
