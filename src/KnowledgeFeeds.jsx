@@ -11,6 +11,7 @@ const SLOTS = 5;
 const BAR_BG = "#F2C46D";  // title bar, as on every other table here
 const TAB_BG = "#FFE4B3";  // the strip the folder tabs sit on
 const FOLD_BG = "#F7D9A3"; // a closed folder tab
+const OPEN_TAB_BG = "#FBE3DC"; // the tab you are on, a light pink red
 // The folder shape, and the same shape a hair inside it, which leaves the outline.
 const FOLD_CUT = "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)";
 const FOLD_CUT_INNER = "polygon(10px 1px, calc(100% - 1px) 1px, calc(100% - 10px) 100%, 1px 100%)";
@@ -250,7 +251,7 @@ export default function KnowledgeFeeds() {
               className={`flex h-[21px] min-w-0 flex-1 items-center justify-center gap-1.5 px-2 text-[10px] font-bold uppercase leading-none tracking-[0.08em] transition-colors ${
                 i === 0 ? "" : "border-l border-black"
               } ${i === open ? "text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
-              style={{ backgroundColor: i === open ? "#FFFFFF" : TAB_BG }}
+              style={{ backgroundColor: i === open ? OPEN_TAB_BG : TAB_BG }}
             >
               <span className="min-w-0 truncate text-center">{s.name || "–"}</span>
               {(items[s.id]?.length || 0) > 0 && (
