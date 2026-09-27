@@ -228,12 +228,12 @@ export default function KnowledgeFeeds() {
               key={s.id}
               onClick={() => setOpen(i)}
               title={s.name || "Free tab"}
-              className={`flex h-[21px] min-w-0 flex-1 items-center gap-1.5 px-2 text-[10px] font-bold uppercase leading-none tracking-[0.08em] transition-colors ${
+              className={`flex h-[21px] min-w-0 flex-1 items-center justify-center gap-1.5 px-2 text-[10px] font-bold uppercase leading-none tracking-[0.08em] transition-colors ${
                 i === 0 ? "" : "border-l border-black"
               } ${i === open ? "text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
               style={{ backgroundColor: i === open ? "#FFFFFF" : TAB_BG }}
             >
-              <span className="min-w-0 flex-1 truncate text-left">{s.name || "–"}</span>
+              <span className="min-w-0 truncate text-center">{s.name || "–"}</span>
               {(items[s.id]?.length || 0) > 0 && (
                 <span className="shrink-0 text-[9px] font-semibold tabular-nums text-neutral-500">{items[s.id].length}</span>
               )}
