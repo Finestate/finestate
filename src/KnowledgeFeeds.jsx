@@ -83,6 +83,25 @@ const cleanLink = (href) => {
   }
 };
 
+// A story arrives as many short paragraphs; this runs them together and cuts even
+// blocks at the end of a sentence, so the reading is steady rather than choppy.
+const BLOCK = 700;
+const blocks = (text) => {
+  const flat = String(text || "").replace(/\s+/g, " ").trim();
+  const out = [];
+  let rest = flat;
+  while (rest.length > BLOCK) {
+    const window = rest.slice(0, BLOCK + 200);
+    let cut = window.lastIndexOf(". ", BLOCK);
+    if (cut < BLOCK * 0.5) cut = window.indexOf(". ", BLOCK);
+    if (cut < 0) cut = BLOCK;
+    out.push(rest.slice(0, cut + 1).trim());
+    rest = rest.slice(cut + 1).trim();
+  }
+  if (rest) out.push(rest);
+  return out;
+};
+
 const dedupe = (items) => {
   const seen = new Set();
   return items.filter((i) => (seen.has(i.link) ? false : seen.add(i.link)));
@@ -264,32 +283,37 @@ export default function KnowledgeFeeds() {
             const shown = story[r.link];
             return (
               <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t border-neutral-300"}`}>
-                <div className="flex items-start gap-2">
-                  {/* The chevron reads the story into the page; the headline still opens it. */}
-                  <button
-                    onClick={() => readStory(r.link)}
-                    title={shown ? "Close the story" : "Read the story here"}
-                    className="mt-[1px] shrink-0 text-neutral-400 transition-colors hover:text-neutral-800"
-                  >
-                    <ChevronDown size={12} className={`block transition-transform ${shown ? "" : "-rotate-90"}`} />
-                  </button>
-                  <a
-                    href={r.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="min-w-0 flex-1 text-[11px] font-medium leading-[15px] underline underline-offset-2"
-                    style={{ color: "#0f766e" }}
-                  >
-                    {r.title}
-                  </a>
-                </div>
-                {!shown && r.summary && <p className="mt-0.5 pl-5 text-[11px] leading-[15px] text-neutral-500">{r.summary}</p>}
-                {shown && (
-                  <p className="mt-1 whitespace-pre-line pl-5 text-[11px] leading-[16px] text-neutral-700">
-                    {shown === "loading" ? "Reading…" : shown}
-                  </p>
+                <a
+                  href={r.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block text-[11px] font-medium leading-[15px] underline underline-offset-2"
+                  style={{ color: "#0f766e" }}
+                >
+                  {r.title}
+                </a>
+                {!shown && r.summary && <p className="mt-0.5 text-[11px] leading-[15px] text-neutral-500">{r.summary}</p>}
+                {shown && shown !== "loading" && (
+                  // Even blocks of text rather than the page's own short paragraphs.
+                  <div className="mt-1">
+                    {blocks(shown).map((b, bi) => (
+                      <p key={bi} className={`text-[11px] leading-[16px] text-neutral-700 ${bi === 0 ? "" : "mt-1 border-t border-neutral-200 pt-1"}`}>
+                        {b}
+                      </p>
+                    ))}
+                  </div>
                 )}
-                {r.published && <p className="mt-0.5 pl-5 text-[10px] leading-[14px] text-neutral-400">Published: {when(r.published)}</p>}
+                {shown === "loading" && <p className="mt-1 text-[11px] leading-[16px] text-neutral-400">Reading…</p>}
+                {r.published && <p className="mt-0.5 text-[10px] leading-[14px] text-neutral-400">Published: {when(r.published)}</p>}
+                {/* The story opens and closes from this mark, centred under the line. */}
+                <button
+                  onClick={() => readStory(r.link)}
+                  title={shown ? "Close the story" : "Read the story here"}
+                  className="mt-1 flex w-full items-center justify-center transition-colors hover:opacity-70"
+                  style={{ color: RED }}
+                >
+                  <ChevronDown size={14} strokeWidth={3} className={`block transition-transform ${shown ? "rotate-180" : ""}`} />
+                </button>
               </div>
             );
           })}
