@@ -166,46 +166,44 @@ export default function KnowledgeFeeds() {
 
   // Flat square tabs in the table's own language: a hairline each, the open one white
   // and bold, a free slot marked by a dashed edge.
-  const tabClass = (on, empty) =>
-    `flex h-[19px] min-w-0 flex-1 items-center justify-center truncate border px-1 text-[10px] uppercase leading-none tracking-wide transition-colors ${
-      on
-        ? "border-black bg-white font-bold text-neutral-900"
-        : empty
-          ? "border-dashed border-neutral-400 text-neutral-400 hover:text-neutral-700"
-          : "border-black/30 font-semibold text-neutral-600 hover:border-black hover:text-neutral-900"
+  const tabClass = (on) =>
+    `flex h-[19px] min-w-0 flex-1 items-center justify-center truncate border border-black px-1 text-[10px] font-semibold uppercase leading-none tracking-wide transition-colors ${
+      on ? "bg-white font-bold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"
     }`;
-  // Twenty slots, two rows of ten. Feeds fill them in order and the rest wait empty;
-  // clicking an empty one opens the manager so it can be named.
-  const SLOTS = 20;
+  // Ten slots on one row, filled in order by the feeds you add.
+  const SLOTS = 10;
   const slots = Array.from({ length: SLOTS }, (_, i) => {
     const f = feeds[i];
     return f ? { key: f.id, name: f.name } : { key: `empty-${i}`, name: "", empty: true };
   });
-  // Two rows of slots, then the manager running the full width underneath.
-  const tabRows = [slots.slice(0, 10), slots.slice(10, 20), [{ key: "manage", name: "Feeds manager" }]];
 
   return (
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[720px] border border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        {/* One slim gold bar, as on every other table here. */}
-        <div className="flex h-[18px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.22em] text-neutral-900">Intel</span>
+        {/* Title centred on the same pink as the tab strip, plain type. */}
+        <div className="relative flex h-[21px] items-center justify-center border-b border-black px-2" style={{ backgroundColor: TAB_BG }}>
+          <span className="text-[11px] font-semibold leading-[15px] text-neutral-900">INTEL</span>
+          <button
+            onClick={() => setTab("manage")}
+            title="Feeds"
+            className="absolute right-2 flex h-[15px] items-center text-neutral-900 transition-opacity hover:opacity-70"
+          >
+            <Plus size={12} />
+          </button>
         </div>
 
-        {tabRows.map((row, ri) => (
-          <div key={ri} className="flex gap-1 border-t border-black px-2 py-1" style={{ backgroundColor: TAB_BG }}>
-            {row.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.empty ? "manage" : t.key)}
-                title={t.empty ? "Free slot, add a feed" : t.name}
-                className={tabClass(tab === t.key, t.empty)}
-              >
-                {t.name || " "}
-              </button>
-            ))}
-          </div>
-        ))}
+        <div className="flex gap-1 px-2 py-1" style={{ backgroundColor: TAB_BG }}>
+          {slots.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.empty ? "manage" : t.key)}
+              title={t.empty ? "Free slot, add a feed" : t.name}
+              className={tabClass(tab === t.key)}
+            >
+              {t.name || " "}
+            </button>
+          ))}
+        </div>
 
         {tab === "manage" ? (
           <div className="border-t border-black">
@@ -239,13 +237,15 @@ export default function KnowledgeFeeds() {
             {!feeds.length && <p className="px-2 py-2 text-[11px] italic text-neutral-400">No feeds yet. Paste a Google Alerts or RSS address above.</p>}
           </div>
         ) : (
-          <div className="border-t border-neutral-400 px-3 py-2">
-            <div className="mb-1 flex items-center gap-2">
-              <button onClick={refresh} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
-                <RefreshCw size={12} className={busy ? "animate-spin" : ""} />
-              </button>
-              <span className="text-[10px] text-neutral-400">{rows.length} stories</span>
-            </div>
+          // Empty until a feed is open: a plain framed sheet, nothing written in it.
+          <div className="min-h-[180px] border-t border-black px-3 py-2">
+            {rows.length > 0 && (
+              <div className="mb-1 flex items-center">
+                <button onClick={refresh} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
+                  <RefreshCw size={12} className={busy ? "animate-spin" : ""} />
+                </button>
+              </div>
+            )}
             {rows.map((r, i) => (
               <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t-2 border-neutral-300"}`}>
                 <a
@@ -264,11 +264,6 @@ export default function KnowledgeFeeds() {
                 )}
               </div>
             ))}
-            {loaded && !rows.length && (
-              <p className="px-2 py-2 text-[11px] italic text-neutral-400">
-                {feeds.length ? "Nothing in this feed right now." : "Open the Feeds tab to add one."}
-              </p>
-            )}
           </div>
         )}
       </div>
