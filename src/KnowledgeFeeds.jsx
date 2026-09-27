@@ -80,7 +80,7 @@ const when = (s) => {
 export default function KnowledgeFeeds() {
   const [feeds, setFeeds] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  const [tab, setTab] = useState("all"); // "all", a feed id, or "manage"
+  const [tab, setTab] = useState("manage"); // a feed id, or "manage"
   const [items, setItems] = useState({});
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -130,13 +130,12 @@ export default function KnowledgeFeeds() {
   // Opening a tab reads that feed once; the refresh arrow reads it again.
   useEffect(() => {
     if (!loaded) return;
-    if (tab === "all") feeds.forEach((f) => pull(f));
-    else if (tab !== "manage") pull(feeds.find((f) => f.id === tab));
+    if (tab !== "manage") pull(feeds.find((f) => f.id === tab));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, loaded, feeds.length]);
 
   const rows = useMemo(() => {
-    const list = tab === "all" ? feeds.flatMap((f) => items[f.id] || []) : items[tab] || [];
+    const list = items[tab] || [];
     return dedupe([...list].sort((a, b) => new Date(b.published) - new Date(a.published)));
   }, [tab, feeds, items]);
 
@@ -156,13 +155,12 @@ export default function KnowledgeFeeds() {
   const removeFeed = () => {
     const next = feeds.filter((f) => f.id !== confirm);
     save(next);
-    if (tab === confirm) setTab("all");
+    if (tab === confirm) setTab("manage");
     setConfirm(null);
   };
 
   const refresh = () => {
-    if (tab === "all") feeds.forEach((f) => pull(f, true));
-    else if (tab !== "manage") pull(feeds.find((f) => f.id === tab), true);
+    if (tab !== "manage") pull(feeds.find((f) => f.id === tab), true);
   };
 
   // Tabs as on the Says feeds box: they share the row, the open one rises out of the
@@ -178,10 +176,8 @@ export default function KnowledgeFeeds() {
     const f = feeds[i];
     return f ? { key: f.id, name: f.name } : { key: `empty-${i}`, name: "", empty: true };
   });
-  const tabRows = [slots.slice(0, 10), slots.slice(10, 20), [
-    { key: "all", name: "All" },
-    { key: "manage", name: "Feeds manager" },
-  ]];
+  // Two rows of slots, then the manager running the full width underneath.
+  const tabRows = [slots.slice(0, 10), slots.slice(10, 20), [{ key: "manage", name: "Feeds manager" }]];
 
   return (
     <div className="w-full overflow-x-auto">
