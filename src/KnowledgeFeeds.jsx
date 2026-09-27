@@ -11,6 +11,9 @@ const SLOTS = 5;
 const BAR_BG = "#F2C46D";  // title bar, as on every other table here
 const TAB_BG = "#FFE4B3";  // the strip the folder tabs sit on
 const FOLD_BG = "#F7D9A3"; // a closed folder tab
+// The folder shape, and the same shape a hair inside it, which leaves the outline.
+const FOLD_CUT = "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)";
+const FOLD_CUT_INNER = "polygon(10px 1px, calc(100% - 1px) 1px, calc(100% - 10px) 100%, 1px 100%)";
 const BODY_BG = "#FFFFFF"; // the sheet the stories sit on
 const RED = "#C1440E";
 
@@ -215,32 +218,40 @@ export default function KnowledgeFeeds() {
             its neighbour, the open one white and sitting on top. */}
         <div className="flex items-end gap-0 border-t border-b border-black px-1 pt-1" style={{ backgroundColor: TAB_BG }}>
           {slots.map((s, i) => (
+            // Black outer shape, the colour cut a hair smaller inside it: that is the
+            // outline around a folder tab, since a cut shape cannot carry a border.
             <button
               key={s.id}
               onClick={() => setOpen(i)}
               title={s.name || "Free tab"}
-              className={`-mr-2 flex h-[22px] min-w-0 flex-1 items-center gap-1.5 pl-3.5 pr-4 text-[10px] font-bold uppercase leading-none tracking-[0.08em] transition-colors ${
-                i === open ? "relative z-10 text-neutral-900" : "text-neutral-600 hover:text-neutral-900"
-              }`}
-              style={{
-                clipPath: "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)",
-                // The open folder is marked by colour alone, the strip stays closed.
-                backgroundColor: i === open ? BAR_BG : FOLD_BG,
-              }}
+              className={`-mr-2 h-[22px] min-w-0 flex-1 ${i === open ? "relative z-10" : ""}`}
+              style={{ clipPath: FOLD_CUT, backgroundColor: "#000" }}
             >
-              <span className="min-w-0 flex-1 truncate text-left">{s.name || "–"}</span>
-              {(items[s.id]?.length || 0) > 0 && (
-                <span className="shrink-0 text-[9px] font-semibold tabular-nums text-neutral-500">{items[s.id].length}</span>
-              )}
+              <span
+                className={`flex h-full w-full items-center gap-1.5 pl-4 pr-5 text-[10px] font-bold uppercase leading-none tracking-[0.08em] ${
+                  i === open ? "text-neutral-900" : "text-neutral-600"
+                }`}
+                style={{ clipPath: FOLD_CUT_INNER, backgroundColor: i === open ? BAR_BG : FOLD_BG }}
+              >
+                <span className="min-w-0 flex-1 truncate text-left">{s.name || "–"}</span>
+                {(items[s.id]?.length || 0) > 0 && (
+                  <span className="shrink-0 text-[9px] font-semibold tabular-nums text-neutral-500">{items[s.id].length}</span>
+                )}
+              </span>
             </button>
           ))}
           <button
             onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpen(next.length - 1); setSettings(true); }}
             title="Add another tab"
-            className="flex h-[22px] w-9 shrink-0 items-center justify-center pl-2 text-neutral-600 transition-colors hover:text-neutral-900"
-            style={{ clipPath: "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)", backgroundColor: FOLD_BG }}
+            className="h-[22px] w-10 shrink-0"
+            style={{ clipPath: FOLD_CUT, backgroundColor: "#000" }}
           >
-            <Plus size={11} />
+            <span
+              className="flex h-full w-full items-center justify-center pl-1 text-neutral-600"
+              style={{ clipPath: FOLD_CUT_INNER, backgroundColor: FOLD_BG }}
+            >
+              <Plus size={11} />
+            </span>
           </button>
         </div>
 
