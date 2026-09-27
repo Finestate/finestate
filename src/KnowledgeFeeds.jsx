@@ -296,12 +296,20 @@ export default function KnowledgeFeeds() {
           {rows.map((r, i) => {
             const shown = story[r.link];
             return (
-              <div key={`${r.link}-${i}`} className={`px-2 py-1 ${i === 0 ? "" : "border-t border-black"}`}>
+              // A click anywhere on the row opens the summary; the headline itself
+              // still goes to the story.
+              <div
+                key={`${r.link}-${i}`}
+                onClick={() => readStory(r.link)}
+                title={shown ? "Close" : "Summary for investing"}
+                className={`cursor-pointer px-2 py-1 ${i === 0 ? "" : "border-t border-black"}`}
+              >
                 <div className="flex items-start gap-2">
                   <a
                     href={r.link}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
                     className="min-w-0 flex-1 truncate text-[11px] font-medium leading-[15px] underline underline-offset-2"
                     style={{ color: "#0f766e" }}
                     title={r.title}
@@ -315,15 +323,6 @@ export default function KnowledgeFeeds() {
                   <p className="mt-1 text-[11px] leading-[16px] text-neutral-700">{shown}</p>
                 )}
                 {shown === "loading" && <p className="mt-1 text-[10px] leading-[14px] text-neutral-400">Summarising…</p>}
-                {/* The arrow sits centred under the line and asks for the summary. */}
-                <button
-                  onClick={() => readStory(r.link)}
-                  title={shown ? "Close" : "Summary for investing"}
-                  className="mt-0.5 flex w-full items-center justify-center transition-opacity hover:opacity-70"
-                  style={{ color: RED }}
-                >
-                  <ChevronDown size={13} strokeWidth={3} className={`block transition-transform ${shown ? "rotate-180" : ""}`} />
-                </button>
               </div>
             );
           })}
