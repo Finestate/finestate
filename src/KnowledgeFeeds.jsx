@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Trash2, RefreshCw, Settings } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Settings, ChevronDown, Folder } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Intel: ten tabs, each one named by you and holding as many RSS or Google Alerts
@@ -8,21 +8,30 @@ import { supabase } from "./lib/supabaseClient.js";
 const DOC_ID = "knowledge-feeds";
 // Five tabs to start with; the plus at the end adds the next one when they fill up.
 const SLOTS = 5;
-const BODY_BG = "#FBF5E9";
+const BAR_BG = "#F2C46D";  // title bar, as on every other table here
+const TAB_BG = "#FFE4B3";  // the strip the folder tabs sit on
+const FOLD_BG = "#F7D9A3"; // a closed folder tab
+const OPEN_TAB_BG = "#FBE3DC"; // the tab you are on, a light pink red
+// The folder shape, and the same shape a hair inside it, which leaves the outline.
+const FOLD_CUT = "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)";
+const FOLD_CUT_INNER = "polygon(10px 1px, calc(100% - 1px) 1px, calc(100% - 10px) 100%, 1px 100%)";
+const BODY_BG = "#FFFFFF"; // the sheet the stories sit on
 const RED = "#C1440E";
 
 let _idc = 0;
 const newId = () => "s" + Date.now().toString(36) + "-" + (_idc++);
 
+// A tab holds feeds, each one a name and its address, so the keywords stay readable.
 const blankSlot = () => ({ id: newId(), name: "", urls: [] });
+const toFeed = (u) => (typeof u === "string" ? { id: newId(), name: "", url: u } : { id: u.id || newId(), name: u.name || "", url: u.url || "" });
 
 // Older saves held one address per tab; they become tabs with a single address.
 const toSlots = (data) => {
   const list = Array.isArray(data) ? data : [];
   const slots = list.map((x) =>
     x && Array.isArray(x.urls)
-      ? { id: x.id || newId(), name: x.name || "", urls: x.urls }
-      : { id: x?.id || newId(), name: x?.name || "", urls: x?.url ? [x.url] : [] }
+      ? { id: x.id || newId(), name: x.name || "", urls: x.urls.map(toFeed) }
+      : { id: x?.id || newId(), name: x?.name || "", urls: x?.url ? [toFeed(x.url)] : [] }
   );
   // Trailing empties from an earlier ten tab layout are dropped, then the row is
   // padded back up to five.
@@ -75,19 +84,44 @@ const cleanLink = (href) => {
   }
 };
 
+// A story arrives as many short paragraphs; this runs them together and cuts even
+// blocks at the end of a sentence, so the reading is steady rather than choppy.
+const BLOCK = 700;
+const blocks = (text) => {
+  const flat = String(text || "").replace(/\s+/g, " ").trim();
+  const out = [];
+  let rest = flat;
+  // Hard stop as well as the length test, so a strange page can never spin here.
+  let guard = 0;
+  while (rest.length > BLOCK && guard++ < 60) {
+    const window = rest.slice(0, BLOCK + 200);
+    let cut = window.lastIndexOf(". ", BLOCK);
+    if (cut < BLOCK * 0.5) cut = window.indexOf(". ", BLOCK);
+    if (cut < 0) cut = BLOCK;
+    out.push(rest.slice(0, cut + 1).trim());
+    rest = rest.slice(cut + 1).trim();
+  }
+  if (rest) out.push(rest);
+  return out;
+};
+
 const dedupe = (items) => {
   const seen = new Set();
   return items.filter((i) => (seen.has(i.link) ? false : seen.add(i.link)));
 };
 
-const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+// Only how long ago it landed, no date.
 const when = (s) => {
   const d = new Date(s);
   if (isNaN(d)) return "";
   const mins = Math.round((Date.now() - d) / 60000);
-  const age = mins < 60 ? `${Math.max(mins, 1)} min` : mins < 1440 ? `${Math.round(mins / 60)} h` : `${Math.round(mins / 1440)} d`;
-  const time = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-  return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${time} (${age})`;
+  return mins < 60 ? `${Math.max(mins, 1)} min` : `${Math.round(mins / 60)} h`;
+};
+
+// Nothing older than a day shows.
+const isFresh = (s) => {
+  const d = new Date(s);
+  return !isNaN(d) && Date.now() - d <= 24 * 60 * 60 * 1000;
 };
 
 export default function KnowledgeFeeds() {
@@ -99,7 +133,25 @@ export default function KnowledgeFeeds() {
   const [err, setErr] = useState("");
   const [settings, setSettings] = useState(false); // the popup for the open tab
   const [newUrl, setNewUrl] = useState("");
+  const [story, setStory] = useState({}); // link -> text, or "loading"
   const pulled = useRef({});
+
+  // Fetches the page behind a headline and shows its text in place.
+  const readStory = async (link) => {
+    if (story[link]) {
+      setStory((prev) => ({ ...prev, [link]: undefined }));
+      return;
+    }
+    setStory((prev) => ({ ...prev, [link]: "loading" }));
+    try {
+      const res = await fetch(`/api/article?url=${encodeURIComponent(link)}`);
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || "Could not read that page");
+      setStory((prev) => ({ ...prev, [link]: data.text || "Nothing readable on that page." }));
+    } catch (e) {
+      setStory((prev) => ({ ...prev, [link]: e.message || "Could not read that page." }));
+    }
+  };
 
   useEffect(() => {
     supabase
@@ -131,7 +183,7 @@ export default function KnowledgeFeeds() {
     setBusy(true);
     try {
       const all = await Promise.all(
-        s.urls.map(async (url) => {
+        s.urls.map(async ({ url }) => {
           const res = await fetch(`/api/rss?url=${encodeURIComponent(url)}`);
           const xml = await res.text();
           if (!res.ok) throw new Error(plain(xml).slice(0, 80));
@@ -154,7 +206,12 @@ export default function KnowledgeFeeds() {
   }, [open, loaded, slots[open]?.urls.length]);
 
   const rows = useMemo(
-    () => dedupe([...(items[slot.id] || [])].sort((a, b) => new Date(b.published) - new Date(a.published))),
+    () =>
+      dedupe(
+        (items[slot.id] || [])
+          .filter((r) => isFresh(r.published))
+          .sort((a, b) => new Date(b.published) - new Date(a.published))
+      ),
     [items, slot.id]
   );
 
@@ -164,55 +221,68 @@ export default function KnowledgeFeeds() {
       setErr("Paste an https feed address.");
       return;
     }
-    const next = { ...slot, urls: [...slot.urls, url] };
+    const next = { ...slot, urls: [...slot.urls, { id: newId(), name: newName.trim(), url }] };
     patchSlot({ urls: next.urls });
     pulled.current[slot.id] = false;
     setNewUrl("");
+    setNewName("");
     setErr("");
     // Read it straight away rather than waiting for the tab to be opened again.
     pull(next, true);
   };
 
-  const removeUrl = (url) => {
-    patchSlot({ urls: slot.urls.filter((u) => u !== url) });
+  const patchUrl = (id, fields) => patchSlot({ urls: slot.urls.map((u) => (u.id === id ? { ...u, ...fields } : u)) });
+
+  const removeUrl = (id) => {
+    patchSlot({ urls: slot.urls.filter((u) => u.id !== id) });
     pulled.current[slot.id] = false;
     setItems((prev) => ({ ...prev, [slot.id]: [] }));
   };
 
   return (
     <div className="w-full overflow-x-auto">
-      <div className="w-full min-w-[720px] overflow-hidden border-2 border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        <div className="border-b-2 border-black px-2 py-1 text-center" style={{ backgroundColor: BODY_BG }}>
-          <h3 className="text-[11px] font-bold uppercase tracking-wide text-neutral-800">Intel</h3>
+      <div className="w-full min-w-[720px] overflow-hidden border border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
+        {/* Title bar exactly as the Planning table: 18px, gold, name on the left. */}
+        <div className="flex h-[18px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Intel</span>
         </div>
 
         {/* Every tab opens, named or not; the cog names it and adds feeds. The plus at
             the end opens one more tab once these are used up. */}
-        <div className="flex gap-1 border-b-2 border-black bg-neutral-100 px-2 pt-1">
+        {/* Tabs on the second gold, one hairline each, the open one white. */}
+        {/* File folder tabs: each one cut to the shape of a folder and set to overlap
+            its neighbour, the open one white and sitting on top. */}
+        {/* Plain square tabs, flush against each other, no gaps anywhere. */}
+        <div className="flex border-t border-b border-black">
           {slots.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setOpen(i)}
               title={s.name || "Free tab"}
-              className={`min-w-0 flex-1 truncate border-2 border-black px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight transition-colors ${
-                i === open ? "relative z-10 text-neutral-900" : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
-              }`}
-              style={i === open ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG } : undefined}
+              className={`flex h-[21px] min-w-0 flex-1 items-center justify-center gap-1.5 px-2 text-[10px] font-bold uppercase leading-none tracking-[0.08em] transition-colors ${
+                i === 0 ? "" : "border-l border-black"
+              } ${i === open ? "text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
+              style={{ backgroundColor: i === open ? OPEN_TAB_BG : TAB_BG }}
             >
-              {s.name || " "}
+              <span className="min-w-0 truncate text-center">{s.name || "–"}</span>
+              {(items[s.id]?.length || 0) > 0 && (
+                <span className="shrink-0 text-[9px] font-semibold tabular-nums text-neutral-500">{items[s.id].length}</span>
+              )}
             </button>
           ))}
           <button
             onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpen(next.length - 1); setSettings(true); }}
             title="Add another tab"
-            className="shrink-0 border-2 border-black bg-neutral-200 px-2 py-1.5 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+            className="flex h-[21px] w-8 shrink-0 items-center justify-center border-l border-black text-neutral-600 transition-colors hover:text-neutral-900"
+            style={{ backgroundColor: TAB_BG }}
           >
-            <Plus size={12} />
+            <Plus size={11} />
           </button>
         </div>
 
-        <div className="min-h-[200px] p-3">
-          <div className="mb-2 flex items-center gap-2">
+        {/* No padding on the sheet, so every rule runs edge to edge. */}
+        <div className="min-h-[200px]">
+          <div className="flex items-center gap-2 px-2 py-1">
             <span className="flex-1" />
             <button onClick={() => pull(slot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
               <RefreshCw size={12} className={busy ? "animate-spin" : ""} />
@@ -222,21 +292,47 @@ export default function KnowledgeFeeds() {
             </button>
           </div>
 
-          {rows.map((r, i) => (
-            <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t-2 border-neutral-300"}`}>
-              <a
-                href={r.link}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[11px] font-medium leading-[15px] underline underline-offset-2"
-                style={{ color: "#0f766e" }}
-              >
-                {r.title}
-              </a>
-              {r.summary && <p className="mt-0.5 text-[11px] leading-[15px] text-neutral-500">{r.summary}</p>}
-              {r.published && <p className="mt-0.5 text-[10px] leading-[14px] text-neutral-400">Published: {when(r.published)}</p>}
-            </div>
-          ))}
+          {rows.map((r, i) => {
+            const shown = story[r.link];
+            return (
+              <div key={`${r.link}-${i}`} className="border-t border-black px-2 py-1">
+                {/* Headline and date on one line, the mark to open it on the right. */}
+                <div className="flex items-start gap-2">
+                  <a
+                    href={r.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="min-w-0 flex-1 truncate text-[11px] font-medium leading-[15px] underline underline-offset-2"
+                    style={{ color: "#0f766e" }}
+                    title={r.title}
+                  >
+                    {r.title}
+                  </a>
+                  <span className="shrink-0 whitespace-nowrap text-[10px] leading-[15px] tabular-nums text-neutral-400">{when(r.published)}</span>
+                  <button
+                    onClick={() => readStory(r.link)}
+                    title={shown ? "Close the story" : "Read the story here"}
+                    className="flex h-[15px] shrink-0 items-center transition-opacity hover:opacity-70"
+                    style={{ color: RED }}
+                  >
+                    <ChevronDown size={12} strokeWidth={3} className={`block transition-transform ${shown ? "rotate-180" : ""}`} />
+                  </button>
+                </div>
+                {!shown && r.summary && <p className="mt-0.5 truncate text-[10px] leading-[14px] text-neutral-500">{r.summary}</p>}
+                {shown && shown !== "loading" && (
+                  // Even blocks of text rather than the page's own short paragraphs.
+                  <div className="mt-1">
+                    {blocks(shown).map((b, bi) => (
+                      <p key={bi} className={`text-[11px] leading-[16px] text-neutral-700 ${bi === 0 ? "" : "mt-1 border-t border-neutral-200 pt-1"}`}>
+                        {b}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                {shown === "loading" && <p className="text-[10px] leading-[14px] text-neutral-400">Reading…</p>}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -244,46 +340,71 @@ export default function KnowledgeFeeds() {
 
       {settings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setSettings(false)}>
-          <div className="w-full max-w-md border-[3px] bg-white p-5 shadow-2xl" style={{ borderColor: RED }} onClick={(e) => e.stopPropagation()}>
-            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900">Tab {open + 1}</p>
+          {/* A table like every other one here: title bar, column heads, then a row
+              per feed with its name on the left and its address on the right. */}
+          <div className="w-full max-w-2xl border border-black bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex h-[18px] items-center gap-2 px-2" style={{ backgroundColor: BAR_BG }}>
+              <input
+                autoFocus
+                value={slot.name}
+                onChange={(e) => patchSlot({ name: e.target.value.toUpperCase() })}
+                placeholder="TAB NAME"
+                className="min-w-0 flex-1 bg-transparent text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900 outline-none placeholder:text-neutral-500"
+              />
+            </div>
 
-            {/* The tab name, always in capitals. */}
-            <input
-              autoFocus
-              value={slot.name}
-              onChange={(e) => patchSlot({ name: e.target.value.toUpperCase() })}
-              placeholder="TAB NAME"
-              className="mb-3 w-full border border-neutral-400 px-2 py-1 text-[11px] font-bold uppercase leading-[15px] outline-none focus:border-black"
-            />
+            <div className="flex h-[18px] items-center gap-2 border-t border-black px-2" style={{ backgroundColor: TAB_BG }}>
+              <span className="w-48 shrink-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Feed name</span>
+              <span className="min-w-0 flex-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Link</span>
+              <span className="w-4 shrink-0" />
+            </div>
 
-            {/* Its feeds, each one visible so the keywords stay in view. */}
             {slot.urls.map((u) => (
-              <div key={u} className="flex items-start gap-2 border-t border-neutral-200 py-1">
-                <span className="min-w-0 flex-1 break-all text-[10px] leading-[14px] text-neutral-500">{u}</span>
-                <button onClick={() => removeUrl(u)} title="Remove this feed" className="shrink-0 text-neutral-400 transition-colors hover:text-[#C1440E]">
-                  <Trash2 size={12} />
+              <div key={u.id} className="flex h-[21px] items-center gap-2 border-t border-black px-2">
+                <input
+                  value={u.name}
+                  onChange={(e) => patchUrl(u.id, { name: e.target.value })}
+                  placeholder="Keywords"
+                  className="w-48 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
+                />
+                <input
+                  value={u.url}
+                  onChange={(e) => patchUrl(u.id, { url: e.target.value })}
+                  className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-500 outline-none"
+                />
+                <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="flex h-[15px] w-4 shrink-0 items-center text-neutral-900 hover:text-[#C1440E]">
+                  <Trash2 size={11} />
                 </button>
               </div>
             ))}
 
-            <div className="mt-3 flex items-center gap-2">
+            {/* The row that adds the next feed. */}
+            <div className="flex h-[21px] items-center gap-2 border-t border-black px-2">
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Keywords"
+                className="w-48 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
+              />
               <input
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(false); }}
-                placeholder="https:// RSS or Google Alerts address"
-                className="min-w-0 flex-1 border border-neutral-400 px-2 py-1 text-[11px] leading-[15px] outline-none focus:border-black"
+                placeholder="https:// feed address"
+                className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-500 outline-none placeholder:text-neutral-300"
               />
-              <button onClick={addUrl} title="Add this feed" className="shrink-0 text-neutral-600 hover:text-neutral-900">
-                <Plus size={14} />
+              <button onClick={addUrl} title="Add this feed" className="flex h-[15px] w-4 shrink-0 items-center" style={{ color: RED }}>
+                <Plus size={12} />
               </button>
             </div>
 
-            <div className="mt-4 flex justify-end text-[12px] font-bold uppercase tracking-wide">
-              <button onClick={() => setSettings(false)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: RED, color: RED }}>
-                Done
-              </button>
-            </div>
+            <button
+              onClick={() => setSettings(false)}
+              style={{ color: RED }}
+              className="flex h-[21px] w-full items-center justify-center border-t border-black bg-neutral-50 text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"
+            >
+              Done
+            </button>
           </div>
         </div>
       )}
