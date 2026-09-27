@@ -179,40 +179,43 @@ export default function KnowledgeFeeds() {
 
   return (
     <div className="w-full overflow-x-auto">
-      <div className="w-full min-w-[720px] border border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        {/* Section bar exactly as on Legal documents: gold, 18px, name on the left. */}
-        <div className="flex h-[18px] items-center gap-2 px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={`flex-1 ${head}`}>Intel</span>
-          <button onClick={() => setTab("manage")} title="Feeds" className="flex h-[15px] items-center text-neutral-900 transition-opacity hover:opacity-70">
-            <Plus size={12} />
-          </button>
+      <div className="w-full min-w-[720px] overflow-hidden rounded-xl border border-neutral-300 shadow-sm" style={{ backgroundColor: BODY_BG }}>
+        {/* Header, tab rows and body exactly as the Says feeds box is put together. */}
+        <div className="border-b-2 border-neutral-300 px-4 py-3 text-center" style={{ backgroundColor: BODY_BG }}>
+          <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-700">Intel</h3>
         </div>
 
-        {/* Feed tabs as a plain row of cells, the open one white. */}
-        <div className="flex border-t border-black">
-          {slots.map((t, i) => (
+        <div className="flex gap-1 border-b-2 border-neutral-300 bg-neutral-100 px-2 pt-1">
+          {slots.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.empty ? "manage" : t.key)}
               title={t.empty ? "Free slot, add a feed" : t.name}
-              className={`h-[18px] min-w-0 flex-1 truncate px-1 text-[10px] uppercase leading-none tracking-wide transition-colors ${i === 0 ? "" : "border-l border-black"} ${
-                tab === t.key ? "bg-white font-bold text-neutral-900" : "font-semibold text-neutral-600 hover:text-neutral-900"
+              className={`min-w-0 flex-1 truncate rounded-t-lg border border-neutral-300 px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-colors ${
+                tab === t.key
+                  ? "relative z-10 text-neutral-800"
+                  : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
               }`}
-              style={tab === t.key ? undefined : { backgroundColor: TAB_BG }}
+              style={tab === t.key ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG } : undefined}
             >
               {t.name || " "}
             </button>
           ))}
+          <button
+            onClick={() => setTab("manage")}
+            title="Feeds manager"
+            className={`shrink-0 rounded-t-lg border border-neutral-300 px-2 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-colors ${
+              tab === "manage" ? "relative z-10 text-neutral-800" : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
+            }`}
+            style={tab === "manage" ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG } : undefined}
+          >
+            Feeds
+          </button>
         </div>
 
         {tab === "manage" ? (
-          <div className="border-t border-black bg-white">
-            <div className="flex h-[18px] items-center gap-2 border-b border-black px-2" style={{ backgroundColor: TAB_BG }}>
-              <span className={`w-40 shrink-0 ${head}`}>Name</span>
-              <span className={`flex-1 ${head}`}>Feed address</span>
-              <span className="w-4 shrink-0" />
-            </div>
-            <div className="flex h-[21px] items-center gap-2 border-b border-black px-2">
+          <div className="p-3">
+            <div className="mb-1 flex items-center gap-2 border-b-2 border-neutral-300 pb-1">
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
@@ -230,20 +233,19 @@ export default function KnowledgeFeeds() {
                 <Plus size={12} />
               </button>
             </div>
-            {feeds.map((f) => (
-              <div key={f.id} className="flex h-[21px] items-center gap-2 border-b border-black px-2">
-                <span className="w-40 shrink-0 truncate text-[11px] font-semibold leading-[15px] text-neutral-900">{f.name}</span>
+            {feeds.map((f, i) => (
+              <div key={f.id} className={`flex items-center gap-2 py-1 ${i === 0 ? "" : "border-t-2 border-neutral-300"}`}>
+                <span className="w-40 shrink-0 truncate text-[11px] font-semibold leading-[15px] text-neutral-800">{f.name}</span>
                 <span className="min-w-0 flex-1 truncate text-[11px] leading-[15px] text-neutral-500">{f.url}</span>
-                <button onClick={() => setConfirm(f.id)} title="Remove this feed" className="flex h-[15px] items-center text-neutral-900 hover:text-[#C1440E]">
-                  <Trash2 size={11} />
+                <button onClick={() => setConfirm(f.id)} title="Remove this feed" className="text-neutral-400 transition-colors hover:text-[#C1440E]">
+                  <Trash2 size={12} />
                 </button>
               </div>
             ))}
-            {!feeds.length && <p className="px-2 py-2 text-[11px] italic text-neutral-400">No feeds yet. Paste a Google Alerts or RSS address above.</p>}
           </div>
         ) : (
-          // Empty until a feed is open: a plain framed sheet, nothing written in it.
-          <div className="min-h-[180px] border-t border-black px-3 py-2">
+          // Empty until a feed is open: a plain sheet, nothing written in it.
+          <div className="min-h-[180px] p-3">
             {rows.length > 0 && (
               <div className="mb-1 flex items-center">
                 <button onClick={refresh} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
