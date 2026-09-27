@@ -108,14 +108,18 @@ const dedupe = (items) => {
   return items.filter((i) => (seen.has(i.link) ? false : seen.add(i.link)));
 };
 
-const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+// Only how long ago it landed, no date.
 const when = (s) => {
   const d = new Date(s);
   if (isNaN(d)) return "";
   const mins = Math.round((Date.now() - d) / 60000);
-  const age = mins < 60 ? `${Math.max(mins, 1)} min` : mins < 1440 ? `${Math.round(mins / 60)} h` : `${Math.round(mins / 1440)} d`;
-  const time = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-  return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${time} (${age})`;
+  return mins < 60 ? `${Math.max(mins, 1)} min` : `${Math.round(mins / 60)} h`;
+};
+
+// Nothing older than a day shows.
+const isFresh = (s) => {
+  const d = new Date(s);
+  return !isNaN(d) && Date.now() - d <= 24 * 60 * 60 * 1000;
 };
 
 export default function KnowledgeFeeds() {
@@ -200,7 +204,12 @@ export default function KnowledgeFeeds() {
   }, [open, loaded, slots[open]?.urls.length]);
 
   const rows = useMemo(
-    () => dedupe([...(items[slot.id] || [])].sort((a, b) => new Date(b.published) - new Date(a.published))),
+    () =>
+      dedupe(
+        (items[slot.id] || [])
+          .filter((r) => isFresh(r.published))
+          .sort((a, b) => new Date(b.published) - new Date(a.published))
+      ),
     [items, slot.id]
   );
 
