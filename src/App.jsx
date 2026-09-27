@@ -22,6 +22,7 @@ import Logins from "./Logins.jsx";
 import LegalDocuments from "./LegalDocuments.jsx";
 import Costs from "./Costs.jsx";
 import HW from "./HW.jsx";
+import KnowledgeFeeds from "./KnowledgeFeeds.jsx";
 import Auth from "./Auth.jsx";
 import { supabase, supabaseReady } from "./lib/supabaseClient.js";
 import infinityImg from "../Website Images/Infinity.webp";
@@ -380,6 +381,7 @@ export default function App() {
             {route === "hw" && <HW />}
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
+            {route === "assets/investing" && <KnowledgeFeeds />}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}
           </>
