@@ -91,7 +91,9 @@ const blocks = (text) => {
   const flat = String(text || "").replace(/\s+/g, " ").trim();
   const out = [];
   let rest = flat;
-  while (rest.length > BLOCK) {
+  // Hard stop as well as the length test, so a strange page can never spin here.
+  let guard = 0;
+  while (rest.length > BLOCK && guard++ < 60) {
     const window = rest.slice(0, BLOCK + 200);
     let cut = window.lastIndexOf(". ", BLOCK);
     if (cut < BLOCK * 0.5) cut = window.indexOf(". ", BLOCK);

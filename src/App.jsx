@@ -23,6 +23,7 @@ import LegalDocuments from "./LegalDocuments.jsx";
 import Costs from "./Costs.jsx";
 import HW from "./HW.jsx";
 import KnowledgeFeeds from "./KnowledgeFeeds.jsx";
+import ErrorBoundary from "./ErrorBoundary.jsx";
 import Auth from "./Auth.jsx";
 import { supabase, supabaseReady } from "./lib/supabaseClient.js";
 import infinityImg from "../Website Images/Infinity.webp";
@@ -374,7 +375,7 @@ export default function App() {
             You do not have access to this page.
           </p>
         ) : (
-          <>
+          <ErrorBoundary routeKey={route}>
             {route === "admin/planning" && <Planning />}
             {route === "admin/legal-documents" && <LegalDocuments />}
             {route === "costs/monthly" && <Costs />}
@@ -384,7 +385,7 @@ export default function App() {
             {route === "assets/investing" && <KnowledgeFeeds />}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}
-          </>
+          </ErrorBoundary>
         )}
       </main>
     </div>
