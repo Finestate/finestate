@@ -1,24 +1,34 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Trash2, RefreshCw, X } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Settings } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
-// Knowledge feeds, built the way the Says feeds box works: a strip of tabs, then the
-// headlines from the feed behind the open tab. The feed list is typed in here and
-// kept in Supabase, so it follows you between devices.
+// Intel: ten tabs, each one named by you and holding as many RSS or Google Alerts
+// addresses as you like. Everything is kept in Supabase, so it follows you between
+// devices, and the sheet under the tabs stays blank until a feed returns something.
 const DOC_ID = "knowledge-feeds";
-const BAR_BG = "#F2C46D";   // title bar
-const TAB_BG = "#FFE9C4";   // the nav cream, behind the tab rows
-const BODY_BG = "#FBF5E9";  // panel behind the headlines, as on the other sites
-const GOLD = "#9c7c33";
+const SLOTS = 10;
+const BODY_BG = "#FBF5E9";
 const RED = "#C1440E";
 
-const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
-
 let _idc = 0;
-const newId = () => "f" + Date.now().toString(36) + "-" + (_idc++);
+const newId = () => "s" + Date.now().toString(36) + "-" + (_idc++);
+
+const blankSlot = () => ({ id: newId(), name: "", urls: [] });
+
+// Older saves held one address per tab; they become tabs with a single address.
+const toSlots = (data) => {
+  const list = Array.isArray(data) ? data : [];
+  const slots = list.map((x) =>
+    x && Array.isArray(x.urls)
+      ? { id: x.id || newId(), name: x.name || "", urls: x.urls }
+      : { id: x?.id || newId(), name: x?.name || "", urls: x?.url ? [x.url] : [] }
+  );
+  while (slots.length < SLOTS) slots.push(blankSlot());
+  return slots.slice(0, SLOTS);
+};
 
 // Atom entries and RSS items both reduce to a headline, a link and a date.
-function parseFeedXml(xmlText, feedName) {
+function parseFeedXml(xmlText) {
   const doc = new DOMParser().parseFromString(xmlText, "text/xml");
   return Array.from(doc.querySelectorAll("entry, item")).map((entry) => {
     const isAtom = entry.tagName.toLowerCase() === "entry";
@@ -34,7 +44,6 @@ function parseFeedXml(xmlText, feedName) {
       link = entry.querySelector("link")?.textContent || "";
     }
     return {
-      feedName,
       title: plain(entry.querySelector("title")?.textContent || ""),
       link: cleanLink(link),
       published: isAtom
@@ -68,7 +77,6 @@ const dedupe = (items) => {
 };
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-// "27 SEP 2026, 19:01 (20 min)" – the same reading as the other sites.
 const when = (s) => {
   const d = new Date(s);
   if (isNaN(d)) return "";
@@ -79,16 +87,14 @@ const when = (s) => {
 };
 
 export default function KnowledgeFeeds() {
-  const [feeds, setFeeds] = useState([]);
+  const [slots, setSlots] = useState(toSlots([]));
   const [loaded, setLoaded] = useState(false);
-  const [tab, setTab] = useState(null); // the open feed id
-  const [items, setItems] = useState({});
+  const [open, setOpen] = useState(0); // which tab is open, by position
+  const [items, setItems] = useState({}); // slot id -> parsed entries
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [newName, setNewName] = useState("");
+  const [settings, setSettings] = useState(false); // the popup for the open tab
   const [newUrl, setNewUrl] = useState("");
-  const [confirm, setConfirm] = useState(null);
-  const [addOpen, setAddOpen] = useState(false); // the add a feed popup
   const pulled = useRef({});
 
   useEffect(() => {
@@ -99,210 +105,169 @@ export default function KnowledgeFeeds() {
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) setErr(error.message);
-        setFeeds(Array.isArray(data?.data) ? data.data : []);
+        setSlots(toSlots(data?.data));
         setLoaded(true);
       });
   }, []);
 
   const save = (next) => {
-    setFeeds(next);
+    setSlots(next);
     supabase
       .from("admin_docs")
       .upsert({ id: DOC_ID, data: next, updated_at: new Date().toISOString() })
       .then(({ error }) => setErr(error ? error.message : ""));
   };
 
-  const pull = async (feed, force) => {
-    if (!feed || (!force && pulled.current[feed.id])) return;
-    pulled.current[feed.id] = true;
+  const slot = slots[open] || blankSlot();
+  const patchSlot = (fields) => save(slots.map((s, i) => (i === open ? { ...s, ...fields } : s)));
+
+  const pull = async (s, force) => {
+    if (!s || !s.urls.length || (!force && pulled.current[s.id])) return;
+    pulled.current[s.id] = true;
     setBusy(true);
     try {
-      const res = await fetch(`/api/rss?url=${encodeURIComponent(feed.url)}`);
-      const xml = await res.text();
-      if (!res.ok) throw new Error(plain(xml).slice(0, 80));
-      setItems((prev) => ({ ...prev, [feed.id]: parseFeedXml(xml, feed.name) }));
+      const all = await Promise.all(
+        s.urls.map(async (url) => {
+          const res = await fetch(`/api/rss?url=${encodeURIComponent(url)}`);
+          const xml = await res.text();
+          if (!res.ok) throw new Error(plain(xml).slice(0, 80));
+          return parseFeedXml(xml);
+        })
+      );
+      setItems((prev) => ({ ...prev, [s.id]: all.flat() }));
       setErr("");
     } catch (e) {
-      setErr(`${feed.name}: ${e.message || "could not be read"}`);
+      setErr(e.message || "A feed could not be read.");
     } finally {
       setBusy(false);
     }
   };
 
-  // Opening a tab reads that feed once; the refresh arrow reads it again.
   useEffect(() => {
-    if (!loaded) return;
-    if (tab) pull(feeds.find((f) => f.id === tab));
+    if (loaded) pull(slots[open]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, loaded, feeds.length]);
+  }, [open, loaded]);
 
-  const rows = useMemo(() => {
-    const list = items[tab] || [];
-    return dedupe([...list].sort((a, b) => new Date(b.published) - new Date(a.published)));
-  }, [tab, feeds, items]);
+  const rows = useMemo(
+    () => dedupe([...(items[slot.id] || [])].sort((a, b) => new Date(b.published) - new Date(a.published))),
+    [items, slot.id]
+  );
 
-  const addFeed = () => {
-    const name = newName.trim();
+  const addUrl = () => {
     const url = newUrl.trim();
-    if (!name || !/^https:\/\//i.test(url)) {
-      setErr("A name and an https feed address are needed.");
+    if (!/^https:\/\//i.test(url)) {
+      setErr("Paste an https feed address.");
       return;
     }
-    const feed = { id: newId(), name, url };
-    save([...feeds, feed].sort((a, b) => a.name.localeCompare(b.name)));
-    setNewName("");
+    patchSlot({ urls: [...slot.urls, url] });
+    pulled.current[slot.id] = false;
     setNewUrl("");
     setErr("");
-    setAddOpen(false);
-    setTab(feed.id);
   };
 
-  const removeFeed = () => {
-    const next = feeds.filter((f) => f.id !== confirm);
-    save(next);
-    if (tab === confirm) setTab(null);
-    setConfirm(null);
+  const removeUrl = (url) => {
+    patchSlot({ urls: slot.urls.filter((u) => u !== url) });
+    pulled.current[slot.id] = false;
+    setItems((prev) => ({ ...prev, [slot.id]: [] }));
   };
-
-  const refresh = () => {
-    if (tab) pull(feeds.find((f) => f.id === tab), true);
-  };
-
-  // Flat square tabs in the table's own language: a hairline each, the open one white
-  // and bold, a free slot marked by a dashed edge.
-  const tabClass = (on) =>
-    `flex h-[19px] min-w-0 flex-1 items-center justify-center truncate border border-black px-1 text-[10px] font-semibold uppercase leading-none tracking-wide transition-colors ${
-      on ? "bg-white font-bold text-neutral-900" : "text-neutral-600 hover:text-neutral-900"
-    }`;
-  // Ten slots on one row, filled in order by the feeds you add.
-  const SLOTS = 10;
-  const slots = Array.from({ length: SLOTS }, (_, i) => {
-    const f = feeds[i];
-    return f ? { key: f.id, name: f.name } : { key: `empty-${i}`, name: "", empty: true };
-  });
 
   return (
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[720px] overflow-hidden rounded-xl border border-neutral-300 shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        {/* Header, tab rows and body exactly as the Says feeds box is put together. */}
         <div className="border-b-2 border-neutral-300 px-4 py-3 text-center" style={{ backgroundColor: BODY_BG }}>
           <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-700">Intel</h3>
         </div>
 
+        {/* Every tab opens, named or not; the settings icon names it and adds feeds. */}
         <div className="flex gap-1 border-b-2 border-neutral-300 bg-neutral-100 px-2 pt-1">
-          {slots.map((t) => (
+          {slots.map((s, i) => (
             <button
-              key={t.key}
-              onClick={() => (t.empty ? setAddOpen(true) : setTab(t.key))}
-              title={t.empty ? "Free slot, click to add a feed" : t.name}
+              key={s.id}
+              onClick={() => setOpen(i)}
+              title={s.name || "Unnamed tab"}
               className={`min-w-0 flex-1 truncate rounded-t-lg border border-neutral-300 px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-colors ${
-                tab === t.key
-                  ? "relative z-10 text-neutral-800"
-                  : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
+                i === open ? "relative z-10 text-neutral-800" : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
               }`}
-              style={tab === t.key ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG } : undefined}
+              style={i === open ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG } : undefined}
             >
-              {t.name || " "}
+              {s.name || " "}
             </button>
           ))}
-          {/* The popup holds every feed and its address, so there is no manager tab. */}
-          <button
-            onClick={() => setAddOpen(true)}
-            title="Feeds"
-            className="shrink-0 rounded-t-lg border border-neutral-300 bg-neutral-200 px-2 py-1.5 text-neutral-500 shadow-sm transition-colors hover:bg-neutral-50 hover:text-neutral-800"
-          >
-            <Plus size={12} />
-          </button>
         </div>
 
-        {/* Empty until a feed is open: a plain sheet, nothing written in it. */}
-        <div className="min-h-[180px] p-3">
-            {rows.length > 0 && (
-              <div className="mb-1 flex items-center">
-                <button onClick={refresh} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
-                  <RefreshCw size={12} className={busy ? "animate-spin" : ""} />
-                </button>
-              </div>
-            )}
-            {rows.map((r, i) => (
-              <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t-2 border-neutral-300"}`}>
-                <a
-                  href={r.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[11px] font-medium leading-[15px] underline underline-offset-2"
-                  style={{ color: "#0f766e" }}
-                >
-                  <span className="font-bold uppercase">{r.feedName}: </span>
-                  {r.title}
-                </a>
-                {r.summary && <p className="mt-0.5 text-[11px] leading-[15px] text-neutral-500">{r.summary}</p>}
-                {r.published && (
-                  <p className="mt-0.5 text-[10px] leading-[14px] text-neutral-400">Published: {when(r.published)}</p>
-                )}
-              </div>
-            ))}
+        <div className="min-h-[200px] p-3">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="flex-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+              {slot.name || "Unnamed"} {slot.urls.length ? `· ${slot.urls.length} feeds` : ""}
+            </span>
+            <button onClick={() => pull(slot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
+              <RefreshCw size={12} className={busy ? "animate-spin" : ""} />
+            </button>
+            <button onClick={() => setSettings(true)} title="Name this tab and add feeds" className="text-neutral-400 transition-colors hover:text-neutral-700">
+              <Settings size={12} />
+            </button>
+          </div>
+
+          {rows.map((r, i) => (
+            <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t-2 border-neutral-300"}`}>
+              <a
+                href={r.link}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[11px] font-medium leading-[15px] underline underline-offset-2"
+                style={{ color: "#0f766e" }}
+              >
+                {r.title}
+              </a>
+              {r.summary && <p className="mt-0.5 text-[11px] leading-[15px] text-neutral-500">{r.summary}</p>}
+              {r.published && <p className="mt-0.5 text-[10px] leading-[14px] text-neutral-400">Published: {when(r.published)}</p>}
+            </div>
+          ))}
         </div>
       </div>
 
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
 
-      {/* Clicking a free tab asks for the feed here. */}
-      {addOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setAddOpen(false)}>
+      {settings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setSettings(false)}>
           <div className="w-full max-w-md border-[3px] bg-white p-5 shadow-2xl" style={{ borderColor: RED }} onClick={(e) => e.stopPropagation()}>
-            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900">Feeds</p>
+            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900">Tab {open + 1}</p>
+
+            {/* The tab name, always in capitals. */}
             <input
               autoFocus
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Tab name"
-              className="mb-2 w-full border border-neutral-400 px-2 py-1 text-[11px] leading-[15px] outline-none focus:border-black"
+              value={slot.name}
+              onChange={(e) => patchSlot({ name: e.target.value.toUpperCase() })}
+              placeholder="TAB NAME"
+              className="mb-3 w-full border border-neutral-400 px-2 py-1 text-[11px] font-bold uppercase leading-[15px] outline-none focus:border-black"
             />
-            <input
-              value={newUrl}
-              onChange={(e) => setNewUrl(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") addFeed(); if (e.key === "Escape") setAddOpen(false); }}
-              placeholder="https:// RSS or Google Alerts address"
-              className="w-full border border-neutral-400 px-2 py-1 text-[11px] leading-[15px] outline-none focus:border-black"
-            />
-            {/* Everything already connected, so the keywords behind each tab stay in view. */}
-            {feeds.length > 0 && (
-              <div className="mt-3 max-h-56 overflow-y-auto border-t border-neutral-300 pt-2">
-                {feeds.map((f, i) => (
-                  <div key={f.id} className={`flex items-start gap-2 py-1 ${i === 0 ? "" : "border-t border-neutral-200"}`}>
-                    <span className="w-28 shrink-0 truncate text-[11px] font-semibold leading-[15px] text-neutral-900">{f.name}</span>
-                    <span className="min-w-0 flex-1 break-all text-[10px] leading-[14px] text-neutral-500">{f.url}</span>
-                    <button onClick={() => setConfirm(f.id)} title="Remove this feed" className="shrink-0 text-neutral-400 transition-colors hover:text-[#C1440E]">
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
 
-            <div className="mt-4 flex justify-end gap-3 text-[12px] font-bold uppercase tracking-wide">
-              <button onClick={addFeed} className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80" style={{ backgroundColor: RED, borderColor: RED }}>
-                Add
-              </button>
-              <button onClick={() => setAddOpen(false)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: RED, color: RED }}>
-                Cancel
+            {/* Its feeds, each one visible so the keywords stay in view. */}
+            {slot.urls.map((u) => (
+              <div key={u} className="flex items-start gap-2 border-t border-neutral-200 py-1">
+                <span className="min-w-0 flex-1 break-all text-[10px] leading-[14px] text-neutral-500">{u}</span>
+                <button onClick={() => removeUrl(u)} title="Remove this feed" className="shrink-0 text-neutral-400 transition-colors hover:text-[#C1440E]">
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                value={newUrl}
+                onChange={(e) => setNewUrl(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(false); }}
+                placeholder="https:// RSS or Google Alerts address"
+                className="min-w-0 flex-1 border border-neutral-400 px-2 py-1 text-[11px] leading-[15px] outline-none focus:border-black"
+              />
+              <button onClick={addUrl} title="Add this feed" className="shrink-0 text-neutral-600 hover:text-neutral-900">
+                <Plus size={14} />
               </button>
             </div>
-          </div>
-        </div>
-      )}
 
-      {confirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setConfirm(null)}>
-          <div className="w-full max-w-sm border-[3px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: RED }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">Remove this feed?</p>
-            <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
-              <button onClick={removeFeed} className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80" style={{ backgroundColor: RED, borderColor: RED }}>
-                Remove
-              </button>
-              <button onClick={() => setConfirm(null)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: RED, color: RED }}>
-                Cancel
+            <div className="mt-4 flex justify-end text-[12px] font-bold uppercase tracking-wide">
+              <button onClick={() => setSettings(false)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: RED, color: RED }}>
+                Done
               </button>
             </div>
           </div>
