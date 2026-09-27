@@ -24,6 +24,9 @@ const toSlots = (data) => {
       ? { id: x.id || newId(), name: x.name || "", urls: x.urls }
       : { id: x?.id || newId(), name: x?.name || "", urls: x?.url ? [x.url] : [] }
   );
+  // Trailing empties from an earlier ten tab layout are dropped, then the row is
+  // padded back up to five.
+  while (slots.length > SLOTS && !slots[slots.length - 1].name && !slots[slots.length - 1].urls.length) slots.pop();
   while (slots.length < SLOTS) slots.push(blankSlot());
   return slots;
 };
