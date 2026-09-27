@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Trash2, RefreshCw, Settings } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Settings, ChevronDown } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Intel: ten tabs, each one named by you and holding as many RSS or Google Alerts
@@ -99,7 +99,25 @@ export default function KnowledgeFeeds() {
   const [err, setErr] = useState("");
   const [settings, setSettings] = useState(false); // the popup for the open tab
   const [newUrl, setNewUrl] = useState("");
+  const [story, setStory] = useState({}); // link -> text, or "loading"
   const pulled = useRef({});
+
+  // Fetches the page behind a headline and shows its text in place.
+  const readStory = async (link) => {
+    if (story[link]) {
+      setStory((prev) => ({ ...prev, [link]: undefined }));
+      return;
+    }
+    setStory((prev) => ({ ...prev, [link]: "loading" }));
+    try {
+      const res = await fetch(`/api/article?url=${encodeURIComponent(link)}`);
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || "Could not read that page");
+      setStory((prev) => ({ ...prev, [link]: data.text || "Nothing readable on that page." }));
+    } catch (e) {
+      setStory((prev) => ({ ...prev, [link]: e.message || "Could not read that page." }));
+    }
+  };
 
   useEffect(() => {
     supabase
@@ -222,21 +240,39 @@ export default function KnowledgeFeeds() {
             </button>
           </div>
 
-          {rows.map((r, i) => (
-            <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t-2 border-neutral-300"}`}>
-              <a
-                href={r.link}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[11px] font-medium leading-[15px] underline underline-offset-2"
-                style={{ color: "#0f766e" }}
-              >
-                {r.title}
-              </a>
-              {r.summary && <p className="mt-0.5 text-[11px] leading-[15px] text-neutral-500">{r.summary}</p>}
-              {r.published && <p className="mt-0.5 text-[10px] leading-[14px] text-neutral-400">Published: {when(r.published)}</p>}
-            </div>
-          ))}
+          {rows.map((r, i) => {
+            const shown = story[r.link];
+            return (
+              <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t-2 border-neutral-300"}`}>
+                <div className="flex items-start gap-2">
+                  {/* The chevron reads the story into the page; the headline still opens it. */}
+                  <button
+                    onClick={() => readStory(r.link)}
+                    title={shown ? "Close the story" : "Read the story here"}
+                    className="mt-[1px] shrink-0 text-neutral-400 transition-colors hover:text-neutral-800"
+                  >
+                    <ChevronDown size={12} className={`block transition-transform ${shown ? "" : "-rotate-90"}`} />
+                  </button>
+                  <a
+                    href={r.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="min-w-0 flex-1 text-[11px] font-medium leading-[15px] underline underline-offset-2"
+                    style={{ color: "#0f766e" }}
+                  >
+                    {r.title}
+                  </a>
+                </div>
+                {!shown && r.summary && <p className="mt-0.5 pl-5 text-[11px] leading-[15px] text-neutral-500">{r.summary}</p>}
+                {shown && (
+                  <p className="mt-1 whitespace-pre-line pl-5 text-[11px] leading-[16px] text-neutral-700">
+                    {shown === "loading" ? "Reading…" : shown}
+                  </p>
+                )}
+                {r.published && <p className="mt-0.5 pl-5 text-[10px] leading-[14px] text-neutral-400">Published: {when(r.published)}</p>}
+              </div>
+            );
+          })}
         </div>
       </div>
 

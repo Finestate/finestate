@@ -24,12 +24,22 @@ function fetchXml(url) {
   });
 }
 
-// Local dev answers the same /api/rss?url= path that Vercel answers in production.
+// Local dev answers the same /api paths that Vercel answers in production.
 function rssDevServer() {
   return {
     name: "rss-dev",
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
+        if (req.url && req.url.startsWith("/api/article?")) {
+          const target = new URL(req.url, "http://localhost").searchParams.get("url");
+          const mod = await import("./api/article.js");
+          await mod.default({ query: { url: target } }, {
+            status(code) { res.statusCode = code; return this; },
+            setHeader(k, v) { res.setHeader(k, v); },
+            json(obj) { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); },
+          });
+          return;
+        }
         if (!req.url || !req.url.startsWith("/api/rss?")) return next();
         const target = new URL(req.url, "http://localhost").searchParams.get("url");
         if (!target || !/^https:\/\//i.test(target)) {
