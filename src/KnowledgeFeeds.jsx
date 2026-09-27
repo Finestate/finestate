@@ -7,6 +7,7 @@ import { supabase } from "./lib/supabaseClient.js";
 // kept in Supabase, so it follows you between devices.
 const DOC_ID = "knowledge-feeds";
 const BAR_BG = "#F2C46D";   // title bar
+const TAB_BG = "#FFE9C4";   // the nav cream, behind the tab rows
 const BODY_BG = "#FBF5E9";  // panel behind the headlines, as on the other sites
 const GOLD = "#9c7c33";
 const RED = "#C1440E";
@@ -163,11 +164,15 @@ export default function KnowledgeFeeds() {
     if (tab !== "manage") pull(feeds.find((f) => f.id === tab), true);
   };
 
-  // Tabs as on the Says feeds box: they share the row, the open one rises out of the
-  // strip in the panel colour.
-  const tabClass = (on) =>
-    `min-w-0 flex-1 truncate rounded-t border border-neutral-400 px-1 py-1 text-[10px] font-bold uppercase leading-none tracking-tight transition-colors ${
-      on ? "relative z-10 border-b-transparent text-neutral-900" : "bg-neutral-200 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+  // Flat square tabs in the table's own language: a hairline each, the open one white
+  // and bold, a free slot marked by a dashed edge.
+  const tabClass = (on, empty) =>
+    `flex h-[19px] min-w-0 flex-1 items-center justify-center truncate border px-1 text-[10px] uppercase leading-none tracking-wide transition-colors ${
+      on
+        ? "border-black bg-white font-bold text-neutral-900"
+        : empty
+          ? "border-dashed border-neutral-400 text-neutral-400 hover:text-neutral-700"
+          : "border-black/30 font-semibold text-neutral-600 hover:border-black hover:text-neutral-900"
     }`;
   // Twenty slots, two rows of ten. Feeds fill them in order and the rest wait empty;
   // clicking an empty one opens the manager so it can be named.
@@ -182,24 +187,19 @@ export default function KnowledgeFeeds() {
   return (
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[720px] border border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        {/* One slim gold bar, as on every other table here, with the count on the right. */}
-        <div className="flex h-[18px] items-center gap-2 px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.18em] text-neutral-900">Knowledge feeds</span>
-          <span className="flex-1" />
-          <span className="text-[10px] font-bold uppercase leading-[15px] tracking-wide text-neutral-700">
-            {feeds.length} feeds
-          </span>
+        {/* One slim gold bar, as on every other table here. */}
+        <div className="flex h-[18px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.22em] text-neutral-900">Intel</span>
         </div>
 
         {tabRows.map((row, ri) => (
-          <div key={ri} className="flex gap-1 border-t border-neutral-400 bg-neutral-100 px-2 pt-1">
+          <div key={ri} className="flex gap-1 border-t border-black px-2 py-1" style={{ backgroundColor: TAB_BG }}>
             {row.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.empty ? "manage" : t.key)}
                 title={t.empty ? "Free slot, add a feed" : t.name}
-                className={tabClass(tab === t.key)}
-                style={tab === t.key ? { backgroundColor: BODY_BG } : undefined}
+                className={tabClass(tab === t.key, t.empty)}
               >
                 {t.name || " "}
               </button>
