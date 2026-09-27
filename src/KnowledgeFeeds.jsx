@@ -213,7 +213,7 @@ export default function KnowledgeFeeds() {
         {/* Tabs on the second gold, one hairline each, the open one white. */}
         {/* File folder tabs: each one cut to the shape of a folder and set to overlap
             its neighbour, the open one white and sitting on top. */}
-        <div className="flex items-end gap-0 border-t border-black px-1 pt-1" style={{ backgroundColor: TAB_BG }}>
+        <div className="flex items-end gap-0 border-t border-b border-black px-1 pt-1" style={{ backgroundColor: TAB_BG }}>
           {slots.map((s, i) => (
             <button
               key={s.id}
@@ -224,7 +224,8 @@ export default function KnowledgeFeeds() {
               }`}
               style={{
                 clipPath: "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)",
-                backgroundColor: i === open ? "#FFFFFF" : FOLD_BG,
+                // The open folder is marked by colour alone, the strip stays closed.
+                backgroundColor: i === open ? BAR_BG : FOLD_BG,
               }}
             >
               <span className="min-w-0 flex-1 truncate text-left">{s.name || "–"}</span>
