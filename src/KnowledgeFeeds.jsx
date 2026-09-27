@@ -8,7 +8,9 @@ import { supabase } from "./lib/supabaseClient.js";
 const DOC_ID = "knowledge-feeds";
 // Five tabs to start with; the plus at the end adds the next one when they fill up.
 const SLOTS = 5;
-const BODY_BG = "#FBF5E9";
+const BAR_BG = "#F2C46D";  // title bar, as on every other table here
+const TAB_BG = "#FFE4B3";  // one step down, for the tabs
+const BODY_BG = "#FFFFFF"; // the sheet the stories sit on
 const RED = "#C1440E";
 
 let _idc = 0;
@@ -199,23 +201,25 @@ export default function KnowledgeFeeds() {
 
   return (
     <div className="w-full overflow-x-auto">
-      <div className="w-full min-w-[720px] overflow-hidden border-2 border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        <div className="border-b-2 border-black px-2 py-1 text-center" style={{ backgroundColor: BODY_BG }}>
-          <h3 className="text-[11px] font-bold uppercase tracking-wide text-neutral-800">Intel</h3>
+      <div className="w-full min-w-[720px] overflow-hidden border border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
+        {/* Title bar exactly as the Planning table: 18px, gold, name on the left. */}
+        <div className="flex h-[18px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Intel</span>
         </div>
 
         {/* Every tab opens, named or not; the cog names it and adds feeds. The plus at
             the end opens one more tab once these are used up. */}
-        <div className="flex gap-1 border-b-2 border-black bg-neutral-100 px-2 pt-1">
+        {/* Tabs on the second gold, one hairline each, the open one white. */}
+        <div className="flex border-t border-black">
           {slots.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setOpen(i)}
               title={s.name || "Free tab"}
-              className={`min-w-0 flex-1 truncate border-2 border-black px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight transition-colors ${
-                i === open ? "relative z-10 text-neutral-900" : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
-              }`}
-              style={i === open ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG } : undefined}
+              className={`h-[18px] min-w-0 flex-1 truncate px-1 text-[10px] uppercase leading-none tracking-wide transition-colors ${
+                i === 0 ? "" : "border-l border-black"
+              } ${i === open ? "bg-white font-bold text-neutral-900" : "font-semibold text-neutral-700 hover:text-neutral-900"}`}
+              style={i === open ? undefined : { backgroundColor: TAB_BG }}
             >
               {s.name || " "}
             </button>
@@ -223,13 +227,14 @@ export default function KnowledgeFeeds() {
           <button
             onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpen(next.length - 1); setSettings(true); }}
             title="Add another tab"
-            className="shrink-0 border-2 border-black bg-neutral-200 px-2 py-1.5 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+            className="flex h-[18px] w-7 shrink-0 items-center justify-center border-l border-black text-neutral-700 transition-colors hover:text-neutral-900"
+            style={{ backgroundColor: TAB_BG }}
           >
-            <Plus size={12} />
+            <Plus size={11} />
           </button>
         </div>
 
-        <div className="min-h-[200px] p-3">
+        <div className="min-h-[200px] p-2">
           <div className="mb-2 flex items-center gap-2">
             <span className="flex-1" />
             <button onClick={() => pull(slot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
@@ -243,7 +248,7 @@ export default function KnowledgeFeeds() {
           {rows.map((r, i) => {
             const shown = story[r.link];
             return (
-              <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t-2 border-neutral-300"}`}>
+              <div key={`${r.link}-${i}`} className={`py-1.5 ${i === 0 ? "" : "border-t border-neutral-300"}`}>
                 <div className="flex items-start gap-2">
                   {/* The chevron reads the story into the page; the headline still opens it. */}
                   <button
