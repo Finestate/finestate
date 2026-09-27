@@ -147,10 +147,11 @@ export default function KnowledgeFeeds() {
     }
   };
 
+  // Reads the open tab once, and again whenever its feed list changes.
   useEffect(() => {
     if (loaded) pull(slots[open]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, loaded]);
+  }, [open, loaded, slots[open]?.urls.length]);
 
   const rows = useMemo(
     () => dedupe([...(items[slot.id] || [])].sort((a, b) => new Date(b.published) - new Date(a.published))),
@@ -163,10 +164,13 @@ export default function KnowledgeFeeds() {
       setErr("Paste an https feed address.");
       return;
     }
-    patchSlot({ urls: [...slot.urls, url] });
+    const next = { ...slot, urls: [...slot.urls, url] };
+    patchSlot({ urls: next.urls });
     pulled.current[slot.id] = false;
     setNewUrl("");
     setErr("");
+    // Read it straight away rather than waiting for the tab to be opened again.
+    pull(next, true);
   };
 
   const removeUrl = (url) => {
