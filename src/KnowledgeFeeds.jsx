@@ -81,7 +81,7 @@ const when = (s) => {
 export default function KnowledgeFeeds() {
   const [feeds, setFeeds] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  const [tab, setTab] = useState("manage"); // a feed id, or "manage"
+  const [tab, setTab] = useState(null); // the open feed id
   const [items, setItems] = useState({});
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -132,7 +132,7 @@ export default function KnowledgeFeeds() {
   // Opening a tab reads that feed once; the refresh arrow reads it again.
   useEffect(() => {
     if (!loaded) return;
-    if (tab !== "manage") pull(feeds.find((f) => f.id === tab));
+    if (tab) pull(feeds.find((f) => f.id === tab));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, loaded, feeds.length]);
 
@@ -160,12 +160,12 @@ export default function KnowledgeFeeds() {
   const removeFeed = () => {
     const next = feeds.filter((f) => f.id !== confirm);
     save(next);
-    if (tab === confirm) setTab("manage");
+    if (tab === confirm) setTab(null);
     setConfirm(null);
   };
 
   const refresh = () => {
-    if (tab !== "manage") pull(feeds.find((f) => f.id === tab), true);
+    if (tab) pull(feeds.find((f) => f.id === tab), true);
   };
 
   // Flat square tabs in the table's own language: a hairline each, the open one white
@@ -205,51 +205,18 @@ export default function KnowledgeFeeds() {
               {t.name || " "}
             </button>
           ))}
+          {/* The popup holds every feed and its address, so there is no manager tab. */}
           <button
-            onClick={() => setTab("manage")}
-            title="Feeds manager"
-            className={`shrink-0 rounded-t-lg border border-neutral-300 px-2 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-colors ${
-              tab === "manage" ? "relative z-10 text-neutral-800" : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
-            }`}
-            style={tab === "manage" ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG } : undefined}
+            onClick={() => setAddOpen(true)}
+            title="Feeds"
+            className="shrink-0 rounded-t-lg border border-neutral-300 bg-neutral-200 px-2 py-1.5 text-neutral-500 shadow-sm transition-colors hover:bg-neutral-50 hover:text-neutral-800"
           >
-            Feeds
+            <Plus size={12} />
           </button>
         </div>
 
-        {tab === "manage" ? (
-          <div className="p-3">
-            <div className="mb-1 flex items-center gap-2 border-b-2 border-neutral-300 pb-1">
-              <input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="Name"
-                className="w-40 shrink-0 bg-transparent text-[11px] leading-[15px] outline-none placeholder:text-neutral-400"
-              />
-              <input
-                value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") addFeed(); }}
-                placeholder="https:// feed address"
-                className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] outline-none placeholder:text-neutral-400"
-              />
-              <button onClick={addFeed} title="Add this feed" style={{ color: GOLD }} className="flex h-[15px] items-center hover:opacity-70">
-                <Plus size={12} />
-              </button>
-            </div>
-            {feeds.map((f, i) => (
-              <div key={f.id} className={`flex items-center gap-2 py-1 ${i === 0 ? "" : "border-t-2 border-neutral-300"}`}>
-                <span className="w-40 shrink-0 truncate text-[11px] font-semibold leading-[15px] text-neutral-800">{f.name}</span>
-                <span className="min-w-0 flex-1 truncate text-[11px] leading-[15px] text-neutral-500">{f.url}</span>
-                <button onClick={() => setConfirm(f.id)} title="Remove this feed" className="text-neutral-400 transition-colors hover:text-[#C1440E]">
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          // Empty until a feed is open: a plain sheet, nothing written in it.
-          <div className="min-h-[180px] p-3">
+        {/* Empty until a feed is open: a plain sheet, nothing written in it. */}
+        <div className="min-h-[180px] p-3">
             {rows.length > 0 && (
               <div className="mb-1 flex items-center">
                 <button onClick={refresh} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
@@ -275,8 +242,7 @@ export default function KnowledgeFeeds() {
                 )}
               </div>
             ))}
-          </div>
-        )}
+        </div>
       </div>
 
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
@@ -285,7 +251,7 @@ export default function KnowledgeFeeds() {
       {addOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setAddOpen(false)}>
           <div className="w-full max-w-md border-[3px] bg-white p-5 shadow-2xl" style={{ borderColor: RED }} onClick={(e) => e.stopPropagation()}>
-            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900">Add a feed</p>
+            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900">Feeds</p>
             <input
               autoFocus
               value={newName}
@@ -300,6 +266,21 @@ export default function KnowledgeFeeds() {
               placeholder="https:// RSS or Google Alerts address"
               className="w-full border border-neutral-400 px-2 py-1 text-[11px] leading-[15px] outline-none focus:border-black"
             />
+            {/* Everything already connected, so the keywords behind each tab stay in view. */}
+            {feeds.length > 0 && (
+              <div className="mt-3 max-h-56 overflow-y-auto border-t border-neutral-300 pt-2">
+                {feeds.map((f, i) => (
+                  <div key={f.id} className={`flex items-start gap-2 py-1 ${i === 0 ? "" : "border-t border-neutral-200"}`}>
+                    <span className="w-28 shrink-0 truncate text-[11px] font-semibold leading-[15px] text-neutral-900">{f.name}</span>
+                    <span className="min-w-0 flex-1 break-all text-[10px] leading-[14px] text-neutral-500">{f.url}</span>
+                    <button onClick={() => setConfirm(f.id)} title="Remove this feed" className="shrink-0 text-neutral-400 transition-colors hover:text-[#C1440E]">
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="mt-4 flex justify-end gap-3 text-[12px] font-bold uppercase tracking-wide">
               <button onClick={addFeed} className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80" style={{ backgroundColor: RED, borderColor: RED }}>
                 Add
