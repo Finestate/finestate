@@ -171,17 +171,17 @@ export default function KnowledgeFeeds() {
     `min-w-0 flex-1 truncate rounded-t border border-neutral-400 px-1 py-1 text-[10px] font-bold uppercase leading-none tracking-tight transition-colors ${
       on ? "relative z-10 border-b-transparent text-neutral-900" : "bg-neutral-200 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
     }`;
-  // Feeds wrap onto rows of five, so no tab is ever squeezed thin.
-  const tabRows = (() => {
-    const all = [
-      { key: "all", name: "All" },
-      ...feeds.map((f) => ({ key: f.id, name: f.name })),
-      { key: "manage", name: "Feeds manager" },
-    ];
-    const out = [];
-    for (let i = 0; i < all.length; i += 5) out.push(all.slice(i, i + 5));
-    return out;
-  })();
+  // Twenty slots, two rows of ten. Feeds fill them in order and the rest wait empty;
+  // clicking an empty one opens the manager so it can be named.
+  const SLOTS = 20;
+  const slots = Array.from({ length: SLOTS }, (_, i) => {
+    const f = feeds[i];
+    return f ? { key: f.id, name: f.name } : { key: `empty-${i}`, name: "", empty: true };
+  });
+  const tabRows = [slots.slice(0, 10), slots.slice(10, 20), [
+    { key: "all", name: "All" },
+    { key: "manage", name: "Feeds manager" },
+  ]];
 
   return (
     <div className="w-full overflow-x-auto">
@@ -196,12 +196,12 @@ export default function KnowledgeFeeds() {
             {row.map((t) => (
               <button
                 key={t.key}
-                onClick={() => setTab(t.key)}
-                title={t.name}
+                onClick={() => setTab(t.empty ? "manage" : t.key)}
+                title={t.empty ? "Free slot, add a feed" : t.name}
                 className={tabClass(tab === t.key)}
                 style={tab === t.key ? { backgroundColor: BODY_BG } : undefined}
               >
-                {t.name}
+                {t.name || " "}
               </button>
             ))}
           </div>
