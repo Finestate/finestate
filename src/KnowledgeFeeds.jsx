@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Trash2, RefreshCw, X } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
-// Knowledge feeds: a tab per RSS or Google Alerts feed, headlines underneath. The
-// feed list is typed in here and kept in Supabase, so it follows you between devices.
+// Knowledge feeds, built the way the Says feeds box works: a strip of tabs, then the
+// headlines from the feed behind the open tab. The feed list is typed in here and
+// kept in Supabase, so it follows you between devices.
 const DOC_ID = "knowledge-feeds";
-const BAR_BG = "#F2C46D";
+const BAR_BG = "#F2C46D";   // title bar
+const BODY_BG = "#FBF5E9";  // panel behind the headlines, as on the other sites
 const GOLD = "#9c7c33";
 const RED = "#C1440E";
 
@@ -32,18 +34,23 @@ function parseFeedXml(xmlText, feedName) {
     }
     return {
       feedName,
-      title: stripTags(entry.querySelector("title")?.textContent || ""),
+      title: plain(entry.querySelector("title")?.textContent || ""),
       link: cleanLink(link),
       published: isAtom
         ? entry.querySelector("published")?.textContent || entry.querySelector("updated")?.textContent || ""
         : entry.querySelector("pubDate")?.textContent || "",
+      summary: plain(
+        isAtom
+          ? entry.querySelector("content")?.textContent || entry.querySelector("summary")?.textContent || ""
+          : entry.querySelector("description")?.textContent || ""
+      ),
     };
   });
 }
 
-const stripTags = (s) => String(s || "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+const plain = (s) => String(s || "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 
-// Google Alerts wraps every link in its own redirect; the real address is in `url`.
+// Google Alerts wraps every link in its own redirect; the real address sits in `url`.
 const cleanLink = (href) => {
   try {
     const u = new URL(href);
@@ -54,28 +61,27 @@ const cleanLink = (href) => {
   }
 };
 
+const dedupe = (items) => {
+  const seen = new Set();
+  return items.filter((i) => (seen.has(i.link) ? false : seen.add(i.link)));
+};
+
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const shortDate = (s) => {
+const when = (s) => {
   const d = new Date(s);
   if (isNaN(d)) return "";
-  return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]}`;
-};
-const sourceOf = (link) => {
-  try {
-    return new URL(link).hostname.replace(/^www\./, "");
-  } catch {
-    return "";
-  }
+  const mins = Math.round((Date.now() - d) / 60000);
+  const age = mins < 60 ? `${Math.max(mins, 1)}m` : mins < 1440 ? `${Math.round(mins / 60)}h` : `${Math.round(mins / 1440)}d`;
+  return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} · ${age}`;
 };
 
 export default function KnowledgeFeeds() {
   const [feeds, setFeeds] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  const [active, setActive] = useState(null); // feed id, or "all"
-  const [items, setItems] = useState({}); // feed id -> parsed entries
+  const [tab, setTab] = useState("all"); // "all", a feed id, or "manage"
+  const [items, setItems] = useState({});
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [confirm, setConfirm] = useState(null);
@@ -89,9 +95,7 @@ export default function KnowledgeFeeds() {
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) setErr(error.message);
-        const list = Array.isArray(data?.data) ? data.data : [];
-        setFeeds(list);
-        setActive(list.length ? list[0].id : null);
+        setFeeds(Array.isArray(data?.data) ? data.data : []);
         setLoaded(true);
       });
   }, []);
@@ -105,14 +109,13 @@ export default function KnowledgeFeeds() {
   };
 
   const pull = async (feed, force) => {
-    if (!feed) return;
-    if (!force && pulled.current[feed.id]) return;
+    if (!feed || (!force && pulled.current[feed.id])) return;
     pulled.current[feed.id] = true;
     setBusy(true);
     try {
       const res = await fetch(`/api/rss?url=${encodeURIComponent(feed.url)}`);
       const xml = await res.text();
-      if (!res.ok) throw new Error(xml.slice(0, 120));
+      if (!res.ok) throw new Error(plain(xml).slice(0, 80));
       setItems((prev) => ({ ...prev, [feed.id]: parseFeedXml(xml, feed.name) }));
       setErr("");
     } catch (e) {
@@ -122,17 +125,18 @@ export default function KnowledgeFeeds() {
     }
   };
 
-  // Opening a tab pulls that feed once; the refresh button pulls it again.
+  // Opening a tab reads that feed once; the refresh arrow reads it again.
   useEffect(() => {
-    if (active && active !== "all") pull(feeds.find((f) => f.id === active));
-    if (active === "all") feeds.forEach((f) => pull(f));
+    if (!loaded) return;
+    if (tab === "all") feeds.forEach((f) => pull(f));
+    else if (tab !== "manage") pull(feeds.find((f) => f.id === tab));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, loaded]);
+  }, [tab, loaded, feeds.length]);
 
   const rows = useMemo(() => {
-    const list = active === "all" ? feeds.flatMap((f) => items[f.id] || []) : items[active] || [];
-    return [...list].sort((a, b) => new Date(b.published) - new Date(a.published));
-  }, [active, feeds, items]);
+    const list = tab === "all" ? feeds.flatMap((f) => items[f.id] || []) : items[tab] || [];
+    return dedupe([...list].sort((a, b) => new Date(b.published) - new Date(a.published)));
+  }, [tab, feeds, items]);
 
   const addFeed = () => {
     const name = newName.trim();
@@ -141,118 +145,124 @@ export default function KnowledgeFeeds() {
       setErr("A name and an https feed address are needed.");
       return;
     }
-    const feed = { id: newId(), name, url };
-    // Tabs read alphabetically, so a new feed slots into place.
-    save([...feeds, feed].sort((a, b) => a.name.localeCompare(b.name)));
+    save([...feeds, { id: newId(), name, url }].sort((a, b) => a.name.localeCompare(b.name)));
     setNewName("");
     setNewUrl("");
-    setAdding(false);
-    setActive(feed.id);
+    setErr("");
   };
 
   const removeFeed = () => {
     const next = feeds.filter((f) => f.id !== confirm);
     save(next);
-    if (active === confirm) setActive(next.length ? next[0].id : null);
+    if (tab === confirm) setTab("all");
     setConfirm(null);
   };
 
-  const tab = (on) =>
-    `h-[21px] shrink-0 whitespace-nowrap border px-2 text-[11px] font-bold uppercase leading-none tracking-wide transition-colors ${
-      on ? "border-black bg-white text-neutral-900" : "border-transparent text-neutral-500 hover:text-neutral-900"
+  const refresh = () => {
+    if (tab === "all") feeds.forEach((f) => pull(f, true));
+    else if (tab !== "manage") pull(feeds.find((f) => f.id === tab), true);
+  };
+
+  // Tabs: square cornered, one hairline, the open one carrying the panel colour so it
+  // reads as part of the sheet below it.
+  const tabClass = (on) =>
+    `h-[19px] shrink-0 whitespace-nowrap border px-2 text-[10px] font-bold uppercase leading-none tracking-wide transition-colors ${
+      on
+        ? "relative z-10 border-black border-b-transparent text-neutral-900"
+        : "border-transparent text-neutral-500 hover:text-neutral-900"
     }`;
 
   return (
     <div className="w-full overflow-x-auto">
-      <div className="w-full min-w-[720px] border border-black bg-white shadow-sm">
-        {/* Title bar with the refresh and add controls on the right. */}
+      <div className="w-full min-w-[720px] border border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
         <div className="flex h-[18px] items-center gap-2 px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={`flex-1 ${head}`}>Knowledge feeds</span>
-          <button
-            onClick={() => (active === "all" ? feeds.forEach((f) => pull(f, true)) : pull(feeds.find((f) => f.id === active), true))}
-            title="Refresh"
-            className="flex h-[15px] items-center text-neutral-900 transition-opacity hover:opacity-70"
-          >
+          <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-700">{rows.length}</span>
+          <button onClick={refresh} title="Refresh" className="flex h-[15px] items-center text-neutral-900 transition-opacity hover:opacity-70">
             <RefreshCw size={11} className={busy ? "animate-spin" : ""} />
           </button>
-          <button onClick={() => setAdding((v) => !v)} title="Add a feed" className="flex h-[15px] items-center text-neutral-900 transition-opacity hover:opacity-70">
-            <Plus size={12} />
+        </div>
+
+        <div className="flex items-end gap-0.5 border-t border-black px-2 pt-1" style={{ backgroundColor: BAR_BG }}>
+          <button onClick={() => setTab("all")} className={tabClass(tab === "all")} style={tab === "all" ? { backgroundColor: BODY_BG } : undefined}>
+            All
+          </button>
+          {feeds.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setTab(f.id)}
+              title={f.name}
+              className={tabClass(tab === f.id)}
+              style={tab === f.id ? { backgroundColor: BODY_BG } : undefined}
+            >
+              {f.name}
+            </button>
+          ))}
+          <button onClick={() => setTab("manage")} className={tabClass(tab === "manage")} style={tab === "manage" ? { backgroundColor: BODY_BG } : undefined}>
+            Feeds
           </button>
         </div>
 
-        {/* One slim tab per feed, the open one framed. */}
-        <div className="flex items-center gap-1 overflow-x-auto border-t border-black px-2 py-1">
-          <button onClick={() => setActive("all")} className={tab(active === "all")}>All</button>
-          {feeds.map((f) => (
-            <span key={f.id} className="group relative flex shrink-0 items-center">
-              <button onClick={() => setActive(f.id)} className={tab(active === f.id)}>{f.name}</button>
-              <button
-                onClick={() => setConfirm(f.id)}
-                title="Remove this feed"
-                className="ml-0.5 hidden text-neutral-400 hover:text-[#C1440E] group-hover:block"
-              >
-                <X size={10} />
+        {tab === "manage" ? (
+          <div className="border-t border-black">
+            <div className="flex h-[21px] items-center gap-1 border-b border-black px-2">
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Name"
+                className="w-40 shrink-0 bg-transparent text-[11px] leading-[15px] outline-none placeholder:text-neutral-400"
+              />
+              <input
+                value={newUrl}
+                onChange={(e) => setNewUrl(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") addFeed(); }}
+                placeholder="https:// feed address"
+                className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] outline-none placeholder:text-neutral-400"
+              />
+              <button onClick={addFeed} title="Add this feed" style={{ color: GOLD }} className="flex h-[15px] items-center hover:opacity-70">
+                <Plus size={12} />
               </button>
-            </span>
-          ))}
-          {!feeds.length && loaded && (
-            <span className="text-[11px] italic text-neutral-400">No feeds yet. Use the plus above.</span>
-          )}
-        </div>
-
-        {adding && (
-          <div className="flex h-[21px] items-center gap-1 border-t border-black bg-neutral-50 px-2">
-            <input
-              autoFocus
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Name"
-              className="w-40 shrink-0 bg-transparent text-[11px] leading-[15px] outline-none placeholder:text-neutral-300"
-            />
-            <input
-              value={newUrl}
-              onChange={(e) => setNewUrl(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") addFeed(); if (e.key === "Escape") setAdding(false); }}
-              placeholder="https:// feed address"
-              className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] outline-none placeholder:text-neutral-300"
-            />
-            <button onClick={addFeed} title="Save" style={{ color: GOLD }} className="flex h-[15px] items-center hover:opacity-70">
-              <Plus size={12} />
-            </button>
-            <button onClick={() => setAdding(false)} title="Cancel" className="flex h-[15px] items-center text-neutral-900 hover:text-[#C1440E]">
-              <X size={12} />
-            </button>
+            </div>
+            {feeds.map((f) => (
+              <div key={f.id} className="flex h-[21px] items-center gap-2 border-b border-black px-2">
+                <span className="w-40 shrink-0 truncate text-[11px] font-semibold leading-[15px] text-neutral-900">{f.name}</span>
+                <span className="min-w-0 flex-1 truncate text-[11px] leading-[15px] text-neutral-500">{f.url}</span>
+                <button onClick={() => setConfirm(f.id)} title="Remove this feed" className="flex h-[15px] items-center text-neutral-900 hover:text-[#C1440E]">
+                  <Trash2 size={11} />
+                </button>
+              </div>
+            ))}
+            {!feeds.length && <p className="px-2 py-2 text-[11px] italic text-neutral-400">No feeds yet. Paste a Google Alerts or RSS address above.</p>}
           </div>
-        )}
-
-        {/* Column headings, then a row per headline. */}
-        <div className="flex h-[18px] items-center gap-2 border-t border-black px-2" style={{ backgroundColor: "#FFE4B3" }}>
-          <span className={`w-[14%] shrink-0 ${head}`}>Date</span>
-          <span className={`w-[18%] shrink-0 ${head}`}>Source</span>
-          <span className={`min-w-0 flex-1 ${head}`}>Headline</span>
-        </div>
-
-        {rows.map((r, i) => (
-          <div key={`${r.link}-${i}`} className="flex h-[21px] items-center gap-2 border-t border-black px-2">
-            <span className="w-[14%] shrink-0 text-[11px] leading-[15px] tabular-nums text-neutral-900">{shortDate(r.published)}</span>
-            <span className="w-[18%] shrink-0 truncate text-[11px] leading-[15px] text-neutral-500">{sourceOf(r.link)}</span>
-            <a
-              href={r.link}
-              target="_blank"
-              rel="noreferrer"
-              className="min-w-0 flex-1 truncate text-[11px] leading-[15px] underline underline-offset-2"
-              style={{ color: "#171717" }}
-              title={r.title}
-            >
-              {r.title}
-            </a>
+        ) : (
+          <div className="border-t border-black">
+            {rows.map((r, i) => (
+              <div key={`${r.link}-${i}`} className={`px-2 py-[3px] ${i === 0 ? "" : "border-t border-neutral-300"}`}>
+                <div className="flex items-start gap-2">
+                  <a
+                    href={r.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={r.title}
+                    className="min-w-0 flex-1 truncate text-[11px] leading-[15px] underline underline-offset-2"
+                    style={{ color: "#171717" }}
+                  >
+                    <span className="font-bold uppercase" style={{ color: GOLD }}>{r.feedName}: </span>
+                    {r.title}
+                  </a>
+                  <span className="shrink-0 whitespace-nowrap text-[10px] leading-[15px] tabular-nums text-neutral-500">{when(r.published)}</span>
+                </div>
+                {r.summary && (
+                  <p className="truncate text-[10px] leading-[14px] text-neutral-500">{r.summary}</p>
+                )}
+              </div>
+            ))}
+            {loaded && !rows.length && (
+              <p className="px-2 py-2 text-[11px] italic text-neutral-400">
+                {feeds.length ? "Nothing in this feed right now." : "Open the Feeds tab to add one."}
+              </p>
+            )}
           </div>
-        ))}
-
-        {loaded && !rows.length && (
-          <p className="border-t border-black px-2 py-2 text-[11px] italic text-neutral-400">
-            {feeds.length ? "Nothing in this feed right now." : "Add a feed to start."}
-          </p>
         )}
       </div>
 
