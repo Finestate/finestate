@@ -6,7 +6,8 @@ import { supabase } from "./lib/supabaseClient.js";
 // addresses as you like. Everything is kept in Supabase, so it follows you between
 // devices, and the sheet under the tabs stays blank until a feed returns something.
 const DOC_ID = "knowledge-feeds";
-const SLOTS = 10;
+// Five tabs to start with; the plus at the end adds the next one when they fill up.
+const SLOTS = 5;
 const BODY_BG = "#FBF5E9";
 const RED = "#C1440E";
 
@@ -24,7 +25,7 @@ const toSlots = (data) => {
       : { id: x?.id || newId(), name: x?.name || "", urls: x?.url ? [x.url] : [] }
   );
   while (slots.length < SLOTS) slots.push(blankSlot());
-  return slots.slice(0, SLOTS);
+  return slots;
 };
 
 // Atom entries and RSS items both reduce to a headline, a link and a date.
@@ -173,33 +174,39 @@ export default function KnowledgeFeeds() {
 
   return (
     <div className="w-full overflow-x-auto">
-      <div className="w-full min-w-[720px] overflow-hidden rounded-xl border border-neutral-300 shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        <div className="border-b-2 border-neutral-300 px-4 py-3 text-center" style={{ backgroundColor: BODY_BG }}>
-          <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-700">Intel</h3>
+      <div className="w-full min-w-[720px] overflow-hidden border-2 border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
+        <div className="border-b-2 border-black px-2 py-1 text-center" style={{ backgroundColor: BODY_BG }}>
+          <h3 className="text-[11px] font-bold uppercase tracking-wide text-neutral-800">Intel</h3>
         </div>
 
-        {/* Every tab opens, named or not; the settings icon names it and adds feeds. */}
-        <div className="flex gap-1 border-b-2 border-neutral-300 bg-neutral-100 px-2 pt-1">
+        {/* Every tab opens, named or not; the cog names it and adds feeds. The plus at
+            the end opens one more tab once these are used up. */}
+        <div className="flex gap-1 border-b-2 border-black bg-neutral-100 px-2 pt-1">
           {slots.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setOpen(i)}
-              title={s.name || "Unnamed tab"}
-              className={`min-w-0 flex-1 truncate rounded-t-lg border border-neutral-300 px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-colors ${
-                i === open ? "relative z-10 text-neutral-800" : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
+              title={s.name || "Free tab"}
+              className={`min-w-0 flex-1 truncate border-2 border-black px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight transition-colors ${
+                i === open ? "relative z-10 text-neutral-900" : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
               }`}
               style={i === open ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG } : undefined}
             >
               {s.name || " "}
             </button>
           ))}
+          <button
+            onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpen(next.length - 1); setSettings(true); }}
+            title="Add another tab"
+            className="shrink-0 border-2 border-black bg-neutral-200 px-2 py-1.5 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+          >
+            <Plus size={12} />
+          </button>
         </div>
 
         <div className="min-h-[200px] p-3">
           <div className="mb-2 flex items-center gap-2">
-            <span className="flex-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
-              {slot.name || "Unnamed"} {slot.urls.length ? `· ${slot.urls.length} feeds` : ""}
-            </span>
+            <span className="flex-1" />
             <button onClick={() => pull(slot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
               <RefreshCw size={12} className={busy ? "animate-spin" : ""} />
             </button>
