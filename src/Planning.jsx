@@ -673,6 +673,36 @@ export default function Planning() {
     </div>
   );
 
+  // Today at a glance: the top line of every board, one under the other, read only.
+  const todayText = (b) => {
+    const board = boards[b];
+    const line = board?.lines?.[0];
+    if (!line) return "";
+    const fill = (c) => (line.fills?.[c] ? c.slice(0, -1) + line.fills[c] + ")" : c);
+    const codes = [...board.points.core, ...board.points.rest]
+      .filter((it) => line.codes.includes(it.code))
+      .map((it) => fill(it.code));
+    const meetings = line.meetings.map((m) => m.name);
+    return MEETING_BOARDS.includes(b)
+      ? [...codes, ...meetings].join("  ·  ")
+      : codes.join("-");
+  };
+  const renderToday = () => (
+    <>
+      <div className="flex h-[18px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
+        <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
+      </div>
+      {BOARDS.map(([b, label]) => (
+        <div key={b} className="flex min-h-[21px] items-start gap-2 border-t border-black bg-white px-2 py-[3px]">
+          <span className="w-20 shrink-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{label}</span>
+          <span className="min-w-0 flex-1 whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-900">
+            {todayText(b)}
+          </span>
+        </div>
+      ))}
+    </>
+  );
+
   // A company day line: short codes only, each carrying its own typed detail in
   // brackets, dash separated, as in AO(xxx)-CP(yyy).
   const renderShortLine = (b, codes, idx) => (
@@ -1270,6 +1300,8 @@ export default function Planning() {
                 </div>
                 {/* Notes areas are plain black text, so they carry no ribbon. */}
                 {isHead && !locked && !plainHead && !collapsed.includes(r.id) && renderRibbon(i)}
+                {/* Straight under the Daily bar: today's line from every board. */}
+                {isDailyGroup(r) && renderToday()}
                 {board && renderTodoLines(board)}
                 {addMenu === i && <TypeMenu at={i + 1} opts={SECTION_TYPES} />}
               </div>
