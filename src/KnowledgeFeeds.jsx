@@ -307,7 +307,7 @@ export default function KnowledgeFeeds() {
                   key={`${r.link}-${i}`}
                   onClick={() => readStory(r.link)}
                   title={shown ? "Close" : "Summary for investing"}
-                  className="cursor-pointer py-[6px]"
+                  className="cursor-pointer py-1"
                 >
                   <a
                     href={r.link}
@@ -319,10 +319,10 @@ export default function KnowledgeFeeds() {
                   >
                     {r.title}
                   </a>
-                  {!shown && r.summary && <p className="mt-0.5 text-xs leading-[15px] text-neutral-500">{r.summary}</p>}
-                  {shown && shown !== "loading" && <p className="mt-0.5 text-xs leading-[16px] text-neutral-700">{shown}</p>}
-                  {shown === "loading" && <p className="mt-0.5 text-xs leading-[15px] text-neutral-400">Summarising…</p>}
-                  {r.published && <p className="text-[10px] leading-[13px] text-neutral-400">Published: {when(r.published)} ago</p>}
+                  {!shown && r.summary && <p className="truncate text-[11px] leading-[14px] text-neutral-500">{r.summary}</p>}
+                  {shown && shown !== "loading" && <p className="mt-0.5 text-[11px] leading-[15px] text-neutral-700">{shown}</p>}
+                  {shown === "loading" && <p className="text-[11px] leading-[14px] text-neutral-400">Summarising…</p>}
+                  {r.published && <p className="text-[10px] leading-[12px] text-neutral-400">{when(r.published)} ago</p>}
                 </li>
               );
             })}
