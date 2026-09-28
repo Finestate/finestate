@@ -259,7 +259,7 @@ export default function KnowledgeFeeds() {
     );
     return (
       <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 shadow-sm">
-        <div className="border-b-[3px] border-neutral-500 px-4 py-1.5 text-center" style={{ backgroundColor: BODY_BG }}>
+        <div className="border-b-[3px] border-neutral-500 px-4 py-1.5 text-center" style={{ backgroundColor: OPEN_TAB_BG }}>
           <h3 className="text-xs font-bold uppercase tracking-wide text-neutral-700">Intel</h3>
         </div>
 
