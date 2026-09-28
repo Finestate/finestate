@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Trash2, RefreshCw, Settings, ChevronDown, Folder } from "lucide-react";
+import { Plus, Trash2, RefreshCw, SquarePen } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Intel: ten tabs, each one named by you and holding as many RSS or Google Alerts
@@ -316,7 +316,7 @@ export default function KnowledgeFeeds() {
               <RefreshCw size={14} className={busy ? "animate-spin text-[#C1440E]" : ""} />
             </button>
             <button onClick={() => setSettings(openIdx)} title="Name this tab and add feeds" className="text-neutral-400 transition-colors hover:text-neutral-700">
-              <Settings size={14} />
+              <SquarePen size={14} />
             </button>
             {/* When the feed was last read, as against how old its newest story is. */}
             {read[panelSlot.id] && (
@@ -374,89 +374,54 @@ export default function KnowledgeFeeds() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setSettings(null)}>
           {/* A table like every other one here: title bar, column heads, then a row
               per feed with its name on the left and its address on the right. */}
-          <div className="w-full max-w-2xl border-[3px] border-black bg-white p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex h-[21px] items-center gap-2">
-              <input
-                autoFocus
-                value={slot.name}
-                onChange={(e) => patchSlot({ name: e.target.value.toUpperCase() })}
-                placeholder="TAB NAME"
-                className="min-w-0 flex-1 bg-transparent text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900 outline-none placeholder:text-neutral-500"
-              />
-            </div>
-
-            <div className="mt-2 flex h-[18px] items-center gap-2">
-              <span className="w-48 shrink-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Feed name</span>
-              <span className="min-w-0 flex-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Link</span>
-              <span className="w-4 shrink-0" />
-            </div>
+          {/* Plain white sheet, one hairline, the tab name at the top and a line per
+              feed underneath. Nothing else. */}
+          <div className="w-full max-w-xl border border-neutral-900 bg-white px-5 py-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <input
+              autoFocus
+              value={slot.name}
+              onChange={(e) => patchSlot({ name: e.target.value.toUpperCase() })}
+              placeholder="TAB NAME"
+              className="w-full bg-transparent pb-2 text-[13px] font-bold uppercase tracking-[0.12em] text-neutral-900 outline-none placeholder:text-neutral-300"
+            />
 
             {slot.urls.map((u) => (
-              <div key={u.id} className="flex h-[21px] items-center gap-2">
+              <div key={u.id} className="flex items-center gap-3 border-t border-neutral-200 py-1.5">
                 <input
                   value={u.name}
                   onChange={(e) => patchUrl(u.id, { name: e.target.value })}
                   placeholder="Keywords"
-                  className="w-48 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
+                  className="w-44 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
                 />
                 <input
                   value={u.url}
                   onChange={(e) => patchUrl(u.id, { url: e.target.value })}
-                  className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-500 outline-none"
+                  className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-400 outline-none"
                 />
-                <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="flex h-[15px] w-4 shrink-0 items-center text-neutral-900 hover:text-[#C1440E]">
-                  <Trash2 size={11} />
+                <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="shrink-0 text-neutral-300 transition-colors hover:text-[#C1440E]">
+                  <Trash2 size={12} />
                 </button>
               </div>
             ))}
 
-            {/* The row that adds the next feed. */}
-            <div className="flex h-[21px] items-center gap-2">
+            <div className="flex items-center gap-3 border-t border-neutral-200 py-1.5">
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Keywords"
-                className="w-48 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
+                className="w-44 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
               />
               <input
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(null); }}
                 placeholder="https:// feed address"
-                className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-500 outline-none placeholder:text-neutral-300"
+                className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-400 outline-none placeholder:text-neutral-300"
               />
-              <button onClick={addUrl} title="Add this feed" className="flex h-[15px] w-4 shrink-0 items-center" style={{ color: RED }}>
-                <Plus size={12} />
+              <button onClick={addUrl} title="Add this feed" className="shrink-0" style={{ color: RED }}>
+                <Plus size={13} />
               </button>
             </div>
-
-            {/* Every other tab's feeds, so all the keyword sets stay in one view. */}
-            {slots.some((s, i) => i !== open && s.urls.length) && (
-              <>
-                <div className="mt-3 flex h-[18px] items-center">
-                  <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Other tabs</span>
-                </div>
-                {slots.map((s, i) =>
-                  i === open
-                    ? null
-                    : s.urls.map((u) => (
-                        <div key={u.id} className="flex h-[21px] items-center gap-2">
-                          <span className="w-24 shrink-0 truncate text-[10px] font-bold uppercase leading-[15px] tracking-wide text-neutral-500">{s.name || "–"}</span>
-                          <span className="w-48 shrink-0 truncate text-[11px] leading-[15px] text-neutral-900">{u.name}</span>
-                          <span className="min-w-0 flex-1 truncate text-[11px] leading-[15px] text-neutral-500">{u.url}</span>
-                        </div>
-                      ))
-                )}
-              </>
-            )}
-
-            <button
-              onClick={() => setSettings(null)}
-              style={{ color: RED }}
-              className="mt-3 flex h-[21px] w-full items-center justify-center text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"
-            >
-              Done
-            </button>
           </div>
         </div>
       )}
