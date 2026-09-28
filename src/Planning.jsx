@@ -693,7 +693,8 @@ export default function Planning() {
         <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
       </div>
       {BOARDS.map(([b, label]) => (
-        <div key={b} className="min-h-[21px] border-t border-black bg-white px-2 py-[3px]">
+        // The mirrored lines sit on the faint pink so they read as the day's summary.
+        <div key={b} className="min-h-[21px] border-t border-black px-2 py-[3px]" style={{ backgroundColor: DAY_BG }}>
           <span className="block whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-900">
             {todayText(b)}
           </span>
