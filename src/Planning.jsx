@@ -167,10 +167,12 @@ const focusEnd = (el) => {
 // many lines as the words need – nothing is ever cut off.
 function WrapLine({ text, onChange, className }) {
   const ref = useRef(null);
+  // Follows text that arrives later, such as a load from Supabase, but never
+  // rewrites itself while the caret is in it.
   useEffect(() => {
-    if (ref.current) ref.current.textContent = text || "";
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const el = ref.current;
+    if (el && document.activeElement !== el && el.textContent !== (text || "")) el.textContent = text || "";
+  }, [text]);
   return (
     <span
       ref={ref}
