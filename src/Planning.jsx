@@ -21,7 +21,7 @@ const TWOCOL_KEY = "personal-order"; // row id in the private admin_docs table
 const NOTES_KEY = "finestate.planning.notes"; // department notes, one per company board
 
 // The lists that sit under the daily area, side by side, under one folding bar.
-const TWOCOLS = [["quicks", "Errands quicks"], ["errands", "Errands prios"], ["hf", "H+F order"]];
+const TWOCOLS = [["errands", "Errands prios"], ["hf", "H+F order"]];
 const PERSONAL_ID = "personal-order";
 // A tick lives on one day line. Older saves ticked the list itself, and those count
 // as ticks on the first line.
@@ -375,7 +375,7 @@ export default function Planning() {
   const [todoAnchor, setTodoAnchor] = useState(() => { try { return localStorage.getItem(TODO_ANCHOR_KEY) || null; } catch { return null; } });
   // Errands prios and H+F order: plain lists, each line typed, moved or binned.
   // These hold door codes and names, so they live in Supabase, never in this public repo.
-  const [cols, setCols] = useState({ quicks: [], errands: [], hf: [], notes: "" });
+  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [] });
   useEffect(() => {
     supabase
       .from("admin_docs")
@@ -385,7 +385,7 @@ export default function Planning() {
       .then(({ data }) => {
         const d = data?.data;
         // A column added later starts empty rather than undefined.
-        if (d) setCols({ quicks: d.quicks || [], errands: d.errands || [], hf: d.hf || [], notes: d.notes || "" });
+        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [] });
       });
   }, []);
   const saveCols = (next) => {
@@ -1105,7 +1105,15 @@ export default function Planning() {
             </div>
           </div>
         ))}
-        {/* One rough notes block across all three columns. */}
+        {/* Third column: a free field, no lines and no tick boxes, just text. */}
+        <div className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+          <WrapLine
+            text={cols.scratch || ""}
+            onChange={(t) => saveCols({ ...cols, scratch: t })}
+            className="block min-h-[30px] w-full flex-1 whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
+          />
+        </div>
+        {/* The old rough notes block stays underneath while you move its text up. */}
         <div className="col-span-3 border-[3px] border-[#C1440E] p-1.5">
           <WrapLine
             text={cols.notes || ""}
