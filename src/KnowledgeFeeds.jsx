@@ -12,6 +12,7 @@ const BAR_BG = "#F2C46D";  // title bar, as on every other table here
 const TAB_BG = "#FFE4B3";  // the strip the folder tabs sit on
 const FOLD_BG = "#F7D9A3"; // a closed folder tab
 const OPEN_TAB_BG = "#FBE3DC"; // the tab you are on, a light pink red
+const TAB_PINK = "#F7DCD4";    // a closed tab, the same red watered down
 // The folder shape, and the same shape a hair inside it, which leaves the outline.
 const FOLD_CUT = "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)";
 const FOLD_CUT_INNER = "polygon(10px 1px, calc(100% - 1px) 1px, calc(100% - 10px) 100%, 1px 100%)";
@@ -268,12 +269,15 @@ export default function KnowledgeFeeds() {
               key={s.id}
               onClick={() => setOpenIdx(i)}
               title={s.name || "Free tab"}
-              className={`min-w-0 flex-1 truncate rounded-t-lg border border-neutral-300 px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-colors ${
-                i === openIdx
-                  ? "relative z-10 text-neutral-800"
-                  : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
+              className={`min-w-0 flex-1 truncate rounded-t-lg border border-neutral-300 px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-opacity ${
+                i === openIdx ? "relative z-10 text-neutral-800" : "text-neutral-500 hover:opacity-80 hover:text-neutral-700"
               }`}
-              style={i === openIdx ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG } : undefined}
+              // The open tab takes the sheet colour, the closed ones a watered down red.
+              style={
+                i === openIdx
+                  ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG }
+                  : { backgroundColor: TAB_PINK }
+              }
             >
               {s.name || " "}
             </button>
@@ -281,7 +285,8 @@ export default function KnowledgeFeeds() {
           <button
             onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpenIdx(next.length - 1); setSettings(true); }}
             title="Add another tab"
-            className="shrink-0 rounded-t-lg border border-neutral-300 bg-neutral-200 px-2 py-1.5 text-neutral-500 shadow-sm transition-colors hover:bg-neutral-50 hover:text-neutral-700"
+            style={{ backgroundColor: TAB_PINK }}
+            className="shrink-0 rounded-t-lg border border-neutral-300 px-2 py-1.5 text-neutral-500 shadow-sm transition-opacity hover:opacity-80 hover:text-neutral-700"
           >
             <Plus size={12} />
           </button>
