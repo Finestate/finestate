@@ -132,6 +132,7 @@ export default function KnowledgeFeeds() {
   const [open, setOpen] = useState(0); // the left panel's open tab
   const [open2, setOpen2] = useState(1); // the right panel's open tab
   const [items, setItems] = useState({}); // slot id -> parsed entries
+  const [read, setRead] = useState({}); // slot id -> when it was last read
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [settings, setSettings] = useState(false); // the popup for the open tab
@@ -196,6 +197,7 @@ export default function KnowledgeFeeds() {
         })
       );
       setItems((prev) => ({ ...prev, [s.id]: all.flat() }));
+      setRead((prev) => ({ ...prev, [s.id]: Date.now() }));
       setErr("");
     } catch (e) {
       setErr(e.message || "A feed could not be read.");
@@ -302,6 +304,10 @@ export default function KnowledgeFeeds() {
             <button onClick={() => { setOpen(openIdx); setSettings(true); }} title="Name this tab and add feeds" className="text-neutral-400 transition-colors hover:text-neutral-700">
               <Settings size={14} />
             </button>
+            {/* When the feed was last read, as against how old its newest story is. */}
+            {read[panelSlot.id] && (
+              <span className="text-[10px] text-neutral-400">read {when(read[panelSlot.id])} ago</span>
+            )}
           </div>
 
           <ul className="divide-y-2 divide-neutral-400">
