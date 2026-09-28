@@ -71,7 +71,8 @@ export default async function handler(req, res) {
   try {
     const xml = await fetchXml(target.toString());
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
-    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate");
+    // A minute at the edge at most, so the page is never reading an old feed.
+    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=60");
     res.status(200).send(xml);
   } catch {
     res.status(502).send("Failed to fetch feed");

@@ -186,7 +186,8 @@ export default function KnowledgeFeeds() {
     try {
       const all = await Promise.all(
         s.urls.map(async ({ url }) => {
-          const res = await fetch(`/api/rss?url=${encodeURIComponent(url)}`);
+          // The stamp keeps the browser and the edge from serving an old copy.
+          const res = await fetch(`/api/rss?url=${encodeURIComponent(url)}&t=${Date.now()}`, { cache: "no-store" });
           const xml = await res.text();
           if (!res.ok) throw new Error(plain(xml).slice(0, 80));
           return parseFeedXml(xml);
@@ -208,6 +209,17 @@ export default function KnowledgeFeeds() {
     pull(slots[open2]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, open2, loaded, slots[open]?.urls.length, slots[open2]?.urls.length]);
+
+  // And again every five minutes, so a page left open keeps up with the feeds.
+  useEffect(() => {
+    if (!loaded) return;
+    const tick = setInterval(() => {
+      pull(slots[open], true);
+      pull(slots[open2], true);
+    }, 5 * 60 * 1000);
+    return () => clearInterval(tick);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, open2, loaded, slots]);
 
   const addUrl = () => {
     const url = newUrl.trim();
