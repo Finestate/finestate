@@ -660,7 +660,8 @@ export default function Planning() {
               // line itself is read only and a click just opens the picker.
               <span className="inline-flex items-center">
                 {c.slice(0, -1)}
-                <span className="whitespace-pre" style={{ color: "#B01E2F" }}>{fill}</span>
+                {/* On the line it always reads in lower case, whatever was typed below. */}
+                <span className="whitespace-pre lowercase" style={{ color: "#B01E2F" }}>{fill}</span>
                 )
               </span>
             ) : (
@@ -829,7 +830,9 @@ export default function Planning() {
               // Master carries a meetings column as well; the company boards are just
               // their two point columns.
               // No background of its own, so an open picker keeps the board's colour.
-              <div className={`grid ${MEETING_BOARDS.includes(b) ? "grid-cols-3" : "grid-cols-2"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
+              // Master: core, meetings, the long list. A company board: prios,
+              // non-prios and its department notes.
+              <div className="grid grid-cols-3 items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5">
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
@@ -1012,7 +1015,7 @@ export default function Planning() {
                 {MEETING_BOARDS.includes(b) && renderTwoCols(idx)}
                 {/* A company board closes with its department notes instead. */}
                 {!MEETING_BOARDS.includes(b) && (
-                  <div className="order-4 col-span-2 flex flex-col border-[3px] border-[#C1440E] p-1.5">
+                  <div className="order-3 flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
                     <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Department notes</p>
                     <WrapLine
                       key={`notes-${b}`}
