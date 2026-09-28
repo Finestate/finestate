@@ -673,32 +673,15 @@ export default function Planning() {
     </div>
   );
 
-  // Today at a glance: the top line of every board, one under the other, read only.
-  const todayText = (b) => {
-    const board = boards[b];
-    const line = board?.lines?.[0];
-    if (!line) return "";
-    const fill = (c) => (line.fills?.[c] ? c.slice(0, -1) + line.fills[c] + ")" : c);
-    const codes = [...board.points.core, ...board.points.rest]
-      .filter((it) => line.codes.includes(it.code))
-      .map((it) => fill(it.code));
-    const meetings = line.meetings.map((m) => m.name);
-    return MEETING_BOARDS.includes(b)
-      ? [...codes, ...meetings].join("  ·  ")
-      : codes.join("-");
-  };
+  // Today: the first line of every board, stacked here and working exactly as it does
+  // in its own section, pickers and all.
   const renderToday = () => (
     <>
       <div className="flex h-[18px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
         <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
       </div>
-      {BOARDS.map(([b, label]) => (
-        // The mirrored lines sit on the faint pink so they read as the day's summary.
-        <div key={b} className="min-h-[21px] border-t border-black px-2 py-[3px]" style={{ backgroundColor: DAY_BG }}>
-          <span className="block whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-900">
-            {todayText(b)}
-          </span>
-        </div>
+      {BOARDS.map(([b]) => (
+        <div key={b}>{renderTodoLines(b, 0)}</div>
       ))}
     </>
   );
@@ -738,10 +721,11 @@ export default function Planning() {
 
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
-  const renderTodoLines = (b) => (
-    // Every board's pair sits on the same faint wash of the table red.
+  // `only` picks one of the two day lines: 0 is today, 1 is the day being planned.
+  const renderTodoLines = (b, only) => (
     <div className="border-t border-black bg-white">
       {boards[b].lines.map((line, idx) => {
+        if (only != null && idx !== only) return null;
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
         // Selected points keep their group on the line: meetings, core codes, then the rest.
@@ -1302,7 +1286,8 @@ export default function Planning() {
                 {isHead && !locked && !plainHead && !collapsed.includes(r.id) && renderRibbon(i)}
                 {/* Straight under the Daily bar: today's line from every board. */}
                 {isDailyGroup(r) && renderToday()}
-                {board && renderTodoLines(board)}
+                {/* A board section then carries the day being planned. */}
+                {board && renderTodoLines(board, 1)}
                 {addMenu === i && <TypeMenu at={i + 1} opts={SECTION_TYPES} />}
               </div>
             );
