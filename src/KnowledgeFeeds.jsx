@@ -13,7 +13,7 @@ const TAB_BG = "#FFE4B3";  // the strip the folder tabs sit on
 const FOLD_BG = "#F7D9A3"; // a closed folder tab
 const OPEN_TAB_BG = "#FBE3DC"; // the tab you are on, a light pink red
 const TAB_PINK = "#F7DCD4";    // a closed tab, the same red watered down
-const TAB_STRIP = "#EFC9BE";   // the strip behind the tabs, a shade deeper again
+const TAB_STRIP = "#D9C7B8";   // the strip behind the tabs: warm taupe, so the pink reads clearly
 // The folder shape, and the same shape a hair inside it, which leaves the outline.
 const FOLD_CUT = "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)";
 const FOLD_CUT_INNER = "polygon(10px 1px, calc(100% - 1px) 1px, calc(100% - 10px) 100%, 1px 100%)";
