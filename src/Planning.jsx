@@ -733,7 +733,9 @@ export default function Planning() {
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
-          <div key={idx} className={idx === 0 ? "" : "border-t border-black"}>
+          // Only the pair needs a rule between them; a single line already sits under
+          // the wrapper's own line.
+          <div key={idx} className={idx === 0 || only != null ? "" : "border-t border-black"}>
             {/* The whole line is the toggle – no chevron. */}
             <div
               onClick={() => openLine(b, open ? null : idx)}
