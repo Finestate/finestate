@@ -13,6 +13,7 @@ const TAB_BG = "#FFE4B3";  // the strip the folder tabs sit on
 const FOLD_BG = "#F7D9A3"; // a closed folder tab
 const OPEN_TAB_BG = "#FBE3DC"; // the tab you are on, a light pink red
 const TAB_PINK = "#F7DCD4";    // a closed tab, the same red watered down
+const TAB_STRIP = "#EFC9BE";   // the strip behind the tabs, a shade deeper again
 // The folder shape, and the same shape a hair inside it, which leaves the outline.
 const FOLD_CUT = "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)";
 const FOLD_CUT_INNER = "polygon(10px 1px, calc(100% - 1px) 1px, calc(100% - 10px) 100%, 1px 100%)";
@@ -263,7 +264,8 @@ export default function KnowledgeFeeds() {
           <h3 className="text-xs font-bold uppercase tracking-wide text-neutral-700">Intel</h3>
         </div>
 
-        <div className="flex gap-1 border-b-[3px] border-neutral-500 bg-neutral-100 px-2 pt-1">
+        {/* The strip the tabs sit on, a deeper tone of the same red. */}
+        <div className="flex gap-1 border-b-[3px] border-neutral-500 px-2 pt-1" style={{ backgroundColor: TAB_STRIP }}>
           {slots.map((s, i) => (
             <button
               key={s.id}
