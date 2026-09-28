@@ -144,7 +144,7 @@ export default function KnowledgeFeeds() {
   const [read, setRead] = useState({}); // slot id -> when it was last read
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [settings, setSettings] = useState(false); // the popup for the open tab
+  const [settings, setSettings] = useState(null); // the tab the popup is editing, by position
   const [newName, setNewName] = useState(""); // the keywords for the feed being added
   const [newUrl, setNewUrl] = useState("");
   const [story, setStory] = useState({}); // link -> text, or "loading"
@@ -188,8 +188,11 @@ export default function KnowledgeFeeds() {
       .then(({ error }) => setErr(error ? error.message : ""));
   };
 
-  const slot = slots[open] || blankSlot();
-  const patchSlot = (fields) => save(slots.map((s, i) => (i === open ? { ...s, ...fields } : s)));
+  // Everything in the popup works on the tab it was opened from, not on whatever the
+  // left panel happens to be showing.
+  const editIdx = settings != null ? settings : open;
+  const slot = slots[editIdx] || blankSlot();
+  const patchSlot = (fields) => save(slots.map((s, i) => (i === editIdx ? { ...s, ...fields } : s)));
 
   const pull = async (s, force) => {
     if (!s || !s.urls.length || (!force && pulled.current[s.id])) return;
@@ -205,7 +208,9 @@ export default function KnowledgeFeeds() {
           return parseFeedXml(xml);
         })
       );
-      setItems((prev) => ({ ...prev, [s.id]: all.flat() }));
+      // Google sometimes answers a feed request with nothing at all. Merging rather
+      // than replacing means a read like that cannot empty or freeze a tab.
+      setItems((prev) => ({ ...prev, [s.id]: dedupe([...all.flat(), ...(prev[s.id] || [])]) }));
       setRead((prev) => ({ ...prev, [s.id]: Date.now() }));
       setErr("");
     } catch (e) {
@@ -296,7 +301,7 @@ export default function KnowledgeFeeds() {
             </button>
           ))}
           <button
-            onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpenIdx(next.length - 1); setSettings(true); }}
+            onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpenIdx(next.length - 1); setSettings(next.length - 1); }}
             title="Add another tab"
             style={{ backgroundColor: TAB_PINK }}
             className="shrink-0 rounded-t-lg border border-neutral-300 px-2 py-1.5 text-neutral-500 shadow-sm transition-opacity hover:opacity-80 hover:text-neutral-700"
@@ -310,7 +315,7 @@ export default function KnowledgeFeeds() {
             <button onClick={() => pull(panelSlot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
               <RefreshCw size={14} className={busy ? "animate-spin text-[#C1440E]" : ""} />
             </button>
-            <button onClick={() => { setOpen(openIdx); setSettings(true); }} title="Name this tab and add feeds" className="text-neutral-400 transition-colors hover:text-neutral-700">
+            <button onClick={() => setSettings(openIdx)} title="Name this tab and add feeds" className="text-neutral-400 transition-colors hover:text-neutral-700">
               <Settings size={14} />
             </button>
             {/* When the feed was last read, as against how old its newest story is. */}
@@ -365,8 +370,8 @@ export default function KnowledgeFeeds() {
 
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
 
-      {settings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setSettings(false)}>
+      {settings != null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setSettings(null)}>
           {/* A table like every other one here: title bar, column heads, then a row
               per feed with its name on the left and its address on the right. */}
           <div className="w-full max-w-2xl border-[3px] border-black bg-white p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -416,7 +421,7 @@ export default function KnowledgeFeeds() {
               <input
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(false); }}
+                onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(null); }}
                 placeholder="https:// feed address"
                 className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-500 outline-none placeholder:text-neutral-300"
               />
@@ -446,7 +451,7 @@ export default function KnowledgeFeeds() {
             )}
 
             <button
-              onClick={() => setSettings(false)}
+              onClick={() => setSettings(null)}
               style={{ color: RED }}
               className="mt-3 flex h-[21px] w-full items-center justify-center text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"
             >
