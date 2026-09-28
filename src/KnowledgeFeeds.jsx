@@ -324,7 +324,7 @@ export default function KnowledgeFeeds() {
     <div className="w-full">
       {/* The pair fills what is left of the screen and never pushes past it; each
           panel scrolls inside itself, as on the other sites. */}
-      <div className="flex h-[calc(100vh-5rem)] w-full flex-row gap-4 overflow-x-auto">
+      <div className="flex h-[calc(100vh-8rem)] w-full flex-row gap-4 overflow-x-auto">
         {renderPanel(0)}
         {renderPanel(1)}
       </div>
