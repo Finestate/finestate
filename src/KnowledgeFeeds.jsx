@@ -127,7 +127,8 @@ const isFresh = (s) => {
 export default function KnowledgeFeeds() {
   const [slots, setSlots] = useState(toSlots([]));
   const [loaded, setLoaded] = useState(false);
-  const [open, setOpen] = useState(0); // which tab is open, by position
+  const [open, setOpen] = useState(0); // the left panel's open tab
+  const [open2, setOpen2] = useState(1); // the right panel's open tab
   const [items, setItems] = useState({}); // slot id -> parsed entries
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -200,21 +201,13 @@ export default function KnowledgeFeeds() {
     }
   };
 
-  // Reads the open tab once, and again whenever its feed list changes.
+  // Reads whatever each panel has open, and again when a feed list changes.
   useEffect(() => {
-    if (loaded) pull(slots[open]);
+    if (!loaded) return;
+    pull(slots[open]);
+    pull(slots[open2]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, loaded, slots[open]?.urls.length]);
-
-  const rows = useMemo(
-    () =>
-      dedupe(
-        (items[slot.id] || [])
-          .filter((r) => isFresh(r.published))
-          .sort((a, b) => new Date(b.published) - new Date(a.published))
-      ),
-    [items, slot.id]
-  );
+  }, [open, open2, loaded, slots[open]?.urls.length, slots[open2]?.urls.length]);
 
   const addUrl = () => {
     const url = newUrl.trim();
@@ -240,93 +233,98 @@ export default function KnowledgeFeeds() {
     setItems((prev) => ({ ...prev, [slot.id]: [] }));
   };
 
-  return (
-    <div className="w-full overflow-x-auto">
-      <div className="w-full min-w-[720px] overflow-hidden border border-black shadow-sm" style={{ backgroundColor: BODY_BG }}>
-        {/* Title bar exactly as the Planning table: 18px, gold, name on the left. */}
-        <div className="flex h-[18px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Intel</span>
+  // One panel, built to the same measurements as the Says feeds box. Two of them sit
+  // side by side, each with its own open tab, so two feeds can be read at once.
+  const renderPanel = (which) => {
+    const openIdx = which === 0 ? open : open2;
+    const setOpenIdx = which === 0 ? setOpen : setOpen2;
+    const panelSlot = slots[openIdx] || blankSlot();
+    const panelRows = dedupe(
+      (items[panelSlot.id] || [])
+        .filter((r) => isFresh(r.published))
+        .sort((a, b) => new Date(b.published) - new Date(a.published))
+    );
+    return (
+      <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-2 border-neutral-300 shadow-sm">
+        <div className="border-b-2 border-neutral-300 px-4 py-1.5 text-center" style={{ backgroundColor: BODY_BG }}>
+          <h3 className="text-xs font-bold uppercase tracking-wide text-neutral-700">Intel</h3>
         </div>
 
-        {/* Every tab opens, named or not; the cog names it and adds feeds. The plus at
-            the end opens one more tab once these are used up. */}
-        {/* Tabs on the second gold, one hairline each, the open one white. */}
-        {/* File folder tabs: each one cut to the shape of a folder and set to overlap
-            its neighbour, the open one white and sitting on top. */}
-        {/* Plain square tabs, flush against each other, no gaps anywhere. */}
-        <div className="flex border-t border-b border-black">
+        <div className="flex gap-1 border-b-2 border-neutral-300 bg-neutral-100 px-2 pt-1">
           {slots.map((s, i) => (
             <button
               key={s.id}
-              onClick={() => setOpen(i)}
+              onClick={() => setOpenIdx(i)}
               title={s.name || "Free tab"}
-              className={`flex h-[21px] min-w-0 flex-1 items-center justify-center gap-1.5 px-2 text-[10px] font-bold uppercase leading-none tracking-[0.08em] transition-colors ${
-                i === 0 ? "" : "border-l border-black"
-              } ${i === open ? "text-neutral-900" : "text-neutral-600 hover:text-neutral-900"}`}
-              style={{ backgroundColor: i === open ? OPEN_TAB_BG : TAB_BG }}
+              className={`min-w-0 flex-1 truncate rounded-t-lg border border-neutral-300 px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-colors ${
+                i === openIdx
+                  ? "relative z-10 text-neutral-800"
+                  : "bg-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
+              }`}
+              style={i === openIdx ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG } : undefined}
             >
-              <span className="min-w-0 truncate text-center">{s.name || "–"}</span>
-              {(items[s.id]?.length || 0) > 0 && (
-                <span className="shrink-0 text-[9px] font-semibold tabular-nums text-neutral-500">{items[s.id].length}</span>
-              )}
+              {s.name || " "}
             </button>
           ))}
           <button
-            onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpen(next.length - 1); setSettings(true); }}
+            onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpenIdx(next.length - 1); setSettings(true); }}
             title="Add another tab"
-            className="flex h-[21px] w-8 shrink-0 items-center justify-center border-l border-black text-neutral-600 transition-colors hover:text-neutral-900"
-            style={{ backgroundColor: TAB_BG }}
+            className="shrink-0 rounded-t-lg border border-neutral-300 bg-neutral-200 px-2 py-1.5 text-neutral-500 shadow-sm transition-colors hover:bg-neutral-50 hover:text-neutral-700"
           >
-            <Plus size={11} />
+            <Plus size={12} />
           </button>
         </div>
 
-        {/* No padding on the sheet, so every rule runs edge to edge. */}
-        <div className="min-h-[200px]">
-          <div className="flex items-center gap-2 px-2 py-1">
-            <span className="flex-1" />
-            <button onClick={() => pull(slot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
-              <RefreshCw size={12} className={busy ? "animate-spin" : ""} />
+        <div className="min-h-0 flex-1 overflow-y-auto p-3" style={{ backgroundColor: BODY_BG }}>
+          <div className="mb-1 flex items-center gap-2">
+            <button onClick={() => pull(panelSlot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
+              <RefreshCw size={14} className={busy ? "animate-spin text-[#C1440E]" : ""} />
             </button>
-            <button onClick={() => setSettings(true)} title="Name this tab and add feeds" className="text-neutral-400 transition-colors hover:text-neutral-700">
-              <Settings size={12} />
+            <button onClick={() => { setOpen(openIdx); setSettings(true); }} title="Name this tab and add feeds" className="text-neutral-400 transition-colors hover:text-neutral-700">
+              <Settings size={14} />
             </button>
           </div>
 
-          {rows.map((r, i) => {
-            const shown = story[r.link];
-            return (
-              // A click anywhere on the row opens the summary; the headline itself
-              // still goes to the story.
-              <div
-                key={`${r.link}-${i}`}
-                onClick={() => readStory(r.link)}
-                title={shown ? "Close" : "Summary for investing"}
-                className={`cursor-pointer px-2 py-1 ${i === 0 ? "" : "border-t border-black"}`}
-              >
-                <div className="flex items-start gap-2">
+          <ul className="divide-y-2 divide-neutral-300">
+            {panelRows.map((r, i) => {
+              const shown = story[r.link];
+              return (
+                // A click anywhere on the entry opens the summary; the headline still
+                // goes to the story itself.
+                <li
+                  key={`${r.link}-${i}`}
+                  onClick={() => readStory(r.link)}
+                  title={shown ? "Close" : "Summary for investing"}
+                  className="cursor-pointer py-2"
+                >
                   <a
                     href={r.link}
                     target="_blank"
                     rel="noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="min-w-0 flex-1 truncate text-[11px] font-medium leading-[15px] underline underline-offset-2"
+                    className="text-xs font-medium underline hover:text-[#0c5e57]"
                     style={{ color: "#0f766e" }}
-                    title={r.title}
                   >
                     {r.title}
                   </a>
-                  <span className="shrink-0 whitespace-nowrap text-[10px] leading-[15px] tabular-nums text-neutral-400">{when(r.published)}</span>
-                </div>
-                {!shown && r.summary && <p className="mt-0.5 truncate text-[10px] leading-[14px] text-neutral-500">{r.summary}</p>}
-                {shown && shown !== "loading" && (
-                  <p className="mt-1 text-[11px] leading-[16px] text-neutral-700">{shown}</p>
-                )}
-                {shown === "loading" && <p className="mt-1 text-[10px] leading-[14px] text-neutral-400">Summarising…</p>}
-              </div>
-            );
-          })}
+                  {!shown && r.summary && <p className="mt-1 text-xs text-neutral-500">{r.summary}</p>}
+                  {shown && shown !== "loading" && <p className="mt-1 text-xs leading-[17px] text-neutral-700">{shown}</p>}
+                  {shown === "loading" && <p className="mt-1 text-xs text-neutral-400">Summarising…</p>}
+                  {r.published && <p className="mt-0.5 text-[10px] text-neutral-400">Published: {when(r.published)} ago</p>}
+                </li>
+              );
+            })}
+          </ul>
         </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="w-full">
+      <div className="flex min-h-[70vh] w-full flex-row gap-4 overflow-x-auto">
+        {renderPanel(0)}
+        {renderPanel(1)}
       </div>
 
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
