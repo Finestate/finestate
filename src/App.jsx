@@ -63,7 +63,7 @@ const NAV = [
     name: "Assets",
     icon: Wallet,
     children: [
-      { id: "assets/snapshot", name: "Snapshot" },
+      { id: "assets/snapshot", name: "Overview" },
       { id: "assets/estate", name: "Estate" },
     ],
   },
