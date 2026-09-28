@@ -724,7 +724,8 @@ export default function Planning() {
   // keystroke and throw the caret to the end of the field.
   // `only` picks one of the two day lines: 0 is today, 1 is the day being planned.
   const renderTodoLines = (b, only) => (
-    <div className="border-t border-black bg-white">
+    // Today's lines sit on the faint pink wash; the day being planned stays white.
+    <div className="border-t border-black" style={{ backgroundColor: only === 0 ? DAY_BG : "#FFFFFF" }}>
       {boards[b].lines.map((line, idx) => {
         if (only != null && idx !== only) return null;
         const open = boards[b].open === idx;
