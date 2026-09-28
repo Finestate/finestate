@@ -7,7 +7,7 @@ export const PAGES = [
   { id: "admin/site-running-costs", label: "Admin – Site running costs" },
   { id: "admin/users", label: "Admin – Users" },
   { id: "assets/snapshot", label: "Assets – Snapshot" },
-  { id: "assets/investing", label: "Assets – Investing" },
+  { id: "assets/investing", label: "Investing – Knowledge" },
   { id: "assets/estate", label: "Assets – Estate" },
   { id: "costs/monthly", label: "Income+Costs – Monthly" },
   { id: "hw", label: "HW" },

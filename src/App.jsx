@@ -64,9 +64,15 @@ const NAV = [
     icon: Wallet,
     children: [
       { id: "assets/snapshot", name: "Snapshot" },
-      { id: "assets/investing", name: "Investing" },
       { id: "assets/estate", name: "Estate" },
     ],
+  },
+  // Investing stands on its own with its own pages; Knowledge is the Intel board.
+  {
+    id: "investing",
+    name: "Investing",
+    icon: TrendingUp,
+    children: [{ id: "assets/investing", name: "Knowledge" }],
   },
 ];
 
