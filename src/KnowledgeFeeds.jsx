@@ -15,7 +15,7 @@ const OPEN_TAB_BG = "#FBE3DC"; // the tab you are on, a light pink red
 // The folder shape, and the same shape a hair inside it, which leaves the outline.
 const FOLD_CUT = "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)";
 const FOLD_CUT_INNER = "polygon(10px 1px, calc(100% - 1px) 1px, calc(100% - 10px) 100%, 1px 100%)";
-const BODY_BG = "#FFFFFF"; // the sheet the stories sit on
+const BODY_BG = "#FBF5E9"; // the sheet the stories sit on, the page cream
 const RED = "#C1440E";
 
 let _idc = 0;
@@ -245,12 +245,12 @@ export default function KnowledgeFeeds() {
         .sort((a, b) => new Date(b.published) - new Date(a.published))
     );
     return (
-      <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-2 border-neutral-300 shadow-sm">
-        <div className="border-b-2 border-neutral-300 px-4 py-1.5 text-center" style={{ backgroundColor: BODY_BG }}>
+      <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 shadow-sm">
+        <div className="border-b-[3px] border-neutral-500 px-4 py-1.5 text-center" style={{ backgroundColor: BODY_BG }}>
           <h3 className="text-xs font-bold uppercase tracking-wide text-neutral-700">Intel</h3>
         </div>
 
-        <div className="flex gap-1 border-b-2 border-neutral-300 bg-neutral-100 px-2 pt-1">
+        <div className="flex gap-1 border-b-[3px] border-neutral-500 bg-neutral-100 px-2 pt-1">
           {slots.map((s, i) => (
             <button
               key={s.id}
@@ -285,7 +285,7 @@ export default function KnowledgeFeeds() {
             </button>
           </div>
 
-          <ul className="divide-y-2 divide-neutral-300">
+          <ul className="divide-y-2 divide-neutral-400">
             {panelRows.map((r, i) => {
               const shown = story[r.link];
               return (
