@@ -1113,14 +1113,6 @@ export default function Planning() {
             className="block min-h-[30px] w-full flex-1 whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
           />
         </div>
-        {/* The old rough notes block stays underneath while you move its text up. */}
-        <div className="col-span-3 border-[3px] border-[#C1440E] p-1.5">
-          <WrapLine
-            text={cols.notes || ""}
-            onChange={(t) => saveCols({ ...cols, notes: t })}
-            className="block min-h-[30px] w-full whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
-          />
-        </div>
       </div>
     </>
   );
