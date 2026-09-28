@@ -112,12 +112,21 @@ const dedupe = (items) => {
   return items.filter((i) => (seen.has(i.link) ? false : seen.add(i.link)));
 };
 
-// Only how long ago it landed, no date.
+// How long ago it landed, for the read stamp.
 const when = (s) => {
   const d = new Date(s);
   if (isNaN(d)) return "";
   const mins = Math.round((Date.now() - d) / 60000);
   return mins < 60 ? `${Math.max(mins, 1)} min` : `${Math.round(mins / 60)} h`;
+};
+
+// "28 SEP 2026, 20:58 (5 min)" under a story.
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const stamp = (s) => {
+  const d = new Date(s);
+  if (isNaN(d)) return "";
+  const time = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${time} (${when(s)})`;
 };
 
 // Nothing older than a day shows.
@@ -335,7 +344,7 @@ export default function KnowledgeFeeds() {
                   {!shown && r.summary && <p className="truncate text-[11px] leading-[14px] text-neutral-500">{r.summary}</p>}
                   {shown && shown !== "loading" && <p className="mt-0.5 text-[11px] leading-[15px] text-neutral-700">{shown}</p>}
                   {shown === "loading" && <p className="text-[11px] leading-[14px] text-neutral-400">Summarising…</p>}
-                  {r.published && <p className="text-[10px] leading-[12px] text-neutral-400">{when(r.published)} ago</p>}
+                  {r.published && <p className="text-[10px] leading-[12px] text-neutral-400">Published: {stamp(r.published)}</p>}
                 </li>
               );
             })}
