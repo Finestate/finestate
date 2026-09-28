@@ -693,9 +693,8 @@ export default function Planning() {
         <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
       </div>
       {BOARDS.map(([b, label]) => (
-        <div key={b} className="flex min-h-[21px] items-start gap-2 border-t border-black bg-white px-2 py-[3px]">
-          <span className="w-20 shrink-0 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{label}</span>
-          <span className="min-w-0 flex-1 whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-900">
+        <div key={b} className="min-h-[21px] border-t border-black bg-white px-2 py-[3px]">
+          <span className="block whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-900">
             {todayText(b)}
           </span>
         </div>
