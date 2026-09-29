@@ -601,6 +601,8 @@ export default function Planning() {
     savePoints(b, { ...pts, [g]: pts[g].filter((p) => p.id !== id) });
     if (gone) saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.filter((c) => c !== gone) })));
   };
+  const setPointSub = (b, g, id, sub) =>
+    savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? { ...p, sub } : p)) });
   const addPoint = (b, g) => {
     const p = { id: newId(), code: "" };
     savePoints(b, { ...boards[b].points, [g]: [...boards[b].points[g], p] });
@@ -998,7 +1000,9 @@ export default function Planning() {
                             setDropP({ board: b, group: g, index: e.clientY < box.top + box.height / 2 ? pi : pi + 1 });
                           }}
                           onDrop={(e) => { e.stopPropagation(); dropPoint(b, g); }}
-                          className={`flex w-full items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
+                          // A stepped in point is the same box, shifted from the left.
+                          style={it.sub ? { marginLeft: "20px" } : undefined}
+                          className={`flex items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
                         >
                           {/* Boxed to the line height so it sits dead centre on the words. */}
                           <span className="flex h-[15px] shrink-0 items-center">
@@ -1018,6 +1022,14 @@ export default function Planning() {
                             onBlur={() => setEditing(null)}
                             className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
+                          {/* Steps the point in from the left, pressed again it steps back. */}
+                          <button
+                            onClick={() => setPointSub(b, g, it.id, !it.sub)}
+                            title={it.sub ? "Move back out" : "Indent"}
+                            className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900"
+                          >
+                            {it.sub ? <ChevronsLeft size={11} /> : <ChevronsRight size={11} />}
+                          </button>
                           {/* The box holds a text field, so dragging starts from the handle. */}
                           <span
                             draggable
