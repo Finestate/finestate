@@ -474,6 +474,7 @@ export default function Planning() {
   const ask = (run) => setConfirm({ run });
 
 
+  const homeSpot = useRef({}); // meeting id -> where it sat in the picker before it went up
   const lineRefs = useRef({}); // row id -> its editable element, for the ribbon
   const persistRows = (next) => { setRows(next); try { localStorage.setItem(ROWS_KEY, JSON.stringify(next)); } catch {} };
   const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(TITLE_KEY, val); } catch {} };
@@ -540,7 +541,11 @@ export default function Planning() {
       return;
     }
     patchLine(b, idx, { meetings: [...line.meetings, m] });
-    if (!m.permanent) saveMeetings(b, boards[b].meetings.filter((x) => x.id !== m.id));
+    if (!m.permanent) {
+      // Remember where it sat, so putting it back lands it in the same place.
+      homeSpot.current[m.id] = boards[b].meetings.findIndex((x) => x.id === m.id);
+      saveMeetings(b, boards[b].meetings.filter((x) => x.id !== m.id));
+    }
   };
   const moveInLine = (b, lineIdx, from, to) => {
     if (from == null || to == null || from === to) return;
@@ -608,10 +613,15 @@ export default function Planning() {
     saveLines(b, boards[b].lines.map((l) => ({ ...l, meetings: l.meetings.map((m) => (m.id === id ? { ...m, name } : m)) })));
   };
   const dropMeeting = (b, idx, id) => patchLine(b, idx, { meetings: boards[b].lines[idx].meetings.filter((x) => x.id !== id) });
-  // Puts a meeting back in the picker below: the same as dragging it off the line.
+  // Puts a meeting back in the picker below, into the spot it came from.
   const sendBack = (b, idx, m) => {
     patchLine(b, idx, { meetings: boards[b].lines[idx].meetings.filter((x) => x.id !== m.id) });
-    if (!boards[b].meetings.some((x) => x.id === m.id)) saveMeetings(b, [...boards[b].meetings, m]);
+    if (!boards[b].meetings.some((x) => x.id === m.id)) {
+      const next = boards[b].meetings.slice();
+      const spot = homeSpot.current[m.id];
+      next.splice(spot == null || spot < 0 ? next.length : Math.min(spot, next.length), 0, m);
+      saveMeetings(b, next);
+    }
   };
   const addMeeting = (b) => {
     const name = newMeeting.trim();
