@@ -111,11 +111,12 @@ const escapeHtml = (s) =>
 // you type, so the caret stays put and part-line bold survives.
 function RichLine({ html, onInput, onFocus, onEnter, innerRef, className }) {
   const ref = useRef(null);
+  // Follows text that arrives after the first render, such as a load from storage,
+  // but never rewrites itself while the caret is in it.
   useEffect(() => {
     const el = ref.current;
-    if (el && el.innerHTML !== (html || "")) el.innerHTML = html || "";
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (el && document.activeElement !== el && el.innerHTML !== (html || "")) el.innerHTML = html || "";
+  }, [html]);
   return (
     <div
       ref={(el) => { ref.current = el; if (innerRef) innerRef(el); }}
