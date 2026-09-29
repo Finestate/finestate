@@ -481,6 +481,7 @@ export default function Planning() {
   const ask = (run) => setConfirm({ run });
 
 
+  const noteRefs = useRef({}); // board -> its department notes element, for the ribbon
   const homeSpot = useRef({}); // meeting id -> where it sat in the picker before it went up
   const lineRefs = useRef({}); // row id -> its editable element, for the ribbon
   const persistRows = (next) => { setRows(next); try { localStorage.setItem(ROWS_KEY, JSON.stringify(next)); } catch {} };
@@ -530,6 +531,25 @@ export default function Planning() {
   const saveMeetings = (b, next) => { patchBoard(b, { meetings: next }); try { localStorage.setItem(keyFor(MEETINGS_KEY, b), JSON.stringify(next)); } catch {} };
   const savePoints = (b, next) => { patchBoard(b, { points: next }); try { localStorage.setItem(keyFor(POINTS_KEY, b), JSON.stringify(next)); } catch {} };
   const saveNotes = (b, text) => { patchBoard(b, { notes: text }); try { localStorage.setItem(keyFor(NOTES_KEY, b), text); } catch {} };
+  // The notes ribbon: the browser's own commands, on whatever is selected there.
+  // "scratch" is Master's free column, which is kept with the personal order lists.
+  const keepNotes = (b, html) => (b === "scratch" ? saveCols({ ...cols, scratch: html }) : saveNotes(b, html));
+  const noteCmd = (b, cmd) => {
+    const el = noteRefs.current[b];
+    if (!el) return;
+    el.focus();
+    document.execCommand(cmd);
+    keepNotes(b, el.innerHTML);
+  };
+  const noteRed = (b) => {
+    const el = noteRefs.current[b];
+    if (!el) return;
+    el.focus();
+    const now = String(document.queryCommandValue("foreColor") || "").replace(/\s/g, "");
+    const isRed = now === "rgb(176,30,47)" || now.toLowerCase() === INK_RED.toLowerCase();
+    document.execCommand("foreColor", false, isRed ? "#171717" : INK_RED);
+    keepNotes(b, el.innerHTML);
+  };
   const patchLine = (b, idx, fields) => saveLines(b, boards[b].lines.map((l, i) => (i === idx ? { ...l, ...fields } : l)));
 
   const toggleTodo = (b, idx, code) => {
@@ -1070,13 +1090,26 @@ export default function Planning() {
                 {/* A company board closes with its department notes instead. */}
                 {!MEETING_BOARDS.includes(b) && (
                   <div className="order-3 flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
-                    <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Department notes</p>
-                    <WrapLine
+                    <div className="mb-1 flex items-center gap-3">
+                      <span className="flex-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Department notes</span>
+                      {/* The same ribbon as the table rows, acting on these notes. */}
+                      <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "bold")} title="Bold the highlighted words" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]">
+                        <span className="text-[13px] font-black leading-none tracking-tight">B</span>
+                      </button>
+                      <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed(b)} title="Switch the highlighted words between red and black" className="flex h-4 w-4 items-center justify-center">
+                        <span className="block h-3 w-3" style={{ background: `linear-gradient(135deg, ${INK_RED} 50%, #171717 50%)` }} />
+                      </button>
+                      <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "insertUnorderedList")} title="Bullet the selected lines" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><List size={14} strokeWidth={2.75} /></button>
+                      <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "outdent")} title="Decrease indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsLeft size={14} strokeWidth={2.75} /></button>
+                      <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "indent")} title="Increase indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsRight size={14} strokeWidth={2.75} /></button>
+                    </div>
+                    <RichLine
                       key={`notes-${b}`}
-                      text={boards[b].notes || ""}
-                      onChange={(t) => saveNotes(b, t)}
+                      html={boards[b].notes || ""}
+                      innerRef={(el) => { noteRefs.current[b] = el; }}
+                      onInput={(html) => saveNotes(b, html)}
                       // Empty, it is one line tall and grows as you type.
-                      className="block min-h-[15px] w-full whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
+                      className="rich-line block min-h-[15px] w-full whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
                     />
                   </div>
                 )}
@@ -1182,10 +1215,22 @@ export default function Planning() {
         ))}
         {/* Third column: a free field, no lines and no tick boxes, just text. */}
         <div className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
-          <WrapLine
-            text={cols.scratch || ""}
-            onChange={(t) => saveCols({ ...cols, scratch: t })}
-            className="block min-h-[30px] w-full flex-1 whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
+          <div className="mb-1 flex items-center justify-end gap-3">
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "bold")} title="Bold the highlighted words" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]">
+              <span className="text-[13px] font-black leading-none tracking-tight">B</span>
+            </button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed("scratch")} title="Switch the highlighted words between red and black" className="flex h-4 w-4 items-center justify-center">
+              <span className="block h-3 w-3" style={{ background: `linear-gradient(135deg, ${INK_RED} 50%, #171717 50%)` }} />
+            </button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "insertUnorderedList")} title="Bullet the selected lines" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><List size={14} strokeWidth={2.75} /></button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "outdent")} title="Decrease indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsLeft size={14} strokeWidth={2.75} /></button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "indent")} title="Increase indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsRight size={14} strokeWidth={2.75} /></button>
+          </div>
+          <RichLine
+            html={cols.scratch || ""}
+            innerRef={(el) => { noteRefs.current.scratch = el; }}
+            onInput={(html) => saveCols({ ...cols, scratch: html })}
+            className="rich-line block min-h-[30px] w-full flex-1 whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
           />
         </div>
       </div>
