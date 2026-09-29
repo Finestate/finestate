@@ -362,7 +362,8 @@ export default function Planning() {
   const [rows, setRows] = useState(() => {
     try {
       const p = JSON.parse(localStorage.getItem(ROWS_KEY) || "null");
-      if (!Array.isArray(p)) return [];
+      // Nothing saved yet: draw the table itself, Daily bar and the four boards.
+      if (!Array.isArray(p)) return withDailySections([]);
       // Text rows written before rich editing carry their words in `text`, and every
       // visual line becomes its own block so it can be bulleted or indented alone.
       const list = p.map((r) =>
