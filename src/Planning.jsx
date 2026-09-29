@@ -71,15 +71,12 @@ const TODO_REST = [
 
 const TODO_ITEMS = [...TODO_CORE, ...TODO_REST];
 
-// House style: one space before an opening bracket, e.g. "SC (CCEDB)".
-const spaceBrackets = (s) => String(s || "").replace(/([^\s(])\(/g, "$1 (");
-// The company boards run them together instead: "SC(CCEDB)".
-const tightBrackets = (s) => String(s || "").replace(/\s+\(/g, "(");
+// Spacing before a bracket is whatever was typed, never touched here.
 
 // Points that gained brackets to type into after they were first saved.
 const FILLABLE = ["Ycfoodmd"];
 const addBrackets = (s) => (FILLABLE.includes(String(s || "").trim()) ? `${String(s).trim()} ()` : s);
-const fixCode = (s) => addBrackets(spaceBrackets(s));
+const fixCode = (s) => addBrackets(s);
 
 const emptyLine = () => ({ codes: [], meetings: [], fills: {} });
 // Older saves held a bare array of codes.
@@ -673,7 +670,7 @@ export default function Planning() {
   };
   // A renamed point carries its new wording onto any line already holding it.
   const renamePoint = (b, g, id, raw) => {
-    const code = spaceBrackets(raw);
+    const code = raw;
     const pts = boards[b].points;
     const old = pts[g].find((p) => p.id === id)?.code;
     savePoints(b, { ...pts, [g]: pts[g].map((p) => (p.id === id ? { ...p, code } : p)) });
