@@ -1292,7 +1292,12 @@ export default function Planning() {
   );
 
   const toggleCollapse = (id) => {
-    const next = collapsed.includes(id) ? collapsed.filter((x) => x !== id) : [...collapsed, id];
+    const wasClosed = collapsed.includes(id);
+    // Only one section of a kind stays open: opening one folds its peers away.
+    const peers = rows.filter((r) => r.id !== id && r.type === (rows.find((x) => x.id === id) || {}).type && collapsible(r)).map((r) => r.id);
+    const next = wasClosed
+      ? [...collapsed.filter((x) => x !== id && !peers.includes(x)), ...peers]
+      : [...collapsed, id];
     setCollapsed(next);
     try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next)); } catch {}
     keepInCloud(snapshot({ collapsed: next }));
