@@ -23,20 +23,8 @@ function isPrivate(ip) {
 function fetchXml(url) {
   return new Promise((resolve, reject) => {
     https
-      .get(
-        url,
-        {
-          insecureHTTPParser: true,
-          timeout: 12_000,
-          // Plain browser headers and no caching, or Google can hand back an old copy.
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
-            Accept: "application/atom+xml,application/rss+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-          },
-        },
-        (res) => {
+      // Plain request, no extra headers: Google answers a dressed up one with a 400.
+      .get(url, { insecureHTTPParser: true, timeout: 12_000 }, (res) => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           res.resume();
           resolve(fetchXml(new URL(res.headers.location, url).toString()));
@@ -51,9 +39,8 @@ function fetchXml(url) {
             reject(new Error("Feed too large"));
           }
         });
-          res.on("end", () => resolve(data));
-        }
-      )
+        res.on("end", () => resolve(data));
+      })
       .on("timeout", function () { this.destroy(new Error("Timed out")); })
       .on("error", reject);
   });
