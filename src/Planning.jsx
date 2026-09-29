@@ -19,6 +19,7 @@ const POINTS_KEY = "finestate.planning.points";
 const COLLAPSED_KEY = "finestate.planning.collapsed";
 const TWOCOL_KEY = "personal-order"; // row id in the private admin_docs table
 const NOTES_KEY = "finestate.planning.notes"; // department notes, one per company board
+const PLAN_KEY = "planning"; // the whole page, kept in the private admin_docs table
 
 // The lists that sit under the daily area, side by side, under one folding bar.
 const TWOCOLS = [["errands", "Errands prios"], ["hf", "H+F order"]];
@@ -482,11 +483,57 @@ export default function Planning() {
   const ask = (run) => setConfirm({ run });
 
 
+  // Everything on this page is mirrored into Supabase under one row, so it belongs to
+  // the account rather than to whichever browser it was typed in.
+  const cloudReady = useRef(false);
+  const cloudTimer = useRef(null);
+  const keepInCloud = (next) => {
+    if (!cloudReady.current) return;
+    clearTimeout(cloudTimer.current);
+    cloudTimer.current = setTimeout(() => {
+      supabase
+        .from("admin_docs")
+        .upsert({ id: PLAN_KEY, data: next, updated_at: new Date().toISOString() })
+        .then(() => {});
+    }, 800);
+  };
+
   const noteRefs = useRef({}); // board -> its department notes element, for the ribbon
   const homeSpot = useRef({}); // meeting id -> where it sat in the picker before it went up
   const lineRefs = useRef({}); // row id -> its editable element, for the ribbon
-  const persistRows = (next) => { setRows(next); try { localStorage.setItem(ROWS_KEY, JSON.stringify(next)); } catch {} };
-  const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(TITLE_KEY, val); } catch {} };
+  // Every save writes to this browser and to the account copy.
+  const snapshot = (over = {}) => ({ rows, boards, collapsed, title, ...over });
+  const persistRows = (next) => {
+    setRows(next);
+    try { localStorage.setItem(ROWS_KEY, JSON.stringify(next)); } catch {}
+    keepInCloud(snapshot({ rows: next }));
+  };
+  const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(TITLE_KEY, val); } catch {} keepInCloud(snapshot({ title: val })); };
+
+  // On open: take the account copy if there is one, otherwise push this browser's copy
+  // up so the account has it from now on.
+  useEffect(() => {
+    supabase
+      .from("admin_docs")
+      .select("data")
+      .eq("id", PLAN_KEY)
+      .maybeSingle()
+      .then(({ data }) => {
+        const d = data?.data;
+        const hasCloud = d && (Array.isArray(d.rows) ? d.rows.length : 0) + Object.keys(d.boards || {}).length > 0;
+        const hasLocal = rows.length > 0;
+        if (hasCloud && !hasLocal) {
+          if (Array.isArray(d.rows)) setRows(d.rows);
+          if (d.boards) setBoards(d.boards);
+          if (Array.isArray(d.collapsed)) setCollapsed(d.collapsed);
+          if (d.title) setTitle(d.title);
+        }
+        cloudReady.current = true;
+        // Whatever is on screen now becomes the account copy.
+        if (hasLocal) keepInCloud({ rows, boards, collapsed, title });
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const update = (i, text) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, text } : r)));
   const remove = (i) => persistRows(rows.filter((_, idx) => idx !== i));
   const moveRow = (i, d) => { const j = i + d; if (j < 0 || j >= rows.length) return; const next = rows.slice(); [next[i], next[j]] = [next[j], next[i]]; persistRows(next); };
@@ -526,7 +573,12 @@ export default function Planning() {
 
 
   // Every board writes to its own saves; Master keeps the original keys.
-  const patchBoard = (b, fields) => setBoards((prev) => ({ ...prev, [b]: { ...prev[b], ...fields } }));
+  const patchBoard = (b, fields) =>
+    setBoards((prev) => {
+      const next = { ...prev, [b]: { ...prev[b], ...fields } };
+      keepInCloud(snapshot({ boards: next }));
+      return next;
+    });
   const saveLines = (b, next) => { patchBoard(b, { lines: next }); try { localStorage.setItem(keyFor(TODO_LINES_KEY, b), JSON.stringify(next)); } catch {} };
   const openLine = (b, idx) => { patchBoard(b, { open: idx }); try { idx == null ? localStorage.removeItem(keyFor(TODO_OPEN_KEY, b)) : localStorage.setItem(keyFor(TODO_OPEN_KEY, b), String(idx)); } catch {} };
   const saveMeetings = (b, next) => { patchBoard(b, { meetings: next }); try { localStorage.setItem(keyFor(MEETINGS_KEY, b), JSON.stringify(next)); } catch {} };
@@ -1242,6 +1294,7 @@ export default function Planning() {
     const next = collapsed.includes(id) ? collapsed.filter((x) => x !== id) : [...collapsed, id];
     setCollapsed(next);
     try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next)); } catch {}
+    keepInCloud(snapshot({ collapsed: next }));
   };
   // Every heading folds, except the locked Daily routine one that carries the checklist.
   const collapsible = (r) => r.type !== "text" && !isTodoHeader(r);
