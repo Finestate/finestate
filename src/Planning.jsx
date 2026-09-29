@@ -608,6 +608,11 @@ export default function Planning() {
     saveLines(b, boards[b].lines.map((l) => ({ ...l, meetings: l.meetings.map((m) => (m.id === id ? { ...m, name } : m)) })));
   };
   const dropMeeting = (b, idx, id) => patchLine(b, idx, { meetings: boards[b].lines[idx].meetings.filter((x) => x.id !== id) });
+  // Puts a meeting back in the picker below: the same as dragging it off the line.
+  const sendBack = (b, idx, m) => {
+    patchLine(b, idx, { meetings: boards[b].lines[idx].meetings.filter((x) => x.id !== m.id) });
+    if (!boards[b].meetings.some((x) => x.id === m.id)) saveMeetings(b, [...boards[b].meetings, m]);
+  };
   const addMeeting = (b) => {
     const name = newMeeting.trim();
     if (!name) return;
@@ -780,8 +785,17 @@ export default function Planning() {
                         ) : (
                           <span className="leading-[15px]">{m.name}</span>
                         )}
-                        {/* The three marks on a meeting share one burgundy. */}
+                        {/* The marks on a meeting share one burgundy. */}
                         <Calendar size={10} className="shrink-0" style={{ color: MEETING_ICON }} />
+                        {/* Send it back down to the picker, still draggable for order. */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); sendBack(b, idx, m); }}
+                          title="Put this back in the list below"
+                          style={{ color: MEETING_ICON }}
+                          className="flex shrink-0 items-center self-center leading-none transition-opacity hover:opacity-70"
+                        >
+                          <ChevronDown size={10} strokeWidth={3} />
+                        </button>
                         <GripVertical size={10} className="shrink-0 cursor-grab" style={{ color: MEETING_ICON }} />
                         <button
                           onClick={(e) => { e.stopPropagation(); ask(() => dropMeeting(b, idx, m.id)); }}
@@ -866,6 +880,16 @@ export default function Planning() {
                         onBlur={() => setEditing(null)}
                         className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
                       />
+                      {/* Click to put it on the line above. A one off leaves this list,
+                          a permanent one stays here. */}
+                      <button
+                        onClick={() => pickMeeting(b, idx, m)}
+                        title="Put this on the line above"
+                        style={{ color: MEETING_ICON }}
+                        className="flex h-[15px] shrink-0 items-center transition-opacity hover:opacity-70"
+                      >
+                        <ChevronUp size={11} strokeWidth={3} />
+                      </button>
                       {/* The box holds a text field, so dragging starts from the handle. */}
                       <span
                         draggable
