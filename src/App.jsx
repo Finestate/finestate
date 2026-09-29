@@ -58,15 +58,8 @@ const NAV = [
     icon: CreditCard,
     children: [{ id: "costs/monthly", name: "Monthly" }],
   },
-  {
-    id: "assets",
-    name: "Assets",
-    icon: Wallet,
-    children: [
-      { id: "assets/snapshot", name: "Overview" },
-      { id: "assets/estate", name: "Estate" },
-    ],
-  },
+  // Assets is one page now; the route keeps its old id so access lists still match.
+  { id: "assets/snapshot", name: "Assets", icon: Wallet },
   // Investing stands on its own with its own pages; Knowledge is the Intel board.
   {
     id: "investing",
