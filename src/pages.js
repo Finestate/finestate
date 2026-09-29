@@ -9,7 +9,7 @@ export const PAGES = [
   { id: "assets/snapshot", label: "Assets – Overview" },
   { id: "assets/investing", label: "Investing – Knowledge" },
   { id: "assets/estate", label: "Assets – Estate" },
-  { id: "costs/monthly", label: "Income+Costs – Monthly" },
+  { id: "costs/monthly", label: "Cash flow – Monthly" },
   { id: "hw", label: "HW" },
 ];
 
