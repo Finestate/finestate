@@ -194,13 +194,15 @@ function WrapLine({ text, onChange, className }) {
 // The daily group: one top bar, then a board per company underneath, each with its
 // own pair of mirrored day lines, meetings and points.
 const BOARDS = [
-  ["master", "Master"],
+  ["master", "Prep"],
   ["silx", "Silx"],
   ["says", "Says"],
   ["servefast", "Servefast"],
 ];
 // They were first called "Daily master" and so on; saved rows are renamed on load.
-const OLD_LABELS = { "DAILY MASTER": "Master", "DAILY SILX": "Silx", "DAILY SAYS": "Says", "DAILY SERVEFAST": "Servefast" };
+const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep" };
+// Only Prep carries a bar now; the company boards hang underneath it unlabelled.
+const OLD_BARS = ["DAILY SILX", "DAILY SAYS", "DAILY SERVEFAST", "SILX", "SAYS", "SERVEFAST"];
 const DAILY_GROUP = "Daily";
 // A solid burgundy for the marks on a meeting, so they read clearly.
 const MEETING_ICON = "#7B1E3A";
@@ -243,7 +245,7 @@ const BOARD_SEEDS = {
     rest: [],
   },
 };
-const DAILY_SECTIONS = BOARDS.map(([, label]) => label);
+const DAILY_SECTIONS = [BOARDS[0][1]];
 const boardOf = (r) => {
   const t = String(r?.text || "").trim().toUpperCase();
   const hit = BOARDS.find(([, label]) => label.toUpperCase() === t);
@@ -297,9 +299,10 @@ const withDailySections = (rawList) => {
   const isBoardHead = (r) => r && r.type !== "text" && DAILY_SECTIONS.some((n) => n.toUpperCase() === nameOf(r));
   const isDailyHead = (r) => r && r.type !== "text" && nameOf(r) === DAILY_GROUP.toUpperCase();
   // Anything the old layout inserted under a board heading was a placeholder.
-  const cleaned = list.filter((r, i) => {
+  const strippedBars = list.filter((r) => r.type === "text" || !OLD_BARS.includes(nameOf(r)));
+  const cleaned = strippedBars.filter((r, i) => {
     if (r.type !== "text") return true;
-    const prev = list[i - 1];
+    const prev = strippedBars[i - 1];
     return !(isBoardHead(prev) && !String(r.text || "").trim() && !String(r.html || "").replace(/<[^>]*>/g, "").trim());
   });
   let out = cleaned;
@@ -1460,7 +1463,7 @@ export default function Planning() {
                 {/* Straight under the Daily bar: today's line from every board. */}
                 {isDailyGroup(r) && renderToday()}
                 {/* A board section then carries the day being planned. */}
-                {board && renderTodoLines(board, 1)}
+                {board === "master" && BOARDS.map(([b]) => <div key={b}>{renderTodoLines(b, 1)}</div>)}
                 {addMenu === i && <TypeMenu at={i + 1} opts={SECTION_TYPES} />}
               </div>
             );
