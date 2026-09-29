@@ -376,7 +376,7 @@ export default function KnowledgeFeeds() {
               per feed with its name on the left and its address on the right. */}
           {/* Plain white sheet, one hairline, the tab name at the top and a line per
               feed underneath. Nothing else. */}
-          <div className="w-full max-w-xl border border-neutral-900 bg-white px-5 py-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-3xl rounded-lg border-2 border-black bg-white px-6 py-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <input
               autoFocus
               value={slot.name}
@@ -385,8 +385,10 @@ export default function KnowledgeFeeds() {
               className="w-full bg-transparent pb-2 text-[13px] font-bold uppercase tracking-[0.12em] text-neutral-900 outline-none placeholder:text-neutral-300"
             />
 
-            {slot.urls.map((u) => (
-              <div key={u.id} className="flex items-center gap-3 border-t border-neutral-200 py-1.5">
+            {/* The feeds sit in their own framed table inside the sheet. */}
+            <div className="mt-1 rounded border border-black">
+            {slot.urls.map((u, i) => (
+              <div key={u.id} className={`flex items-center gap-3 px-2 py-1.5 ${i === 0 ? "" : "border-t border-black"}`}>
                 <input
                   value={u.name}
                   onChange={(e) => patchUrl(u.id, { name: e.target.value })}
@@ -396,15 +398,15 @@ export default function KnowledgeFeeds() {
                 <input
                   value={u.url}
                   onChange={(e) => patchUrl(u.id, { url: e.target.value })}
-                  className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-400 outline-none"
+                  className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
                 />
-                <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="shrink-0 text-neutral-300 transition-colors hover:text-[#C1440E]">
+                <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="shrink-0 text-neutral-900 transition-colors hover:text-[#C1440E]">
                   <Trash2 size={12} />
                 </button>
               </div>
             ))}
 
-            <div className="flex items-center gap-3 border-t border-neutral-200 py-1.5">
+            <div className={`flex items-center gap-3 px-2 py-1.5 ${slot.urls.length ? "border-t border-black" : ""}`}>
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
@@ -416,11 +418,12 @@ export default function KnowledgeFeeds() {
                 onChange={(e) => setNewUrl(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(null); }}
                 placeholder="https:// feed address"
-                className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-400 outline-none placeholder:text-neutral-300"
+                className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
               />
               <button onClick={addUrl} title="Add this feed" className="shrink-0" style={{ color: RED }}>
                 <Plus size={13} />
               </button>
+            </div>
             </div>
           </div>
         </div>
