@@ -180,6 +180,13 @@ function WrapLine({ text, onChange, className }) {
       suppressContentEditableWarning
       spellCheck={false}
       onInput={(e) => onChange(e.currentTarget.textContent)}
+      // Tab steps a line in, rather than jumping out of the field.
+      onKeyDown={(e) => {
+        if (e.key !== "Tab") return;
+        e.preventDefault();
+        document.execCommand("insertText", false, "    ");
+        onChange(e.currentTarget.textContent);
+      }}
       className={className}
     />
   );
