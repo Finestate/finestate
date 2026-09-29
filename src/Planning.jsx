@@ -581,7 +581,19 @@ export default function Planning() {
       return next;
     });
   const saveLines = (b, next) => { patchBoard(b, { lines: next }); try { localStorage.setItem(keyFor(TODO_LINES_KEY, b), JSON.stringify(next)); } catch {} };
-  const openLine = (b, idx) => { patchBoard(b, { open: idx }); try { idx == null ? localStorage.removeItem(keyFor(TODO_OPEN_KEY, b)) : localStorage.setItem(keyFor(TODO_OPEN_KEY, b), String(idx)); } catch {} };
+  // One day line open on the whole page: opening one shuts every other board's.
+  const openLine = (b, idx) => {
+    setBoards((prev) => {
+      const next = {};
+      for (const k of Object.keys(prev)) next[k] = { ...prev[k], open: k === b ? idx : null };
+      keepInCloud(snapshot({ boards: next }));
+      return next;
+    });
+    try {
+      for (const [k] of BOARDS) if (k !== b) localStorage.removeItem(keyFor(TODO_OPEN_KEY, k));
+      idx == null ? localStorage.removeItem(keyFor(TODO_OPEN_KEY, b)) : localStorage.setItem(keyFor(TODO_OPEN_KEY, b), String(idx));
+    } catch {}
+  };
   const saveMeetings = (b, next) => { patchBoard(b, { meetings: next }); try { localStorage.setItem(keyFor(MEETINGS_KEY, b), JSON.stringify(next)); } catch {} };
   const savePoints = (b, next) => { patchBoard(b, { points: next }); try { localStorage.setItem(keyFor(POINTS_KEY, b), JSON.stringify(next)); } catch {} };
   const saveNotes = (b, text) => { patchBoard(b, { notes: text }); try { localStorage.setItem(keyFor(NOTES_KEY, b), text); } catch {} };
