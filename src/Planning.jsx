@@ -1091,8 +1091,8 @@ export default function Planning() {
                 {/* A company board closes with its department notes instead. */}
                 {!MEETING_BOARDS.includes(b) && (
                   <div className="order-3 flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
-                    <div className="mb-1 flex items-center gap-1">
-                      <span className="flex-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Department notes</span>
+                    {/* The tools sit in their own strip across the top of the field. */}
+                    <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
                       {/* The same ribbon as the table rows, acting on these notes. */}
                       <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "bold")} title="Bold the highlighted words" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]">
                         <span className="text-[13px] font-black leading-none tracking-tight">B</span>
@@ -1216,7 +1216,7 @@ export default function Planning() {
         ))}
         {/* Third column: a free field, no lines and no tick boxes, just text. */}
         <div className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
-          <div className="mb-1 flex items-center justify-end gap-1">
+          <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "bold")} title="Bold the highlighted words" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]">
               <span className="text-[13px] font-black leading-none tracking-tight">B</span>
             </button>
