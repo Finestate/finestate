@@ -854,36 +854,12 @@ export default function Planning() {
     </>
   );
 
-  // A company day line: short codes only, each carrying its own typed detail in
-  // brackets, dash separated, as in AO(xxx)-CP(yyy).
-  const renderShortLine = (b, codes, idx) => (
+  // A company day line: just the letter codes of the ticked points, dash separated,
+  // as in AB-SC-FI-CU. Nothing in brackets shows here; the picker below is unchanged
+  // and anything typed in brackets stays saved.
+  const renderShortLine = (b, codes) => (
     <div className="flex flex-wrap items-center text-[11px] font-semibold leading-[15px] text-neutral-900">
-      {codes.map((c, i) => {
-        const fill = boards[b].lines[idx]?.fills?.[c] || "";
-        // A point written as XX() takes typed words between its brackets; anything
-        // else shows exactly as it reads in the picker, brackets and all.
-        const fillable = /\(\)$/.test(c);
-        return (
-          <span
-            key={c}
-            // Only a point with brackets swallows the click to take the caret; the
-            // rest let it through so the line opens and closes as usual.
-            onClick={fillable ? (e) => { e.stopPropagation(); focusEnd(e.currentTarget.querySelector("[contenteditable]")); } : undefined}
-            className={`inline-flex items-center ${fillable ? "cursor-text" : "cursor-pointer"}`}
-          >
-            {fillable ? (
-              <>
-                {c.slice(0, -1)}
-                <FillText key={`${b}-${idx}-${c}`} text={fill} onChange={(t) => setFill(b, idx, c, t)} />
-                )
-              </>
-            ) : (
-              c
-            )}
-            {i < codes.length - 1 ? "-" : ""}
-          </span>
-        );
-      })}
+      {codes.map(shortCode).filter(Boolean).join("-")}
     </div>
   );
 
@@ -976,8 +952,8 @@ export default function Planning() {
                     {BOARD_TAGS[b]}
                   </span>
                 )}
-                {/* Master spells its points out; a company board shows only the short
-                    codes, prios in brackets and the rest trailing after them. */}
+                {/* Finestate spells its points out in full; a company board shows only
+                    the letter codes. */}
                 {MEETING_BOARDS.includes(b) ? (
                   <>
                     <div className="order-1">{coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}</div>
@@ -985,7 +961,7 @@ export default function Planning() {
                   </>
                 ) : (
                   (coreCodes.length > 0 || restCodes.length > 0) &&
-                    renderShortLine(b, [...coreCodes, ...restCodes], idx)
+                    renderShortLine(b, [...coreCodes, ...restCodes])
                 )}
               </div>
 
