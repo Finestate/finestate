@@ -481,7 +481,6 @@ export default function KnowledgeFeeds() {
                 <input
                   value={u.name}
                   onChange={(e) => patchUrl(u.id, { name: e.target.value })}
-                  placeholder="Keywords"
                   className="w-44 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
                 />
                 <input
@@ -499,14 +498,12 @@ export default function KnowledgeFeeds() {
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Keywords"
                 className="w-44 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
               />
               <input
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(null); }}
-                placeholder="Words to follow, or an https feed address"
                 className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
               />
               <button onClick={addUrl} title="Add this feed" className="shrink-0" style={{ color: RED }}>
