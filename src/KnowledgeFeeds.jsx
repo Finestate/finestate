@@ -209,7 +209,18 @@ export default function KnowledgeFeeds() {
     Promise.all([get(DOC_ID), get(ITEMS_ID)]).then(([tabs, kept]) => {
       const error = tabs.error || kept.error;
       if (error) setErr(error.message);
-      setSlots(toSlots(tabs.data?.data));
+      let list = toSlots(tabs.data?.data);
+      // One-off: a STOCKS tab goes in just before AI STOCKS. Only when the saved tabs
+      // came back and hold no STOCKS tab yet; to be removed once it has run.
+      const plainName = (s) => (s.name || "").toUpperCase().replace(/[^A-Z]/g, "");
+      if (!tabs.error && !list.some((s) => plainName(s) === "STOCKS")) {
+        const at = list.findIndex((s) => plainName(s).startsWith("AISTOCK"));
+        const stocks = { ...blankSlot(), name: "STOCKS" };
+        list = at < 0 ? [...list, stocks] : [...list.slice(0, at), stocks, ...list.slice(at)];
+        supabase.from("admin_docs").upsert({ id: DOC_ID, data: list, updated_at: new Date().toISOString() })
+          .then(({ error: e }) => { if (e) setErr(e.message); });
+      }
+      setSlots(list);
       const stored = kept.data?.data && !Array.isArray(kept.data.data) ? kept.data.data : {};
       itemsRef.current = stored;
       setItems(stored);
