@@ -129,6 +129,17 @@ const stamp = (s) => {
   return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${time} (${when(s)})`;
 };
 
+// A feed address is taken as typed. Anything else is read as words to follow, and
+// becomes a Google News search feed, which carries stories as they are published
+// rather than in the batches a Google Alert sends.
+const toFeedUrl = (raw) => {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  if (/^https:\/\//i.test(s)) return s;
+  if (/^http:\/\//i.test(s)) return "";
+  return `https://news.google.com/rss/search?q=${encodeURIComponent(s)}&hl=en&gl=US&ceid=US:en`;
+};
+
 // Nothing older than a day shows.
 const isFresh = (s) => {
   const d = new Date(s);
@@ -253,9 +264,9 @@ export default function KnowledgeFeeds() {
   }, [open, open2, loaded, slots]);
 
   const addUrl = () => {
-    const url = newUrl.trim();
-    if (!/^https:\/\//i.test(url)) {
-      setErr("Paste an https feed address.");
+    const url = toFeedUrl(newUrl);
+    if (!url) {
+      setErr("Type words to follow, or paste an https feed address.");
       return;
     }
     const next = { ...slot, urls: [...slot.urls, { id: newId(), name: newName.trim(), url }] };
@@ -443,7 +454,7 @@ export default function KnowledgeFeeds() {
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(null); }}
-                placeholder="https:// feed address"
+                placeholder="Words to follow, or an https feed address"
                 className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
               />
               <button onClick={addUrl} title="Add this feed" className="shrink-0" style={{ color: RED }}>
