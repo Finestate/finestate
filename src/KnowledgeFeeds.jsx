@@ -339,6 +339,22 @@ export default function KnowledgeFeeds() {
 
   const patchUrl = (id, fields) => patchSlot({ urls: slot.urls.map((u) => (u.id === id ? { ...u, ...fields } : u)) });
 
+  // The whole tab goes, feeds and kept stories with it, after a yes.
+  const deleteTab = () => {
+    if (!window.confirm(`Delete the tab ${slot.name || "(no name)"} and all its feeds?`)) return;
+    const gone = slot.id;
+    const next = slots.filter((_, i) => i !== editIdx);
+    save(next);
+    const { [gone]: _dropped, ...rest } = itemsRef.current;
+    keepItems(rest);
+    // The left panel moves off the deleted tab onto the first one with a name.
+    setOpen((o) => {
+      if (o === editIdx) { const named = next.findIndex((t) => t.name); return named >= 0 ? named : 0; }
+      return o > editIdx ? o - 1 : o;
+    });
+    setSettings(null);
+  };
+
   const removeUrl = (id) => {
     patchSlot({ urls: slot.urls.filter((u) => u.id !== id) });
     pulled.current[slot.id] = false;
@@ -468,8 +484,14 @@ export default function KnowledgeFeeds() {
               className="w-full bg-transparent pb-2 text-[13px] font-bold uppercase tracking-[0.12em] text-neutral-900 outline-none placeholder:text-neutral-300"
             />
 
-            {/* The feeds sit in their own framed table inside the sheet. */}
+            {/* The feeds sit in their own framed table inside the sheet, under a
+                heading for each column. */}
             <div className="mt-1 rounded border-[3px] border-black">
+            <div className="flex items-center gap-3 border-b border-black bg-neutral-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-600">
+              <span className="w-44 shrink-0">Name</span>
+              <span className="min-w-0 flex-1">Words to search, or a feed address</span>
+              <span className="w-12 shrink-0" />
+            </div>
             {[...slot.urls].sort((a, b) => (a.name || a.url).localeCompare(b.name || b.url)).map((u, i) => (
               <div key={u.id} className={`flex items-center gap-3 px-2 py-1.5 ${i === 0 ? "" : "border-t border-black"}`}>
                 <input
@@ -482,13 +504,14 @@ export default function KnowledgeFeeds() {
                   onChange={(e) => patchUrl(u.id, { url: e.target.value })}
                   className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
                 />
-                <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="shrink-0 text-neutral-900 transition-colors hover:text-[#C1440E]">
+                <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="flex w-12 shrink-0 justify-end text-neutral-900 transition-colors hover:text-[#C1440E]">
                   <Trash2 size={12} />
                 </button>
               </div>
             ))}
 
-            <div className={`flex items-center gap-3 px-2 py-1.5 ${slot.urls.length ? "border-t border-black" : ""}`}>
+            {/* The last row, shaded, is where a new feed is typed in. */}
+            <div className={`flex items-center gap-3 bg-neutral-50 px-2 py-1.5 ${slot.urls.length ? "border-t border-black" : ""}`}>
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
@@ -500,10 +523,16 @@ export default function KnowledgeFeeds() {
                 onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(null); }}
                 className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
               />
-              <button onClick={addUrl} title="Add this feed" className="shrink-0" style={{ color: RED }}>
-                <Plus size={13} />
+              <button onClick={addUrl} title="Add this feed" className="flex w-12 shrink-0 items-center justify-end gap-0.5 text-[10px] font-bold uppercase" style={{ color: RED }}>
+                <Plus size={12} /> Add
               </button>
             </div>
+            </div>
+
+            <div className="mt-3 flex justify-end">
+              <button onClick={deleteTab} className="text-[10px] font-bold uppercase tracking-wide text-neutral-500 transition-colors hover:text-[#C1440E]">
+                Delete tab
+              </button>
             </div>
           </div>
         </div>
