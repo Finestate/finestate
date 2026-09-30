@@ -457,7 +457,7 @@ export default function KnowledgeFeeds() {
               per feed with its name on the left and its address on the right. */}
           {/* Plain white sheet, one hairline, the tab name at the top and a line per
               feed underneath. Nothing else. */}
-          <div className="relative w-full max-w-2xl rounded-lg border-2 border-black bg-white px-6 py-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-w-2xl rounded-lg border-4 border-black bg-white px-6 py-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             {/* Closes the sheet, same as clicking away or pressing Escape. */}
             <button
               onClick={() => setSettings(null)}
@@ -489,10 +489,6 @@ export default function KnowledgeFeeds() {
                   onChange={(e) => patchUrl(u.id, { url: e.target.value })}
                   className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
                 />
-                {/* The feed's own subject, and a word if it failed or came back empty. */}
-                <span className="w-56 truncate shrink-0 text-right text-[11px] leading-[15px] text-neutral-900">
-                  {newest[u.url] ? `${newest[u.url].title || ""}${newest[u.url].at === "failed" ? " failed" : newest[u.url].at === "none" ? " empty" : ""}`.trim() : ""}
-                </span>
                 <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="shrink-0 text-neutral-900 transition-colors hover:text-[#C1440E]">
                   <Trash2 size={12} />
                 </button>
