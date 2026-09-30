@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Trash2, RefreshCw, SquarePen } from "lucide-react";
+import { Plus, X, Trash2, RefreshCw, SquarePen } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Intel: ten tabs, each one named by you and holding as many RSS or Google Alerts
@@ -387,7 +387,15 @@ export default function KnowledgeFeeds() {
               per feed with its name on the left and its address on the right. */}
           {/* Plain white sheet, one hairline, the tab name at the top and a line per
               feed underneath. Nothing else. */}
-          <div className="w-full max-w-3xl rounded-lg border-2 border-black bg-white px-6 py-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-w-3xl rounded-lg border-2 border-black bg-white px-6 py-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            {/* Closes the sheet, same as clicking away or pressing Escape. */}
+            <button
+              onClick={() => setSettings(null)}
+              title="Close"
+              className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full border border-black text-neutral-900 transition-colors hover:bg-neutral-100"
+            >
+              <X size={12} strokeWidth={2.5} />
+            </button>
             <input
               autoFocus
               value={slot.name}
