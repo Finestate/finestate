@@ -11,6 +11,9 @@ const DOC_ID = "knowledge-feeds";
 // kept here, they stay on the tab for the full day and survive a reload.
 const ITEMS_ID = "knowledge-feed-items";
 const VIEW_ID = "knowledge-feeds-open"; // the tab each panel was left on
+// The right panel is a table of its own: its own tabs, saved apart, sharing nothing
+// with the left.
+const RIGHT_ID = "knowledge-feeds-right";
 // Five tabs to start with; the plus at the end adds the next one when they fill up.
 const SLOTS = 5;
 const BAR_BG = "#F2C46D";  // title bar, as on every other table here
@@ -157,14 +160,6 @@ const lastDay = (url) => {
   return u.toString();
 };
 
-// Tabs that show in the left panel only.
-// Matched loosely, so spacing or a missing S doesn't let one slip through.
-const LEFT_ONLY = ["INTEL", "AISTOCK"];
-const isLeftOnly = (s) => {
-  const name = (s?.name || "").toUpperCase().replace(/[^A-Z]/g, "");
-  return LEFT_ONLY.some((w) => name.startsWith(w));
-};
-
 // Nothing older than a day shows.
 const isFresh = (s) => {
   const d = new Date(s);
@@ -173,9 +168,10 @@ const isFresh = (s) => {
 
 export default function KnowledgeFeeds() {
   const [slots, setSlots] = useState(toSlots([]));
+  const [slots2, setSlots2] = useState(toSlots([])); // the right panel's own tabs
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(0); // the left panel's open tab
-  const [open2, setOpen2] = useState(1); // the right panel's open tab
+  const [open2, setOpen2] = useState(0); // the right panel's open tab
   const [items, setItems] = useState({}); // slot id -> parsed entries
   const [read, setRead] = useState({}); // slot id -> when it was last read
   const [busy, setBusy] = useState(false);
@@ -207,14 +203,21 @@ export default function KnowledgeFeeds() {
 
   useEffect(() => {
     const get = (id) => supabase.from("admin_docs").select("data").eq("id", id).maybeSingle();
-    Promise.all([get(DOC_ID), get(ITEMS_ID), get(VIEW_ID)]).then(([tabs, kept, view]) => {
-      const error = tabs.error || kept.error || view.error;
+    Promise.all([get(DOC_ID), get(ITEMS_ID), get(VIEW_ID), get(RIGHT_ID)]).then(([tabs, kept, view, rightTabs]) => {
+      const error = tabs.error || kept.error || view.error || rightTabs.error;
       if (error) setErr(error.message);
       const list = toSlots(tabs.data?.data);
+      const list2 = toSlots(rightTabs.data?.data);
       setSlots(list);
+      setSlots2(list2);
+      // Its empty tabs are saved the first time, so they keep the same ids from then on.
+      if (!rightTabs.error && !rightTabs.data) {
+        supabase.from("admin_docs").upsert({ id: RIGHT_ID, data: list2, updated_at: new Date().toISOString() })
+          .then(({ error: e }) => { if (e) setErr(e.message); });
+      }
       // Each panel opens on the tab it was left on.
       const left = list.findIndex((s) => s.id === view.data?.data?.left);
-      const right = list.findIndex((s) => s.id === view.data?.data?.right);
+      const right = list2.findIndex((s) => s.id === view.data?.data?.right);
       if (left >= 0) setOpen(left);
       if (right >= 0) setOpen2(right);
       const stored = kept.data?.data && !Array.isArray(kept.data.data) ? kept.data.data : {};
@@ -227,7 +230,7 @@ export default function KnowledgeFeeds() {
   // Which tab each panel is on, kept with the account so a refresh comes back to it.
   // Written only once the saved one has been read, so it is never reset on open.
   const leftId = slots[open]?.id;
-  const rightId = slots[open2]?.id;
+  const rightId = slots2[open2]?.id;
   useEffect(() => {
     if (!loaded) return;
     supabase
@@ -299,28 +302,24 @@ export default function KnowledgeFeeds() {
     }
   };
 
-  // The right panel skips the left-only tabs, so if it was left on one it moves to
-  // the first tab it does show.
-  const rightIdx = slots[open2] && !isLeftOnly(slots[open2]) ? open2 : slots.findIndex((s) => !isLeftOnly(s));
-
   // Reads whatever each panel has open, and again when a feed list changes.
   useEffect(() => {
     if (!loaded) return;
     pull(slots[open], true);
-    pull(slots[rightIdx], true);
+    pull(slots2[open2], true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, rightIdx, loaded, slots[open]?.urls.length, slots[rightIdx]?.urls.length]);
+  }, [open, open2, loaded, slots[open]?.urls.length, slots2[open2]?.urls.length]);
 
   // And again every five minutes, so a page left open keeps up with the feeds.
   useEffect(() => {
     if (!loaded) return;
     const tick = setInterval(() => {
       pull(slots[open], true);
-      pull(slots[rightIdx], true);
+      pull(slots2[open2], true);
     }, 5 * 60 * 1000);
     return () => clearInterval(tick);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, rightIdx, loaded, slots]);
+  }, [open, open2, loaded, slots, slots2]);
 
   const addUrl = () => {
     const url = toFeedUrl(newUrl);
@@ -349,9 +348,10 @@ export default function KnowledgeFeeds() {
   // One panel, built to the same measurements as the Says feeds box. Two of them sit
   // side by side, each with its own open tab, so two feeds can be read at once.
   const renderPanel = (which) => {
-    const openIdx = which === 0 ? open : rightIdx;
+    const list = which === 0 ? slots : slots2;
+    const openIdx = which === 0 ? open : open2;
     const setOpenIdx = which === 0 ? setOpen : setOpen2;
-    const panelSlot = slots[openIdx] || blankSlot();
+    const panelSlot = list[openIdx] || blankSlot();
     const panelRows = dedupe(
       (items[panelSlot.id] || [])
         .filter((r) => isFresh(r.published))
@@ -362,7 +362,7 @@ export default function KnowledgeFeeds() {
         {/* No title bar; each panel starts with its tabs. */}
         {/* The strip the tabs sit on, a deeper tone of the same red. */}
         <div className="flex gap-1 border-b-[3px] border-neutral-500 px-2 pt-1" style={{ backgroundColor: TAB_STRIP }}>
-          {slots.map((s, i) => (which === 1 && isLeftOnly(s)) ? null : (
+          {list.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setOpenIdx(i)}
@@ -380,14 +380,17 @@ export default function KnowledgeFeeds() {
               {s.name || " "}
             </button>
           ))}
-          <button
-            onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpenIdx(next.length - 1); setSettings(next.length - 1); }}
-            title="Add another tab"
-            style={{ backgroundColor: TAB_PINK }}
-            className="shrink-0 rounded-t-lg border border-neutral-300 px-2 py-1.5 text-neutral-500 shadow-sm transition-opacity hover:opacity-80 hover:text-neutral-700"
-          >
-            <Plus size={12} />
-          </button>
+          {/* The plus opens the popup, which belongs to the left panel only. */}
+          {which === 0 && (
+            <button
+              onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpenIdx(next.length - 1); setSettings(next.length - 1); }}
+              title="Add another tab"
+              style={{ backgroundColor: TAB_PINK }}
+              className="shrink-0 rounded-t-lg border border-neutral-300 px-2 py-1.5 text-neutral-500 shadow-sm transition-opacity hover:opacity-80 hover:text-neutral-700"
+            >
+              <Plus size={12} />
+            </button>
+          )}
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-3" style={{ backgroundColor: BODY_BG }}>
