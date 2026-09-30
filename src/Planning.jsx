@@ -490,52 +490,100 @@ export default function Planning() {
   // the account rather than to whichever browser it was typed in.
   const cloudReady = useRef(false);
   const cloudTimer = useRef(null);
+  const [planReady, setPlanReady] = useState(false); // the account copy has been read
+  const [planErr, setPlanErr] = useState("");
+  const pending = useRef(null); // a save waiting out the pause, so leaving the page can send it
+  const writePlan = (next) => {
+    pending.current = null;
+    const now = new Date().toISOString();
+    const data = { ...next, movedFromBrowser: true };
+    // The page itself, and a full copy for today beside it. Each day keeps its own
+    // copy, so any earlier day can be brought back whatever happens to the page.
+    return supabase
+      .from("admin_docs")
+      .upsert([
+        { id: PLAN_KEY, data, updated_at: now },
+        { id: `${PLAN_KEY}-backup-${now.slice(0, 10)}`, data, updated_at: now },
+      ])
+      .then(({ error }) => setPlanErr(error ? `Not saved: ${error.message}` : ""));
+  };
   const keepInCloud = (next) => {
     if (!cloudReady.current) return;
+    pending.current = next;
     clearTimeout(cloudTimer.current);
-    cloudTimer.current = setTimeout(() => {
-      supabase
-        .from("admin_docs")
-        .upsert({ id: PLAN_KEY, data: next, updated_at: new Date().toISOString() })
-        .then(() => {});
-    }, 800);
+    cloudTimer.current = setTimeout(() => writePlan(next), 800);
   };
+  // A change made in the last moment before the tab is closed or hidden still goes.
+  useEffect(() => {
+    const flush = () => {
+      if (document.visibilityState === "hidden" && pending.current) {
+        clearTimeout(cloudTimer.current);
+        writePlan(pending.current);
+      }
+    };
+    document.addEventListener("visibilitychange", flush);
+    return () => document.removeEventListener("visibilitychange", flush);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const noteRefs = useRef({}); // board -> its department notes element, for the ribbon
   const homeSpot = useRef({}); // meeting id -> where it sat in the picker before it went up
   const lineRefs = useRef({}); // row id -> its editable element, for the ribbon
-  // Every save writes to this browser and to the account copy.
+  // Every save goes to the account copy in Supabase, and only there.
   const snapshot = (over = {}) => ({ rows, boards, collapsed, title, ...over });
   const persistRows = (next) => {
     setRows(next);
-    try { localStorage.setItem(ROWS_KEY, JSON.stringify(next)); } catch {}
     keepInCloud(snapshot({ rows: next }));
   };
-  const saveTitle = (val) => { setTitle(val); try { localStorage.setItem(TITLE_KEY, val); } catch {} keepInCloud(snapshot({ title: val })); };
+  const saveTitle = (val) => { setTitle(val); keepInCloud(snapshot({ title: val })); };
 
-  // On open: take the account copy if there is one, otherwise push this browser's copy
-  // up so the account has it from now on.
+  // Planning used to live in the browser and was copied up to the account. It now
+  // lives in Supabase only. The first browser opened after the change still holds
+  // what you last saw, so that copy goes up once, and the account is marked as moved.
+  // From then on every browser reads the account copy, and an older copy sitting in
+  // another browser is never taken up over it. Nothing is shown or saved until
+  // Supabase has answered, so a fresh browser can never write over the page.
   useEffect(() => {
+    let savedHere = false;
+    try { savedHere = localStorage.getItem(ROWS_KEY) != null; } catch {}
     supabase
       .from("admin_docs")
       .select("data")
       .eq("id", PLAN_KEY)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(async ({ data, error }) => {
+        if (error) {
+          setPlanErr(`Could not load Planning, so nothing will be saved: ${error.message}`);
+          return;
+        }
         const d = data?.data;
         const hasCloud = d && (Array.isArray(d.rows) ? d.rows.length : 0) + Object.keys(d.boards || {}).length > 0;
-        const hasLocal = rows.length > 0;
-        if (hasCloud && !hasLocal) {
-          // The account copy goes through the same tidy up as a browser copy, so
-          // renamed and retired bars follow it.
-          if (Array.isArray(d.rows)) setRows(withDailySections(d.rows));
-          if (d.boards) setBoards(d.boards);
-          if (Array.isArray(d.collapsed)) setCollapsed(d.collapsed);
-          if (d.title) setTitle(d.title);
+        const takeBrowser = savedHere && !d?.movedFromBrowser;
+        if (takeBrowser) {
+          // Both copies are set aside first, each under its own name.
+          const now = new Date().toISOString();
+          const { error: e } = await supabase.from("admin_docs").upsert([
+            ...(d ? [{ id: `${PLAN_KEY}-backup-account-before-move`, data: d, updated_at: now }] : []),
+            { id: `${PLAN_KEY}-backup-browser-before-move`, data: { rows, boards, collapsed, title }, updated_at: now },
+          ]);
+          if (e) {
+            setPlanErr(`Could not back up Planning, so nothing will be saved: ${e.message}`);
+            return;
+          }
+          cloudReady.current = true;
+          await writePlan({ rows, boards, collapsed, title });
+        } else {
+          if (hasCloud) {
+            // The account copy goes through the same tidy up as ever, so renamed and
+            // retired bars follow it; a board added since keeps its starting points.
+            if (Array.isArray(d.rows)) setRows(withDailySections(d.rows));
+            if (d.boards) setBoards((prev) => ({ ...prev, ...d.boards }));
+            if (Array.isArray(d.collapsed)) setCollapsed(d.collapsed);
+            if (d.title) setTitle(d.title);
+          }
+          cloudReady.current = true;
         }
-        cloudReady.current = true;
-        // Whatever is on screen now becomes the account copy.
-        if (hasLocal) keepInCloud({ rows, boards, collapsed, title });
+        setPlanReady(true);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -584,7 +632,7 @@ export default function Planning() {
       keepInCloud(snapshot({ boards: next }));
       return next;
     });
-  const saveLines = (b, next) => { patchBoard(b, { lines: next }); try { localStorage.setItem(keyFor(TODO_LINES_KEY, b), JSON.stringify(next)); } catch {} };
+  const saveLines = (b, next) => patchBoard(b, { lines: next });
   // One day line open on the whole page: opening one shuts every other board's.
   const openLine = (b, idx) => {
     setBoards((prev) => {
@@ -593,14 +641,10 @@ export default function Planning() {
       keepInCloud(snapshot({ boards: next }));
       return next;
     });
-    try {
-      for (const [k] of BOARDS) if (k !== b) localStorage.removeItem(keyFor(TODO_OPEN_KEY, k));
-      idx == null ? localStorage.removeItem(keyFor(TODO_OPEN_KEY, b)) : localStorage.setItem(keyFor(TODO_OPEN_KEY, b), String(idx));
-    } catch {}
   };
-  const saveMeetings = (b, next) => { patchBoard(b, { meetings: next }); try { localStorage.setItem(keyFor(MEETINGS_KEY, b), JSON.stringify(next)); } catch {} };
-  const savePoints = (b, next) => { patchBoard(b, { points: next }); try { localStorage.setItem(keyFor(POINTS_KEY, b), JSON.stringify(next)); } catch {} };
-  const saveNotes = (b, text) => { patchBoard(b, { notes: text }); try { localStorage.setItem(keyFor(NOTES_KEY, b), text); } catch {} };
+  const saveMeetings = (b, next) => patchBoard(b, { meetings: next });
+  const savePoints = (b, next) => patchBoard(b, { points: next });
+  const saveNotes = (b, text) => patchBoard(b, { notes: text });
   // The notes ribbon: the browser's own commands, on whatever is selected there.
   // "scratch" is Master's free column, which is kept with the personal order lists.
   const keepNotes = (b, html) => (b === "scratch" ? saveCols({ ...cols, scratch: html }) : saveNotes(b, html));
@@ -1312,7 +1356,6 @@ export default function Planning() {
       ? [...collapsed.filter((x) => x !== id && !peers.includes(x)), ...peers]
       : [...collapsed, id];
     setCollapsed(next);
-    try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next)); } catch {}
     keepInCloud(snapshot({ collapsed: next }));
   };
   // Every heading folds, except the locked Daily routine one that carries the checklist.
@@ -1374,8 +1417,13 @@ export default function Planning() {
     </div>
   );
 
+  // Nothing is drawn until the account copy is in, so nothing can be typed over it.
+  const planNote = planErr && <p className="pb-2 text-[11px] font-semibold text-[#C1440E]">{planErr}</p>;
+  if (!planReady) return <div className="w-full">{planNote || <p className="text-[11px] text-neutral-400">Loading…</p>}</div>;
+
   return (
     <div className="w-full">
+      {planNote}
       <div spellCheck={false} className="w-full border border-black shadow-sm overflow-hidden bg-white">
         {/* With no Daily bar to hang under, the master checklist sits up here. */}
         {anchorIdx < 0 && renderTodoLines("master")}
