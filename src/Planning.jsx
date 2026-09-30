@@ -919,7 +919,7 @@ export default function Planning() {
                   </div>
                 )}
                 {line.meetings.length === 0 && coreCodes.length === 0 && restCodes.length === 0 && (
-                  <span className="ml-[1px] inline-flex items-center text-[11px] font-semibold leading-[15px] text-neutral-400">
+                  <span style={{ color: MEETING_ICON }} className="ml-[1px] inline-flex items-center text-[11px] font-semibold leading-[15px]">
                     {BOARD_TAGS[b]}
                   </span>
                 )}
