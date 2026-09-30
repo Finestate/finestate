@@ -391,7 +391,7 @@ export default function KnowledgeFeeds() {
                 i === openIdx ? "border-[#B01E2F] text-neutral-900" : "border-transparent text-neutral-400 hover:text-neutral-700"
               }`}
             >
-              {`${s.name} (${s.urls.length})`}
+              {s.name}
             </button>
           ))}
           {/* The plus opens the popup, which belongs to the left panel only. */}
@@ -479,13 +479,18 @@ export default function KnowledgeFeeds() {
             >
               <X size={12} strokeWidth={2.5} />
             </button>
-            <input
-              autoFocus
-              value={slot.name}
-              onChange={(e) => patchSlot({ name: e.target.value.toUpperCase() })}
-              placeholder="TAB NAME"
-              className="w-full bg-transparent pb-2 text-[13px] font-bold uppercase tracking-[0.12em] text-neutral-900 outline-none placeholder:text-neutral-300"
-            />
+            {/* The tab name, with how many feeds it holds beside it. */}
+            <div className="flex items-baseline gap-2 pb-2 pr-8">
+              <input
+                autoFocus
+                value={slot.name}
+                onChange={(e) => patchSlot({ name: e.target.value.toUpperCase() })}
+                placeholder="TAB NAME"
+                size={Math.max(slot.name.length, 8)}
+                className="bg-transparent text-[13px] font-bold uppercase tracking-[0.12em] text-neutral-900 outline-none placeholder:text-neutral-300"
+              />
+              <span className="text-[13px] font-bold text-neutral-900">({slot.urls.length})</span>
+            </div>
 
             {/* The feeds sit in their own framed table inside the sheet, under a
                 heading for each column. */}
