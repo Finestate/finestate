@@ -199,20 +199,26 @@ export default function KnowledgeFeeds() {
     pulled.current[s.id] = true;
     setBusy(true);
     try {
+      // Each feed is read on its own. One that fails, as Google does from time to
+      // time, must not throw away the ones that answered.
       const all = await Promise.all(
         s.urls.map(async ({ url }) => {
-          // The stamp keeps the browser and the edge from serving an old copy.
-          const res = await fetch(`/api/rss?url=${encodeURIComponent(url)}&t=${Date.now()}`, { cache: "no-store" });
-          const xml = await res.text();
-          if (!res.ok) throw new Error(plain(xml).slice(0, 80));
-          return parseFeedXml(xml);
+          try {
+            // The stamp keeps the browser and the edge from serving an old copy.
+            const res = await fetch(`/api/rss?url=${encodeURIComponent(url)}&t=${Date.now()}`, { cache: "no-store" });
+            const xml = await res.text();
+            if (!res.ok) return { rows: [], error: plain(xml).slice(0, 80) };
+            return { rows: parseFeedXml(xml), error: "" };
+          } catch (e) {
+            return { rows: [], error: e.message || "A feed could not be read." };
+          }
         })
       );
-      // Google sometimes answers a feed request with nothing at all. Merging rather
-      // than replacing means a read like that cannot empty or freeze a tab.
-      setItems((prev) => ({ ...prev, [s.id]: dedupe([...all.flat(), ...(prev[s.id] || [])]) }));
+      const rows = all.flatMap((r) => r.rows);
+      const failed = all.filter((r) => r.error);
+      setItems((prev) => ({ ...prev, [s.id]: dedupe([...rows, ...(prev[s.id] || [])]) }));
       setRead((prev) => ({ ...prev, [s.id]: Date.now() }));
-      setErr("");
+      setErr(failed.length && !rows.length ? failed[0].error : "");
     } catch (e) {
       setErr(e.message || "A feed could not be read.");
     } finally {
@@ -223,8 +229,8 @@ export default function KnowledgeFeeds() {
   // Reads whatever each panel has open, and again when a feed list changes.
   useEffect(() => {
     if (!loaded) return;
-    pull(slots[open]);
-    pull(slots[open2]);
+    pull(slots[open], true);
+    pull(slots[open2], true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, open2, loaded, slots[open]?.urls.length, slots[open2]?.urls.length]);
 
