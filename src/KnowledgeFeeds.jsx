@@ -457,7 +457,7 @@ export default function KnowledgeFeeds() {
               per feed with its name on the left and its address on the right. */}
           {/* Plain white sheet, one hairline, the tab name at the top and a line per
               feed underneath. Nothing else. */}
-          <div className="relative w-full max-w-3xl rounded-lg border-2 border-black bg-white px-6 py-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-w-2xl rounded-lg border-2 border-black bg-white px-6 py-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             {/* Closes the sheet, same as clicking away or pressing Escape. */}
             <button
               onClick={() => setSettings(null)}
@@ -475,7 +475,7 @@ export default function KnowledgeFeeds() {
             />
 
             {/* The feeds sit in their own framed table inside the sheet. */}
-            <div className="mt-1 rounded border border-black">
+            <div className="mt-1 rounded border-[3px] border-black">
             {[...slot.urls].sort((a, b) => (a.name || a.url).localeCompare(b.name || b.url)).map((u, i) => (
               <div key={u.id} className={`flex items-center gap-3 px-2 py-1.5 ${i === 0 ? "" : "border-t border-black"}`}>
                 <input
