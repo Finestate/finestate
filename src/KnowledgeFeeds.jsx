@@ -358,26 +358,20 @@ export default function KnowledgeFeeds() {
         .sort((a, b) => new Date(b.published) - new Date(a.published))
     );
     return (
-      <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 shadow-sm">
-        {/* No title bar; each panel starts with its tabs. */}
-        {/* The strip the tabs sit on, a deeper tone of the same red. */}
-        <div className="flex gap-1 border-b-[3px] border-neutral-500 px-2 pt-1" style={{ backgroundColor: TAB_STRIP }}>
-          {list.map((s, i) => (
+      <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 bg-white shadow-sm">
+        {/* Plain text tabs on white; the open one carries a burgundy underline. Tabs
+            not yet named stay out of sight until they are given a name. */}
+        <div className="flex items-end gap-5 overflow-x-auto border-b border-neutral-300 bg-white px-4 pt-3">
+          {list.map((s, i) => !s.name ? null : (
             <button
               key={s.id}
               onClick={() => setOpenIdx(i)}
-              title={s.name ? `${s.name} (${s.urls.length})` : "Free tab"}
-              className={`min-w-0 flex-1 truncate rounded-t-lg border border-neutral-300 px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-opacity ${
-                i === openIdx ? "relative z-10 text-neutral-800" : "text-neutral-500 hover:opacity-80 hover:text-neutral-700"
+              title={s.name}
+              className={`shrink-0 whitespace-nowrap border-b-[3px] pb-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${
+                i === openIdx ? "border-[#B01E2F] text-neutral-900" : "border-transparent text-neutral-400 hover:text-neutral-700"
               }`}
-              // The open tab takes the sheet colour, the closed ones a watered down red.
-              style={
-                i === openIdx
-                  ? { backgroundColor: BODY_BG, borderBottomColor: BODY_BG }
-                  : { backgroundColor: TAB_PINK }
-              }
             >
-              {s.name || " "}
+              {`${s.name} (${s.urls.length})`}
             </button>
           ))}
           {/* The plus opens the popup, which belongs to the left panel only. */}
@@ -385,16 +379,15 @@ export default function KnowledgeFeeds() {
             <button
               onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpenIdx(next.length - 1); setSettings(next.length - 1); }}
               title="Add another tab"
-              style={{ backgroundColor: TAB_PINK }}
-              className="shrink-0 rounded-t-lg border border-neutral-300 px-2 py-1.5 text-neutral-500 shadow-sm transition-opacity hover:opacity-80 hover:text-neutral-700"
+              className="shrink-0 border-b-[3px] border-transparent pb-2 text-neutral-400 transition-colors hover:text-neutral-700"
             >
-              <Plus size={12} />
+              <Plus size={14} />
             </button>
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-3" style={{ backgroundColor: BODY_BG }}>
-          <div className="mb-1 flex items-center gap-2">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-white px-4 py-3">
+          <div className="mb-1 flex items-center gap-3">
             <button onClick={() => pull(panelSlot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
               <RefreshCw size={14} className={busy ? "animate-spin text-[#C1440E]" : ""} />
             </button>
@@ -405,7 +398,7 @@ export default function KnowledgeFeeds() {
             )}
           </div>
 
-          <ul className="divide-y-2 divide-neutral-400">
+          <ul className="divide-y divide-neutral-200">
             {panelRows.map((r, i) => {
               const shown = story[r.link];
               return (
@@ -415,22 +408,22 @@ export default function KnowledgeFeeds() {
                   key={`${r.link}-${i}`}
                   onClick={() => readStory(r.link)}
                   title={shown ? "Close" : "Summary for investing"}
-                  className="cursor-pointer py-1"
+                  className="cursor-pointer py-2.5"
                 >
                   <a
                     href={r.link}
                     target="_blank"
                     rel="noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="text-xs font-medium underline hover:text-[#0c5e57]"
+                    className="text-[13px] font-semibold leading-snug hover:underline"
                     style={{ color: "#0f766e" }}
                   >
                     {r.title}
                   </a>
-                  {!shown && r.summary && <p className="truncate text-[11px] leading-[14px] text-neutral-500">{r.summary}</p>}
-                  {shown && shown !== "loading" && <p className="mt-0.5 text-[11px] leading-[15px] text-neutral-700">{shown}</p>}
-                  {shown === "loading" && <p className="text-[11px] leading-[14px] text-neutral-400">Summarising…</p>}
-                  {r.published && <p className="text-[10px] leading-[12px] text-neutral-400">Published: {stamp(r.published)}</p>}
+                  {!shown && r.summary && <p className="mt-0.5 truncate text-[12px] leading-[16px] text-neutral-500">{r.summary}</p>}
+                  {shown && shown !== "loading" && <p className="mt-1 text-[12px] leading-[17px] text-neutral-700">{shown}</p>}
+                  {shown === "loading" && <p className="mt-0.5 text-[12px] leading-[16px] text-neutral-400">Summarising…</p>}
+                  {r.published && <p className="mt-1 text-[10px] leading-[12px] tracking-wide text-neutral-400">{stamp(r.published)}</p>}
                 </li>
               );
             })}
