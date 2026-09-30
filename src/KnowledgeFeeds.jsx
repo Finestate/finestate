@@ -25,7 +25,7 @@ const TAB_STRIP = "#D9C7B8";   // the strip behind the tabs: warm taupe, so the 
 // The folder shape, and the same shape a hair inside it, which leaves the outline.
 const FOLD_CUT = "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)";
 const FOLD_CUT_INNER = "polygon(10px 1px, calc(100% - 1px) 1px, calc(100% - 10px) 100%, 1px 100%)";
-const BODY_BG = "#FFE9C4"; // the sheet the stories sit on, the nav gold
+const BODY_BG = "#FFFFFF"; // the sheet the stories sit on, plain white
 const RED = "#C1440E";
 
 let _idc = 0;
