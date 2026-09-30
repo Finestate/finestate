@@ -359,6 +359,15 @@ function AutoTextarea({ value, onChange, ...props }) {
   return <textarea ref={ref} value={value} onChange={onChange} rows={1} {...props} />;
 }
 
+// How far a checklist point or list line is stepped in. Older saves only knew in or
+// out (`sub`), so an indented one from before reads as one step.
+const MAX_LEVEL = 4;
+const levelOf = (x) => (Number.isFinite(x?.level) ? x.level : x?.sub ? 1 : 0);
+const stepLevel = (x, d) => {
+  const level = Math.max(0, Math.min(MAX_LEVEL, levelOf(x) + d));
+  return { ...x, level, sub: level > 0 };
+};
+
 export default function Planning() {
   const [title, setTitle] = useState(() => { try { return localStorage.getItem(TITLE_KEY) || "Planning"; } catch { return "Planning"; } });
   const [rows, setRows] = useState(() => {
@@ -409,7 +418,7 @@ export default function Planning() {
   const addColRow = (k, sub = false) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "", sub }] });
   const setColRow = (k, id, text) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) });
   const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
-  const setColSub = (k, id, sub) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, sub } : r)) });
+  const stepColRow = (k, id, d) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? stepLevel(r, d) : r)) });
   // Ticked lines write themselves into the Errandsprios brackets on today's line,
   // joined by a dash with no spaces, in the red the brackets already use.
   const syncErrands = (next, lineIdx = 0) => {
@@ -735,8 +744,8 @@ export default function Planning() {
     savePoints(b, { ...pts, [g]: pts[g].filter((p) => p.id !== id) });
     if (gone) saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.filter((c) => c !== gone) })));
   };
-  const setPointSub = (b, g, id, sub) =>
-    savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? { ...p, sub } : p)) });
+  const stepPoint = (b, g, id, d) =>
+    savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? stepLevel(p, d) : p)) });
   const addPoint = (b, g) => {
     const p = { id: newId(), code: "" };
     savePoints(b, { ...boards[b].points, [g]: [...boards[b].points[g], p] });
@@ -1131,8 +1140,8 @@ export default function Planning() {
                             setDropP({ board: b, group: g, index: e.clientY < box.top + box.height / 2 ? pi : pi + 1 });
                           }}
                           onDrop={(e) => { e.stopPropagation(); dropPoint(b, g); }}
-                          // A stepped in point is the same box, shifted from the left.
-                          style={it.sub ? { marginLeft: "20px" } : undefined}
+                          // A stepped in point is the same box, shifted from the left, a step at a time.
+                          style={levelOf(it) ? { marginLeft: `${20 * levelOf(it)}px` } : undefined}
                           className={`flex items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
                         >
                           {/* Boxed to the line height so it sits dead centre on the words. */}
@@ -1153,13 +1162,12 @@ export default function Planning() {
                             onBlur={() => setEditing(null)}
                             className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
-                          {/* Steps the point in from the left, pressed again it steps back. */}
-                          <button
-                            onClick={() => setPointSub(b, g, it.id, !it.sub)}
-                            title={it.sub ? "Move back out" : "Indent"}
-                            className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900"
-                          >
-                            {it.sub ? <ChevronsLeft size={11} /> : <ChevronsRight size={11} />}
+                          {/* Both ways always there: each press is one step, up to four in. */}
+                          <button onClick={() => stepPoint(b, g, it.id, -1)} title="Step out" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
+                            <ChevronsLeft size={11} />
+                          </button>
+                          <button onClick={() => stepPoint(b, g, it.id, 1)} title="Step in" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
+                            <ChevronsRight size={11} />
                           </button>
                           {/* The box holds a text field, so dragging starts from the handle. */}
                           <span
@@ -1260,8 +1268,8 @@ export default function Planning() {
                     setDropAt({ col: k, index: before ? i : i + 1 });
                   }}
                   onDrop={(e) => { e.stopPropagation(); dropColRow(k); }}
-                  // A sub line is the same row, stepped in from the left.
-                  style={r.sub ? { marginLeft: "20px" } : undefined}
+                  // A sub line is the same row, stepped in from the left, a step at a time.
+                  style={levelOf(r) ? { marginLeft: `${20 * levelOf(r)}px` } : undefined}
                   className={`flex items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
                 >
                   {/* Boxed to the exact line height, so it sits dead centre on the first line. */}
@@ -1281,13 +1289,12 @@ export default function Planning() {
                     onChange={(t) => setColRow(k, r.id, t)}
                     className="min-w-0 flex-1 whitespace-pre-wrap break-words bg-transparent leading-[15px] outline-none"
                   />
-                  {/* Steps the line in from the left, pressed again it steps back. */}
-                  <button
-                    onClick={() => setColSub(k, r.id, !r.sub)}
-                    title={r.sub ? "Move back out" : "Indent"}
-                    className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900"
-                  >
-                    {r.sub ? <ChevronsLeft size={11} /> : <ChevronsRight size={11} />}
+                  {/* Both ways always there: each press is one step, up to four in. */}
+                  <button onClick={() => stepColRow(k, r.id, -1)} title="Step out" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
+                    <ChevronsLeft size={11} />
+                  </button>
+                  <button onClick={() => stepColRow(k, r.id, 1)} title="Step in" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
+                    <ChevronsRight size={11} />
                   </button>
                   {/* The line is typed in, so dragging starts from the handle only. */}
                   <span
