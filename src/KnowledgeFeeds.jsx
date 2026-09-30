@@ -364,7 +364,7 @@ export default function KnowledgeFeeds() {
   // One panel, built to the same measurements as the Says feeds box. Two of them sit
   // side by side, each with its own open tab, so two feeds can be read at once.
   const renderPanel = (which) => {
-    const frame = "flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 bg-white shadow-sm";
+    const frame = "flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden border-[3px] border-neutral-500 bg-white shadow-sm";
     // The right panel is blank for now: the same frame as the left, and nothing in it.
     if (which === 1) return <div className={frame} />;
     const list = which === 0 ? slots : slots2;
@@ -381,14 +381,14 @@ export default function KnowledgeFeeds() {
         {/* Plain text tabs on white, every one the same width, with a hairline
             between them; the open one carries a burgundy underline. Tabs not yet
             named stay out of sight until they are given a name. */}
-        <div className="flex divide-x divide-neutral-300 border-b border-neutral-300 bg-white">
+        <div className="flex divide-x divide-[#B01E2F] border-b border-[#B01E2F] bg-white">
           {list.map((s, i) => !s.name ? null : (
             <button
               key={s.id}
               onClick={() => setOpenIdx(i)}
               title={s.name}
-              className={`-mb-px min-w-0 flex-1 truncate border-b-[3px] px-2 pb-2 pt-3 text-center text-[11px] font-bold uppercase tracking-wide transition-colors ${
-                i === openIdx ? "border-[#B01E2F] text-neutral-900" : "border-transparent text-neutral-400 hover:text-neutral-700"
+              className={`-mb-px min-w-0 flex-1 truncate border-b-[3px] px-2 py-1.5 text-center text-[11px] font-bold uppercase tracking-wide transition-colors ${
+                i === openIdx ? "border-[#B01E2F] text-neutral-900" : "border-transparent text-neutral-600 hover:text-neutral-900"
               }`}
             >
               {s.name}
@@ -399,14 +399,14 @@ export default function KnowledgeFeeds() {
             <button
               onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpenIdx(next.length - 1); setSettings(next.length - 1); }}
               title="Add another tab"
-              className="-mb-px flex w-9 shrink-0 items-center justify-center border-b-[3px] border-transparent pb-2 pt-3 text-neutral-400 transition-colors hover:text-neutral-700"
+              className="-mb-px flex w-9 shrink-0 items-center justify-center border-b-[3px] border-transparent py-1.5 text-neutral-600 transition-colors hover:text-neutral-700"
             >
               <Plus size={14} />
             </button>
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto bg-white px-4 py-3">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-white px-3 py-2">
           <div className="mb-1 flex items-center gap-3">
             <button onClick={() => pull(panelSlot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
               <RefreshCw size={14} className={busy ? "animate-spin text-[#C1440E]" : ""} />
@@ -428,7 +428,7 @@ export default function KnowledgeFeeds() {
                   key={`${r.link}-${i}`}
                   onClick={() => readStory(r.link)}
                   title={shown ? "Close" : "Summary for investing"}
-                  className="cursor-pointer py-2.5"
+                  className="cursor-pointer py-1.5"
                 >
                   <a
                     href={r.link}
@@ -443,7 +443,7 @@ export default function KnowledgeFeeds() {
                   {!shown && r.summary && <p className="mt-0.5 truncate text-[12px] leading-[16px] text-neutral-500">{r.summary}</p>}
                   {shown && shown !== "loading" && <p className="mt-1 text-[12px] leading-[17px] text-neutral-700">{shown}</p>}
                   {shown === "loading" && <p className="mt-0.5 text-[12px] leading-[16px] text-neutral-400">Summarising…</p>}
-                  {r.published && <p className="mt-1 text-[10px] leading-[12px] tracking-wide text-neutral-400">{stamp(r.published)}</p>}
+                  {r.published && <p className="mt-0.5 text-[10px] leading-[12px] tracking-wide text-neutral-400">{stamp(r.published)}</p>}
                 </li>
               );
             })}
