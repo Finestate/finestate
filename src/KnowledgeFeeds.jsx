@@ -27,7 +27,6 @@ const FOLD_CUT = "polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%)";
 const FOLD_CUT_INNER = "polygon(10px 1px, calc(100% - 1px) 1px, calc(100% - 10px) 100%, 1px 100%)";
 const BODY_BG = "#FFFFFF"; // the sheet the stories sit on, plain white
 const RED = "#C1440E";
-const OPEN_TAB = "#B01E2F"; // the open tab, the site's burgundy
 
 let _idc = 0;
 const newId = () => "s" + Date.now().toString(36) + "-" + (_idc++);
@@ -375,20 +374,19 @@ export default function KnowledgeFeeds() {
         .sort((a, b) => new Date(b.published) - new Date(a.published))
     );
     return (
-      <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden border-[3px] border-black bg-white shadow-sm">
-        {/* Square frame. The tabs sit on the gold of the other tables' title bars,
-            every one the same width with a black line between them; the open one is
-            burgundy. Tabs not yet named stay out of sight until they have a name. */}
-        <div className="flex divide-x divide-black border-b-[3px] border-black" style={{ backgroundColor: BAR_BG }}>
+      <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 bg-white shadow-sm">
+        {/* Plain text tabs on white, every one the same width, with a hairline
+            between them; the open one carries a burgundy underline. Tabs not yet
+            named stay out of sight until they are given a name. */}
+        <div className="flex divide-x divide-neutral-300 border-b border-neutral-300 bg-white">
           {list.map((s, i) => !s.name ? null : (
             <button
               key={s.id}
               onClick={() => setOpenIdx(i)}
               title={s.name}
-              className={`min-w-0 flex-1 truncate px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wide transition-colors ${
-                i === openIdx ? "text-white" : "text-[#5a4410] hover:bg-[#F7D9A3]"
+              className={`-mb-px min-w-0 flex-1 truncate border-b-[3px] px-2 pb-2 pt-3 text-center text-[11px] font-bold uppercase tracking-wide transition-colors ${
+                i === openIdx ? "border-[#B01E2F] text-neutral-900" : "border-transparent text-neutral-400 hover:text-neutral-700"
               }`}
-              style={i === openIdx ? { backgroundColor: OPEN_TAB } : undefined}
             >
               {`${s.name} (${s.urls.length})`}
             </button>
@@ -398,7 +396,7 @@ export default function KnowledgeFeeds() {
             <button
               onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpenIdx(next.length - 1); setSettings(next.length - 1); }}
               title="Add another tab"
-              className="flex w-9 shrink-0 items-center justify-center py-2 text-[#5a4410] transition-colors hover:bg-[#F7D9A3]"
+              className="-mb-px flex w-9 shrink-0 items-center justify-center border-b-[3px] border-transparent pb-2 pt-3 text-neutral-400 transition-colors hover:text-neutral-700"
             >
               <Plus size={14} />
             </button>
@@ -427,7 +425,7 @@ export default function KnowledgeFeeds() {
                   key={`${r.link}-${i}`}
                   onClick={() => readStory(r.link)}
                   title={shown ? "Close" : "Summary for investing"}
-                  className="-mx-4 cursor-pointer px-4 py-2.5 transition-colors hover:bg-[#FBF5E9]"
+                  className="cursor-pointer py-2.5"
                 >
                   <a
                     href={r.link}
@@ -469,7 +467,7 @@ export default function KnowledgeFeeds() {
               per feed with its name on the left and its address on the right. */}
           {/* Plain white sheet, one hairline, the tab name at the top and a line per
               feed underneath. Nothing else. */}
-          <div className="relative w-full max-w-2xl border-4 border-black bg-white px-6 py-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-w-2xl rounded-lg border-4 border-black bg-white px-6 py-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             {/* Closes the sheet, same as clicking away or pressing Escape. */}
             <button
               onClick={() => setSettings(null)}
@@ -488,7 +486,7 @@ export default function KnowledgeFeeds() {
 
             {/* The feeds sit in their own framed table inside the sheet, under a
                 heading for each column. */}
-            <div className="mt-1 border-[3px] border-black">
+            <div className="mt-1 rounded border-[3px] border-black">
             <div className="flex items-center gap-3 border-b border-black bg-neutral-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-600">
               <span className="w-44 shrink-0">Name</span>
               <span className="min-w-0 flex-1">Words to search, or a feed address</span>
