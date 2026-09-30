@@ -6,6 +6,10 @@ import { supabase } from "./lib/supabaseClient.js";
 // addresses as you like. Everything is kept in Supabase, so it follows you between
 // devices, and the sheet under the tabs stays blank until a feed returns something.
 const DOC_ID = "knowledge-feeds";
+// Every story read in the last day, per tab. A Google Alert feed only ever holds its
+// latest twenty or so, so on a busy subject older stories fall out of it within hours;
+// kept here, they stay on the tab for the full day and survive a reload.
+const ITEMS_ID = "knowledge-feed-items";
 // Five tabs to start with; the plus at the end adds the next one when they fill up.
 const SLOTS = 5;
 const BAR_BG = "#F2C46D";  // title bar, as on every other table here
@@ -181,6 +185,7 @@ export default function KnowledgeFeeds() {
   const [newUrl, setNewUrl] = useState("");
   const [story, setStory] = useState({}); // link -> text, or "loading"
   const pulled = useRef({});
+  const itemsRef = useRef({}); // the latest stories, for reads that overlap
 
   // The arrow asks for a short summary of whatever in the story bears on investing.
   const readStory = async (link) => {
@@ -200,17 +205,27 @@ export default function KnowledgeFeeds() {
   };
 
   useEffect(() => {
+    const get = (id) => supabase.from("admin_docs").select("data").eq("id", id).maybeSingle();
+    Promise.all([get(DOC_ID), get(ITEMS_ID)]).then(([tabs, kept]) => {
+      const error = tabs.error || kept.error;
+      if (error) setErr(error.message);
+      setSlots(toSlots(tabs.data?.data));
+      const stored = kept.data?.data && !Array.isArray(kept.data.data) ? kept.data.data : {};
+      itemsRef.current = stored;
+      setItems(stored);
+      setLoaded(true);
+    });
+  }, []);
+
+  // Stories are written back after every read, trimmed to the last day.
+  const keepItems = (next) => {
+    itemsRef.current = next;
+    setItems(next);
     supabase
       .from("admin_docs")
-      .select("data")
-      .eq("id", DOC_ID)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) setErr(error.message);
-        setSlots(toSlots(data?.data));
-        setLoaded(true);
-      });
-  }, []);
+      .upsert({ id: ITEMS_ID, data: next, updated_at: new Date().toISOString() })
+      .then(({ error }) => { if (error) setErr(error.message); });
+  };
 
   const save = (next) => {
     setSlots(next);
@@ -254,7 +269,8 @@ export default function KnowledgeFeeds() {
       );
       const rows = all.flatMap((r) => r.rows);
       const failed = all.filter((r) => r.error);
-      setItems((prev) => ({ ...prev, [s.id]: dedupe([...rows, ...(prev[s.id] || [])]) }));
+      const kept = dedupe([...rows, ...(itemsRef.current[s.id] || [])]).filter((r) => isFresh(r.published));
+      keepItems({ ...itemsRef.current, [s.id]: kept });
       setRead((prev) => ({ ...prev, [s.id]: Date.now() }));
       setErr(failed.length && !rows.length ? failed[0].error : "");
     } catch (e) {
@@ -308,7 +324,7 @@ export default function KnowledgeFeeds() {
   const removeUrl = (id) => {
     patchSlot({ urls: slot.urls.filter((u) => u.id !== id) });
     pulled.current[slot.id] = false;
-    setItems((prev) => ({ ...prev, [slot.id]: [] }));
+    keepItems({ ...itemsRef.current, [slot.id]: [] });
   };
 
   // One panel, built to the same measurements as the Says feeds box. Two of them sit
