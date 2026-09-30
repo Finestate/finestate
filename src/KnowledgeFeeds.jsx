@@ -140,6 +140,14 @@ const toFeedUrl = (raw) => {
   return `https://news.google.com/rss/search?q=${encodeURIComponent(s)}&hl=en&gl=US&ceid=US:en`;
 };
 
+// Tabs that show in the left panel only.
+// Matched loosely, so spacing or a missing S doesn't let one slip through.
+const LEFT_ONLY = ["INTEL", "AISTOCK"];
+const isLeftOnly = (s) => {
+  const name = (s?.name || "").toUpperCase().replace(/[^A-Z]/g, "");
+  return LEFT_ONLY.some((w) => name.startsWith(w));
+};
+
 // Nothing older than a day shows.
 const isFresh = (s) => {
   const d = new Date(s);
@@ -244,24 +252,28 @@ export default function KnowledgeFeeds() {
     }
   };
 
+  // The right panel skips the left-only tabs, so if it was left on one it moves to
+  // the first tab it does show.
+  const rightIdx = slots[open2] && !isLeftOnly(slots[open2]) ? open2 : slots.findIndex((s) => !isLeftOnly(s));
+
   // Reads whatever each panel has open, and again when a feed list changes.
   useEffect(() => {
     if (!loaded) return;
     pull(slots[open], true);
-    pull(slots[open2], true);
+    pull(slots[rightIdx], true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, open2, loaded, slots[open]?.urls.length, slots[open2]?.urls.length]);
+  }, [open, rightIdx, loaded, slots[open]?.urls.length, slots[rightIdx]?.urls.length]);
 
   // And again every five minutes, so a page left open keeps up with the feeds.
   useEffect(() => {
     if (!loaded) return;
     const tick = setInterval(() => {
       pull(slots[open], true);
-      pull(slots[open2], true);
+      pull(slots[rightIdx], true);
     }, 5 * 60 * 1000);
     return () => clearInterval(tick);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, open2, loaded, slots]);
+  }, [open, rightIdx, loaded, slots]);
 
   const addUrl = () => {
     const url = toFeedUrl(newUrl);
@@ -290,7 +302,7 @@ export default function KnowledgeFeeds() {
   // One panel, built to the same measurements as the Says feeds box. Two of them sit
   // side by side, each with its own open tab, so two feeds can be read at once.
   const renderPanel = (which) => {
-    const openIdx = which === 0 ? open : open2;
+    const openIdx = which === 0 ? open : rightIdx;
     const setOpenIdx = which === 0 ? setOpen : setOpen2;
     const panelSlot = slots[openIdx] || blankSlot();
     const panelRows = dedupe(
@@ -300,16 +312,10 @@ export default function KnowledgeFeeds() {
     );
     return (
       <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 shadow-sm">
-        {/* The right hand panel is being repurposed, so it carries no title bar. */}
-        {which === 0 && (
-          <div className="border-b-[3px] border-neutral-500 px-4 py-1.5 text-center" style={{ backgroundColor: OPEN_TAB_BG }}>
-            <h3 className="text-xs font-bold uppercase tracking-wide text-neutral-700">Intel</h3>
-          </div>
-        )}
-
+        {/* No title bar; each panel starts with its tabs. */}
         {/* The strip the tabs sit on, a deeper tone of the same red. */}
         <div className="flex gap-1 border-b-[3px] border-neutral-500 px-2 pt-1" style={{ backgroundColor: TAB_STRIP }}>
-          {slots.map((s, i) => (
+          {slots.map((s, i) => (which === 1 && isLeftOnly(s)) ? null : (
             <button
               key={s.id}
               onClick={() => setOpenIdx(i)}
