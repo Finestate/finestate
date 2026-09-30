@@ -144,6 +144,7 @@ export default function KnowledgeFeeds() {
   const [read, setRead] = useState({}); // slot id -> when it was last read
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [newest, setNewest] = useState({}); // feed address -> newest item it returned
   const [settings, setSettings] = useState(null); // the tab the popup is editing, by position
   const [newName, setNewName] = useState(""); // the keywords for the feed being added
   const [newUrl, setNewUrl] = useState("");
@@ -207,8 +208,12 @@ export default function KnowledgeFeeds() {
             // The stamp keeps the browser and the edge from serving an old copy.
             const res = await fetch(`/api/rss?url=${encodeURIComponent(url)}&t=${Date.now()}`, { cache: "no-store" });
             const xml = await res.text();
+            if (!res.ok) setNewest((prev) => ({ ...prev, [url]: "failed" }));
             if (!res.ok) return { rows: [], error: plain(xml).slice(0, 80) };
-            return { rows: parseFeedXml(xml), error: "" };
+            const rows = parseFeedXml(xml);
+            const top = rows.map((r) => new Date(r.published)).filter((d) => !isNaN(d)).sort((a, b) => b - a)[0];
+            setNewest((prev) => ({ ...prev, [url]: top ? top.toISOString() : "none" }));
+            return { rows, error: "" };
           } catch (e) {
             return { rows: [], error: e.message || "A feed could not be read." };
           }
@@ -406,6 +411,11 @@ export default function KnowledgeFeeds() {
                   onChange={(e) => patchUrl(u.id, { url: e.target.value })}
                   className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
                 />
+                {/* What this one feed itself last carried, so a quiet source is
+                    told apart from a broken one at a glance. */}
+                <span className="w-24 shrink-0 text-right text-[11px] leading-[15px] text-neutral-900">
+                  {newest[u.url] === "failed" ? "failed" : newest[u.url] === "none" ? "empty" : newest[u.url] ? when(newest[u.url]) : ""}
+                </span>
                 <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="shrink-0 text-neutral-900 transition-colors hover:text-[#C1440E]">
                   <Trash2 size={12} />
                 </button>
