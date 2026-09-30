@@ -863,7 +863,7 @@ export default function Planning() {
               {/* The core codes lead, meetings sit under them, then the long list. */}
               <div className="flex flex-1 flex-col gap-0 px-2 py-[3px]">
                 {line.meetings.length > 0 && (
-                  <div className="order-2 flex flex-wrap items-center gap-x-1 gap-y-0 leading-[15px]">
+                  <div className="order-2 flex flex-wrap items-center gap-x-2 gap-y-0 leading-[15px]">
                     {line.meetings.map((m, mi) => (
                       <span
                         key={m.id}
@@ -878,7 +878,7 @@ export default function Planning() {
                           else dropOnLine(b, idx);
                           setDrag(null);
                         }}
-                        className={`inline-flex cursor-grab items-center gap-1 text-[11px] font-semibold leading-[15px] text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
+                        className={`inline-flex cursor-grab items-center gap-0 text-[11px] font-semibold leading-[15px] text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
                       >
                         {/* Plain text until double clicked, so the bin sits right after the words. */}
                         {editing === m.id ? (
@@ -892,7 +892,7 @@ export default function Planning() {
                             className="bg-transparent text-[11px] leading-[15px] outline-none"
                           />
                         ) : (
-                          <span className="leading-[15px]">{m.name}</span>
+                          <span className="mr-[3px] leading-[15px]">{m.name}</span>
                         )}
                         {/* The marks on a meeting share one burgundy. */}
                         <Calendar size={10} className="shrink-0" style={{ color: MEETING_ICON }} />
