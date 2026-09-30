@@ -489,10 +489,9 @@ export default function KnowledgeFeeds() {
                   onChange={(e) => patchUrl(u.id, { url: e.target.value })}
                   className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
                 />
-                {/* What this one feed itself last carried, so a quiet source is
-                    told apart from a broken one at a glance. */}
+                {/* The feed's own subject, and a word if it failed or came back empty. */}
                 <span className="w-56 truncate shrink-0 text-right text-[11px] leading-[15px] text-neutral-900">
-                  {newest[u.url] ? `${newest[u.url].title ? newest[u.url].title + " " : ""}${newest[u.url].at === "failed" ? "failed" : newest[u.url].at === "none" ? "empty" : when(newest[u.url].at)}` : ""}
+                  {newest[u.url] ? `${newest[u.url].title || ""}${newest[u.url].at === "failed" ? " failed" : newest[u.url].at === "none" ? " empty" : ""}`.trim() : ""}
                 </span>
                 <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="shrink-0 text-neutral-900 transition-colors hover:text-[#C1440E]">
                   <Trash2 size={12} />
