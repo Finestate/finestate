@@ -300,9 +300,12 @@ export default function KnowledgeFeeds() {
     );
     return (
       <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 shadow-sm">
-        <div className="border-b-[3px] border-neutral-500 px-4 py-1.5 text-center" style={{ backgroundColor: OPEN_TAB_BG }}>
-          <h3 className="text-xs font-bold uppercase tracking-wide text-neutral-700">Intel</h3>
-        </div>
+        {/* The right hand panel is being repurposed, so it carries no title bar. */}
+        {which === 0 && (
+          <div className="border-b-[3px] border-neutral-500 px-4 py-1.5 text-center" style={{ backgroundColor: OPEN_TAB_BG }}>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-neutral-700">Intel</h3>
+          </div>
+        )}
 
         {/* The strip the tabs sit on, a deeper tone of the same red. */}
         <div className="flex gap-1 border-b-[3px] border-neutral-500 px-2 pt-1" style={{ backgroundColor: TAB_STRIP }}>
@@ -339,9 +342,11 @@ export default function KnowledgeFeeds() {
             <button onClick={() => pull(panelSlot, true)} title="Refresh" className="text-neutral-400 transition-colors hover:text-neutral-700">
               <RefreshCw size={14} className={busy ? "animate-spin text-[#C1440E]" : ""} />
             </button>
-            <button onClick={() => setSettings(openIdx)} title="Name this tab and add feeds" className="text-neutral-400 transition-colors hover:text-neutral-700">
-              <SquarePen size={14} />
-            </button>
+            {which === 0 && (
+              <button onClick={() => setSettings(openIdx)} title="Name this tab and add feeds" className="text-neutral-400 transition-colors hover:text-neutral-700">
+                <SquarePen size={14} />
+              </button>
+            )}
             {/* When the feed was last read, as against how old its newest story is. */}
             {read[panelSlot.id] && (
               <span className="text-[10px] text-neutral-400">read {when(read[panelSlot.id])} ago</span>
