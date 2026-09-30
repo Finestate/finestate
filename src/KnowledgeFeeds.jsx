@@ -364,6 +364,9 @@ export default function KnowledgeFeeds() {
   // One panel, built to the same measurements as the Says feeds box. Two of them sit
   // side by side, each with its own open tab, so two feeds can be read at once.
   const renderPanel = (which) => {
+    const frame = "flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 bg-white shadow-sm";
+    // The right panel is blank for now: the same frame as the left, and nothing in it.
+    if (which === 1) return <div className={frame} />;
     const list = which === 0 ? slots : slots2;
     const openIdx = which === 0 ? open : open2;
     const setOpenIdx = which === 0 ? setOpen : setOpen2;
@@ -374,7 +377,7 @@ export default function KnowledgeFeeds() {
         .sort((a, b) => new Date(b.published) - new Date(a.published))
     );
     return (
-      <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 bg-white shadow-sm">
+      <div className={frame}>
         {/* Plain text tabs on white, every one the same width, with a hairline
             between them; the open one carries a burgundy underline. Tabs not yet
             named stay out of sight until they are given a name. */}
