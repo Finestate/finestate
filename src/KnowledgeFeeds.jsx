@@ -492,50 +492,57 @@ export default function KnowledgeFeeds() {
               <span className="text-[13px] font-bold text-neutral-900">({slot.urls.length})</span>
             </div>
 
-            {/* The feeds sit in their own framed table inside the sheet, under a
-                heading for each column. */}
-            <div className="mt-1 rounded border-[3px] border-black">
-            <div className="flex items-center gap-3 border-b border-black bg-neutral-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-neutral-600">
-              <span className="w-44 shrink-0">Name</span>
-              <span className="min-w-0 flex-1">Words to search, or a feed address</span>
-              <span className="w-12 shrink-0" />
-            </div>
-            {[...slot.urls].sort((a, b) => (a.name || a.url).localeCompare(b.name || b.url)).map((u, i) => (
-              <div key={u.id} className={`flex items-center gap-3 px-2 py-1.5 ${i === 0 ? "" : "border-t border-black"}`}>
-                <input
-                  value={u.name}
-                  onChange={(e) => patchUrl(u.id, { name: e.target.value })}
-                  className="w-44 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
-                />
-                <input
-                  value={u.url}
-                  onChange={(e) => patchUrl(u.id, { url: e.target.value })}
-                  className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
-                />
-                <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="flex w-12 shrink-0 justify-end text-neutral-900 transition-colors hover:text-[#C1440E]">
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
-
-            {/* The last row, shaded, is where a new feed is typed in. */}
-            <div className={`flex items-center gap-3 bg-neutral-50 px-2 py-1.5 ${slot.urls.length ? "border-t border-black" : ""}`}>
-              <input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="w-44 shrink-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-300"
-              />
-              <input
-                value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(null); }}
-                className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
-              />
-              <button onClick={addUrl} title="Add this feed" className="flex w-12 shrink-0 items-center justify-end gap-0.5 text-[10px] font-bold uppercase" style={{ color: RED }}>
-                <Plus size={12} /> Add
-              </button>
-            </div>
-            </div>
+            {/* The feeds as a proper table: every cell framed, heading row included,
+                inside a heavier outer frame. The last row, shaded, adds a feed. */}
+            <table className="mt-1 w-full table-fixed border-collapse border-[3px] border-black">
+              <colgroup>
+                <col className="w-44" />
+                <col />
+                <col className="w-16" />
+              </colgroup>
+              <thead>
+                <tr className="bg-neutral-100 text-left text-[10px] font-bold uppercase tracking-wide text-neutral-700">
+                  <th className="border border-black px-2 py-1 font-bold">Name</th>
+                  <th className="border border-black px-2 py-1 font-bold">Words to search, or a feed address</th>
+                  <th className="border border-black px-2 py-1" />
+                </tr>
+              </thead>
+              <tbody>
+                {[...slot.urls].sort((a, b) => (a.name || a.url).localeCompare(b.name || b.url)).map((u) => (
+                  <tr key={u.id}>
+                    <td className="border border-black px-2 py-1">
+                      <input value={u.name} onChange={(e) => patchUrl(u.id, { name: e.target.value })} className="w-full bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none" />
+                    </td>
+                    <td className="border border-black px-2 py-1">
+                      <input value={u.url} onChange={(e) => patchUrl(u.id, { url: e.target.value })} className="w-full bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none" />
+                    </td>
+                    <td className="border border-black px-2 py-1 text-center">
+                      <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="inline-flex text-neutral-900 transition-colors hover:text-[#C1440E]">
+                        <Trash2 size={12} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                <tr className="bg-neutral-50">
+                  <td className="border border-black px-2 py-1">
+                    <input value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none" />
+                  </td>
+                  <td className="border border-black px-2 py-1">
+                    <input
+                      value={newUrl}
+                      onChange={(e) => setNewUrl(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") addUrl(); if (e.key === "Escape") setSettings(null); }}
+                      className="w-full bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
+                    />
+                  </td>
+                  <td className="border border-black px-2 py-1 text-center">
+                    <button onClick={addUrl} title="Add this feed" className="inline-flex items-center gap-0.5 text-[10px] font-bold uppercase" style={{ color: RED }}>
+                      <Plus size={12} /> Add
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
             <div className="mt-3 flex justify-end">
               <button onClick={deleteTab} className="text-[10px] font-bold uppercase tracking-wide text-neutral-500 transition-colors hover:text-[#C1440E]">
