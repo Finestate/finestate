@@ -919,11 +919,8 @@ export default function Planning() {
                   </div>
                 )}
                 {line.meetings.length === 0 && coreCodes.length === 0 && restCodes.length === 0 && (
-                  // Lined up with the first letter of the rows above.
-                  <span className="my-[4px] ml-[1px] inline-flex items-center gap-1.5">
-                    {[0, 1, 2, 3, 4].map((n) => (
-                      <span key={n} className="inline-block h-[5px] w-[5px] bg-neutral-300" />
-                    ))}
+                  <span className="my-[4px] ml-[1px] inline-flex items-center text-[11px] font-semibold leading-[15px] text-neutral-400">
+                    {BOARD_TAGS[b]}
                   </span>
                 )}
                 {/* Master spells its points out; a company board shows only the short
