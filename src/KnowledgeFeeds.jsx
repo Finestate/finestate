@@ -208,11 +208,13 @@ export default function KnowledgeFeeds() {
             // The stamp keeps the browser and the edge from serving an old copy.
             const res = await fetch(`/api/rss?url=${encodeURIComponent(url)}&t=${Date.now()}`, { cache: "no-store" });
             const xml = await res.text();
-            if (!res.ok) setNewest((prev) => ({ ...prev, [url]: "failed" }));
+            if (!res.ok) setNewest((prev) => ({ ...prev, [url]: { at: "failed", title: "" } }));
             if (!res.ok) return { rows: [], error: plain(xml).slice(0, 80) };
             const rows = parseFeedXml(xml);
             const top = rows.map((r) => new Date(r.published)).filter((d) => !isNaN(d)).sort((a, b) => b - a)[0];
-            setNewest((prev) => ({ ...prev, [url]: top ? top.toISOString() : "none" }));
+            // The feed states its own subject; a mistyped address shows up here at once.
+            const feedTitle = (xml.match(/<title[^>]*>([^]*?)<\/title>/i) || ["", ""])[1];
+            setNewest((prev) => ({ ...prev, [url]: { at: top ? top.toISOString() : "none", title: plain(feedTitle).replace(/^Google Alert - /, "") } }));
             return { rows, error: "" };
           } catch (e) {
             return { rows: [], error: e.message || "A feed could not be read." };
@@ -421,8 +423,8 @@ export default function KnowledgeFeeds() {
                 />
                 {/* What this one feed itself last carried, so a quiet source is
                     told apart from a broken one at a glance. */}
-                <span className="w-24 shrink-0 text-right text-[11px] leading-[15px] text-neutral-900">
-                  {newest[u.url] === "failed" ? "failed" : newest[u.url] === "none" ? "empty" : newest[u.url] ? when(newest[u.url]) : ""}
+                <span className="w-56 truncate shrink-0 text-right text-[11px] leading-[15px] text-neutral-900">
+                  {newest[u.url] ? `${newest[u.url].title ? newest[u.url].title + " " : ""}${newest[u.url].at === "failed" ? "failed" : newest[u.url].at === "none" ? "empty" : when(newest[u.url].at)}` : ""}
                 </span>
                 <button onClick={() => removeUrl(u.id)} title="Remove this feed" className="shrink-0 text-neutral-900 transition-colors hover:text-[#C1440E]">
                   <Trash2 size={12} />
