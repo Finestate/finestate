@@ -1246,7 +1246,9 @@ export default function Planning() {
     <>
       <div className="order-4 col-span-3 grid grid-cols-3 items-start gap-1.5">
         {TWOCOLS.map(([k, label]) => (
-          <div key={k} className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+          // TEMPORARY: reminder-red turns all text in these two columns red, as a note
+          // that they still need finishing. Remove the class to put them back.
+          <div key={k} className="reminder-red flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
             <div
               className="flex flex-1 flex-col gap-1"
