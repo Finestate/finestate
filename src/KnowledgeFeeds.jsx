@@ -359,15 +359,16 @@ export default function KnowledgeFeeds() {
     );
     return (
       <div className="flex min-h-0 min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-neutral-500 bg-white shadow-sm">
-        {/* Plain text tabs on white; the open one carries a burgundy underline. Tabs
-            not yet named stay out of sight until they are given a name. */}
-        <div className="flex items-end gap-5 overflow-x-auto border-b border-neutral-300 bg-white px-4 pt-3">
+        {/* Plain text tabs on white, every one the same width, with a hairline
+            between them; the open one carries a burgundy underline. Tabs not yet
+            named stay out of sight until they are given a name. */}
+        <div className="flex divide-x divide-neutral-300 border-b border-neutral-300 bg-white">
           {list.map((s, i) => !s.name ? null : (
             <button
               key={s.id}
               onClick={() => setOpenIdx(i)}
               title={s.name}
-              className={`shrink-0 whitespace-nowrap border-b-[3px] pb-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${
+              className={`-mb-px min-w-0 flex-1 truncate border-b-[3px] px-2 pb-2 pt-3 text-center text-[11px] font-bold uppercase tracking-wide transition-colors ${
                 i === openIdx ? "border-[#B01E2F] text-neutral-900" : "border-transparent text-neutral-400 hover:text-neutral-700"
               }`}
             >
@@ -379,7 +380,7 @@ export default function KnowledgeFeeds() {
             <button
               onClick={() => { const next = [...slots, blankSlot()]; save(next); setOpenIdx(next.length - 1); setSettings(next.length - 1); }}
               title="Add another tab"
-              className="shrink-0 border-b-[3px] border-transparent pb-2 text-neutral-400 transition-colors hover:text-neutral-700"
+              className="-mb-px flex w-9 shrink-0 items-center justify-center border-b-[3px] border-transparent pb-2 pt-3 text-neutral-400 transition-colors hover:text-neutral-700"
             >
               <Plus size={14} />
             </button>
