@@ -398,7 +398,7 @@ export default function KnowledgeFeeds() {
 
             {/* The feeds sit in their own framed table inside the sheet. */}
             <div className="mt-1 rounded border border-black">
-            {slot.urls.map((u, i) => (
+            {[...slot.urls].sort((a, b) => (a.name || a.url).localeCompare(b.name || b.url)).map((u, i) => (
               <div key={u.id} className={`flex items-center gap-3 px-2 py-1.5 ${i === 0 ? "" : "border-t border-black"}`}>
                 <input
                   value={u.name}
