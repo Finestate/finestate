@@ -140,6 +140,18 @@ const toFeedUrl = (raw) => {
   return `https://news.google.com/rss/search?q=${encodeURIComponent(s)}&hl=en&gl=US&ceid=US:en`;
 };
 
+// Left to itself a Google News search returns its best matches from the past few
+// weeks, most of which the one day cut then throws away. Asking for the last day
+// only fills the list with stories that will actually show. Applied when reading, so
+// feeds saved before this change get it too.
+const lastDay = (url) => {
+  if (!/^https:\/\/news\.google\.com\/rss\/search\?/i.test(url)) return url;
+  const u = new URL(url);
+  const q = u.searchParams.get("q") || "";
+  if (!/\bwhen:\d+[hd]\b/i.test(q)) u.searchParams.set("q", `${q} when:1d`.trim());
+  return u.toString();
+};
+
 // Tabs that show in the left panel only.
 // Matched loosely, so spacing or a missing S doesn't let one slip through.
 const LEFT_ONLY = ["INTEL", "AISTOCK"];
@@ -225,7 +237,7 @@ export default function KnowledgeFeeds() {
         s.urls.map(async ({ url }) => {
           try {
             // The stamp keeps the browser and the edge from serving an old copy.
-            const res = await fetch(`/api/rss?url=${encodeURIComponent(url)}&t=${Date.now()}`, { cache: "no-store" });
+            const res = await fetch(`/api/rss?url=${encodeURIComponent(lastDay(url))}&t=${Date.now()}`, { cache: "no-store" });
             const xml = await res.text();
             if (!res.ok) setNewest((prev) => ({ ...prev, [url]: { at: "failed", title: "" } }));
             if (!res.ok) return { rows: [], error: plain(xml).slice(0, 80) };
