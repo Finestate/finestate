@@ -10,6 +10,7 @@ const DOC_ID = "knowledge-feeds";
 // latest twenty or so, so on a busy subject older stories fall out of it within hours;
 // kept here, they stay on the tab for the full day and survive a reload.
 const ITEMS_ID = "knowledge-feed-items";
+const VIEW_ID = "knowledge-feeds-open"; // the tab each panel was left on
 // Five tabs to start with; the plus at the end adds the next one when they fill up.
 const SLOTS = 5;
 const BAR_BG = "#F2C46D";  // title bar, as on every other table here
@@ -206,27 +207,34 @@ export default function KnowledgeFeeds() {
 
   useEffect(() => {
     const get = (id) => supabase.from("admin_docs").select("data").eq("id", id).maybeSingle();
-    Promise.all([get(DOC_ID), get(ITEMS_ID)]).then(([tabs, kept]) => {
-      const error = tabs.error || kept.error;
+    Promise.all([get(DOC_ID), get(ITEMS_ID), get(VIEW_ID)]).then(([tabs, kept, view]) => {
+      const error = tabs.error || kept.error || view.error;
       if (error) setErr(error.message);
-      let list = toSlots(tabs.data?.data);
-      // One-off: a STOCKS tab goes in just before AI STOCKS. Only when the saved tabs
-      // came back and hold no STOCKS tab yet; to be removed once it has run.
-      const plainName = (s) => (s.name || "").toUpperCase().replace(/[^A-Z]/g, "");
-      if (!tabs.error && !list.some((s) => plainName(s) === "STOCKS")) {
-        const at = list.findIndex((s) => plainName(s).startsWith("AISTOCK"));
-        const stocks = { ...blankSlot(), name: "STOCKS" };
-        list = at < 0 ? [...list, stocks] : [...list.slice(0, at), stocks, ...list.slice(at)];
-        supabase.from("admin_docs").upsert({ id: DOC_ID, data: list, updated_at: new Date().toISOString() })
-          .then(({ error: e }) => { if (e) setErr(e.message); });
-      }
+      const list = toSlots(tabs.data?.data);
       setSlots(list);
+      // Each panel opens on the tab it was left on.
+      const left = list.findIndex((s) => s.id === view.data?.data?.left);
+      const right = list.findIndex((s) => s.id === view.data?.data?.right);
+      if (left >= 0) setOpen(left);
+      if (right >= 0) setOpen2(right);
       const stored = kept.data?.data && !Array.isArray(kept.data.data) ? kept.data.data : {};
       itemsRef.current = stored;
       setItems(stored);
       setLoaded(true);
     });
   }, []);
+
+  // Which tab each panel is on, kept with the account so a refresh comes back to it.
+  // Written only once the saved one has been read, so it is never reset on open.
+  const leftId = slots[open]?.id;
+  const rightId = slots[open2]?.id;
+  useEffect(() => {
+    if (!loaded) return;
+    supabase
+      .from("admin_docs")
+      .upsert({ id: VIEW_ID, data: { left: leftId, right: rightId }, updated_at: new Date().toISOString() })
+      .then(({ error }) => { if (error) setErr(error.message); });
+  }, [loaded, leftId, rightId]);
 
   // Stories are written back after every read, trimmed to the last day.
   const keepItems = (next) => {
@@ -391,10 +399,6 @@ export default function KnowledgeFeeds() {
               <button onClick={() => setSettings(openIdx)} title="Name this tab and add feeds" className="text-neutral-400 transition-colors hover:text-neutral-700">
                 <SquarePen size={14} />
               </button>
-            )}
-            {/* When the feed was last read, as against how old its newest story is. */}
-            {read[panelSlot.id] && (
-              <span className="text-[10px] text-neutral-400">read {when(read[panelSlot.id])} ago</span>
             )}
           </div>
 
