@@ -366,7 +366,7 @@ export default function KnowledgeFeeds() {
             <button
               key={s.id}
               onClick={() => setOpenIdx(i)}
-              title={s.name || "Free tab"}
+              title={s.name ? `${s.name} (${s.urls.length})` : "Free tab"}
               className={`min-w-0 flex-1 truncate rounded-t-lg border border-neutral-300 px-1 py-1.5 text-[10px] font-bold uppercase tracking-tight shadow-sm transition-opacity ${
                 i === openIdx ? "relative z-10 text-neutral-800" : "text-neutral-500 hover:opacity-80 hover:text-neutral-700"
               }`}
