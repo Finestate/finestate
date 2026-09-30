@@ -526,7 +526,9 @@ export default function Planning() {
         const hasCloud = d && (Array.isArray(d.rows) ? d.rows.length : 0) + Object.keys(d.boards || {}).length > 0;
         const hasLocal = rows.length > 0;
         if (hasCloud && !hasLocal) {
-          if (Array.isArray(d.rows)) setRows(d.rows);
+          // The account copy goes through the same tidy up as a browser copy, so
+          // renamed and retired bars follow it.
+          if (Array.isArray(d.rows)) setRows(withDailySections(d.rows));
           if (d.boards) setBoards(d.boards);
           if (Array.isArray(d.collapsed)) setCollapsed(d.collapsed);
           if (d.title) setTitle(d.title);
