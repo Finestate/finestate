@@ -924,12 +924,12 @@ export default function Costs({ seed }) {
                     {/* Worked out from the frequency, so blank until one is set. */}
                     <span className={`${cell} justify-end`}>{e.freq ? `EUR ${money(monthlyAvg(e))}` : ""}</span>
                     <span className={`${cell} justify-end`}>
-                      {/* Due this month: a tick marks it paid; it shows teal once ticked. */}
+                      {/* Due this month: a red tick still to pay, teal once ticked as paid. */}
                       {dueThisMonth(e) && e.id !== "blank" && (
                         <button
                           onClick={() => edit({ paidMonth: isPaid(e) ? "" : monthKey })}
                           title={isPaid(e) ? "Paid this month (click to undo)" : "Mark as paid this month"}
-                          className={`mr-auto ${isPaid(e) ? "text-[#0f766e]" : "text-neutral-300 hover:text-neutral-700"}`}
+                          className={`mr-auto ${isPaid(e) ? "text-[#0f766e]" : "text-[#C1440E] hover:text-[#a63a0c]"}`}
                         >
                           <Check size={12} strokeWidth={3} />
                         </button>
