@@ -107,6 +107,14 @@ export default function Costs({ seed }) {
   const [loaded, setLoaded] = useState(false);
   const [err, setErr] = useState("");
   const [confirm, setConfirm] = useState(null); // delete waiting on Delete or Cancel
+  const [live, setLive] = useState(null); // today's exchange rates against the euro
+
+  useEffect(() => {
+    fetch("/api/fx")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (j?.rates) setLive(j); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (seed) { setDoc({ ...EMPTY, ...seed }); setLoaded(true); return; }
@@ -154,6 +162,8 @@ export default function Costs({ seed }) {
   const toEur = (amount, cur) => {
     const c = String(cur || "EUR").trim().toUpperCase();
     if (!c || c === "EUR") return num(amount);
+    // Today's rate first; the rates saved in the table only stand in if it can't be had.
+    if (live?.rates?.[c]) return num(amount) / live.rates[c];
     const pair = (p) => String(p || "").replace(/\s/g, "").toUpperCase();
     const direct = doc.rates.find((r) => pair(r.pair) === `${c}/EUR`);
     if (direct) return num(amount) * num(direct.rate);
@@ -206,7 +216,9 @@ export default function Costs({ seed }) {
               <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" style={cur !== "EUR" ? { backgroundColor: "#DCE6F1" } : undefined}>
                 {cur !== "EUR" && `${cur} ${money(num(r.amount))}`}
               </span>
-              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" style={{ backgroundColor: "#EBF1DE" }}>
+              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" style={{ backgroundColor: "#EBF1DE" }}
+                title={cur !== "EUR" && live?.rates?.[cur] ? `1 ${cur} = ${(1 / live.rates[cur]).toFixed(4)} EUR, today's rate` : undefined}
+              >
                 EUR {money(toEur(r.amount, r.currency))}
               </span>
             </div>
