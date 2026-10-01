@@ -2,9 +2,10 @@ import { eb, requireAdmin, readBody } from "../_bank.js";
 
 // The current balance of each connected account. The bank allows only a few reads a
 // day without you present, so the page keeps the last answer and asks sparingly.
-// Booked first, as the bank's own Kontostand shows it; the "available" figures can
-// include the overdraft limit, so they only stand in when nothing else is given.
-const PREFER = ["ITBD", "XPCD", "CLBD", "ITAV", "CLAV", "OTHR"];
+// Booked first, as the bank's own Kontostand shows it. "Expected" adds payments
+// still pending, and the "available" figures can include the overdraft limit, so
+// they only stand in when no booked figure is given.
+const PREFER = ["ITBD", "CLBD", "XPCD", "ITAV", "CLAV", "OTHR"];
 const TYPES = { ITBD: "booked today", XPCD: "expected", CLBD: "booked at close", ITAV: "available today", CLAV: "available at close", OTHR: "other" };
 
 export default async function handler(req, res) {
