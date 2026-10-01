@@ -9,6 +9,15 @@ const DOC_ID = "costs-fc";
 // The read-only bank connection: which accounts it covers, until when, and the last
 // balances read. Kept in Supabase like everything else.
 const BANK_ID = "bank-link";
+// The columns of an expense line, left to right.
+const EXPENSE_COLS = [
+  { label: "Description" },
+  { label: "Payment source" },
+  { label: "Payment frequency" },
+  { label: "Amount (exact or estimate)", money: true },
+  { label: "Averaged monthly", money: true },
+  { label: "This month pending", money: true },
+];
 const MONTH_CODES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 // The bank allows only a few reads a day, so a balance is read again at most every
 // six hours.
@@ -735,9 +744,14 @@ export default function Costs({ seed }) {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
           <span className={head}>Home-related</span>
         </div>
-        {/* The column headings for the expense lines, added one at a time. */}
-        <div className="flex h-[22px] items-stretch border-t border-black">
-          <span className={`flex flex-1 items-center px-2 ${colHead}`}>Description</span>
+        {/* The column headings for the expense lines: six equal, framed columns, the
+            money ones set to the right. */}
+        <div className="grid h-[22px] grid-cols-6 border-t border-black">
+          {EXPENSE_COLS.map((c, i) => (
+            <span key={c.label} className={`flex items-center px-2 ${colHead} ${i ? "border-l border-black" : ""} ${c.money ? "justify-end text-right" : ""}`}>
+              {c.label}
+            </span>
+          ))}
         </div>
       </div>
 
