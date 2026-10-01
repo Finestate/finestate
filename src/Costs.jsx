@@ -134,11 +134,12 @@ export default function Costs({ seed }) {
   const [bankBusy, setBankBusy] = useState(false);
   const [kidsOpen, setKidsOpen] = useState(false); // the kids' accounts line, opened or shut
 
-  const refreshBank = async (link) => {
+  // present: you pressed Refresh yourself, rather than the page reading on open.
+  const refreshBank = async (link, present = false) => {
     if (!link?.accounts?.length) return;
     setBankBusy(true);
     try {
-      const r = await callBank("balances", { uids: link.accounts.map((a) => a.uid) });
+      const r = await callBank("balances", { uids: link.accounts.map((a) => a.uid), present });
       const next = { ...link, balances: r.balances, at: r.at };
       await saveBank(next);
       setBank(next);
@@ -367,7 +368,7 @@ export default function Costs({ seed }) {
           {bank?.accounts?.length ? (
             <>
               <span className="normal-case tracking-normal">
-                {bankBusy ? "Reading from the bank…" : bank.at ? `Read ${new Date(bank.at).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}` : "Not read yet"}
+                {bankBusy ? "Reading from the bank…" : bank.at ? `Read ${new Date(bank.at).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Not read yet"}
               </span>
               {bank.valid_until && (
                 <span className="normal-case tracking-normal">
@@ -375,7 +376,7 @@ export default function Costs({ seed }) {
                 </span>
               )}
               <span className="flex-1" />
-              <button onClick={() => refreshBank(bank)} disabled={bankBusy} className="font-bold hover:text-neutral-900">Refresh</button>
+              <button onClick={() => refreshBank(bank, true)} disabled={bankBusy} className="font-bold hover:text-neutral-900">Refresh</button>
               <button onClick={connectBank} disabled={bankBusy} className="font-bold hover:text-neutral-900">Reconnect</button>
             </>
           ) : (

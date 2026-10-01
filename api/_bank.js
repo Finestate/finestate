@@ -24,10 +24,10 @@ function appToken() {
   return `${head}.${body}.${b64url(sig)}`;
 }
 
-export async function eb(path, { method = "GET", body } = {}) {
+export async function eb(path, { method = "GET", body, headers } = {}) {
   const r = await fetch(`${API}${path}`, {
     method,
-    headers: { Authorization: `Bearer ${appToken()}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${appToken()}`, "Content-Type": "application/json", ...(headers || {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
   const text = await r.text();
