@@ -507,7 +507,7 @@ export default function Costs({ seed }) {
     // Narrow windows scroll the table sideways rather than squashing the columns.
     <div className="w-full overflow-x-auto">
       {/* The new table, being built up step by step. */}
-      <div className="mb-48 w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
+      <div className="w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
         {/* Balances always come first. */}
         <Section first>Accounts</Section>
         {/* Your own account on its own line, with a chevron; a click anywhere in its
@@ -947,103 +947,6 @@ export default function Costs({ seed }) {
             <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(expensesMonthly)}</span>
             <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(pendingFixed)}</span>
           </div>
-      </div>
-
-      {/* The earlier table, kept below as a holding area while the new one is built. */}
-      <div spellCheck={false} className="w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
-        {/* Exchange rates are hidden for now; the saved ones still convert income to EUR. */}
-        {/* Title bar: page name with the current month, and the headline balance on the right. */}
-        <div className="flex h-[22px] items-center gap-1.5 px-2" style={{ backgroundColor: MAIN_BG }}>
-          <span className={`flex-1 ${head}`}>
-            Monthly income and costs –{["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][new Date().getMonth()]} {new Date().getFullYear()}
-          </span>
-          <span className={head}>Balance after pending</span>
-          <span className={`w-28 shrink-0 text-right tabular-nums ${head}`}>EUR {money(balanceAfter)}</span>
-          <span className="w-6 shrink-0" />
-        </div>
-
-        <Sub>Balances</Sub>
-        <Figure label="SP Giro account balance" value={doc.balances.giro} onChange={(v) => setBalance("giro", v)} />
-        <Figure label="Pending fixed costs" value={totalPending} calc />
-        <Figure label="Credit card balance" value={doc.balances.card} onChange={(v) => setBalance("card", v)} />
-        <Figure label="Balance after all pending fixed costs and pending credit card bill" value={balanceAfter} calc strong />
-        <Figure label="Mortgage to clear with extra payments" value={doc.balances.mortgage} onChange={(v) => setBalance("mortgage", v)} />
-
-        <Sub>Net incoming</Sub>
-        <div className="flex items-center gap-1.5 border-t border-black bg-white flex h-[22px] items-center px-2">
-          <span className={`flex-1 ${colHead}`}>Source</span>
-          <span className={`w-24 shrink-0 text-right ${colHead}`}>Amount</span>
-          <span className={`w-16 shrink-0 ${colHead}`}>Currency</span>
-          <span className={`w-24 shrink-0 text-right ${colHead}`}>In EUR</span>
-          <span className="w-6 shrink-0" />
-        </div>
-        {doc.income.map((r, i) => (
-          <Row key={r.id} first={i === 0}>
-            <input value={r.name || ""} onChange={(e) => editIn("income", r.id, "name", e.target.value)} placeholder="Source" className={`${txt} flex-1`} />
-            <span className="w-28 shrink-0"><MoneyInput value={r.amount || ""} onChange={(v) => editIn("income", r.id, "amount", v)} /></span>
-            <span className="w-16 shrink-0"><input value={r.currency || ""} onChange={(e) => editIn("income", r.id, "currency", e.target.value.toUpperCase())} placeholder="EUR" className={`${txt} uppercase`} /></span>
-            <span className="w-24 shrink-0 text-right text-[11px] tabular-nums text-neutral-900">EUR {money(toEur(r.amount, r.currency))}</span>
-            <Bin onClick={() => ask(() => setList("income", doc.income.filter((x) => x.id !== r.id)))} />
-          </Row>
-        ))}
-        <Figure label="Total income (some of it to be taxed)" value={totalIncome} calc strong />
-        <AddBar onClick={() => addTo("income", { name: "", amount: "", currency: "EUR" })} />
-
-
-        <Sub>Tax payments</Sub>
-        {simpleList("tax", "Payment")}
-
-        <Sub>Pocket money – current month</Sub>
-        {simpleList("pocket", "Who and how much weekly")}
-
-        <Sub>Expenses</Sub>
-        {doc.groups.map((g) => {
-          const gMonthly = g.rows.reduce((s, r) => s + monthlyAvg(r), 0);
-          return (
-            <div key={g.id}>
-              <div className="flex items-center gap-1.5 border-t border-black flex h-[22px] items-center px-2" style={{ backgroundColor: SUBSUB_BG }}>
-                <input value={g.name || ""} onChange={(e) => editGroup(g.id, e.target.value)} placeholder="Group" className={`flex-1 bg-transparent py-0 outline-none ${head}`} />
-                <Bin onClick={() => ask(() => removeGroup(g.id))} />
-              </div>
-              <div className="flex items-center gap-1.5 border-t border-black flex h-[22px] items-center px-2">
-                <span className={`flex-1 ${colHead}`}>Item</span>
-                <span className={`w-28 shrink-0 ${colHead}`}>Payment source</span>
-                <span className={`w-32 shrink-0 ${colHead}`}>Frequency</span>
-                <span className={`w-24 shrink-0 text-right ${colHead}`}>Amount</span>
-                <span className={`w-24 shrink-0 text-right ${colHead}`}>Monthly avg</span>
-                <span className={`w-24 shrink-0 text-right ${colHead}`}>Pending</span>
-                <span className="w-6 shrink-0" />
-              </div>
-              {g.rows.map((r, i) => (
-                <Row key={r.id} first={i === 0}>
-                  <input value={r.item || ""} onChange={(e) => editRow(g.id, r.id, "item", e.target.value)} placeholder="Item" className={`${txt} flex-1`} />
-                  <span className="w-28 shrink-0"><input value={r.source || ""} onChange={(e) => editRow(g.id, r.id, "source", e.target.value)} className={txt} /></span>
-                  <span className="w-32 shrink-0"><input value={r.freq || ""} onChange={(e) => editRow(g.id, r.id, "freq", e.target.value)} placeholder="Monthly" className={txt} /></span>
-                  <span className="w-24 shrink-0"><MoneyInput value={r.amount || ""} onChange={(v) => editRow(g.id, r.id, "amount", v)} /></span>
-                  <span className="w-24 shrink-0 text-right text-[11px] tabular-nums text-neutral-900">{money(monthlyAvg(r))}</span>
-                  <span className="w-24 shrink-0"><MoneyInput value={r.pending || ""} onChange={(v) => editRow(g.id, r.id, "pending", v)} placeholder="–" /></span>
-                  <Bin onClick={() => ask(() => removeRow(g.id, r.id))} />
-                </Row>
-              ))}
-              <div className="flex items-center gap-1.5 border-t border-black bg-neutral-50 flex h-[22px] items-center px-2">
-                <span className="flex-1 text-[11px] font-bold uppercase tracking-wide text-neutral-500">Group monthly</span>
-                <span className="w-24 shrink-0 text-right text-[11px] font-bold tabular-nums text-neutral-900">{money(gMonthly)}</span>
-                <span className="w-24 shrink-0" />
-                <span className="w-6 shrink-0" />
-              </div>
-              <AddBar onClick={() => addRow(g.id)} />
-            </div>
-          );
-        })}
-        <AddBar onClick={addGroup} label="Add group" />
-
-        {/* Totals */}
-        <div className="flex items-center gap-1.5 border-t border-black flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
-          <span className={`flex-1 ${head}`}>Totals</span>
-          <span className={`w-24 shrink-0 text-right ${head} tabular-nums`}>{money(totalMonthly)}</span>
-          <span className={`w-24 shrink-0 text-right ${head} tabular-nums`}>{money(totalPending)}</span>
-          <span className="w-6 shrink-0" />
-        </div>
       </div>
 
       {confirm && (
