@@ -91,7 +91,7 @@ export default function HW() {
   // Two framed columns, no headings: a short one for the name, a long one for the
   // details, which grows with its text. Then the Add line under the last one.
   // withLink adds a short column, right after the name, for where to buy: the address shows only as
-  // "Link to buy", with a pencil to change it. An address typed into the details
+  // "Link to buy"; a click beside the words opens the address to change it. An address typed into the details
   // before this column existed is read as the link.
   const listBlock = (key, withLink = false) => (
     <>
@@ -110,17 +110,16 @@ export default function HW() {
                 className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
               />
             </span>
+            {/* The words open the shop; a click in the space beside them opens the address. */}
             {withLink && (
-              <span className="flex w-36 shrink-0 items-start border-l border-black px-2 py-[3px]">
+              <span
+                onClick={() => { if (isWebAddress(link)) setEditingLink(m.id); }}
+                className={`flex w-36 shrink-0 items-start border-l border-black px-2 py-[3px] ${isWebAddress(link) && editingLink !== m.id ? "cursor-text" : ""}`}
+              >
                 {isWebAddress(link) && editingLink !== m.id ? (
-                  <span className="flex items-center gap-2">
-                    <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} className="inline-flex items-center gap-1 whitespace-nowrap text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
-                      Link to buy
-                    </a>
-                    <button onClick={() => setEditingLink(m.id)} title="Change the address" className="text-neutral-400 hover:text-neutral-900">
-                      <SquarePen size={11} />
-                    </button>
-                  </span>
+                  <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} onClick={(e) => e.stopPropagation()} className="whitespace-nowrap text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
+                    Link to buy
+                  </a>
                 ) : (
                   <input
                     autoFocus={editingLink === m.id}
@@ -131,11 +130,11 @@ export default function HW() {
                     className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
                   />
                 )}
+              </span>
+            )}
             <span className="flex min-w-0 flex-1 items-start border-l border-black px-2 py-[3px]">
               <GrowText value={details} onChange={setDetails} rows={1} />
             </span>
-              </span>
-            )}
             <span className="flex shrink-0 items-start px-2 py-[5px]">
               {m.id !== "blank" ? (
                 <button onClick={() => setListConfirm({ key, id: m.id })} title="Remove" className="text-neutral-900 hover:text-[#C1440E]">
