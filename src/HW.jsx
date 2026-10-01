@@ -152,6 +152,11 @@ export default function HW() {
         >
           <Plus size={11} strokeWidth={3} />Add
         </button>
+        {/* The grey band between sections, then the next section. */}
+        <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Medicines</span>
+        </div>
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
