@@ -152,20 +152,26 @@ function FrequencyPicker({ value, onChange }) {
       </button>
       {anchor && (
         <>
-          {/* A click anywhere else closes it. */}
-          <div className="fixed inset-0 z-40" onClick={() => setAnchor(null)} />
-          <div className="fixed z-50 flex gap-3 border-2 border-black bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
-            <div className="flex w-20 flex-col">
-              <button type="button" onClick={() => { onChange(monthly ? "" : "Monthly"); setAnchor(null); }} className={tile(monthly)}>
-                Monthly
-              </button>
-            </div>
-            <div className="grid w-36 grid-cols-3 gap-1">
-              {FREQ_MONTHS.map((m) => (
-                <button key={m} type="button" onClick={() => toggle(m)} className={tile(picked.includes(m))}>
-                  {m}
+          {/* It stays open while months are picked, and closes only with Done. */}
+          <div className="fixed z-50 border-2 border-black bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
+            <div className="flex gap-3">
+              <div className="flex w-20 flex-col">
+                <button type="button" onClick={() => onChange(monthly ? "" : "Monthly")} className={tile(monthly)}>
+                  Monthly
                 </button>
-              ))}
+              </div>
+              <div className="grid w-36 grid-cols-3 gap-1">
+                {FREQ_MONTHS.map((m) => (
+                  <button key={m} type="button" onClick={() => toggle(m)} className={tile(picked.includes(m))}>
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2 flex justify-end border-t border-neutral-200 pt-2">
+              <button type="button" onClick={() => setAnchor(null)} className="h-6 border border-black bg-black px-4 text-[11px] font-bold text-white hover:bg-neutral-800">
+                Done
+              </button>
             </div>
           </div>
         </>
