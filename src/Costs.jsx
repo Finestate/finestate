@@ -343,6 +343,9 @@ export default function Costs({ seed }) {
     </>
   );
 
+  // Fixed costs still to go out: nil until the costs part of the table is built.
+  const pendingFixed = 0;
+
   if (!loaded) return <p className="px-2 py-3 text-[11px] italic text-neutral-400">Loading…</p>;
 
   return (
@@ -435,6 +438,14 @@ export default function Costs({ seed }) {
             </>
           );
         })()}
+        {/* Fixed costs still to go out this month. Nil for now; it will come from the
+            costs part of the table once that is built. */}
+        <div className="flex h-[22px] items-stretch border-t border-black">
+          <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">Pending fixed costs</span>
+          <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+            EUR {money(pendingFixed)}
+          </span>
+        </div>
         {/* The credit card isn't shared by the bank, so its figure is typed in. */}
         <div className="flex h-[22px] items-stretch border-t border-black">
           <span className="flex flex-1 items-center gap-1 px-2 text-[11px] text-neutral-900">
@@ -443,6 +454,14 @@ export default function Costs({ seed }) {
           <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
             <span>EUR</span>
             <MoneyInput value={doc.balances.card} onChange={(v) => setBalance("card", v)} placeholder="0.00" fit />
+          </span>
+        </div>
+        {/* Your account's balance once the pending fixed costs and the credit card bill
+            have gone out. Nil for now, until the costs are in. */}
+        <div className="flex h-[22px] items-stretch border-t border-black">
+          <span className="flex flex-1 items-center px-2 text-[11px] font-bold text-neutral-900">Bank balance after fixed costs and credit card deductions</span>
+          <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">
+            EUR {money(0)}
           </span>
         </div>
         {/* The mortgage isn't shared by the bank, so its loans are typed in. The Debt line
