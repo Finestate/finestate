@@ -5,6 +5,27 @@ import { supabase } from "./lib/supabaseClient.js";
 // Cash flow page, rebuilt from the FC tab of HEIE Planning. The figures are private,
 // so they live in Supabase (admin_docs), never in this repo.
 const DOC_ID = "costs-fc";
+// The read-only bank connection: which accounts it covers, until when, and the last
+// balances read. Kept in Supabase like everything else.
+const BANK_ID = "bank-link";
+// The bank allows only a few reads a day, so a balance is read again at most every
+// six hours.
+const BANK_STALE_MS = 6 * 60 * 60 * 1000;
+
+// Calls one of the site's bank routes with the signed-in person's token.
+async function callBank(path, body) {
+  const { data } = await supabase.auth.getSession();
+  const r = await fetch(`/api/bank/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${data?.session?.access_token || ""}` },
+    body: JSON.stringify(body || {}),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || "The bank connection did not answer");
+  return j;
+}
+const saveBank = (link) =>
+  supabase.from("admin_docs").upsert({ id: BANK_ID, data: link, updated_at: new Date().toISOString() });
 
 // Heading ladder: a deeper amber main band, then the site's prime
 // shade for sections and its lighter shade for expense groups. Rows sit on white with
@@ -108,6 +129,74 @@ export default function Costs({ seed }) {
   const [err, setErr] = useState("");
   const [confirm, setConfirm] = useState(null); // delete waiting on Delete or Cancel
   const [live, setLive] = useState(null); // today's exchange rates against the euro
+  const [bank, setBank] = useState(null); // the bank connection and its last balances
+  const [bankMsg, setBankMsg] = useState("");
+  const [bankBusy, setBankBusy] = useState(false);
+
+  const refreshBank = async (link) => {
+    if (!link?.accounts?.length) return;
+    setBankBusy(true);
+    try {
+      const r = await callBank("balances", { uids: link.accounts.map((a) => a.uid) });
+      const next = { ...link, balances: r.balances, at: r.at };
+      await saveBank(next);
+      setBank(next);
+      setBankMsg("");
+    } catch (e) {
+      setBankMsg(e.message);
+    } finally {
+      setBankBusy(false);
+    }
+  };
+
+  // On open: the saved connection, then, if the bank has just sent you back, the
+  // approval is finished here, and stale balances are read again.
+  useEffect(() => {
+    if (seed) return;
+    (async () => {
+      const { data } = await supabase.from("admin_docs").select("data").eq("id", BANK_ID).maybeSingle();
+      let link = data?.data || {};
+      const q = new URLSearchParams(window.location.search);
+      const code = q.get("bankcode");
+      const bankState = q.get("bankstate");
+      if (code || q.get("bankerror")) window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+      if (q.get("bankerror")) setBankMsg("The bank approval was cancelled or did not go through.");
+      if (code) {
+        if (!link.state || bankState !== link.state) {
+          setBankMsg("That bank approval did not match this page. Please connect again.");
+        } else {
+          try {
+            setBankBusy(true);
+            const sess = await callBank("session", { code });
+            link = { session_id: sess.session_id, valid_until: sess.valid_until, accounts: sess.accounts, balances: {}, at: "" };
+            await saveBank(link);
+          } catch (e) {
+            setBankMsg(e.message);
+          } finally {
+            setBankBusy(false);
+          }
+        }
+      }
+      setBank(link);
+      const expired = link.valid_until && new Date(link.valid_until) < new Date();
+      if (link.accounts?.length && !expired && (!link.at || Date.now() - new Date(link.at) > BANK_STALE_MS)) refreshBank(link);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sends you to the bank's own page to approve read-only access.
+  const connectBank = async () => {
+    setBankBusy(true);
+    try {
+      const state = crypto.randomUUID();
+      await saveBank({ ...(bank || {}), state });
+      const r = await callBank("start", { state });
+      window.location.href = r.url;
+    } catch (e) {
+      setBankMsg(e.message);
+      setBankBusy(false);
+    }
+  };
 
   useEffect(() => {
     fetch("/api/fx")
@@ -232,6 +321,47 @@ export default function Costs({ seed }) {
             EUR {money(totalIncome)}
           </span>
         </div>
+
+        <Sub>Balances</Sub>
+        {/* One line per connected account, read from the bank. The last four digits
+            tell apart accounts with the same name. */}
+        {(bank?.accounts || []).map((a) => {
+          const b = bank.balances?.[a.uid];
+          return (
+            <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black">
+              <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">
+                {a.name || a.product || "Account"}{a.iban ? ` ··${a.iban.slice(-4)}` : ""}
+              </span>
+              <span className="w-36 shrink-0 border-l border-black" />
+              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                {b && !b.error && b.amount !== "" ? `${b.currency || "EUR"} ${money(num(b.amount))}` : "–"}
+              </span>
+            </div>
+          );
+        })}
+        {/* When the balances were read, and the controls for the connection. */}
+        <div className="flex h-[22px] items-center gap-3 border-t border-black px-2 text-[10px] uppercase tracking-wide text-neutral-500">
+          {bank?.accounts?.length ? (
+            <>
+              <span className="normal-case tracking-normal">
+                {bankBusy ? "Reading from the bank…" : bank.at ? `Read ${new Date(bank.at).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}` : "Not read yet"}
+              </span>
+              {bank.valid_until && (
+                <span className="normal-case tracking-normal">
+                  {new Date(bank.valid_until) < new Date() ? "Access expired" : `Access until ${new Date(bank.valid_until).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`}
+                </span>
+              )}
+              <span className="flex-1" />
+              <button onClick={() => refreshBank(bank)} disabled={bankBusy} className="font-bold hover:text-neutral-900">Refresh</button>
+              <button onClick={connectBank} disabled={bankBusy} className="font-bold hover:text-neutral-900">Reconnect</button>
+            </>
+          ) : (
+            <button onClick={connectBank} disabled={bankBusy || bank == null} className="font-bold hover:text-neutral-900">
+              {bankBusy ? "Opening the bank…" : "Connect bank"}
+            </button>
+          )}
+        </div>
+        {bankMsg && <p className="border-t border-black px-2 py-1 text-[11px] font-semibold text-[#C1440E]">{bankMsg}</p>}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
