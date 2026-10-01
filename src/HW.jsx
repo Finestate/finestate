@@ -7,10 +7,11 @@ import { supabase } from "./lib/supabaseClient.js";
 // and never in this public repo.
 const DOC_ID = "hw";
 const NOTES_ID = "hw-notes"; // the new table, being rebuilt section by section
-// The three parts of Nutrition, left to right.
+// The three parts of Nutrition, left to right, in equal columns. The saved keys stay
+// as they were, so anything already written keeps its column.
 const NUTRITION_PARTS = [
-  ["weekdays", "Sunday through Friday"],
-  ["saturday", "Saturday"],
+  ["weekdays", "Sun+Mon+Tue+Thu+Fri"],
+  ["saturday", "Wed+Sat"],
   ["considerations", "Considerations"],
 ];
 const BAR_BG = "#F2C46D";   // section bars
