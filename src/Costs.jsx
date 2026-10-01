@@ -869,8 +869,8 @@ export default function Costs({ seed }) {
                 )}
               </div>
               {/* The column headings: six equal, framed columns, the money ones set right,
-                  in the rows' own type, just bold. */}
-              <div className="grid h-[22px] grid-cols-6 border-t border-black">
+                  in the rows' own type, just bold, on the next shade down from the group bar. */}
+              <div className="grid h-[22px] grid-cols-6 border-t border-black" style={{ backgroundColor: SUBSUB_BG }}>
                 {EXPENSE_COLS.map((c, i) => (
                   <span key={c.label} className={`flex items-center px-2 text-[11px] font-bold leading-none text-neutral-900 ${i ? "border-l border-black" : ""} ${c.money ? "justify-end text-right" : ""}`}>
                     {c.label}
