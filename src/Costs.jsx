@@ -735,6 +735,10 @@ export default function Costs({ seed }) {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
           <span className={head}>Home-related</span>
         </div>
+        {/* The column headings for the expense lines, added one at a time. */}
+        <div className="flex h-[22px] items-stretch border-t border-black">
+          <span className={`flex flex-1 items-center px-2 ${colHead}`}>Description</span>
+        </div>
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
