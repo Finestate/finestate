@@ -18,6 +18,7 @@ import Investing from "./Investing.jsx";
 import Opportunities from "./Opportunities.jsx";
 import Planning from "./Planning.jsx";
 import SiteRunningCosts from "./SiteRunningCosts.jsx";
+import Integrations from "./Integrations.jsx";
 import Logins from "./Logins.jsx";
 import LegalDocuments from "./LegalDocuments.jsx";
 import Costs from "./Costs.jsx";
@@ -48,11 +49,10 @@ const NAV = [
     children: [
       { id: "admin/legal-documents", name: "Legal documents", icon: FileText },
       { id: "admin/logins", name: "Logins", icon: KeyRound },
-      // The public privacy and terms pages the bank connection points to; they open in a new tab.
-      { id: "admin/privacy", name: "Privacy page", href: "/privacy" },
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
-      { id: "admin/terms", name: "Terms page", href: "/terms" },
       { id: "admin/users", name: "Users", icon: Users },
+      // Always last: the pages outside services ask us to have, gathered on one page.
+      { id: "admin/integrations", name: "Integrations (required pages)" },
     ],
   },
   {
@@ -385,6 +385,7 @@ export default function App() {
             {route === "hw" && <HW />}
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
+            {route === "admin/integrations" && <Integrations />}
             {route === "assets/investing" && <KnowledgeFeeds />}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}
