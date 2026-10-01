@@ -624,7 +624,7 @@ export default function Costs({ seed }) {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
           <span className={head}>Tax payments</span>
         </div>
-        {taxRows.map((t, i, all) => { const last = i === all.length - 1; return (
+        {taxRows.map((t) => (
           <div key={t.id} className="group flex h-[22px] items-stretch border-t border-black">
             <span className="flex flex-1 items-center gap-2 px-2">
               <span className="w-40">
@@ -633,18 +633,20 @@ export default function Costs({ seed }) {
               <button onClick={() => ask(() => save({ ...doc, taxPayments: taxPayments.filter((x) => x.id !== t.id) }))} title="Remove" className="ml-auto text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
                 <Trash2 size={11} />
               </button>
-              {last && (
-                              <button onClick={() => save({ ...doc, taxPayments: [...taxPayments, { id: newId(), date: "", amount: "" }] })} title="Add a tax payment" className="ml-1 shrink-0 text-neutral-400 hover:text-neutral-900">
-                                <Plus size={11} />
-                              </button>
-                            )}
             </span>
             <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
               <span>EUR</span>
               <MoneyInput value={t.amount} onChange={(v) => editTax(t.id, "amount", v)} placeholder="0.00" fit />
             </span>
           </div>
-        ); })}
+        ))}
+        {/* Always under the last tax payment: a quiet line to add the next one. */}
+        <button
+          onClick={() => save({ ...doc, taxPayments: [...taxPayments, { id: newId(), date: "", amount: "" }] })}
+          className="flex h-[22px] w-full items-center gap-1 border-t border-black px-2 text-[11px] text-neutral-400 transition-colors hover:text-neutral-900"
+        >
+          <Plus size={11} /> Add payment
+        </button>
 
         {/* Pocket money: one line per child, with their initial and the month, and what
             was paid out that month in total. Each line opens, on the faint pink, onto the
