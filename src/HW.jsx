@@ -81,6 +81,9 @@ export default function HW() {
           a grey band top and bottom and between sections. */}
       <div spellCheck={false} className="mb-48 w-full min-w-[760px] overflow-hidden border border-black bg-white shadow-sm">
         <div className="h-[10px]" style={{ backgroundColor: GAP_BG }} />
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Foundational</span>
+        </div>
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
