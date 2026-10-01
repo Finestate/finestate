@@ -223,7 +223,8 @@ const Main = ({ children }) => (
 );
 // A band inside the table that sets one section apart from the next.
 const GAP_BG = "#8A8A8A"; // mid grey
-const Gap = () => <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />;
+// `first`: the band that opens the table, where the frame already draws the line above.
+const Gap = ({ first }) => <div className={`h-[10px] ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: GAP_BG }} />;
 // The new table's section bars, in the top orange; the groups under them take the next shade.
 const Section = ({ children, first }) => (
   <div className={`${first ? "" : "border-t border-black"} flex h-[22px] items-center px-2`} style={{ backgroundColor: MAIN_BG }}>
@@ -523,7 +524,9 @@ export default function Costs({ seed }) {
       {/* The new table, being built up step by step. */}
       <div className="w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
         {/* Balances always come first. */}
-        <Section first>Accounts</Section>
+        {/* On trial: the same grey band at the very top and very bottom, for balance. */}
+        <Gap first />
+        <Section>Accounts</Section>
         {/* Your own account on its own line, with a chevron; a click anywhere in its
             name cell opens the other accounts (the company's and the kids') under it.
             Told apart by the bank's own account type, so no number sits in this code. */}
@@ -961,6 +964,7 @@ export default function Costs({ seed }) {
             <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(expensesMonthly)}</span>
             <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(pendingFixed)}</span>
           </div>
+        <Gap />
       </div>
 
       {confirm && (
