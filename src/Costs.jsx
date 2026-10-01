@@ -324,7 +324,8 @@ export default function Costs({ seed }) {
             const b = bank.balances?.[a.uid];
             const v = amountOf(a);
             return (
-              <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black">
+              // The accounts that open under yours sit on the faint pink of Planning's day lines.
+              <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black" style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
                 <span
                   onClick={toggle}
                   className={`flex flex-1 items-center gap-1 text-[11px] text-neutral-900 ${sub ? "pl-6 pr-2" : "px-2"} ${toggle ? "cursor-pointer select-none" : ""}`}
