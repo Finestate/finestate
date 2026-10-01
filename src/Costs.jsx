@@ -906,12 +906,6 @@ export default function Costs({ seed }) {
               >
                 <Plus size={11} /> Add expense
               </button>
-              {/* The group's total: what it averages a month, and what is still to go this month. */}
-              <div className="grid h-[22px] grid-cols-6 border-t border-black">
-            <span className="col-span-4 flex items-center px-2 text-[11px] font-bold text-neutral-900">{g.name || "Group"} total</span>
-            <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(rows.reduce((sum, x) => sum + monthlyAvg(x), 0))}</span>
-            <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(rows.reduce((sum, x) => sum + pendingOf(x), 0))}</span>
-          </div>
             </div>
           );
         })}
@@ -922,11 +916,11 @@ export default function Costs({ seed }) {
         >
           <Plus size={11} /> Add group
         </button>
-        {/* Every group together. */}
-        <div className="grid h-[22px] grid-cols-6 border-t border-black" style={{ backgroundColor: MAIN_BG }}>
-            <span className="col-span-4 flex items-center px-2 text-[11px] font-bold text-neutral-900">Expenses total</span>
-            <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(expensesMonthly)}</span>
-            <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(pendingFixed)}</span>
+        {/* Every group together, on white, in bold red: money going out. */}
+        <div className="grid h-[22px] grid-cols-6 border-t border-black">
+            <span className="col-span-4 flex items-center px-2 text-[11px] font-bold text-[#C1440E]">Expenses total</span>
+            <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(expensesMonthly)}</span>
+            <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(pendingFixed)}</span>
           </div>
       </div>
 
