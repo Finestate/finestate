@@ -149,7 +149,7 @@ const Main = ({ children }) => (
   </div>
 );
 // A band inside the table that sets one section apart from the next.
-const GAP_BG = "#FBF5E9"; // the site's own cream
+const GAP_BG = "#8A8A8A"; // a mid grey, on trial against black
 const Gap = () => <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />;
 // The new table's section bars, in the top orange; the groups under them take the next shade.
 const Section = ({ children, first }) => (
