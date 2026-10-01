@@ -127,7 +127,7 @@ function RateInput({ value, onChange }) {
 
 // How often an expense goes out, picked in two columns: Monthly on the left, or on the
 // right exactly the months of the year it is due. Kept as "Monthly" or the months in
-// calendar order ("Feb, Aug"), which is also what the monthly average reads.
+// calendar order ("Feb - Aug"), which is also what the monthly average reads.
 const FREQ_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function FrequencyPicker({ value, onChange }) {
   const [anchor, setAnchor] = useState(null);
@@ -141,14 +141,14 @@ function FrequencyPicker({ value, onChange }) {
   };
   const toggle = (m) => {
     const next = picked.includes(m) ? picked.filter((x) => x !== m) : [...picked, m];
-    onChange(FREQ_MONTHS.filter((x) => next.includes(x)).join(", "));
+    onChange(FREQ_MONTHS.filter((x) => next.includes(x)).join(" - "));
   };
   const tile = (on) =>
     `h-6 text-[11px] border ${on ? "border-black bg-[#F2C46D] font-bold text-neutral-900" : "border-neutral-300 bg-white text-neutral-700 hover:border-black"}`;
   return (
     <>
       <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} className="flex w-full items-center gap-1 text-left text-[11px] leading-none text-neutral-900">
-        <span className={`min-w-0 flex-1 ${!monthly && !picked.length && v ? "text-neutral-400" : ""}`}>{monthly ? "Monthly" : picked.length ? picked.join(", ") : v}</span>
+        <span className={`min-w-0 flex-1 ${!monthly && !picked.length && v ? "text-neutral-400" : ""}`}>{monthly ? "Monthly" : picked.length ? picked.join(" - ") : v}</span>
         <ChevronDown size={11} className="shrink-0 text-neutral-400" />
       </button>
       {anchor && (
