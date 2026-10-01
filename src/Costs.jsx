@@ -68,7 +68,8 @@ const colHead = "whitespace-nowrap text-[11px] font-bold uppercase leading-none 
 
 // A money field: shows 13,882.06 when you are not in it, the plain figure while typing,
 // and tidies to two decimals when you leave.
-function MoneyInput({ value, onChange, placeholder = "0.00" }) {
+// `fit` sizes the box to the figure, so a label such as EUR can sit right beside it.
+function MoneyInput({ value, onChange, placeholder = "0.00", fit = false }) {
   const [focus, setFocus] = useState(false);
   const shown = focus || value === "" || value == null ? value ?? "" : money(num(value));
   return (
@@ -79,7 +80,8 @@ function MoneyInput({ value, onChange, placeholder = "0.00" }) {
       onChange={(e) => onChange(e.target.value.replace(/[^0-9.-]/g, ""))}
       onBlur={() => { setFocus(false); if (String(value ?? "").trim() !== "") onChange(num(value).toFixed(2)); }}
       placeholder={placeholder}
-      className={numCls}
+      className={fit ? numCls.replace("w-full", "") : numCls}
+      style={fit ? { width: `${Math.max(String(shown || placeholder).length, 1)}ch` } : undefined}
     />
   );
 }
@@ -132,7 +134,7 @@ export default function Costs({ seed }) {
   const [bank, setBank] = useState(null); // the bank connection and its last balances
   const [bankMsg, setBankMsg] = useState("");
   const [bankBusy, setBankBusy] = useState(false);
-  const [kidsOpen, setKidsOpen] = useState(false); // the kids' accounts line, opened or shut
+  const [kidsOpen, setKidsOpen] = useState(false); // the other accounts under yours, shown or hidden
 
   // present: you pressed Refresh yourself, rather than the page reading on open.
   const refreshBank = async (link, present = false) => {
@@ -302,9 +304,9 @@ export default function Costs({ seed }) {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
           <span className={head}>Accounts</span>
         </div>
-        {/* Your own account on its own line; the kids' accounts fold into one line that
-            opens; the company account stays out for now. Told apart by the bank's own
-            account type, so no account number sits in this code. */}
+        {/* Your own account on its own line, with a chevron; a click anywhere in its
+            name cell opens the other accounts (the company's and the kids') under it.
+            Told apart by the bank's own account type, so no number sits in this code. */}
         {(() => {
           const kindOf = (a) => {
             const t = `${a.product || ""} ${a.name || ""}`;
@@ -312,22 +314,27 @@ export default function Costs({ seed }) {
           };
           const accts = bank?.accounts || [];
           const own = accts.filter((a) => kindOf(a) === "own");
-          const kids = accts.filter((a) => kindOf(a) === "kid");
+          // Under your account when opened: the company's first, then the kids'.
+          const others = [...accts.filter((a) => kindOf(a) === "business"), ...accts.filter((a) => kindOf(a) === "kid")];
           const amountOf = (a) => {
             const b = bank.balances?.[a.uid];
             return b && !b.error && b.amount !== "" ? num(b.amount) : null;
           };
-          const line = (a, sub) => {
+          const line = (a, sub, toggle) => {
             const b = bank.balances?.[a.uid];
             const v = amountOf(a);
             return (
               <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black">
-                <span className={`flex flex-1 items-center text-[11px] text-neutral-900 ${sub ? "pl-6 pr-2" : "px-2"}`}>
+                <span
+                  onClick={toggle}
+                  className={`flex flex-1 items-center gap-1 text-[11px] text-neutral-900 ${sub ? "pl-6 pr-2" : "px-2"} ${toggle ? "cursor-pointer select-none" : ""}`}
+                >
                   {/* Bank – holder: number. The bank sends the holder in capitals, so it is
                       set in ordinary case; the number reads in blocks of four. */}
                   {`Stadtsparkasse – ${
                     (a.name || a.product || "Account").toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase())
                   }${a.iban ? `: ${a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}` : ""}`}
+                  {toggle && <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${kidsOpen ? "rotate-180" : ""}`} />}
                 </span>
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
                   {v == null ? "–" : `${b.currency || "EUR"} ${money(v)}`}
@@ -335,33 +342,20 @@ export default function Costs({ seed }) {
               </div>
             );
           };
-          const kidsTotal = kids.reduce((sum, a) => sum + (amountOf(a) || 0), 0);
+          const toggle = others.length ? () => setKidsOpen((o) => !o) : undefined;
           return (
             <>
-              {own.map((a) => line(a, false))}
-              {kids.length > 0 && (
-                <>
-                  <button onClick={() => setKidsOpen((o) => !o)} className="flex h-[22px] w-full items-stretch border-t border-black text-left">
-                    <span className="flex flex-1 items-center gap-1 px-2 text-[11px] text-neutral-900">
-                      <ChevronDown size={12} className={`shrink-0 transition-transform ${kidsOpen ? "" : "-rotate-90"}`} />
-                      Kids' accounts
-                    </span>
-                    <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
-                      EUR {money(kidsTotal)}
-                    </span>
-                  </button>
-                  {kidsOpen && kids.map((a) => line(a, true))}
-                </>
-              )}
+              {own.map((a) => line(a, false, toggle))}
+              {kidsOpen && others.map((a) => line(a, true))}
             </>
           );
         })()}
         {/* The credit card isn't shared by the bank, so its figure is typed in. */}
         <div className="flex h-[22px] items-stretch border-t border-black">
           <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">Credit card</span>
-          <span className="flex w-36 shrink-0 items-center gap-1 border-l border-black px-2 text-[11px] text-neutral-900">
+          <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
             <span>EUR</span>
-            <MoneyInput value={doc.balances.card} onChange={(v) => setBalance("card", v)} placeholder="" />
+            <MoneyInput value={doc.balances.card} onChange={(v) => setBalance("card", v)} placeholder="0.00" fit />
           </span>
         </div>
         {/* When the balances were read, and the controls for the connection. */}
