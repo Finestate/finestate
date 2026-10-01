@@ -152,27 +152,20 @@ function FrequencyPicker({ value, onChange }) {
       </button>
       {anchor && (
         <>
-          {/* It stays open while months are picked, and closes only with Done. */}
-          <div className="fixed z-50 border-2 border-black bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
-            <div className="flex gap-3">
-              <div className="flex w-20 flex-col">
-                <button type="button" onClick={() => onChange(monthly ? "" : "Monthly")} className={tile(monthly)}>
-                  Monthly
-                </button>
-              </div>
-              <div className="grid w-36 grid-cols-3 gap-1">
-                {FREQ_MONTHS.map((m) => (
-                  <button key={m} type="button" onClick={() => toggle(m)} className={tile(picked.includes(m))}>
-                    {m}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mt-2 flex justify-end border-t border-neutral-200 pt-2">
-              <button type="button" onClick={() => setAnchor(null)} className="h-6 border border-black bg-black px-4 text-[11px] font-bold text-white hover:bg-neutral-800">
-                Done
+          {/* One block: Monthly as a tall button down the left, the months in a 3 by 4 grid,
+              and Done in red along the bottom under them. It stays open until Done. */}
+          <div className="fixed z-50 grid grid-cols-[5rem_repeat(3,3rem)] grid-rows-5 gap-1 border-2 border-black bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
+            <button type="button" onClick={() => onChange(monthly ? "" : "Monthly")} className={`row-span-5 !h-auto ${tile(monthly)}`}>
+              Monthly
+            </button>
+            {FREQ_MONTHS.map((m) => (
+              <button key={m} type="button" onClick={() => toggle(m)} className={tile(picked.includes(m))}>
+                {m}
               </button>
-            </div>
+            ))}
+            <button type="button" onClick={() => setAnchor(null)} className="col-span-3 h-6 bg-[#C1440E] text-[11px] font-bold text-white hover:bg-[#a63a0c]">
+              Done
+            </button>
           </div>
         </>
       )}
