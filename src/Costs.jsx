@@ -84,8 +84,9 @@ function CardNumber({ value, onChange }) {
       onChange={(e) => setDraft(e.target.value)}
       onBlur={() => { if (draft != null) onChange(maskCard(draft)); setDraft(null); }}
       onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-      size={Math.max(shown.length, 6)}
-      className="bg-transparent py-0 text-[11px] leading-none tabular-nums text-neutral-900 outline-none"
+      size={Math.max(shown.length, 19)}
+      // While empty, a faint dotted line shows where to type.
+      className={`bg-transparent py-0 text-[11px] leading-none tabular-nums text-neutral-900 outline-none ${shown ? "" : "border-b border-dotted border-neutral-400"}`}
     />
   );
 }
@@ -439,8 +440,9 @@ export default function Costs({ seed }) {
                     value={doc.debtName || ""}
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => save({ ...doc, debtName: e.target.value })}
-                    size={Math.max((doc.debtName || "").length, 6)}
-                    className="bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
+                    size={Math.max((doc.debtName || "").length, 14)}
+                    // While empty, a faint dotted line shows where to type; it goes once named.
+                    className={`bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none ${doc.debtName ? "" : "border-b border-dotted border-neutral-400"}`}
                   />
                   <button
                     onClick={(e) => {
