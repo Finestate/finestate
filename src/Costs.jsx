@@ -329,7 +329,6 @@ export default function Costs({ seed }) {
                     (a.name || a.product || "Account").toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase())
                   }${a.iban ? `: ${a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}` : ""}`}
                 </span>
-                <span className="w-36 shrink-0 border-l border-black" />
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
                   {v == null ? "–" : `${b.currency || "EUR"} ${money(v)}`}
                 </span>
@@ -347,7 +346,6 @@ export default function Costs({ seed }) {
                       <ChevronDown size={12} className={`shrink-0 transition-transform ${kidsOpen ? "" : "-rotate-90"}`} />
                       Kids' accounts
                     </span>
-                    <span className="w-36 shrink-0 border-l border-black" />
                     <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
                       EUR {money(kidsTotal)}
                     </span>
@@ -361,7 +359,6 @@ export default function Costs({ seed }) {
         {/* The credit card isn't shared by the bank, so its figure is typed in. */}
         <div className="flex h-[22px] items-stretch border-t border-black">
           <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">Credit card</span>
-          <span className="w-36 shrink-0 border-l border-black" />
           <span className="flex w-36 shrink-0 items-center gap-1 border-l border-black px-2 text-[11px] text-neutral-900">
             <span>EUR</span>
             <MoneyInput value={doc.balances.card} onChange={(v) => setBalance("card", v)} placeholder="" />
