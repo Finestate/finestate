@@ -9,6 +9,7 @@ const DOC_ID = "hw";
 const BAR_BG = "#F2C46D";   // section bars
 const HEADER_BG = "#FFE4B3"; // column headings inside a section
 const GOLD = "#9c7c33";
+const GAP_BG = "#8A8A8A"; // the grey band, as on the Monthly page
 
 let _idc = 0;
 const newId = () => "h" + Date.now().toString(36) + "-" + (_idc++);
@@ -76,6 +77,13 @@ export default function HW() {
 
   return (
     <div className="w-full overflow-x-auto">
+      {/* The new table, being rebuilt section by section, in the Monthly page's style:
+          a grey band top and bottom and between sections. */}
+      <div spellCheck={false} className="mb-48 w-full min-w-[760px] overflow-hidden border border-black bg-white shadow-sm">
+        <div className="h-[10px]" style={{ backgroundColor: GAP_BG }} />
+      </div>
+
+      {/* The earlier table, kept below as a holding area while the new one is built. */}
       <div spellCheck={false} className="w-full min-w-[760px] border border-black bg-white shadow-sm">
         <div className="flex h-[18px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>HW</span>
