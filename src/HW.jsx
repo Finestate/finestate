@@ -48,8 +48,9 @@ export default function HW() {
   // The new table: its entries, each a title that opens onto notes. Kept in Supabase.
   const [noteConfirm, setNoteConfirm] = useState(null); // entry waiting on Delete or Cancel
   const [notes, setNotes] = useState([]);
-  const [meds, setMeds] = useState([]);
-  const [medConfirm, setMedConfirm] = useState(null); // medicine waiting on Delete or Cancel
+  // Name-and-details lists, by key: medicines, supplements.
+  const [lists, setLists] = useState({ medicines: [], supplements: [] });
+  const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
   const [notesLoaded, setNotesLoaded] = useState(false);
   useEffect(() => {
     supabase
@@ -60,7 +61,11 @@ export default function HW() {
       .then(({ data, error }) => {
         if (error) setErr(error.message);
         setNotes(Array.isArray(data?.data?.foundational) ? data.data.foundational : []);
-        setMeds(Array.isArray(data?.data?.medicines) ? data.data.medicines : []);
+        const d = data?.data || {};
+        setLists({
+          medicines: Array.isArray(d.medicines) ? d.medicines : [],
+          supplements: Array.isArray(d.supplements) ? d.supplements : [],
+        });
         setNotesLoaded(true);
       });
   }, []);
@@ -70,19 +75,56 @@ export default function HW() {
       .from("admin_docs")
       .upsert({ id: NOTES_ID, data: doc, updated_at: new Date().toISOString() })
       .then(({ error }) => setErr(error ? error.message : ""));
-  const saveMeds = (next) => {
-    setMeds(next);
-    persist({ foundational: notes, medicines: next });
+  const saveList = (key, next) => {
+    const all = { ...lists, [key]: next };
+    setLists(all);
+    persist({ foundational: notes, ...all });
   };
-  // Medicines: a name and a description. A blank line stands ready while there are none.
-  const medRows = meds.length ? meds : [{ id: "blank", name: "", text: "" }];
-  const editMed = (id, fields) =>
-    saveMeds(meds.length ? meds.map((m) => (m.id === id ? { ...m, ...fields } : m)) : [{ id: newId(), name: "", text: "", ...fields }]);
+  // A list never shows empty: a blank line stands ready until the first is typed.
+  const listRows = (key) => (lists[key].length ? lists[key] : [{ id: "blank", name: "", text: "" }]);
+  const editItem = (key, id, fields) =>
+    saveList(
+      key,
+      lists[key].length ? lists[key].map((m) => (m.id === id ? { ...m, ...fields } : m)) : [{ id: newId(), name: "", text: "", ...fields }]
+    );
+  // Two framed columns, no headings: a short one for the name, a long one for the
+  // details, which grows with its text. Then the Add line under the last one.
+  const listBlock = (key) => (
+    <>
+      {listRows(key).map((m) => (
+        <div key={m.id} className="flex items-stretch border-t border-black">
+          <span className="flex w-1/4 min-w-[160px] shrink-0 items-start px-2 py-[3px]">
+            <input
+              value={m.name || ""}
+              onChange={(e) => editItem(key, m.id, { name: e.target.value })}
+              className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
+            />
+          </span>
+          <span className="flex flex-1 items-start gap-2 border-l border-black px-2 py-[3px]">
+            <span className="min-w-0 flex-1">
+              <GrowText value={m.text || ""} onChange={(t) => editItem(key, m.id, { text: t })} rows={1} />
+            </span>
+            {m.id !== "blank" && (
+              <button onClick={() => setListConfirm({ key, id: m.id })} title="Remove" className="mt-[2px] shrink-0 text-neutral-900 hover:text-[#C1440E]">
+                <Trash2 size={11} />
+              </button>
+            )}
+          </span>
+        </div>
+      ))}
+      <button
+        onClick={() => saveList(key, [...lists[key], { id: newId(), name: "", text: "" }])}
+        className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+      >
+        <Plus size={11} strokeWidth={3} />Add
+      </button>
+    </>
+  );
   const saveNotes = (next) => {
     setNotes(next);
     supabase
       .from("admin_docs")
-      .upsert({ id: NOTES_ID, data: { foundational: next, medicines: meds }, updated_at: new Date().toISOString() })
+      .upsert({ id: NOTES_ID, data: { foundational: next, ...lists }, updated_at: new Date().toISOString() })
       .then(({ error }) => setErr(error ? error.message : ""));
   };
   // Never an empty section: a blank entry stands ready until the first is typed.
@@ -174,36 +216,12 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Medicines</span>
         </div>
-        {/* Two framed columns, no headings: a short one for the name, a long one for the
-            description, which grows with its text. */}
-        {notesLoaded &&
-          medRows.map((m) => (
-            <div key={m.id} className="flex items-stretch border-t border-black">
-              <span className="flex w-1/4 min-w-[160px] shrink-0 items-start px-2 py-[3px]">
-                <input
-                  value={m.name || ""}
-                  onChange={(e) => editMed(m.id, { name: e.target.value })}
-                  className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
-                />
-              </span>
-              <span className="flex flex-1 items-start gap-2 border-l border-black px-2 py-[3px]">
-                <span className="min-w-0 flex-1">
-                  <GrowText value={m.text || ""} onChange={(t) => editMed(m.id, { text: t })} rows={1} />
-                </span>
-                {m.id !== "blank" && (
-                  <button onClick={() => setMedConfirm(m.id)} title="Remove" className="mt-[2px] shrink-0 text-neutral-900 hover:text-[#C1440E]">
-                    <Trash2 size={11} />
-                  </button>
-                )}
-              </span>
-            </div>
-          ))}
-        <button
-          onClick={() => saveMeds([...meds, { id: newId(), name: "", text: "" }])}
-          className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
-        >
-          <Plus size={11} strokeWidth={3} />Add
-        </button>
+        {notesLoaded && listBlock("medicines")}
+        {/* Supplements belong with medicines: a heading in the next shade, no grey band. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
+          <span className={head}>Supplements</span>
+        </div>
+        {notesLoaded && listBlock("supplements")}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
@@ -265,19 +283,19 @@ export default function HW() {
 
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
 
-      {medConfirm != null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setMedConfirm(null)}>
+      {listConfirm != null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setListConfirm(null)}>
           <div className="w-full max-w-sm border-[5px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
             <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">Delete this?</p>
             <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
               <button
-                onClick={() => { saveMeds(meds.filter((x) => x.id !== medConfirm)); setMedConfirm(null); }}
+                onClick={() => { saveList(listConfirm.key, lists[listConfirm.key].filter((x) => x.id !== listConfirm.id)); setListConfirm(null); }}
                 className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80"
                 style={{ backgroundColor: "#C1440E", borderColor: "#C1440E" }}
               >
                 Delete
               </button>
-              <button onClick={() => setMedConfirm(null)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: "#C1440E", color: "#C1440E" }}>
+              <button onClick={() => setListConfirm(null)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: "#C1440E", color: "#C1440E" }}>
                 Cancel
               </button>
             </div>
