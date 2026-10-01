@@ -346,15 +346,28 @@ export default function Costs({ seed }) {
 
   // Tax payments: date and amount, kept in Supabase with the rest of the page.
   const taxPayments = doc.taxPayments || [];
-  const editTax = (id, field, val) => save({ ...doc, taxPayments: taxPayments.map((t) => (t.id === id ? { ...t, [field]: val } : t)) });
+  const editTax = (id, field, val) =>
+    save({
+      ...doc,
+      taxPayments: taxPayments.length
+        ? taxPayments.map((t) => (t.id === id ? { ...t, [field]: val } : t))
+        : [{ id: newId(), date: "", amount: "", [field]: val }],
+    });
+  // What is shown: the saved lines, or one blank line while there are none.
+  const taxRows = taxPayments.length ? taxPayments : [{ id: "blank", date: "", amount: "" }];
   // Pocket money: two lines, one per child, made the first time the page is opened.
   const pocketKids = doc.pocketKids || [
     { id: "kid-1", initial: "", month: "", payments: [], open: false },
     { id: "kid-2", initial: "", month: "", payments: [], open: false },
   ];
   const editKid = (id, fields) => save({ ...doc, pocketKids: pocketKids.map((k) => (k.id === id ? { ...k, ...fields } : k)) });
-  const editPayment = (kidId, payId, fields) =>
-    editKid(kidId, { payments: (pocketKids.find((k) => k.id === kidId)?.payments || []).map((x) => (x.id === payId ? { ...x, ...fields } : x)) });
+  const editPayment = (kidId, payId, fields) => {
+    const list = pocketKids.find((k) => k.id === kidId)?.payments || [];
+    editKid(kidId, {
+      payments: list.length ? list.map((x) => (x.id === payId ? { ...x, ...fields } : x)) : [{ id: newId(), date: "", amount: "", ...fields }],
+    });
+  };
+  const paymentRows = (k) => ((k.payments || []).length ? k.payments : [{ id: "blank", date: "", amount: "" }]);
 
   // Fixed costs still to go out: nil until the costs part of the table is built.
   const pendingFixed = 0;
@@ -487,7 +500,13 @@ export default function Costs({ seed }) {
           const open = !!doc.ui?.debtOpen;
           const total = loans.reduce((sum, l) => sum + num(l.amount), 0);
           const setLoans = (next) => save({ ...doc, loans: next });
-          const editLoan = (id, field, val) => setLoans(loans.map((l) => (l.id === id ? { ...l, [field]: val } : l)));
+          const editLoan = (id, field, val) =>
+            setLoans(
+              loans.length
+                ? loans.map((l) => (l.id === id ? { ...l, [field]: val } : l))
+                : [{ id: newId(), name: "", number: "", rate: "", expires: "", amount: "", [field]: val }]
+            );
+          const loanRows = loans.length ? loans : [{ id: "blank", name: "", number: "", rate: "", expires: "", amount: "" }];
           const sub = "flex h-[22px] items-stretch border-t border-black";
           const cellTxt = "bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none";
           return (
@@ -529,7 +548,7 @@ export default function Costs({ seed }) {
                 <>
                   {/* One framed row per loan: four equal columns, each with a faint label of
                       what goes in it, and the amount on the right. Always ready to type in. */}
-                  {loans.map((l) => {
+                  {loanRows.map((l) => {
                     const col = "flex min-w-0 items-center border-l border-black px-2";
                     const box = `${cellTxt} w-full placeholder:text-neutral-400`;
                     return (
@@ -613,7 +632,7 @@ export default function Costs({ seed }) {
             <Plus size={12} />
           </button>
         </div>
-        {taxPayments.map((t) => (
+        {taxRows.map((t) => (
           <div key={t.id} className="group flex h-[22px] items-stretch border-t border-black">
             <span className="flex flex-1 items-center gap-2 px-2">
               <span className="w-40">
@@ -677,7 +696,7 @@ export default function Costs({ seed }) {
                   EUR {money(total)}
                 </span>
               </div>
-              {k.open && (k.payments || []).map((x) => (
+              {k.open && paymentRows(k).map((x) => (
                 <div key={x.id} className="group flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: "#FBEFEC" }}>
                   <span className="flex flex-1 items-center gap-2 pl-12 pr-2">
                     <span className="w-40">
