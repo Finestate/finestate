@@ -699,7 +699,8 @@ export default function Costs({ seed }) {
               {k.open && paymentRows(k).map((x) => (
                 <div key={x.id} className="group flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: "#FBEFEC" }}>
                   <span className="flex flex-1 items-center gap-2 px-2">
-                    <span className="w-40">
+                    {/* Pulled left by the icon's own inner margin, so it lines up with the A and S. */}
+                    <span className="-ml-[1.5px] w-40">
                       <DateCell value={x.date} onChange={(v) => editPayment(k.id, x.id, { date: v })} placeholder="Date" />
                     </span>
                     <button onClick={() => ask(() => editKid(k.id, { payments: k.payments.filter((y) => y.id !== x.id) }))} title="Remove" className="ml-auto text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
