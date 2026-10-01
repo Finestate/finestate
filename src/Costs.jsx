@@ -91,6 +91,29 @@ function CardNumber({ value, onChange }) {
   );
 }
 
+// An interest rate: reads as plain text with the % right against it, and turns into a
+// box to type in when clicked. Only the bare figure is kept.
+function RateInput({ value, onChange }) {
+  const [edit, setEdit] = useState(false);
+  if (!edit) {
+    return (
+      <button type="button" onClick={() => setEdit(true)} className="w-full text-left text-[11px] leading-none tabular-nums text-neutral-900">
+        {value ? `${value}%` : <span className="text-neutral-400">Interest %</span>}
+      </button>
+    );
+  }
+  return (
+    <input
+      autoFocus
+      value={value || ""}
+      onChange={(e) => onChange(e.target.value.replace(/[^0-9.,]/g, ""))}
+      onBlur={() => setEdit(false)}
+      onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+      className="w-full bg-transparent py-0 text-[11px] leading-none tabular-nums text-neutral-900 outline-none"
+    />
+  );
+}
+
 // `fit` sizes the box to the figure, so a label such as EUR can sit right beside it.
 function MoneyInput({ value, onChange, placeholder = "0.00", fit = false }) {
   const [focus, setFocus] = useState(false);
@@ -486,15 +509,7 @@ export default function Costs({ seed }) {
                             <input value={l.number || ""} onChange={(e) => editLoan(l.id, "number", e.target.value)} placeholder="Account number" className={`${box} tabular-nums`} />
                           </span>
                           <span className={col}>
-                            {/* The rate is kept as the bare figure; the % follows it on screen. */}
-                            <input
-                              value={l.rate || ""}
-                              onChange={(e) => editLoan(l.id, "rate", e.target.value.replace(/[^0-9.,]/g, ""))}
-                              placeholder="Interest %"
-                              size={Math.max(String(l.rate || "").length, 1)}
-                              className={`${cellTxt} placeholder:text-neutral-400 tabular-nums ${l.rate ? "" : "w-full"}`}
-                            />
-                            {l.rate && <span className="text-[11px] text-neutral-900">%</span>}
+                            <RateInput value={l.rate} onChange={(v) => editLoan(l.id, "rate", v)} />
                           </span>
                           <span className={col}>
                             {/* The same calendar as the Legal documents page. */}
