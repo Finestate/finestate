@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronDown } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Health and wellbeing, lifted from the HE tab of the planning workbook. It holds
 // medical history, membership numbers and private links, so it lives in Supabase
 // and never in this public repo.
 const DOC_ID = "hw";
+const NOTES_ID = "hw-notes"; // the new table, being rebuilt section by section
 const BAR_BG = "#F2C46D";   // section bars
 const HEADER_BG = "#FFE4B3"; // column headings inside a section
 const GOLD = "#9c7c33";
@@ -44,6 +45,33 @@ export default function HW() {
   const [loaded, setLoaded] = useState(false);
   const [err, setErr] = useState("");
   const [confirm, setConfirm] = useState(null);
+  // The new table: its entries, each a title that opens onto notes. Kept in Supabase.
+  const [noteConfirm, setNoteConfirm] = useState(null); // entry waiting on Delete or Cancel
+  const [notes, setNotes] = useState([]);
+  const [notesLoaded, setNotesLoaded] = useState(false);
+  useEffect(() => {
+    supabase
+      .from("admin_docs")
+      .select("data")
+      .eq("id", NOTES_ID)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) setErr(error.message);
+        setNotes(Array.isArray(data?.data?.foundational) ? data.data.foundational : []);
+        setNotesLoaded(true);
+      });
+  }, []);
+  const saveNotes = (next) => {
+    setNotes(next);
+    supabase
+      .from("admin_docs")
+      .upsert({ id: NOTES_ID, data: { foundational: next }, updated_at: new Date().toISOString() })
+      .then(({ error }) => setErr(error ? error.message : ""));
+  };
+  // Never an empty section: a blank entry stands ready until the first is typed.
+  const noteRows = notes.length ? notes : [{ id: "blank", title: "", text: "", open: false }];
+  const editNote = (id, fields) =>
+    saveNotes(notes.length ? notes.map((n) => (n.id === id ? { ...n, ...fields } : n)) : [{ id: newId(), title: "", text: "", open: false, ...fields }]);
 
   useEffect(() => {
     supabase
@@ -84,6 +112,46 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Foundational</span>
         </div>
+        {/* Each entry is one line: a title typed on the left; a click anywhere else on
+            the line, or its arrow, opens the notes underneath on the faint pink. */}
+        {notesLoaded &&
+          noteRows.map((n) => (
+            <div key={n.id}>
+              <div
+                onClick={() => editNote(n.id, { open: !n.open })}
+                className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
+              >
+                <input
+                  value={n.title || ""}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => editNote(n.id, { title: e.target.value })}
+                  className="w-1/4 min-w-[160px] bg-transparent py-0 text-[11px] font-bold leading-none text-neutral-900 outline-none"
+                />
+                <span className="flex-1" />
+                {n.id !== "blank" && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setNoteConfirm(n.id); }}
+                    title="Remove"
+                    className="shrink-0 text-neutral-900 hover:text-[#C1440E]"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                )}
+                <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${n.open ? "rotate-180" : ""}`} />
+              </div>
+              {n.open && (
+                <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
+                  <GrowText value={n.text || ""} onChange={(t) => editNote(n.id, { text: t })} />
+                </div>
+              )}
+            </div>
+          ))}
+        <button
+          onClick={() => saveNotes([...notes, { id: newId(), title: "", text: "", open: false }])}
+          className="flex h-[22px] w-full items-center gap-1 border-t border-black px-2 text-[11px] text-neutral-400 transition-colors hover:text-neutral-900"
+        >
+          <Plus size={11} /> Add
+        </button>
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
@@ -145,6 +213,26 @@ export default function HW() {
 
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
 
+      {noteConfirm != null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setNoteConfirm(null)}>
+          <div className="w-full max-w-sm border-[3px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">Delete this?</p>
+            <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
+              <button
+                onClick={() => { saveNotes(notes.filter((x) => x.id !== noteConfirm)); setNoteConfirm(null); }}
+                className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80"
+                style={{ backgroundColor: "#C1440E", borderColor: "#C1440E" }}
+              >
+                Delete
+              </button>
+              <button onClick={() => setNoteConfirm(null)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: "#C1440E", color: "#C1440E" }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {confirm != null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setConfirm(null)}>
           <div className="w-full max-w-sm border-[3px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
@@ -166,6 +254,25 @@ export default function HW() {
 
 // Add a row or a section under this line, or bin it. Shown on hover only, so the
 // table stays clean to read.
+// Notes that grow with what is typed, so nothing is ever cut off or scrolls inside.
+function GrowText({ value, onChange }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      rows={2}
+      spellCheck={false}
+      className="block w-full resize-none bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
+    />
+  );
+}
+
 function RowTools({ i, onAdd, onRemove }) {
   return (
     <span className="flex h-[15px] shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
