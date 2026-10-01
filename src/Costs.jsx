@@ -323,13 +323,13 @@ export default function Costs({ seed }) {
           // The controls don't open or shut the accounts under the line.
           const stop = (e) => e.stopPropagation();
           const expired = bank?.valid_until && new Date(bank.valid_until) < new Date();
-          // After your account number, in light red: when the bank's approval runs out.
+          // After your account number, in the same size and black: when the bank's approval runs out.
           // Once it has, the note offers the reconnect itself.
           const until = bank?.valid_until
             ? new Date(bank.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
             : "";
           const status = until ? (
-            <span className="ml-2 whitespace-nowrap text-[10px] text-[#E08A7A]">
+            <span className="ml-2 whitespace-nowrap text-[11px] text-neutral-900">
               {expired ? (
                 <>
                   (Connection expired.{" "}
