@@ -323,25 +323,26 @@ export default function Costs({ seed }) {
           // The controls don't open or shut the accounts under the line.
           const stop = (e) => e.stopPropagation();
           const expired = bank?.valid_until && new Date(bank.valid_until) < new Date();
-          // At the right of your account line, before the chevron: Reconnect with the date
-          // the access runs out (red once it has), then the refresh arrow on its own.
-          const status = (
-            <span className="ml-auto flex items-center gap-2 whitespace-nowrap pl-3 text-[10px]">
-              <button
-                onClick={(e) => { stop(e); connectBank(); }}
-                disabled={bankBusy}
-                title="Approve access at Sparkasse again"
-                className={`underline underline-offset-2 ${expired ? "font-semibold text-[#C1440E]" : "text-[#0f766e] hover:text-[#0c5e57]"}`}
-              >
-                {bank?.valid_until
-                  ? `Reconnect ${new Date(bank.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
-                  : "Reconnect"}
-              </button>
-              <button onClick={(e) => { stop(e); refreshBank(bank, true); }} disabled={bankBusy} title="Fetch the latest balances now" className="text-[#0f766e] hover:text-[#0c5e57]">
-                <RefreshCw size={11} className={bankBusy ? "animate-spin" : ""} />
-              </button>
+          // After your account number, in light red: when the bank's approval runs out.
+          // Once it has, the note offers the reconnect itself.
+          const until = bank?.valid_until
+            ? new Date(bank.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+            : "";
+          const status = until ? (
+            <span className="ml-2 whitespace-nowrap text-[10px] text-[#E08A7A]">
+              {expired ? (
+                <>
+                  (Connection expired.{" "}
+                  <button onClick={(e) => { stop(e); connectBank(); }} disabled={bankBusy} className="font-semibold text-[#C1440E] underline underline-offset-2">
+                    Reconnect
+                  </button>
+                  )
+                </>
+              ) : (
+                `(Connection expires ${until}.)`
+              )}
             </span>
-          );
+          ) : null;
           const line = (a, sub, toggle) => {
             const b = bank.balances?.[a.uid];
             const v = amountOf(a);
@@ -358,9 +359,14 @@ export default function Costs({ seed }) {
                     (a.name || a.product || "Account").toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase())
                   }${a.iban ? `: ${a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}` : ""}`}
                   {!sub && status}
-                  {toggle && <ChevronDown size={12} className={`${sub ? "ml-auto" : ""} shrink-0 transition-transform ${kidsOpen ? "rotate-180" : ""}`} />}
+                  {toggle && <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${kidsOpen ? "rotate-180" : ""}`} />}
                 </span>
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
+                  {!sub && (
+                    <button onClick={() => refreshBank(bank, true)} disabled={bankBusy} title="Fetch the latest balances now" className="mr-auto text-[#0f766e] hover:text-[#0c5e57]">
+                      <RefreshCw size={11} className={bankBusy ? "animate-spin" : ""} />
+                    </button>
+                  )}
                   {v == null ? "–" : `${b.currency || "EUR"} ${money(v)}`}
                 </span>
               </div>
