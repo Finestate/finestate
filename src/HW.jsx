@@ -233,8 +233,8 @@ export default function HW() {
           <span className={head}>Medicines</span>
         </div>
         {notesLoaded && listBlock("medicines")}
-        {/* Supplements belong with medicines: a heading in the next shade, no grey band. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
+        {/* Supplements belong with medicines: its own bar, no grey band before it. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Supplements</span>
         </div>
         {notesLoaded && listBlock("supplements")}
