@@ -280,7 +280,7 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Nutrition</span>
         </div>
-        <div className="grid grid-cols-3 border-t border-black" style={{ backgroundColor: BAR_BG }}>
+        <div className="grid grid-cols-3 border-t border-black" style={{ backgroundColor: HEADER_BG }}>
           {NUTRITION_PARTS.map(([key, label], i) => (
             <span key={key} className={`flex h-[22px] items-center px-2 ${head} ${i ? "border-l border-black" : ""}`}>{label}</span>
           ))}
