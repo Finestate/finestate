@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronDown } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Cash flow page, rebuilt from the FC tab of HEIE Planning. The figures are private,
@@ -132,6 +132,7 @@ export default function Costs({ seed }) {
   const [bank, setBank] = useState(null); // the bank connection and its last balances
   const [bankMsg, setBankMsg] = useState("");
   const [bankBusy, setBankBusy] = useState(false);
+  const [kidsOpen, setKidsOpen] = useState(false); // the kids' accounts line, opened or shut
 
   const refreshBank = async (link) => {
     if (!link?.accounts?.length) return;
@@ -300,22 +301,67 @@ export default function Costs({ seed }) {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
           <span className={head}>Accounts</span>
         </div>
-        {/* One line per connected account, read from the bank. The last four digits
-            tell apart accounts with the same name. */}
-        {(bank?.accounts || []).map((a) => {
-          const b = bank.balances?.[a.uid];
+        {/* Your own account on its own line; the kids' accounts fold into one line that
+            opens; the company account stays out for now. Told apart by the bank's own
+            account type, so no account number sits in this code. */}
+        {(() => {
+          const kindOf = (a) => {
+            const t = `${a.product || ""} ${a.name || ""}`;
+            return /jugend/i.test(t) ? "kid" : /gesch|business|gmbh/i.test(t) ? "business" : "own";
+          };
+          const accts = bank?.accounts || [];
+          const own = accts.filter((a) => kindOf(a) === "own");
+          const kids = accts.filter((a) => kindOf(a) === "kid");
+          const amountOf = (a) => {
+            const b = bank.balances?.[a.uid];
+            return b && !b.error && b.amount !== "" ? num(b.amount) : null;
+          };
+          const line = (a, sub) => {
+            const b = bank.balances?.[a.uid];
+            const v = amountOf(a);
+            return (
+              <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black">
+                <span className={`flex flex-1 items-center text-[11px] text-neutral-900 ${sub ? "pl-6 pr-2" : "px-2"}`}>
+                  {a.name || a.product || "Account"}{a.iban ? ` ··${a.iban.slice(-4)}` : ""}
+                </span>
+                <span className="w-36 shrink-0 border-l border-black" />
+                <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
+                  {v == null ? "–" : `${b.currency || "EUR"} ${money(v)}`}
+                </span>
+              </div>
+            );
+          };
+          const kidsTotal = kids.reduce((sum, a) => sum + (amountOf(a) || 0), 0);
           return (
-            <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black">
-              <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">
-                {a.name || a.product || "Account"}{a.iban ? ` ··${a.iban.slice(-4)}` : ""}
-              </span>
-              <span className="w-36 shrink-0 border-l border-black" />
-              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
-                {b && !b.error && b.amount !== "" ? `${b.currency || "EUR"} ${money(num(b.amount))}` : "–"}
-              </span>
-            </div>
+            <>
+              {own.map((a) => line(a, false))}
+              {kids.length > 0 && (
+                <>
+                  <button onClick={() => setKidsOpen((o) => !o)} className="flex h-[22px] w-full items-stretch border-t border-black text-left">
+                    <span className="flex flex-1 items-center gap-1 px-2 text-[11px] text-neutral-900">
+                      <ChevronDown size={12} className={`shrink-0 transition-transform ${kidsOpen ? "" : "-rotate-90"}`} />
+                      Kids' accounts
+                    </span>
+                    <span className="w-36 shrink-0 border-l border-black" />
+                    <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                      EUR {money(kidsTotal)}
+                    </span>
+                  </button>
+                  {kidsOpen && kids.map((a) => line(a, true))}
+                </>
+              )}
+            </>
           );
-        })}
+        })()}
+        {/* The credit card isn't shared by the bank, so its figure is typed in. */}
+        <div className="flex h-[22px] items-stretch border-t border-black">
+          <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">Credit card</span>
+          <span className="w-36 shrink-0 border-l border-black" />
+          <span className="flex w-36 shrink-0 items-center gap-1 border-l border-black px-2 text-[11px] text-neutral-900">
+            <span>EUR</span>
+            <MoneyInput value={doc.balances.card} onChange={(v) => setBalance("card", v)} placeholder="" />
+          </span>
+        </div>
         {/* When the balances were read, and the controls for the connection. */}
         <div className="flex h-[22px] items-center gap-3 border-t border-black px-2 text-[10px] uppercase tracking-wide text-neutral-500">
           {bank?.accounts?.length ? (
