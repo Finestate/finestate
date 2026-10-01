@@ -788,6 +788,12 @@ export default function Planning() {
     const { lines, open } = boards[b];
     saveLines(b, [lines[1], lines[0]]);
     openLine(b, open === 0 ? 1 : open === 1 ? 0 : open);
+    // The ticks in Errands prios and H+F order are kept by line position, so they
+    // swap with the lines; otherwise each day would show the other day's ticks.
+    if (b === "master") {
+      const swapPick = (r) => ({ ...r, picked: undefined, pick: { ...(r.pick || {}), 0: isPicked(r, 1), 1: isPicked(r, 0) } });
+      saveCols({ ...cols, ...Object.fromEntries(TWOCOLS.map(([k]) => [k, (cols[k] || []).map(swapPick)])) });
+    }
   };
 
   // The heading a given row sits under, so the Daily routine section can hide its Add bar.
