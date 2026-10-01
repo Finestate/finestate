@@ -486,7 +486,15 @@ export default function Costs({ seed }) {
                             <input value={l.number || ""} onChange={(e) => editLoan(l.id, "number", e.target.value)} placeholder="Account number" className={`${box} tabular-nums`} />
                           </span>
                           <span className={col}>
-                            <input value={l.rate || ""} onChange={(e) => editLoan(l.id, "rate", e.target.value.replace(/[^0-9.,%]/g, ""))} placeholder="Interest %" className={`${box} tabular-nums`} />
+                            {/* The rate is kept as the bare figure; the % follows it on screen. */}
+                            <input
+                              value={l.rate || ""}
+                              onChange={(e) => editLoan(l.id, "rate", e.target.value.replace(/[^0-9.,]/g, ""))}
+                              placeholder="Interest %"
+                              size={Math.max(String(l.rate || "").length, 1)}
+                              className={`${cellTxt} placeholder:text-neutral-400 tabular-nums ${l.rate ? "" : "w-full"}`}
+                            />
+                            {l.rate && <span className="text-[11px] text-neutral-900">%</span>}
                           </span>
                           <span className={col}>
                             {/* The same calendar as the Legal documents page. */}
