@@ -190,6 +190,14 @@ export default function Costs({ seed }) {
   return (
     // Narrow windows scroll the table sideways rather than squashing the columns.
     <div className="w-full overflow-x-auto">
+      {/* The new table, being built up step by step. */}
+      <div className="mb-6 w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
+        <div className="flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
+          <span className={head}>Income and costs</span>
+        </div>
+      </div>
+
+      {/* The earlier table, kept below as a holding area while the new one is built. */}
       <div spellCheck={false} className="w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
         {/* Exchange rates are hidden for now; the saved ones still convert income to EUR. */}
         {/* Title bar: page name with the current month, and the headline balance on the right. */}
