@@ -934,7 +934,7 @@ export default function Costs({ seed }) {
                           <Check size={12} strokeWidth={3} />
                         </button>
                       )}
-                      {pendingOf(e) ? `EUR ${money(pendingOf(e))}` : ""}
+                      {dueThisMonth(e) && e.id !== "blank" ? `EUR ${money(pendingOf(e))}` : ""}
                     </span>
                   </div>
                 );
