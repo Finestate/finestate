@@ -405,7 +405,21 @@ export default function Costs({ seed }) {
                   onClick={() => save({ ...doc, ui: { ...(doc.ui || {}), debtOpen: !open } })}
                   className="flex flex-1 cursor-pointer select-none items-center gap-1 px-2 text-[11px] text-neutral-900"
                 >
-                  Debt – mortgage outstanding
+                  {/* Debt: <what it is>: <the loans' account numbers>, repeated loan by loan in
+                      the dropdown. The name is typed in the row and kept in Supabase, so no
+                      address sits in this code. */}
+                  <span>Debt:</span>
+                  <input
+                    value={doc.debtName || ""}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => save({ ...doc, debtName: e.target.value })}
+                    placeholder="what for"
+                    size={Math.max((doc.debtName || "what for").length, 4)}
+                    className="bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none placeholder:text-neutral-300"
+                  />
+                  {loans.some((l) => l.number) && (
+                    <span className="tabular-nums">: {loans.map((l) => l.number).filter(Boolean).join(" / ")}</span>
+                  )}
                   <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
                 </span>
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
