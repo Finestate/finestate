@@ -388,6 +388,25 @@ export default function Costs({ seed }) {
   };
   const paymentRows = (k) => ((k.payments || []).length ? k.payments : [{ id: "blank", date: "", amount: "" }]);
 
+  // Home-related expense lines, kept in Supabase. A blank line stands ready while
+  // there are none, and the first thing typed into it makes it real.
+  const homeExpenses = doc.expenses?.home || [];
+  const setHome = (list) => save({ ...doc, expenses: { ...(doc.expenses || {}), home: list } });
+  const editHome = (id, fields) =>
+    setHome(
+      homeExpenses.length
+        ? homeExpenses.map((e) => (e.id === id ? { ...e, ...fields } : e))
+        : [{ id: newId(), description: "", source: "", freq: "", amount: "", pending: "", ...fields }]
+    );
+  const homeRows = homeExpenses.length ? homeExpenses : [{ id: "blank", description: "", source: "", freq: "", amount: "", pending: "" }];
+  // Where an expense is paid from. Your own account appears as SP and its number, read
+  // from the connected bank, so the number itself never sits in this code.
+  const paymentSources = (() => {
+    const own = (bank?.accounts || []).find((a) => !/jugend|gesch|business|gmbh/i.test(`${a.product || ""} ${a.name || ""}`));
+    const nr = own?.iban ? own.iban.replace(/\s/g, "").slice(-8) : "";
+    return [nr ? `SP ${nr}` : "SP account", "Per invoice", "PayPal (SP MC)", "Silke Account"];
+  })();
+
   // Fixed costs still to go out: nil until the costs part of the table is built.
   const pendingFixed = 0;
 
@@ -753,6 +772,47 @@ export default function Costs({ seed }) {
             </span>
           ))}
         </div>
+        {homeRows.map((e) => {
+          const cell = "flex min-w-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900";
+          return (
+            <div key={e.id} className="group grid h-[22px] grid-cols-6 border-t border-black">
+              <span className="flex min-w-0 items-center px-2">
+                <input value={e.description || ""} onChange={(ev) => editHome(e.id, { description: ev.target.value })} className="w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none" />
+                <button onClick={() => ask(() => setHome(homeExpenses.filter((x) => x.id !== e.id)))} title="Remove" className="ml-1 shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
+                  <Trash2 size={11} />
+                </button>
+              </span>
+              <span className={cell}>
+                <select
+                  value={e.source || ""}
+                  onChange={(ev) => editHome(e.id, { source: ev.target.value })}
+                  className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
+                >
+                  <option value="" />
+                  {paymentSources.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </span>
+              <span className={cell}>
+                <input value={e.freq || ""} onChange={(ev) => editHome(e.id, { freq: ev.target.value })} className="w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none" />
+              </span>
+              <span className={`${cell} justify-end gap-1`}>
+                <span>EUR</span>
+                <MoneyInput value={e.amount} onChange={(v) => editHome(e.id, { amount: v })} placeholder="0.00" fit />
+              </span>
+              <span className={`${cell} justify-end`}>EUR {money(monthlyAvg(e))}</span>
+              <span className={`${cell} justify-end gap-1`}>
+                <span>EUR</span>
+                <MoneyInput value={e.pending} onChange={(v) => editHome(e.id, { pending: v })} placeholder="0.00" fit />
+              </span>
+            </div>
+          );
+        })}
+        <button
+          onClick={() => setHome([...homeExpenses, { id: newId(), description: "", source: "", freq: "", amount: "", pending: "" }])}
+          className="flex h-[22px] w-full items-center gap-1 border-t border-black px-2 text-[11px] text-neutral-400 transition-colors hover:text-neutral-900"
+        >
+          <Plus size={11} /> Add expense
+        </button>
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
