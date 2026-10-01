@@ -148,6 +148,9 @@ const Main = ({ children }) => (
     <span className={head}>{children}</span>
   </div>
 );
+// A band inside the table that sets one section apart from the next.
+const GAP_BG = "#171717";
+const Gap = () => <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />;
 const Sub = ({ children }) => (
   <div className="border-t border-black flex h-[22px] items-center px-2" style={{ backgroundColor: SUB_BG }}>
     <span className={head}>{children}</span>
@@ -591,6 +594,7 @@ export default function Costs({ seed }) {
         )}
         {bankMsg && <p className="border-t border-black px-2 py-1 text-[11px] font-semibold text-[#C1440E]">{bankMsg}</p>}
 
+        <Gap />
         <Sub>Income</Sub>
         {/* The same saved income lines as Net incoming below: the name, the amount as
             paid where it is not in euros, and the euro figure. */}
@@ -619,6 +623,7 @@ export default function Costs({ seed }) {
           </span>
         </div>
 
+        <Gap />
         <Sub>Unique payments tracking</Sub>
 
         {/* Tax payments: one line each, the date on the left (the same calendar as Legal
@@ -720,6 +725,7 @@ export default function Costs({ seed }) {
           );
         })}
 
+        <Gap />
         <Sub>Expenses</Sub>
         {/* Expenses come in groups, each under its own bar; the lines are being built one at a time. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
