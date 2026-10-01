@@ -294,35 +294,12 @@ export default function Costs({ seed }) {
         <div className="flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
           <span className={head}>Income and costs</span>
         </div>
-        <Sub>Income</Sub>
-        {/* The same saved income lines as Net incoming below: the name, the amount as
-            paid where it is not in euros, and the euro figure. */}
-        {doc.income.map((r) => {
-          const cur = String(r.currency || "EUR").trim().toUpperCase() || "EUR";
-          return (
-            <div key={r.id} className="flex h-[22px] items-stretch border-t border-black">
-              <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">{r.name}</span>
-              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
-                {cur !== "EUR" && `${cur} ${money(num(r.amount))}`}
-              </span>
-              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900"
-                title={cur !== "EUR" && live?.rates?.[cur] ? `1 ${cur} = ${(1 / live.rates[cur]).toFixed(4)} EUR, today's rate` : undefined}
-              >
-                EUR {money(toEur(r.amount, r.currency))}
-              </span>
-            </div>
-          );
-        })}
-        {/* The month's income in euros, every line added up. */}
-        <div className="flex h-[22px] items-stretch border-t border-black">
-          <span className="flex flex-1 items-center px-2 text-[11px] font-bold text-neutral-900">Total</span>
-          <span className="w-36 shrink-0 border-l border-black" />
-          <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">
-            EUR {money(totalIncome)}
-          </span>
-        </div>
-
+        {/* Balances always come first. */}
         <Sub>Balances</Sub>
+        {/* The accounts read from the bank, under their own heading. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
+          <span className={head}>Accounts</span>
+        </div>
         {/* One line per connected account, read from the bank. The last four digits
             tell apart accounts with the same name. */}
         {(bank?.accounts || []).map((a) => {
@@ -362,6 +339,34 @@ export default function Costs({ seed }) {
           )}
         </div>
         {bankMsg && <p className="border-t border-black px-2 py-1 text-[11px] font-semibold text-[#C1440E]">{bankMsg}</p>}
+
+        <Sub>Income</Sub>
+        {/* The same saved income lines as Net incoming below: the name, the amount as
+            paid where it is not in euros, and the euro figure. */}
+        {doc.income.map((r) => {
+          const cur = String(r.currency || "EUR").trim().toUpperCase() || "EUR";
+          return (
+            <div key={r.id} className="flex h-[22px] items-stretch border-t border-black">
+              <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">{r.name}</span>
+              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                {cur !== "EUR" && `${cur} ${money(num(r.amount))}`}
+              </span>
+              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900"
+                title={cur !== "EUR" && live?.rates?.[cur] ? `1 ${cur} = ${(1 / live.rates[cur]).toFixed(4)} EUR, today's rate` : undefined}
+              >
+                EUR {money(toEur(r.amount, r.currency))}
+              </span>
+            </div>
+          );
+        })}
+        {/* The month's income in euros, every line added up. */}
+        <div className="flex h-[22px] items-stretch border-t border-black">
+          <span className="flex flex-1 items-center px-2 text-[11px] font-bold text-neutral-900">Total</span>
+          <span className="w-36 shrink-0 border-l border-black" />
+          <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">
+            EUR {money(totalIncome)}
+          </span>
+        </div>
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
