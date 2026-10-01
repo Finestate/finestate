@@ -151,8 +151,9 @@ const Main = ({ children }) => (
 // A band inside the table that sets one section apart from the next.
 const GAP_BG = "#171717";
 const Gap = () => <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />;
-const Sub = ({ children }) => (
-  <div className="border-t border-black flex h-[22px] items-center px-2" style={{ backgroundColor: SUB_BG }}>
+// `first`: the bar that opens a table, where the frame already draws the line above.
+const Sub = ({ children, first }) => (
+  <div className={`${first ? "" : "border-t border-black"} flex h-[22px] items-center px-2`} style={{ backgroundColor: SUB_BG }}>
     <span className={head}>{children}</span>
   </div>
 );
@@ -382,11 +383,8 @@ export default function Costs({ seed }) {
     <div className="w-full overflow-x-auto">
       {/* The new table, being built up step by step. */}
       <div className="mb-6 w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
-        <div className="flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
-          <span className={head}>Income and costs</span>
-        </div>
         {/* Balances always come first. */}
-        <Sub>Accounts</Sub>
+        <Sub first>Accounts</Sub>
         {/* Your own account on its own line, with a chevron; a click anywhere in its
             name cell opens the other accounts (the company's and the kids') under it.
             Told apart by the bank's own account type, so no number sits in this code. */}
