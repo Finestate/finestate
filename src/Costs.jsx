@@ -407,7 +407,7 @@ export default function Costs({ seed }) {
   const paymentSources = (() => {
     const own = (bank?.accounts || []).find((a) => !/jugend|gesch|business|gmbh/i.test(`${a.product || ""} ${a.name || ""}`));
     const nr = own?.iban ? own.iban.replace(/\s/g, "").slice(-8) : "";
-    return [nr ? `SP ${nr}` : "SP account", "PayPal (SP MC)", "Per invoice", "Silke Account"];
+    return [nr ? `SP ${nr}` : "SP account", "PayPal (SP MC)", "Per invoice", "SSI account"];
   })();
 
   // Fixed costs still to go out: nil until the costs part of the table is built.
@@ -787,7 +787,8 @@ export default function Costs({ seed }) {
               </span>
               <span className={cell}>
                 <select
-                  value={e.source || ""}
+                  // A line saved under the old name reads under the new one.
+                  value={e.source === "Silke Account" ? "SSI account" : e.source || ""}
                   onChange={(ev) => editHome(e.id, { source: ev.target.value })}
                   className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
                 >
