@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Plus, Trash2, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SquarePen, X } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Personal ID numbers live in Supabase, never in this repo.
@@ -13,7 +13,7 @@ const COLS = [
   { key: "number", label: "Number", w: "17%" },
   { key: "issued", label: "Issue date", w: "17%" },
   { key: "expiry", label: "Expiry date", w: "17%" },
-  { key: "scan", label: "Link to document", w: "17%" },
+  { key: "scan", label: "Links to document", w: "17%" },
 ];
 
 const GOLD = "#9c7c33";
@@ -117,32 +117,40 @@ function DateCell({ value, onChange, flagSoon }) {
 // Anything that looks like an address shows as a link reading "Link to document".
 const isUrl = (v) => /^(https?:\/\/|www\.)/i.test(String(v || "").trim());
 
-function LinkCell({ value, onChange }) {
-  const [editing, setEditing] = useState(false);
-  if (!editing && isUrl(value)) {
-    const href = /^www\./i.test(value.trim()) ? `https://${value.trim()}` : value.trim();
-    return (
-      <span className="flex w-full items-center" onDoubleClick={() => setEditing(true)} title="Double click to edit">
-        <a
-          href={href}
-          target="_blank"
-          rel="noreferrer"
-          className="truncate text-[11px] leading-[15px] underline underline-offset-2"
-          style={{ color: GOLD }}
-        >
-          Link to document
-        </a>
-      </span>
-    );
-  }
+const toHref = (v) => (/^www\./i.test(String(v).trim()) ? `https://${String(v).trim()}` : String(v).trim());
+
+// A row holds any number of links, each with a short name of its own. Rows saved
+// before this held one address in `scan`; that becomes their first link.
+const linksOf = (r) =>
+  Array.isArray(r.links) ? r.links : r.scan ? [{ id: "scan", name: "", url: r.scan }] : [];
+
+// The cell: the links by name, a dot between them, and a pencil that shows on hover
+// (always, while there are none) to add or change them.
+function LinksCell({ links, onEdit }) {
   return (
-    <input
-      value={value || ""}
-      autoFocus={editing}
-      onChange={(e) => onChange(e.target.value)}
-      onBlur={() => setEditing(false)}
-      className={cell}
-    />
+    <span className="group flex w-full items-center gap-1 overflow-hidden">
+      <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+        {links.map((l, k) => (
+          <span key={l.id || k} className="flex min-w-0 items-center gap-1">
+            {k > 0 && <span className="text-[11px] leading-[15px] text-neutral-400">·</span>}
+            {isUrl(l.url) ? (
+              <a href={toHref(l.url)} target="_blank" rel="noreferrer" title={l.url} className="truncate text-[11px] leading-[15px] underline underline-offset-2" style={{ color: GOLD }}>
+                {l.name || `Link ${k + 1}`}
+              </a>
+            ) : (
+              <span className="truncate text-[11px] leading-[15px] text-neutral-900">{l.name || l.url}</span>
+            )}
+          </span>
+        ))}
+      </span>
+      <button
+        onClick={onEdit}
+        title="Add or change links"
+        className={`ml-auto shrink-0 text-neutral-400 hover:text-neutral-900 ${links.length ? "opacity-0 group-hover:opacity-100" : ""}`}
+      >
+        <SquarePen size={11} />
+      </button>
+    </span>
   );
 }
 
@@ -160,6 +168,9 @@ export default function LegalDocuments() {
   const [loaded, setLoaded] = useState(false);
   const [err, setErr] = useState("");
   const [confirm, setConfirm] = useState(null); // index waiting on a delete confirmation
+  const [linksFor, setLinksFor] = useState(null); // row whose links the popup is editing
+  const [newLinkName, setNewLinkName] = useState("");
+  const [newLinkUrl, setNewLinkUrl] = useState("");
 
   useEffect(() => {
     supabase
@@ -198,6 +209,14 @@ export default function LegalDocuments() {
   const confirmRemove = () => {
     save(items.filter((_, idx) => idx !== confirm));
     setConfirm(null);
+  };
+  // Links are written as a list; the old single address is cleared once it has moved in.
+  const setLinks = (i, next) => save(items.map((r, idx) => (idx === i ? { ...r, links: next, scan: "" } : r)));
+  const addLink = () => {
+    if (!newLinkUrl.trim()) return;
+    setLinks(linksFor, [...linksOf(items[linksFor]), { id: newId(), name: newLinkName.trim(), url: newLinkUrl.trim() }]);
+    setNewLinkName("");
+    setNewLinkUrl("");
   };
   const add = (kind) =>
     save([...items, kind === "section" ? { id: newId(), kind: "section", label: "" } : { id: newId(), kind: "row", item: "", number: "", issued: "", expiry: "", scan: "" }]);
@@ -238,7 +257,7 @@ export default function LegalDocuments() {
                       {c.key === "issued" || c.key === "expiry" ? (
                         <DateCell value={r[c.key] || ""} onChange={(v) => update(i, c.key, v)} flagSoon={c.key === "expiry"} />
                       ) : c.key === "scan" ? (
-                        <LinkCell value={r.scan || ""} onChange={(v) => update(i, "scan", v)} />
+                        <LinksCell links={linksOf(r)} onEdit={() => setLinksFor(i)} />
                       ) : (
                         <input value={r[c.key] || ""} onChange={(e) => update(i, c.key, e.target.value)} className={cell} />
                       )}
@@ -255,6 +274,72 @@ export default function LegalDocuments() {
           <button onClick={() => add("row")} className="flex items-center gap-1 text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-500 hover:text-neutral-800"><Plus size={12} /> Add row</button>
         </div>
       </div>
+
+      {linksFor != null && items[linksFor] && (() => {
+        const links = linksOf(items[linksFor]);
+        const lc = "border border-black px-2 py-1";
+        const li = "w-full bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none";
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setLinksFor(null)}>
+            <div className="relative w-full max-w-xl border-4 border-black bg-white px-6 py-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => setLinksFor(null)} title="Close" className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full border border-black text-neutral-900 transition-colors hover:bg-neutral-100">
+                <X size={12} strokeWidth={2.5} />
+              </button>
+              <p className="pb-2 pr-8 text-[13px] font-bold uppercase tracking-[0.12em] text-neutral-900">{items[linksFor].item || "Document"}</p>
+              {/* Every cell framed, heading row included; the shaded row adds a link. */}
+              <table className="w-full table-fixed border-collapse border-[3px] border-black">
+                <colgroup>
+                  <col className="w-36" />
+                  <col />
+                  <col className="w-16" />
+                </colgroup>
+                <thead>
+                  <tr className="bg-neutral-100 text-left text-[10px] font-bold uppercase tracking-wide text-neutral-700">
+                    <th className={`${lc} font-bold`}>Name</th>
+                    <th className={`${lc} font-bold`}>Link</th>
+                    <th className={lc} />
+                  </tr>
+                </thead>
+                <tbody>
+                  {links.map((l, k) => (
+                    <tr key={l.id || k}>
+                      <td className={lc}>
+                        <input value={l.name} onChange={(e) => setLinks(linksFor, links.map((x, j) => (j === k ? { ...x, name: e.target.value } : x)))} className={li} />
+                      </td>
+                      <td className={lc}>
+                        <input value={l.url} onChange={(e) => setLinks(linksFor, links.map((x, j) => (j === k ? { ...x, url: e.target.value } : x)))} className={li} />
+                      </td>
+                      <td className={`${lc} text-center`}>
+                        <button onClick={() => setLinks(linksFor, links.filter((_, j) => j !== k))} title="Remove this link" className="inline-flex text-neutral-900 transition-colors hover:text-[#C1440E]">
+                          <Trash2 size={12} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-neutral-50">
+                    <td className={lc}>
+                      <input value={newLinkName} onChange={(e) => setNewLinkName(e.target.value)} className={li} />
+                    </td>
+                    <td className={lc}>
+                      <input
+                        value={newLinkUrl}
+                        onChange={(e) => setNewLinkUrl(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") addLink(); if (e.key === "Escape") setLinksFor(null); }}
+                        className={li}
+                      />
+                    </td>
+                    <td className={`${lc} text-center`}>
+                      <button onClick={addLink} title="Add this link" className="inline-flex items-center gap-0.5 text-[10px] font-bold uppercase" style={{ color: "#C1440E" }}>
+                        <Plus size={12} /> Add
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
 
       {confirm != null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setConfirm(null)}>
