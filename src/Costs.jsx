@@ -388,7 +388,7 @@ export default function Costs({ seed }) {
     // Narrow windows scroll the table sideways rather than squashing the columns.
     <div className="w-full overflow-x-auto">
       {/* The new table, being built up step by step. */}
-      <div className="mb-6 w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
+      <div className="mb-48 w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
         {/* Balances always come first. */}
         <Section first>Accounts</Section>
         {/* Your own account on its own line, with a chevron; a click anywhere in its
