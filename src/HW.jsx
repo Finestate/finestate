@@ -125,7 +125,7 @@ export default function HW() {
                   value={n.title || ""}
                   onClick={(e) => e.stopPropagation()}
                   onChange={(e) => editNote(n.id, { title: e.target.value })}
-                  className="w-1/4 min-w-[160px] bg-transparent py-0 text-[11px] font-bold leading-none text-neutral-900 outline-none"
+                  className="w-1/4 min-w-[160px] bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
                 />
                 <span className="flex-1" />
                 <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${n.open ? "rotate-180" : ""}`} />
