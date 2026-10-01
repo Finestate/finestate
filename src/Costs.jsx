@@ -685,8 +685,8 @@ export default function Costs({ seed }) {
                           <span className={col}>
                             {/* The same calendar as the Legal documents page. */}
                             <DateCell value={l.expires || ""} onChange={(v) => editLoan(l.id, "expires", v)} placeholder="Expires" />
-                            {/* The bin shows only while the pointer is on the row. */}
-                            <button onClick={() => ask(() => setLoans(loans.filter((x) => x.id !== l.id)))} title="Remove this loan" className="ml-1 shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
+                            {/* The bin to remove the loan. */}
+                            <button onClick={() => ask(() => setLoans(loans.filter((x) => x.id !== l.id)))} title="Remove this loan" className="ml-1 shrink-0 text-neutral-900 hover:text-[#C1440E]">
                               <Trash2 size={11} />
                             </button>
                           </span>
@@ -764,7 +764,7 @@ export default function Costs({ seed }) {
               <span className="w-40">
                 <DateCell value={t.date} onChange={(v) => editTax(t.id, "date", v)} placeholder="Date" />
               </span>
-              <button onClick={() => ask(() => save({ ...doc, taxPayments: taxPayments.filter((x) => x.id !== t.id) }))} title="Remove" className="ml-auto text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
+              <button onClick={() => ask(() => save({ ...doc, taxPayments: taxPayments.filter((x) => x.id !== t.id) }))} title="Remove" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
                 <Trash2 size={11} />
               </button>
             </span>
@@ -828,7 +828,7 @@ export default function Costs({ seed }) {
                     <span className="-ml-[1.5px] w-40">
                       <DateCell value={x.date} onChange={(v) => editPayment(k.id, x.id, { date: v })} placeholder="Date" />
                     </span>
-                    <button onClick={() => ask(() => editKid(k.id, { payments: k.payments.filter((y) => y.id !== x.id) }))} title="Remove" className="ml-auto text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
+                    <button onClick={() => ask(() => editKid(k.id, { payments: k.payments.filter((y) => y.id !== x.id) }))} title="Remove" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
                       <Trash2 size={11} />
                     </button>
                   </span>
@@ -867,7 +867,7 @@ export default function Costs({ seed }) {
                   className={`w-full bg-transparent py-0 outline-none ${head}`}
                 />
                 {expenseGroups.length > 1 && (
-                  <button onClick={() => ask(() => setExpenseGroups(expenseGroups.filter((x) => x.id !== g.id)))} title="Remove this group" className="ml-1 shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
+                  <button onClick={() => ask(() => setExpenseGroups(expenseGroups.filter((x) => x.id !== g.id)))} title="Remove this group" className="ml-1 shrink-0 text-neutral-900 hover:text-[#C1440E]">
                     <Trash2 size={11} />
                   </button>
                 )}
@@ -888,7 +888,7 @@ export default function Costs({ seed }) {
                   <div key={e.id} className="group grid h-[22px] grid-cols-6 border-t border-black">
                     <span className="flex min-w-0 items-center px-2">
                       <input value={e.description || ""} onChange={(ev) => edit({ description: ev.target.value })} className="w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none" />
-                      <button onClick={() => ask(() => setExpenseRows(g.id, rows.filter((x) => x.id !== e.id)))} title="Remove" className="ml-1 shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
+                      <button onClick={() => ask(() => setExpenseRows(g.id, rows.filter((x) => x.id !== e.id)))} title="Remove" className="ml-1 shrink-0 text-neutral-900 hover:text-[#C1440E]">
                         <Trash2 size={11} />
                       </button>
                     </span>
