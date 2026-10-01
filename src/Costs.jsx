@@ -87,7 +87,7 @@ function CardNumber({ value, onChange }) {
       onBlur={() => { if (draft != null) onChange(maskCard(draft)); setDraft(null); }}
       onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
       size={Math.max(shown.length, 6)}
-      className="bg-transparent py-0 text-[11px] leading-none tabular-nums text-neutral-900 outline-none"
+      className="bg-transparent py-0 text-[11px] leading-none tabular-nums outline-none"
     />
   );
 }
@@ -123,7 +123,7 @@ function MoneyInput({ value, onChange, placeholder = "0.00", fit = false }) {
   // exactly like the figures beside it; a click turns it into the box to type in.
   if (fit && !focus) {
     return (
-      <button type="button" onClick={() => setFocus(true)} className="text-[11px] leading-none tabular-nums text-neutral-900">
+      <button type="button" onClick={() => setFocus(true)} className="text-[11px] leading-none tabular-nums">
         {shown || <span className="text-neutral-400">{placeholder}</span>}
       </button>
     );
@@ -453,18 +453,19 @@ export default function Costs({ seed }) {
         })()}
         {/* Fixed costs still to go out this month. Nil for now; it will come from the
             costs part of the table once that is built. */}
+        {/* Money going out reads in red: pending fixed costs, the card and the debt. */}
         <div className="flex h-[22px] items-stretch border-t border-black">
-          <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">Pending fixed costs</span>
-          <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+          <span className="flex flex-1 items-center px-2 text-[11px] text-[#C1440E]">Pending fixed costs</span>
+          <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#C1440E]">
             EUR {money(pendingFixed)}
           </span>
         </div>
         {/* The credit card isn't shared by the bank, so its figure is typed in. */}
         <div className="flex h-[22px] items-stretch border-t border-black">
-          <span className="flex flex-1 items-center gap-1 px-2 text-[11px] text-neutral-900">
+          <span className="flex flex-1 items-center gap-1 px-2 text-[11px] text-[#C1440E]">
             Credit card: <CardNumber value={doc.cardNumber} onChange={(v) => save({ ...doc, cardNumber: v })} />
           </span>
-          <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+          <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-[#C1440E]">
             <span>EUR</span>
             <MoneyInput value={doc.balances.card} onChange={(v) => setBalance("card", v)} placeholder="0.00" fit />
           </span>
@@ -494,7 +495,7 @@ export default function Costs({ seed }) {
               <div className={sub}>
                 <span
                   onClick={() => save({ ...doc, ui: { ...(doc.ui || {}), debtOpen: !open } })}
-                  className="flex flex-1 cursor-pointer select-none items-center gap-1 px-2 text-[11px] text-neutral-900"
+                  className="flex flex-1 cursor-pointer select-none items-center gap-1 px-2 text-[11px] text-[#C1440E]"
                 >
                   {/* Debt: <what it is>; each loan's account number is in the dropdown. The
                       name is typed in the row and kept in Supabase, so no address sits in
@@ -505,7 +506,7 @@ export default function Costs({ seed }) {
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => save({ ...doc, debtName: e.target.value })}
                     size={Math.max((doc.debtName || "").length, 6)}
-                    className="bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
+                    className="bg-transparent py-0 text-[11px] leading-none outline-none"
                   />
                   <button
                     onClick={(e) => {
@@ -520,7 +521,7 @@ export default function Costs({ seed }) {
                   </button>
                   <ChevronDown size={12} className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
                 </span>
-                <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#C1440E]">
                   EUR {money(total)}
                 </span>
               </div>
