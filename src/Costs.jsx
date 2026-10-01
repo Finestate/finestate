@@ -134,7 +134,6 @@ export default function Costs({ seed }) {
   const [bank, setBank] = useState(null); // the bank connection and its last balances
   const [bankMsg, setBankMsg] = useState("");
   const [bankBusy, setBankBusy] = useState(false);
-  const [kidsOpen, setKidsOpen] = useState(false); // the other accounts under yours, shown or hidden
 
   // present: you pressed Refresh yourself, rather than the page reading on open.
   const refreshBank = async (link, present = false) => {
@@ -313,6 +312,7 @@ export default function Costs({ seed }) {
             return /jugend/i.test(t) ? "kid" : /gesch|business|gmbh/i.test(t) ? "business" : "own";
           };
           const accts = bank?.accounts || [];
+          const kidsOpen = !!doc.ui?.accountsOpen;
           const own = accts.filter((a) => kindOf(a) === "own");
           // Under your account when opened: the company's first, then the kids'.
           const others = [...accts.filter((a) => kindOf(a) === "business"), ...accts.filter((a) => kindOf(a) === "kid")];
@@ -343,7 +343,9 @@ export default function Costs({ seed }) {
               </div>
             );
           };
-          const toggle = others.length ? () => setKidsOpen((o) => !o) : undefined;
+          // Whether the other accounts are showing is kept with the page in Supabase, so a
+          // refresh, or another device, opens it the way you left it.
+          const toggle = others.length ? () => save({ ...doc, ui: { ...(doc.ui || {}), accountsOpen: !kidsOpen } }) : undefined;
           return (
             <>
               {own.map((a) => line(a, false, toggle))}
