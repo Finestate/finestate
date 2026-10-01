@@ -95,10 +95,20 @@ function CardNumber({ value, onChange }) {
 function MoneyInput({ value, onChange, placeholder = "0.00", fit = false }) {
   const [focus, setFocus] = useState(false);
   const shown = focus || value === "" || value == null ? value ?? "" : money(num(value));
+  // Sized to fit, the figure reads as plain text, so it sits one space after its label
+  // exactly like the figures beside it; a click turns it into the box to type in.
+  if (fit && !focus) {
+    return (
+      <button type="button" onClick={() => setFocus(true)} className="text-[11px] leading-none tabular-nums text-neutral-900">
+        {shown || <span className="text-neutral-400">{placeholder}</span>}
+      </button>
+    );
+  }
   return (
     <input
       value={shown}
       inputMode="decimal"
+      autoFocus={fit}
       onFocus={() => setFocus(true)}
       onChange={(e) => onChange(e.target.value.replace(/[^0-9.-]/g, ""))}
       onBlur={() => { setFocus(false); if (String(value ?? "").trim() !== "") onChange(num(value).toFixed(2)); }}
