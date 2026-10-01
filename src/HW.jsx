@@ -115,7 +115,7 @@ export default function HW() {
                 {isWebAddress(link) && editingLink !== m.id ? (
                   <span className="flex items-center gap-2">
                     <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} className="inline-flex items-center gap-1 whitespace-nowrap text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
-                      Link to buy <ExternalLink size={10} />
+                      Link to buy
                     </a>
                     <button onClick={() => setEditingLink(m.id)} title="Change the address" className="text-neutral-400 hover:text-neutral-900">
                       <SquarePen size={11} />
