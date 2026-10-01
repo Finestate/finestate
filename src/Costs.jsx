@@ -137,7 +137,11 @@ function FrequencyPicker({ value, onChange }) {
   const picked = monthly ? [] : FREQ_MONTHS.filter((m) => new RegExp(`\\b${m}`, "i").test(v));
   const open = () => {
     const r = btn.current?.getBoundingClientRect();
-    if (r) setAnchor({ top: r.bottom + 4, left: Math.min(r.left, window.innerWidth - 260) });
+    if (!r) return;
+    // Below the cell where it fits; above it near the foot of the screen.
+    const height = 156;
+    const top = r.bottom + 4 + height > window.innerHeight ? Math.max(4, r.top - 4 - height) : r.bottom + 4;
+    setAnchor({ top, left: Math.min(r.left, window.innerWidth - 260) });
   };
   const toggle = (m) => {
     const next = picked.includes(m) ? picked.filter((x) => x !== m) : [...picked, m];

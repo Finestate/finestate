@@ -102,7 +102,11 @@ export function DateCell({ value, onChange, flagSoon, placeholder }) {
   const btn = useRef(null);
   const open = () => {
     const r = btn.current?.getBoundingClientRect();
-    if (r) setAnchor({ top: r.bottom + 4, left: Math.min(r.left, window.innerWidth - 236) });
+    if (!r) return;
+    // Below the field where it fits; above it near the foot of the screen.
+    const height = 240;
+    const top = r.bottom + 4 + height > window.innerHeight ? Math.max(4, r.top - 4 - height) : r.bottom + 4;
+    setAnchor({ top, left: Math.min(r.left, window.innerWidth - 236) });
   };
   return (
     <span className="flex w-full items-center gap-1.5">
