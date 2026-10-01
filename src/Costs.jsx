@@ -147,7 +147,7 @@ function FrequencyPicker({ value, onChange }) {
   return (
     <>
       <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} className="flex w-full items-center gap-1 text-left text-[11px] leading-none text-neutral-900">
-        <span className="min-w-0 flex-1">{monthly ? "Monthly" : picked.join(", ")}</span>
+        <span className={`min-w-0 flex-1 ${!monthly && !picked.length && v ? "text-neutral-400" : ""}`}>{monthly ? "Monthly" : picked.length ? picked.join(", ") : v}</span>
         <ChevronDown size={11} className="shrink-0 text-neutral-400" />
       </button>
       {anchor && (
@@ -360,7 +360,8 @@ export default function Costs({ seed }) {
   const setList = (key, list) => save({ ...doc, [key]: list });
   const editIn = (key, id, field, val) => setList(key, doc[key].map((r) => (r.id === id ? { ...r, [field]: val } : r)));
   const addTo = (key, row) => setList(key, [...doc[key], { id: newId(), ...row }]);
-  const ask = (run) => setConfirm({ run });
+  // Asks before going ahead: a delete by default, or any other step with its own words.
+  const ask = (run, words) => setConfirm({ run, ...(words || {}) });
 
   const setBalance = (field, val) => save({ ...doc, balances: { ...doc.balances, [field]: val } });
 
@@ -451,6 +452,26 @@ export default function Costs({ seed }) {
     setExpenseRows(gid, rows.length ? rows.map((e) => (e.id === id ? { ...e, ...fields } : e)) : [{ ...blankExpense(), ...fields }]);
   };
   const allExpenses = expenseGroups.flatMap((g) => g.rows || []);
+  // One-off: the old table's expense groups and lines come across into this layout. Its
+  // frequencies are read where they can be: "Monthly" stays Monthly, named months are
+  // ticked, anything else is kept as written. The old table itself is left untouched.
+  const oldGroups = (doc.groups || []).filter((g) => (g.rows || []).length);
+  const toFreq = (f) => {
+    const t = String(f || "");
+    if (/month/i.test(t)) return "Monthly";
+    const months = FREQ_MONTHS.filter((m) => new RegExp(`\\b${m}`, "i").test(t));
+    return months.length ? months.join(", ") : t.trim();
+  };
+  const copyFromOld = () => {
+    const copied = oldGroups.map((g) => ({
+      id: newId(),
+      name: g.name || "Group",
+      rows: g.rows.map((r) => ({ id: newId(), description: r.item || "", source: r.source || "", freq: toFreq(r.freq), amount: r.amount || "" })),
+    }));
+    // A group of this layout that is still empty makes way; one with lines stays.
+    const kept = expenseGroups.filter((g) => (g.rows || []).length);
+    save({ ...doc, expenses: { groups: [...kept, ...copied] }, expensesCopied: true });
+  };
   // Where an expense is paid from. Your own account appears as SP and its number, read
   // from the connected bank, so the number itself never sits in this code.
   const paymentSources = (() => {
@@ -873,6 +894,7 @@ export default function Costs({ seed }) {
                       >
                         <option value="" />
                         {paymentSources.map((o) => <option key={o} value={o}>{o}</option>)}
+                        {e.source && e.source !== "Silke Account" && !paymentSources.includes(e.source) && <option value={e.source}>{e.source}</option>}
                       </select>
                     </span>
                     <span className={cell}>
@@ -915,6 +937,14 @@ export default function Costs({ seed }) {
         >
           <Plus size={11} /> Add group
         </button>
+        {!doc.expensesCopied && oldGroups.length > 0 && (
+          <button
+            onClick={() => ask(copyFromOld, { question: "Copy the old table's expenses into the new layout?", action: "Copy" })}
+            className="flex h-[22px] w-full items-center gap-1 border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+          >
+            Copy from old table ({oldGroups.length} group{oldGroups.length === 1 ? "" : "s"}, {oldGroups.reduce((n, g) => n + g.rows.length, 0)} lines)
+          </button>
+        )}
         {/* Every group together, on white, in bold red: money going out. */}
         <div className="grid h-[22px] grid-cols-6 border-t border-black">
             <span className="col-span-4 flex items-center px-2 text-[11px] font-bold text-[#C1440E]">Expenses total</span>
@@ -1023,9 +1053,9 @@ export default function Costs({ seed }) {
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setConfirm(null)}>
           <div className="w-full max-w-sm rounded-xl border bg-white p-6 text-center shadow-xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-[13px] font-semibold text-neutral-800">Delete this?</p>
+            <p className="text-[13px] font-semibold text-neutral-800">{confirm.question || "Delete this?"}</p>
             <div className="mt-5 flex justify-center gap-6 text-[13px] font-semibold uppercase tracking-wide">
-              <button onClick={() => { confirm.run(); setConfirm(null); }} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Delete</button>
+              <button onClick={() => { confirm.run(); setConfirm(null); }} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>{confirm.action || "Delete"}</button>
               <button onClick={() => setConfirm(null)} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Cancel</button>
             </div>
           </div>
