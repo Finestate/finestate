@@ -129,9 +129,17 @@ function RateInput({ value, onChange }) {
 // right exactly the months of the year it is due. Kept as "Monthly" or the months in
 // calendar order ("Feb - Aug"), which is also what the monthly average reads.
 const FREQ_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+// Only one picker is ever open: opening one closes whichever was open before.
+let closeOpenPicker = null;
 function FrequencyPicker({ value, onChange }) {
   const [anchor, setAnchor] = useState(null);
   const btn = useRef(null);
+  // This picker's own way to shut, the same function for its whole life.
+  const shut = useRef(() => setAnchor(null)).current;
+  const close = () => {
+    shut();
+    if (closeOpenPicker === shut) closeOpenPicker = null;
+  };
   const v = String(value || "");
   const monthly = /month/i.test(v);
   const picked = monthly ? [] : FREQ_MONTHS.filter((m) => new RegExp(`\\b${m}`, "i").test(v));
@@ -141,6 +149,8 @@ function FrequencyPicker({ value, onChange }) {
     // Below the cell where it fits; above it near the foot of the screen.
     const height = 156;
     const top = r.bottom + 4 + height > window.innerHeight ? Math.max(4, r.top - 4 - height) : r.bottom + 4;
+    if (closeOpenPicker && closeOpenPicker !== shut) closeOpenPicker();
+    closeOpenPicker = shut;
     setAnchor({ top, left: Math.min(r.left, window.innerWidth - 260) });
   };
   const toggle = (m) => {
@@ -151,7 +161,7 @@ function FrequencyPicker({ value, onChange }) {
     `h-6 text-[11px] border ${on ? "border-black bg-[#F2C46D] font-bold text-neutral-900" : "border-neutral-300 bg-white text-neutral-700 hover:border-black"}`;
   return (
     <>
-      <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} className="flex w-full items-center gap-1 text-left text-[11px] leading-none text-neutral-900">
+      <button ref={btn} type="button" onClick={() => (anchor ? close() : open())} className="flex w-full items-center gap-1 text-left text-[11px] leading-none text-neutral-900">
         <span className={`min-w-0 flex-1 ${!monthly && !picked.length && v ? "text-neutral-400" : ""}`}>{monthly ? "Monthly" : picked.length ? picked.join(" - ") : v}</span>
         <ChevronDown size={11} className="shrink-0 text-neutral-400" />
       </button>
@@ -168,7 +178,7 @@ function FrequencyPicker({ value, onChange }) {
                 {m}
               </button>
             ))}
-            <button type="button" onClick={() => setAnchor(null)} className="col-span-3 h-6 bg-[#C1440E] text-[11px] font-bold text-white hover:bg-[#a63a0c]">
+            <button type="button" onClick={close} className="col-span-3 h-6 bg-[#C1440E] text-[11px] font-bold text-white hover:bg-[#a63a0c]">
               Done
             </button>
           </div>
