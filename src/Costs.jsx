@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ChevronDown, RefreshCw } from "lucide-react";
+import { Plus, Trash2, ChevronDown, RefreshCw, Check } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Cash flow page, rebuilt from the FC tab of HEIE Planning. The figures are private,
@@ -134,6 +134,7 @@ export default function Costs({ seed }) {
   const [bank, setBank] = useState(null); // the bank connection and its last balances
   const [bankMsg, setBankMsg] = useState("");
   const [bankBusy, setBankBusy] = useState(false);
+  const [editLoanId, setEditLoanId] = useState(null); // the loan line open for editing
 
   // present: you pressed Refresh yourself, rather than the page reading on open.
   const refreshBank = async (link, present = false) => {
@@ -389,7 +390,8 @@ export default function Costs({ seed }) {
         </div>
         {/* The mortgage isn't shared by the bank, so its loans are typed in. The Debt line
             shows what they add up to, and opens, like your account line, onto the loans
-            themselves on the same faint pink: name, account number, expiry and amount. */}
+            themselves on the same faint pink: name, account number, expiry and amount.
+            The lines read as plain text; a double click opens one for editing. */}
         {(() => {
           const loans = doc.loans || [];
           const open = !!doc.ui?.debtOpen;
@@ -413,11 +415,22 @@ export default function Costs({ seed }) {
                     value={doc.debtName || ""}
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => save({ ...doc, debtName: e.target.value })}
-                    placeholder="what for"
-                    size={Math.max((doc.debtName || "what for").length, 4)}
-                    className="bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none placeholder:text-neutral-300"
+                    size={Math.max((doc.debtName || "").length, 6)}
+                    className="bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
                   />
-                  <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const l = { id: newId(), name: "", number: "", expires: "", amount: "" };
+                      save({ ...doc, loans: [...loans, l], ui: { ...(doc.ui || {}), debtOpen: true } });
+                      setEditLoanId(l.id);
+                    }}
+                    title="Add a loan"
+                    className="ml-auto shrink-0 text-neutral-400 hover:text-neutral-900"
+                  >
+                    <Plus size={12} />
+                  </button>
+                  <ChevronDown size={12} className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
                 </span>
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
                   EUR {money(total)}
@@ -425,30 +438,43 @@ export default function Costs({ seed }) {
               </div>
               {open && (
                 <>
-                  {loans.map((l) => (
-                    <div key={l.id} className={sub} style={{ backgroundColor: "#FBEFEC" }}>
-                      <span className="flex flex-1 items-center gap-3 pl-6 pr-2">
-                        <input value={l.name || ""} onChange={(e) => editLoan(l.id, "name", e.target.value)} placeholder="Loan" className={`${cellTxt} w-44`} />
-                        <input value={l.number || ""} onChange={(e) => editLoan(l.id, "number", e.target.value)} placeholder="Account number" className={`${cellTxt} w-48 tabular-nums`} />
-                        <span className="text-[11px] text-neutral-500">expires</span>
-                        <input value={l.expires || ""} onChange={(e) => editLoan(l.id, "expires", e.target.value)} placeholder="date" className={`${cellTxt} w-24`} />
-                        <button onClick={() => ask(() => setLoans(loans.filter((x) => x.id !== l.id)))} title="Remove this loan" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
-                          <Trash2 size={11} />
-                        </button>
-                      </span>
-                      <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
-                        <span>EUR</span>
-                        <MoneyInput value={l.amount || ""} onChange={(v) => editLoan(l.id, "amount", v)} placeholder="0.00" fit />
-                      </span>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => setLoans([...loans, { id: newId(), name: "", number: "", expires: "", amount: "" }])}
-                    className="flex h-[22px] w-full items-center gap-1 border-t border-black pl-6 text-[10px] font-bold uppercase tracking-wide text-neutral-400 hover:text-neutral-800"
-                    style={{ backgroundColor: "#FBEFEC" }}
-                  >
-                    <Plus size={11} /> Add loan
-                  </button>
+                  {loans.map((l) => {
+                    const editing = editLoanId === l.id;
+                    return (
+                      <div key={l.id} className={sub} style={{ backgroundColor: "#FBEFEC" }} onDoubleClick={() => setEditLoanId(l.id)}>
+                        {editing ? (
+                          // Editing: plain boxes in a row, the bin, and a tick to finish.
+                          <span className="flex flex-1 items-center gap-3 pl-6 pr-2">
+                            <input autoFocus value={l.name || ""} onChange={(e) => editLoan(l.id, "name", e.target.value)} className={`${cellTxt} w-44 border-b border-neutral-300`} />
+                            <input value={l.number || ""} onChange={(e) => editLoan(l.id, "number", e.target.value)} className={`${cellTxt} w-40 border-b border-neutral-300 tabular-nums`} />
+                            <input value={l.expires || ""} onChange={(e) => editLoan(l.id, "expires", e.target.value)} className={`${cellTxt} w-24 border-b border-neutral-300`} />
+                            <button onClick={() => ask(() => setLoans(loans.filter((x) => x.id !== l.id)))} title="Remove this loan" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
+                              <Trash2 size={11} />
+                            </button>
+                            <button onClick={() => setEditLoanId(null)} title="Done" className="text-neutral-900 hover:text-[#0f766e]">
+                              <Check size={12} />
+                            </button>
+                          </span>
+                        ) : (
+                          // Read: Name: number (expires date), like the account line.
+                          <span className="flex flex-1 items-center gap-1 pl-6 pr-2 text-[11px] text-neutral-900">
+                            {[l.name, l.number].filter(Boolean).join(": ")}
+                            {l.expires && <span className="whitespace-nowrap lowercase text-[#C1440E]">(expires {l.expires})</span>}
+                          </span>
+                        )}
+                        <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                          {editing ? (
+                            <>
+                              <span>EUR</span>
+                              <MoneyInput value={l.amount || ""} onChange={(v) => editLoan(l.id, "amount", v)} placeholder="" fit />
+                            </>
+                          ) : (
+                            `EUR ${money(num(l.amount))}`
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </>
               )}
             </>
