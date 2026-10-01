@@ -224,6 +224,14 @@ export default function Costs({ seed }) {
             </div>
           );
         })}
+        {/* The month's income in euros, every line added up. */}
+        <div className="flex h-[22px] items-stretch border-t border-black">
+          <span className="flex flex-1 items-center px-2 text-[11px] font-bold text-neutral-900">Total</span>
+          <span className="w-36 shrink-0 border-l border-black" />
+          <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900" style={{ backgroundColor: "#EBF1DE" }}>
+            EUR {money(totalIncome)}
+          </span>
+        </div>
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
