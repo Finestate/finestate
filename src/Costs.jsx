@@ -196,6 +196,22 @@ export default function Costs({ seed }) {
           <span className={head}>Income and costs</span>
         </div>
         <Sub>Income</Sub>
+        {/* The same saved income lines as Net incoming below: the name, the amount as
+            paid where it is not in euros (blue), and the euro figure (green). */}
+        {doc.income.map((r) => {
+          const cur = String(r.currency || "EUR").trim().toUpperCase() || "EUR";
+          return (
+            <div key={r.id} className="flex h-[22px] items-stretch border-t border-black">
+              <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">{r.name}</span>
+              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" style={cur !== "EUR" ? { backgroundColor: "#DCE6F1" } : undefined}>
+                {cur !== "EUR" && `${cur} ${money(num(r.amount))}`}
+              </span>
+              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" style={{ backgroundColor: "#EBF1DE" }}>
+                EUR {money(toEur(r.amount, r.currency))}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
