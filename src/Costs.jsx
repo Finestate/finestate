@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ChevronDown, RefreshCw, Check } from "lucide-react";
+import { Plus, Trash2, ChevronDown, RefreshCw } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Cash flow page, rebuilt from the FC tab of HEIE Planning. The figures are private,
@@ -156,7 +156,6 @@ export default function Costs({ seed }) {
   const [bank, setBank] = useState(null); // the bank connection and its last balances
   const [bankMsg, setBankMsg] = useState("");
   const [bankBusy, setBankBusy] = useState(false);
-  const [editLoanId, setEditLoanId] = useState(null); // the loan line open for editing
 
   // present: you pressed Refresh yourself, rather than the page reading on open.
   const refreshBank = async (link, present = false) => {
@@ -415,8 +414,7 @@ export default function Costs({ seed }) {
         {/* The mortgage isn't shared by the bank, so its loans are typed in. The Debt line
             shows what they add up to, and opens, like your account line, onto the loans
             themselves on the same faint pink: name, account number, interest rate, expiry
-            and amount.
-            The lines read as plain text; a double click opens one for editing. */}
+            and amount. */}
         {(() => {
           const loans = doc.loans || [];
           const open = !!doc.ui?.debtOpen;
@@ -448,7 +446,6 @@ export default function Costs({ seed }) {
                       e.stopPropagation();
                       const l = { id: newId(), name: "", number: "", rate: "", expires: "", amount: "" };
                       save({ ...doc, loans: [...loans, l], ui: { ...(doc.ui || {}), debtOpen: true } });
-                      setEditLoanId(l.id);
                     }}
                     title="Add a loan"
                     className="ml-auto shrink-0 text-neutral-400 hover:text-neutral-900"
@@ -463,47 +460,34 @@ export default function Costs({ seed }) {
               </div>
               {open && (
                 <>
+                  {/* One framed row per loan: four equal columns, each with a faint label of
+                      what goes in it, and the amount on the right. Always ready to type in. */}
                   {loans.map((l) => {
-                    const editing = editLoanId === l.id;
+                    const col = "flex min-w-0 items-center border-l border-black px-2";
+                    const box = `${cellTxt} w-full placeholder:text-neutral-400`;
                     return (
-                      <div key={l.id} className={sub} style={{ backgroundColor: "#FBEFEC" }} onDoubleClick={() => setEditLoanId(l.id)}>
-                        {editing ? (
-                          // Editing: plain boxes in a row, the bin, and a tick to finish.
-                          <span className="flex flex-1 items-center gap-3 pl-6 pr-2">
-                            <input autoFocus value={l.name || ""} onChange={(e) => editLoan(l.id, "name", e.target.value)} className={`${cellTxt} w-44 border-b border-neutral-300`} />
-                            <input value={l.number || ""} onChange={(e) => editLoan(l.id, "number", e.target.value)} className={`${cellTxt} w-40 border-b border-neutral-300 tabular-nums`} />
-                            <span className="flex items-center">
-                              <input value={l.rate || ""} onChange={(e) => editLoan(l.id, "rate", e.target.value.replace(/[^0-9.,]/g, ""))} className={`${cellTxt} w-10 border-b border-neutral-300 text-right tabular-nums`} />
-                              <span className="text-[11px] text-neutral-900">%</span>
-                            </span>
-                            <input value={l.expires || ""} onChange={(e) => editLoan(l.id, "expires", e.target.value)} className={`${cellTxt} w-24 border-b border-neutral-300`} />
-                            <button onClick={() => ask(() => setLoans(loans.filter((x) => x.id !== l.id)))} title="Remove this loan" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
+                      <div key={l.id} className={`group ${sub}`} style={{ backgroundColor: "#FBEFEC" }}>
+                        <div className="grid flex-1 grid-cols-4 pl-4">
+                          <span className="flex min-w-0 items-center px-2">
+                            <input value={l.name || ""} onChange={(e) => editLoan(l.id, "name", e.target.value)} placeholder="Loan name" className={box} />
+                          </span>
+                          <span className={col}>
+                            <input value={l.number || ""} onChange={(e) => editLoan(l.id, "number", e.target.value)} placeholder="Account number" className={`${box} tabular-nums`} />
+                          </span>
+                          <span className={col}>
+                            <input value={l.rate || ""} onChange={(e) => editLoan(l.id, "rate", e.target.value.replace(/[^0-9.,%]/g, ""))} placeholder="Interest %" className={`${box} tabular-nums`} />
+                          </span>
+                          <span className={col}>
+                            <input value={l.expires || ""} onChange={(e) => editLoan(l.id, "expires", e.target.value)} placeholder="Expires" className={box} />
+                            {/* The bin shows only while the pointer is on the row. */}
+                            <button onClick={() => ask(() => setLoans(loans.filter((x) => x.id !== l.id)))} title="Remove this loan" className="ml-1 shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
                               <Trash2 size={11} />
                             </button>
-                            <button onClick={() => setEditLoanId(null)} title="Done" className="text-neutral-900 hover:text-[#0f766e]">
-                              <Check size={12} />
-                            </button>
                           </span>
-                        ) : (
-                          // Read: Name: number (expires date), like the account line.
-                          <span className="flex flex-1 items-center gap-1 pl-6 pr-2 text-[11px] text-neutral-900">
-                            {[l.name, l.number].filter(Boolean).join(": ")}
-                            {(l.rate || l.expires) && (
-                              <span className="whitespace-nowrap lowercase text-[#C1440E]">
-                                ({[l.rate && `${l.rate}%`, l.expires && `expires ${l.expires}`].filter(Boolean).join(" · ")})
-                              </span>
-                            )}
-                          </span>
-                        )}
+                        </div>
                         <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
-                          {editing ? (
-                            <>
-                              <span>EUR</span>
-                              <MoneyInput value={l.amount || ""} onChange={(v) => editLoan(l.id, "amount", v)} placeholder="" fit />
-                            </>
-                          ) : (
-                            `EUR ${money(num(l.amount))}`
-                          )}
+                          <span>EUR</span>
+                          <MoneyInput value={l.amount || ""} onChange={(v) => editLoan(l.id, "amount", v)} placeholder="0.00" fit />
                         </span>
                       </div>
                     );
