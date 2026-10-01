@@ -323,10 +323,7 @@ export default function Costs({ seed }) {
             return (
               <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black">
                 <span className={`flex flex-1 items-center text-[11px] text-neutral-900 ${sub ? "pl-6 pr-2" : "px-2"}`}>
-                  {a.name || a.product || "Account"}{a.iban ? ` ··${a.iban.slice(-4)}` : ""}
-                  {/* TEMPORARY: what the bank sent, to match the figure to the bank's own. */}
-                  <span className="ml-3 truncate text-[10px] text-neutral-400">{b?.error || b?.all?.join(" | ") || `${b?.type || ""} ${b?.date || ""}`}</span>
-                </span>
+                  {a.name || a.product || "Account"}{a.iban ? ` ··${a.iban.slice(-4)}` : ""}                </span>
                 <span className="w-36 shrink-0 border-l border-black" />
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
                   {v == null ? "–" : `${b.currency || "EUR"} ${money(v)}`}
