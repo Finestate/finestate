@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ChevronDown, RefreshCw } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Cash flow page, rebuilt from the FC tab of HEIE Planning. The figures are private,
@@ -320,6 +320,33 @@ export default function Costs({ seed }) {
             const b = bank.balances?.[a.uid];
             return b && !b.error && b.amount !== "" ? num(b.amount) : null;
           };
+          // When the balances were last updated, until when the bank's approval runs,
+          // and the two controls as teal links, in small grey after your account number. The
+          // controls don't open or shut the accounts under it.
+          const stop = (e) => e.stopPropagation();
+          const fmtWhen = (d) => new Date(d).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+          const expired = bank?.valid_until && new Date(bank.valid_until) < new Date();
+          const status = (
+            <span className="ml-3 flex items-center gap-1.5 whitespace-nowrap text-[10px] text-neutral-400">
+              <span>{bankBusy ? "Updating…" : bank?.at ? `Updated ${fmtWhen(bank.at)}` : "Not updated yet"}</span>
+              {bank?.valid_until && (
+                <>
+                  <span>·</span>
+                  <span className={expired ? "font-semibold text-[#C1440E]" : ""}>
+                    {expired ? "Access expired" : `Access until ${new Date(bank.valid_until).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`}
+                  </span>
+                </>
+              )}
+              <span>·</span>
+              <button onClick={(e) => { stop(e); refreshBank(bank, true); }} disabled={bankBusy} title="Fetch the latest balances now" className="flex items-center gap-0.5 text-[#0f766e] hover:text-[#0c5e57]">
+                <RefreshCw size={10} className={bankBusy ? "animate-spin" : ""} /> <span className="underline underline-offset-2">Refresh</span>
+              </button>
+              <span>·</span>
+              <button onClick={(e) => { stop(e); connectBank(); }} disabled={bankBusy} title="Approve access at Sparkasse again" className={`underline underline-offset-2 ${expired ? "font-semibold text-[#C1440E]" : "text-[#0f766e] hover:text-[#0c5e57]"}`}>
+                Reconnect
+              </button>
+            </span>
+          );
           const line = (a, sub, toggle) => {
             const b = bank.balances?.[a.uid];
             const v = amountOf(a);
@@ -335,6 +362,7 @@ export default function Costs({ seed }) {
                   {`Stadtsparkasse – ${
                     (a.name || a.product || "Account").toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase())
                   }${a.iban ? `: ${a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}` : ""}`}
+                  {!sub && status}
                   {toggle && <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${kidsOpen ? "rotate-180" : ""}`} />}
                 </span>
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
@@ -361,28 +389,14 @@ export default function Costs({ seed }) {
             <MoneyInput value={doc.balances.card} onChange={(v) => setBalance("card", v)} placeholder="0.00" fit />
           </span>
         </div>
-        {/* When the balances were read, and the controls for the connection. */}
-        <div className="flex h-[22px] items-center gap-3 border-t border-black px-2 text-[10px] uppercase tracking-wide text-neutral-500">
-          {bank?.accounts?.length ? (
-            <>
-              <span className="normal-case tracking-normal">
-                {bankBusy ? "Reading from the bank…" : bank.at ? `Read ${new Date(bank.at).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Not read yet"}
-              </span>
-              {bank.valid_until && (
-                <span className="normal-case tracking-normal">
-                  {new Date(bank.valid_until) < new Date() ? "Access expired" : `Access until ${new Date(bank.valid_until).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`}
-                </span>
-              )}
-              <span className="flex-1" />
-              <button onClick={() => refreshBank(bank, true)} disabled={bankBusy} className="font-bold hover:text-neutral-900">Refresh</button>
-              <button onClick={connectBank} disabled={bankBusy} className="font-bold hover:text-neutral-900">Reconnect</button>
-            </>
-          ) : (
+        {/* With no bank connected yet, a line to connect one. */}
+        {!bank?.accounts?.length && (
+          <div className="flex h-[22px] items-center border-t border-black px-2 text-[10px] uppercase tracking-wide text-neutral-500">
             <button onClick={connectBank} disabled={bankBusy || bank == null} className="font-bold hover:text-neutral-900">
               {bankBusy ? "Opening the bank…" : "Connect bank"}
             </button>
-          )}
-        </div>
+          </div>
+        )}
         {bankMsg && <p className="border-t border-black px-2 py-1 text-[11px] font-semibold text-[#C1440E]">{bankMsg}</p>}
 
         <Sub>Income</Sub>
