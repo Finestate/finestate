@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2, ChevronDown, RefreshCw } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
+import { DateCell } from "./LegalDocuments.jsx";
 
 // Cash flow page, rebuilt from the FC tab of HEIE Planning. The figures are private,
 // so they live in Supabase (admin_docs), never in this repo.
@@ -478,7 +479,8 @@ export default function Costs({ seed }) {
                             <input value={l.rate || ""} onChange={(e) => editLoan(l.id, "rate", e.target.value.replace(/[^0-9.,%]/g, ""))} placeholder="Interest %" className={`${box} tabular-nums`} />
                           </span>
                           <span className={col}>
-                            <input value={l.expires || ""} onChange={(e) => editLoan(l.id, "expires", e.target.value)} placeholder="Expires" className={box} />
+                            {/* The same calendar as the Legal documents page. */}
+                            <DateCell value={l.expires || ""} onChange={(v) => editLoan(l.id, "expires", v)} placeholder="Expires" />
                             {/* The bin shows only while the pointer is on the row. */}
                             <button onClick={() => ask(() => setLoans(loans.filter((x) => x.id !== l.id)))} title="Remove this loan" className="ml-1 shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
                               <Trash2 size={11} />
