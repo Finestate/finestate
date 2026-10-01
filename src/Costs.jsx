@@ -310,7 +310,7 @@ export default function Costs({ seed }) {
                 {a.name || a.product || "Account"}{a.iban ? ` ··${a.iban.slice(-4)}` : ""}
               </span>
               <span className="w-36 shrink-0 border-l border-black" />
-              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
                 {b && !b.error && b.amount !== "" ? `${b.currency || "EUR"} ${money(num(b.amount))}` : "–"}
               </span>
             </div>
