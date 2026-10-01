@@ -48,7 +48,10 @@ const NAV = [
     children: [
       { id: "admin/legal-documents", name: "Legal documents", icon: FileText },
       { id: "admin/logins", name: "Logins", icon: KeyRound },
+      // The public privacy and terms pages the bank connection points to; they open in a new tab.
+      { id: "admin/privacy", name: "Privacy page", href: "/privacy" },
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
+      { id: "admin/terms", name: "Terms page", href: "/terms" },
       { id: "admin/users", name: "Users", icon: Users },
     ],
   },
@@ -159,13 +162,14 @@ function Sidebar({ route, onGo, allowed }) {
               {isOpen && (
                 <div className="mt-0.5 flex flex-col">
                   {sec.children.map((ch) => {
-                    const locked = !can(ch.id);
+                    // A page link outside the app follows the admin Users access.
+                    const locked = !can(ch.href ? "admin/users" : ch.id);
                     return (
                       <button
                         key={ch.id}
                         disabled={locked}
                         title={locked ? "No access" : undefined}
-                        onClick={() => { setOpenId(sec.id); onGo(ch.id); }}
+                        onClick={() => { if (ch.href) { window.open(ch.href, "_blank", "noopener"); return; } setOpenId(sec.id); onGo(ch.id); }}
                         className={subCls(route === ch.id, locked)}
                       >
                         <span className="text-left">{ch.name}</span>
