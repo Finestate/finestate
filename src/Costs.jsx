@@ -9,6 +9,7 @@ const DOC_ID = "costs-fc";
 // The read-only bank connection: which accounts it covers, until when, and the last
 // balances read. Kept in Supabase like everything else.
 const BANK_ID = "bank-link";
+const MONTH_CODES = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 // The bank allows only a few reads a day, so a balance is read again at most every
 // six hours.
 const BANK_STALE_MS = 6 * 60 * 60 * 1000;
@@ -343,6 +344,18 @@ export default function Costs({ seed }) {
     </>
   );
 
+  // Tax payments: date and amount, kept in Supabase with the rest of the page.
+  const taxPayments = doc.taxPayments || [];
+  const editTax = (id, field, val) => save({ ...doc, taxPayments: taxPayments.map((t) => (t.id === id ? { ...t, [field]: val } : t)) });
+  // Pocket money: two lines, one per child, made the first time the page is opened.
+  const pocketKids = doc.pocketKids || [
+    { id: "kid-1", initial: "", month: "", payments: [], open: false },
+    { id: "kid-2", initial: "", month: "", payments: [], open: false },
+  ];
+  const editKid = (id, fields) => save({ ...doc, pocketKids: pocketKids.map((k) => (k.id === id ? { ...k, ...fields } : k)) });
+  const editPayment = (kidId, payId, fields) =>
+    editKid(kidId, { payments: (pocketKids.find((k) => k.id === kidId)?.payments || []).map((x) => (x.id === payId ? { ...x, ...fields } : x)) });
+
   // Fixed costs still to go out: nil until the costs part of the table is built.
   const pendingFixed = 0;
 
@@ -588,6 +601,100 @@ export default function Costs({ seed }) {
             EUR {money(totalIncome)}
           </span>
         </div>
+
+        <Sub>Unique payments tracking</Sub>
+
+        {/* Tax payments: one line each, the date on the left (the same calendar as Legal
+            documents) and the amount on the right. Editable from the start. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
+          <span className={head}>Tax payments</span>
+          <button onClick={() => save({ ...doc, taxPayments: [...taxPayments, { id: newId(), date: "", amount: "" }] })} title="Add a tax payment" className="ml-auto text-neutral-500 hover:text-neutral-900">
+            <Plus size={12} />
+          </button>
+        </div>
+        {taxPayments.map((t) => (
+          <div key={t.id} className="group flex h-[22px] items-stretch border-t border-black">
+            <span className="flex flex-1 items-center gap-2 px-2">
+              <span className="w-40">
+                <DateCell value={t.date} onChange={(v) => editTax(t.id, "date", v)} placeholder="Date" />
+              </span>
+              <button onClick={() => ask(() => save({ ...doc, taxPayments: taxPayments.filter((x) => x.id !== t.id) }))} title="Remove" className="ml-auto text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
+                <Trash2 size={11} />
+              </button>
+            </span>
+            <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+              <span>EUR</span>
+              <MoneyInput value={t.amount} onChange={(v) => editTax(t.id, "amount", v)} placeholder="0.00" fit />
+            </span>
+          </div>
+        ))}
+
+        {/* Pocket money: one line per child, with their initial and the month, and what
+            was paid out that month in total. Each line opens, on the faint pink, onto the
+            payments themselves (usually weekly): date and amount, in pairs. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
+          <span className={head}>Pocket money current month</span>
+        </div>
+        {pocketKids.map((k) => {
+          const total = (k.payments || []).reduce((sum, x) => sum + num(x.amount), 0);
+          return (
+            <div key={k.id}>
+              <div className="flex h-[22px] items-stretch border-t border-black">
+                <span className="flex w-10 shrink-0 items-center px-2">
+                  <input
+                    value={k.initial || ""}
+                    onChange={(e) => editKid(k.id, { initial: e.target.value.slice(0, 1).toUpperCase() })}
+                    placeholder="–"
+                    className="w-full bg-transparent py-0 text-[11px] font-bold leading-none text-neutral-900 outline-none placeholder:text-neutral-400"
+                  />
+                </span>
+                <span className="flex w-20 shrink-0 items-center border-l border-black px-1">
+                  <select
+                    value={k.month || ""}
+                    onChange={(e) => editKid(k.id, { month: e.target.value })}
+                    className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
+                  >
+                    <option value="">Month</option>
+                    {MONTH_CODES.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </span>
+                <span
+                  onClick={() => editKid(k.id, { open: !k.open })}
+                  className="flex flex-1 cursor-pointer select-none items-center gap-2 border-l border-black px-2 text-[11px] text-neutral-500"
+                >
+                  {(k.payments || []).length ? `${k.payments.length} payment${k.payments.length === 1 ? "" : "s"}` : ""}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); editKid(k.id, { open: true, payments: [...(k.payments || []), { id: newId(), date: "", amount: "" }] }); }}
+                    title="Add a payment"
+                    className="ml-auto text-neutral-400 hover:text-neutral-900"
+                  >
+                    <Plus size={12} />
+                  </button>
+                  <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${k.open ? "rotate-180" : ""}`} />
+                </span>
+                <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                  EUR {money(total)}
+                </span>
+              </div>
+              {k.open && (k.payments || []).map((x) => (
+                <div key={x.id} className="group flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: "#FBEFEC" }}>
+                  <span className="flex flex-1 items-center gap-2 pl-12 pr-2">
+                    <span className="w-40">
+                      <DateCell value={x.date} onChange={(v) => editPayment(k.id, x.id, { date: v })} placeholder="Date" />
+                    </span>
+                    <button onClick={() => ask(() => editKid(k.id, { payments: k.payments.filter((y) => y.id !== x.id) }))} title="Remove" className="ml-auto text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
+                      <Trash2 size={11} />
+                    </button>
+                  </span>
+                  <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                    <span>EUR</span>
+                    <MoneyInput value={x.amount} onChange={(v) => editPayment(k.id, x.id, { amount: v })} placeholder="0.00" fit />
+                  </span>
+                </div>
+              ))}
+            </div>
+          );
+        })}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
