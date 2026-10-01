@@ -407,7 +407,7 @@ export default function Costs({ seed }) {
   const paymentSources = (() => {
     const own = (bank?.accounts || []).find((a) => !/jugend|gesch|business|gmbh/i.test(`${a.product || ""} ${a.name || ""}`));
     const nr = own?.iban ? own.iban.replace(/\s/g, "").slice(-8) : "";
-    return [nr ? `SP ${nr}` : "SP account", "Per invoice", "PayPal (SP MC)", "Silke Account"];
+    return [nr ? `SP ${nr}` : "SP account", "PayPal (SP MC)", "Per invoice", "Silke Account"];
   })();
 
   // Fixed costs still to go out: nil until the costs part of the table is built.
