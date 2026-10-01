@@ -719,6 +719,12 @@ export default function Costs({ seed }) {
             </div>
           );
         })}
+
+        <Sub>Expenses</Sub>
+        {/* Expenses come in groups, each under its own bar; the lines are being built one at a time. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
+          <span className={head}>Home-related</span>
+        </div>
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
