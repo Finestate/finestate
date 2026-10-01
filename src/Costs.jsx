@@ -714,10 +714,10 @@ export default function Costs({ seed }) {
                   {/* Under the last loan, a quiet line to add the next one. */}
                   <button
                     onClick={() => setLoans([...loans, { id: newId(), name: "", number: "", rate: "", expires: "", amount: "" }])}
-                    className="flex h-[22px] w-full items-center gap-1 border-t border-black pl-6 text-[11px] text-neutral-400 transition-colors hover:text-neutral-900"
+                    className="flex h-[22px] w-full items-center gap-0.5 border-t border-black pl-6 text-[11px] font-semibold text-neutral-400 transition-colors hover:text-neutral-900"
                     style={{ backgroundColor: "#FBEFEC" }}
                   >
-                    <Plus size={11} /> Add loan
+                    <Plus size={11} strokeWidth={3} /> Add loan
                   </button>
                 </>
               )}
@@ -790,9 +790,9 @@ export default function Costs({ seed }) {
         {/* Always under the last tax payment: a quiet line to add the next one. */}
         <button
           onClick={() => save({ ...doc, taxPayments: [...taxPayments, { id: newId(), date: "", amount: "" }] })}
-          className="flex h-[22px] w-full items-center gap-1 border-t border-black px-2 text-[11px] text-neutral-400 transition-colors hover:text-neutral-900"
+          className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-neutral-400 transition-colors hover:text-neutral-900"
         >
-          <Plus size={11} /> Add payment
+          <Plus size={11} strokeWidth={3} /> Add payment
         </button>
 
         {/* Pocket money: one line per child, with their initial and the month, and what
@@ -855,10 +855,10 @@ export default function Costs({ seed }) {
               {k.open && (
                 <button
                   onClick={() => editKid(k.id, { payments: [...(k.payments || []), { id: newId(), date: "", amount: "" }] })}
-                  className="flex h-[22px] w-full items-center gap-1 border-t border-black px-2 text-[11px] text-neutral-400 transition-colors hover:text-neutral-900"
+                  className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-neutral-400 transition-colors hover:text-neutral-900"
                   style={{ backgroundColor: "#FBEFEC" }}
                 >
-                  <Plus size={11} /> Add payment
+                  <Plus size={11} strokeWidth={3} /> Add payment
                 </button>
               )}
             </div>
@@ -946,19 +946,19 @@ export default function Costs({ seed }) {
               })}
               <button
                 onClick={() => setExpenseRows(g.id, [...rows, blankExpense()])}
-                className="flex h-[22px] w-full items-center gap-1 border-t border-black px-2 text-[11px] text-neutral-400 transition-colors hover:text-neutral-900"
+                className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-neutral-400 transition-colors hover:text-neutral-900"
               >
-                <Plus size={11} /> Add expense
+                <Plus size={11} strokeWidth={3} /> Add expense
               </button>
             </div>
           );
         })}
         <button
           onClick={() => setExpenseGroups([...expenseGroups, { id: newId(), name: "New group", rows: [] }])}
-          className="flex h-[22px] w-full items-center gap-1 border-t border-black px-2 text-[11px] text-neutral-400 transition-colors hover:text-neutral-900"
+          className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-neutral-400 transition-colors hover:text-neutral-900"
           style={{ backgroundColor: SUB_BG }}
         >
-          <Plus size={11} /> Add group
+          <Plus size={11} strokeWidth={3} /> Add group
         </button>
         {/* Every group together, on white, in bold red: money going out. */}
         <div className="grid h-[22px] grid-cols-6 border-t border-black">
