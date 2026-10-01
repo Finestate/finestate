@@ -151,6 +151,12 @@ const Main = ({ children }) => (
 // A band inside the table that sets one section apart from the next.
 const GAP_BG = "#171717";
 const Gap = () => <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />;
+// The new table's section bars, in the top orange; the groups under them take the next shade.
+const Section = ({ children, first }) => (
+  <div className={`${first ? "" : "border-t border-black"} flex h-[22px] items-center px-2`} style={{ backgroundColor: MAIN_BG }}>
+    <span className={head}>{children}</span>
+  </div>
+);
 // `first`: the bar that opens a table, where the frame already draws the line above.
 const Sub = ({ children, first }) => (
   <div className={`${first ? "" : "border-t border-black"} flex h-[22px] items-center px-2`} style={{ backgroundColor: SUB_BG }}>
@@ -384,7 +390,7 @@ export default function Costs({ seed }) {
       {/* The new table, being built up step by step. */}
       <div className="mb-6 w-full min-w-[680px] overflow-hidden border border-black bg-white text-[11px] leading-none shadow-sm">
         {/* Balances always come first. */}
-        <Sub first>Accounts</Sub>
+        <Section first>Accounts</Section>
         {/* Your own account on its own line, with a chevron; a click anywhere in its
             name cell opens the other accounts (the company's and the kids') under it.
             Told apart by the bank's own account type, so no number sits in this code. */}
@@ -593,7 +599,7 @@ export default function Costs({ seed }) {
         {bankMsg && <p className="border-t border-black px-2 py-1 text-[11px] font-semibold text-[#C1440E]">{bankMsg}</p>}
 
         <Gap />
-        <Sub>Income</Sub>
+        <Section>Income</Section>
         {/* The same saved income lines as Net incoming below: the name, the amount as
             paid where it is not in euros, and the euro figure. */}
         {doc.income.map((r) => {
@@ -622,11 +628,11 @@ export default function Costs({ seed }) {
         </div>
 
         <Gap />
-        <Sub>Unique payments tracking</Sub>
+        <Section>Unique payments tracking</Section>
 
         {/* Tax payments: one line each, the date on the left (the same calendar as Legal
             documents) and the amount on the right. Editable from the start. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
           <span className={head}>Tax payments</span>
         </div>
         {taxRows.map((t) => (
@@ -656,7 +662,7 @@ export default function Costs({ seed }) {
         {/* Pocket money: one line per child, with their initial and the month, and what
             was paid out that month in total. Each line opens, on the faint pink, onto the
             payments themselves (usually weekly): date and amount, in pairs. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
           <span className={head}>Pocket money current month</span>
         </div>
         {pocketKids.map((k) => {
@@ -724,9 +730,9 @@ export default function Costs({ seed }) {
         })}
 
         <Gap />
-        <Sub>Expenses</Sub>
+        <Section>Expenses</Section>
         {/* Expenses come in groups, each under its own bar; the lines are being built one at a time. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
           <span className={head}>Home-related</span>
         </div>
       </div>
