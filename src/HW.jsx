@@ -148,9 +148,9 @@ export default function HW() {
           ))}
         <button
           onClick={() => saveNotes([...notes, { id: newId(), title: "", text: "", open: false }])}
-          className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+          className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
         >
-          <Plus size={11} strokeWidth={3} /> Add
+          <Plus size={11} strokeWidth={3} />Add
         </button>
       </div>
 
