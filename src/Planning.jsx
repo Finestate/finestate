@@ -81,7 +81,7 @@ const fixCode = (s) => addBrackets(s);
 const emptyLine = () => ({ codes: [], meetings: [], fills: {} });
 // Older saves held a bare array of codes.
 const normaliseLine = (l) =>
-  Array.isArray(l) ? { codes: l, meetings: [], fills: {} } : { codes: l?.codes || [], meetings: l?.meetings || [], fills: l?.fills || {} };
+  Array.isArray(l) ? { codes: l, meetings: [], fills: {} } : { codes: l?.codes || [], meetings: l?.meetings || [], fills: l?.fills || {}, extras: l?.extras || {} };
 
 // Insert options: the bottom of the table can start a new section, a section's own
 // add bar only offers the two row kinds that live inside it.
@@ -679,8 +679,9 @@ export default function Planning() {
     const line = boards[b].lines[idx];
     const has = line.codes.includes(code);
     const fills = { ...(line.fills || {}) };
-    if (has) delete fills[code];
-    patchLine(b, idx, { codes: has ? line.codes.filter((c) => c !== code) : [...line.codes, code], fills });
+    const extras = { ...(line.extras || {}) };
+    if (has) { delete fills[code]; delete extras[code]; }
+    patchLine(b, idx, { codes: has ? line.codes.filter((c) => c !== code) : [...line.codes, code], fills, extras });
   };
 
   // Picking a meeting moves it onto the line. A one-off also leaves the picker.
@@ -821,6 +822,12 @@ export default function Planning() {
     const line = boards[b].lines[idx];
     patchLine(b, idx, { fills: { ...(line.fills || {}), [code]: text } });
   };
+  // Words typed at the very end of a bracket on a Finestate line, after whatever the
+  // ticks put there. Kept apart from the ticks' text, so a tick never wipes them.
+  const setExtra = (b, idx, code, text) => {
+    const line = boards[b].lines[idx];
+    patchLine(b, idx, { extras: { ...(line.extras || {}), [code]: text } });
+  };
   const renderCodeLine = (b, list, colour, idx) => (
     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 text-[11px] font-semibold leading-[15px]" style={{ color: colour }}>
       {list.map((c, i) => {
@@ -829,12 +836,19 @@ export default function Planning() {
         return (
           <span key={c} className="inline-flex items-center gap-1.5">
             {fillable ? (
-              // What sits between the brackets comes from the ticks below, so the
-              // line itself is read only and a click just opens the picker.
-              <span className="inline-flex items-center">
+              // The ticks below fill the brackets. A double click puts the caret at the
+              // very end, after them, to type anything else; a single click still just
+              // opens the picker.
+              <span
+                className="inline-flex items-center"
+                onDoubleClick={(e) => { e.stopPropagation(); focusEnd(e.currentTarget.querySelector("[contenteditable]")); }}
+              >
                 {c.slice(0, -1)}
                 {/* On the line it always reads in lower case, whatever was typed below. */}
                 <span className="whitespace-pre lowercase" style={{ color: "#B01E2F" }}>{fill}</span>
+                <span className="lowercase" onClick={(e) => e.stopPropagation()}>
+                  <FillText key={`${b}-${idx}-${c}-extra`} text={boards[b].lines[idx]?.extras?.[c] || ""} onChange={(t) => setExtra(b, idx, c, t)} />
+                </span>
                 )
               </span>
             ) : (
