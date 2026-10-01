@@ -927,7 +927,7 @@ export default function Costs({ seed }) {
                     {/* Worked out from the frequency, so blank until one is set. */}
                     <span className={`${cell} justify-end`}>{e.freq ? `EUR ${money(monthlyAvg(e))}` : ""}</span>
                     <span className={`${cell} justify-end`}>
-                      {/* Due this month: a red tick still to pay, teal once ticked as paid. */}
+                      {/* Due this month: tick and amount in red while still to pay, both green once paid. */}
                       {dueThisMonth(e) && e.id !== "blank" && (
                         <button
                           onClick={() => edit({ paidMonth: isPaid(e) ? "" : monthKey })}
@@ -937,7 +937,9 @@ export default function Costs({ seed }) {
                           <Check size={12} strokeWidth={3} />
                         </button>
                       )}
-                      {dueThisMonth(e) && e.id !== "blank" ? `EUR ${money(pendingOf(e))}` : ""}
+                      {dueThisMonth(e) && e.id !== "blank" && (
+                        <span className={isPaid(e) ? "text-[#0f766e]" : "text-[#C1440E]"}>EUR {money(pendingOf(e))}</span>
+                      )}
                     </span>
                   </div>
                 );
