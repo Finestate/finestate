@@ -323,7 +323,10 @@ export default function Costs({ seed }) {
             return (
               <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black">
                 <span className={`flex flex-1 items-center text-[11px] text-neutral-900 ${sub ? "pl-6 pr-2" : "px-2"}`}>
-                  {a.name || a.product || "Account"}{a.iban ? ` ··${a.iban.slice(-4)}` : ""}                </span>
+                  {a.name || a.product || "Account"}
+                  {/* The full account number, in blocks of four as the bank prints it. */}
+                  {a.iban ? <span className="ml-2 tabular-nums">{a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}</span> : null}
+                </span>
                 <span className="w-36 shrink-0 border-l border-black" />
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
                   {v == null ? "–" : `${b.currency || "EUR"} ${money(v)}`}
