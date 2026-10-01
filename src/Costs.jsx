@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Trash2, ChevronDown, RefreshCw } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { DateCell } from "./LegalDocuments.jsx";
@@ -9,9 +9,6 @@ const DOC_ID = "costs-fc";
 // The read-only bank connection: which accounts it covers, until when, and the last
 // balances read. Kept in Supabase like everything else.
 const BANK_ID = "bank-link";
-// How often an expense goes out, as offered in its dropdown.
-const PAYMENT_FREQUENCIES = ["Monthly"];
-
 // The columns of an expense line, left to right.
 const EXPENSE_COLS = [
   { label: "Description" },
@@ -124,6 +121,56 @@ function RateInput({ value, onChange }) {
       onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
       className="w-full bg-transparent py-0 text-[11px] leading-none tabular-nums text-neutral-900 outline-none"
     />
+  );
+}
+
+// How often an expense goes out, picked in two columns: Monthly on the left, or on the
+// right exactly the months of the year it is due. Kept as "Monthly" or the months in
+// calendar order ("Feb, Aug"), which is also what the monthly average reads.
+const FREQ_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function FrequencyPicker({ value, onChange }) {
+  const [anchor, setAnchor] = useState(null);
+  const btn = useRef(null);
+  const v = String(value || "");
+  const monthly = /month/i.test(v);
+  const picked = monthly ? [] : FREQ_MONTHS.filter((m) => new RegExp(`\\b${m}`, "i").test(v));
+  const open = () => {
+    const r = btn.current?.getBoundingClientRect();
+    if (r) setAnchor({ top: r.bottom + 4, left: Math.min(r.left, window.innerWidth - 260) });
+  };
+  const toggle = (m) => {
+    const next = picked.includes(m) ? picked.filter((x) => x !== m) : [...picked, m];
+    onChange(FREQ_MONTHS.filter((x) => next.includes(x)).join(", "));
+  };
+  const tile = (on) =>
+    `h-6 text-[11px] border ${on ? "border-black bg-[#F2C46D] font-bold text-neutral-900" : "border-neutral-300 bg-white text-neutral-700 hover:border-black"}`;
+  return (
+    <>
+      <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} className="flex w-full items-center gap-1 text-left text-[11px] leading-none text-neutral-900">
+        <span className="min-w-0 flex-1">{monthly ? "Monthly" : picked.join(", ")}</span>
+        <ChevronDown size={11} className="shrink-0 text-neutral-400" />
+      </button>
+      {anchor && (
+        <>
+          {/* A click anywhere else closes it. */}
+          <div className="fixed inset-0 z-40" onClick={() => setAnchor(null)} />
+          <div className="fixed z-50 flex gap-3 border-2 border-black bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
+            <div className="flex w-20 flex-col">
+              <button type="button" onClick={() => { onChange(monthly ? "" : "Monthly"); setAnchor(null); }} className={tile(monthly)}>
+                Monthly
+              </button>
+            </div>
+            <div className="grid w-36 grid-cols-3 gap-1">
+              {FREQ_MONTHS.map((m) => (
+                <button key={m} type="button" onClick={() => toggle(m)} className={tile(picked.includes(m))}>
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 }
 
@@ -797,15 +844,7 @@ export default function Costs({ seed }) {
                 </select>
               </span>
               <span className={cell}>
-                {/* How often it goes out. Monthly to start; more patterns follow one by one. */}
-                <select
-                  value={e.freq || ""}
-                  onChange={(ev) => editHome(e.id, { freq: ev.target.value })}
-                  className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
-                >
-                  <option value="" />
-                  {PAYMENT_FREQUENCIES.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
+                <FrequencyPicker value={e.freq} onChange={(v) => editHome(e.id, { freq: v })} />
               </span>
               <span className={`${cell} justify-end gap-1`}>
                 <span>EUR</span>
