@@ -34,7 +34,7 @@ const MAIN_BG = "#F2C46D";
 const SUB_BG = "#FFE4B3";
 const SUBSUB_BG = "#FCEFCF";
 
-const EMPTY = { rates: [], balances: { giro: "", card: "", mortgage: "" }, income: [], tax: [], pocket: [], groups: [] };
+const EMPTY = { rates: [], balances: { giro: "", card: "", mortgage: "" }, income: [], tax: [], pocket: [], groups: [], loans: [] };
 
 let _idc = 0;
 const newId = () => "c" + Date.now().toString(36) + "-" + (_idc++);
@@ -387,14 +387,62 @@ export default function Costs({ seed }) {
             <MoneyInput value={doc.balances.card} onChange={(v) => setBalance("card", v)} placeholder="0.00" fit />
           </span>
         </div>
-        {/* The mortgage isn't shared by the bank either, so what is still owed is typed in. */}
-        <div className="flex h-[22px] items-stretch border-t border-black">
-          <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">Debt – mortgage outstanding</span>
-          <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
-            <span>EUR</span>
-            <MoneyInput value={doc.balances.debt} onChange={(v) => setBalance("debt", v)} placeholder="0.00" fit />
-          </span>
-        </div>
+        {/* The mortgage isn't shared by the bank, so its loans are typed in. The Debt line
+            shows what they add up to, and opens, like your account line, onto the loans
+            themselves on the same faint pink: name, account number, expiry and amount. */}
+        {(() => {
+          const loans = doc.loans || [];
+          const open = !!doc.ui?.debtOpen;
+          const total = loans.reduce((sum, l) => sum + num(l.amount), 0);
+          const setLoans = (next) => save({ ...doc, loans: next });
+          const editLoan = (id, field, val) => setLoans(loans.map((l) => (l.id === id ? { ...l, [field]: val } : l)));
+          const sub = "flex h-[22px] items-stretch border-t border-black";
+          const cellTxt = "bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none";
+          return (
+            <>
+              <div className={sub}>
+                <span
+                  onClick={() => save({ ...doc, ui: { ...(doc.ui || {}), debtOpen: !open } })}
+                  className="flex flex-1 cursor-pointer select-none items-center gap-1 px-2 text-[11px] text-neutral-900"
+                >
+                  Debt – mortgage outstanding
+                  <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+                </span>
+                <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                  EUR {money(total)}
+                </span>
+              </div>
+              {open && (
+                <>
+                  {loans.map((l) => (
+                    <div key={l.id} className={sub} style={{ backgroundColor: "#FBEFEC" }}>
+                      <span className="flex flex-1 items-center gap-3 pl-6 pr-2">
+                        <input value={l.name || ""} onChange={(e) => editLoan(l.id, "name", e.target.value)} placeholder="Loan" className={`${cellTxt} w-44`} />
+                        <input value={l.number || ""} onChange={(e) => editLoan(l.id, "number", e.target.value)} placeholder="Account number" className={`${cellTxt} w-48 tabular-nums`} />
+                        <span className="text-[11px] text-neutral-500">expires</span>
+                        <input value={l.expires || ""} onChange={(e) => editLoan(l.id, "expires", e.target.value)} placeholder="date" className={`${cellTxt} w-24`} />
+                        <button onClick={() => ask(() => setLoans(loans.filter((x) => x.id !== l.id)))} title="Remove this loan" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
+                          <Trash2 size={11} />
+                        </button>
+                      </span>
+                      <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                        <span>EUR</span>
+                        <MoneyInput value={l.amount || ""} onChange={(v) => editLoan(l.id, "amount", v)} placeholder="0.00" fit />
+                      </span>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => setLoans([...loans, { id: newId(), name: "", number: "", expires: "", amount: "" }])}
+                    className="flex h-[22px] w-full items-center gap-1 border-t border-black pl-6 text-[10px] font-bold uppercase tracking-wide text-neutral-400 hover:text-neutral-800"
+                    style={{ backgroundColor: "#FBEFEC" }}
+                  >
+                    <Plus size={11} /> Add loan
+                  </button>
+                </>
+              )}
+            </>
+          );
+        })()}
         {/* With no bank connected yet, a line to connect one. */}
         {!bank?.accounts?.length && (
           <div className="flex h-[22px] items-center border-t border-black px-2 text-[10px] uppercase tracking-wide text-neutral-500">
