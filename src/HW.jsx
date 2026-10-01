@@ -132,7 +132,7 @@ export default function HW() {
             {withLink && (
               <span
                 onClick={() => { if (isWebAddress(link)) setEditingLink(m.id); }}
-                className={`flex w-56 shrink-0 items-start border-l border-black px-2 py-[3px] ${isWebAddress(link) && editingLink !== m.id ? "cursor-text" : ""}`}
+                className={`flex w-56 shrink-0 items-start justify-center border-l border-black px-2 py-[3px] ${isWebAddress(link) && editingLink !== m.id ? "cursor-text" : ""}`}
               >
                 {isWebAddress(link) && editingLink !== m.id ? (
                   <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} onClick={(e) => e.stopPropagation()} className="text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
