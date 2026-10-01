@@ -7,6 +7,12 @@ import { supabase } from "./lib/supabaseClient.js";
 // and never in this public repo.
 const DOC_ID = "hw";
 const NOTES_ID = "hw-notes"; // the new table, being rebuilt section by section
+// The three parts of Nutrition, left to right.
+const NUTRITION_PARTS = [
+  ["weekdays", "Sunday through Friday"],
+  ["saturday", "Saturday"],
+  ["considerations", "Considerations"],
+];
 const BAR_BG = "#F2C46D";   // section bars
 const HEADER_BG = "#FFE4B3"; // column headings inside a section
 const GOLD = "#9c7c33";
@@ -50,6 +56,8 @@ export default function HW() {
   const [notes, setNotes] = useState([]);
   // Name-and-details lists, by key: medicines, supplements.
   const [lists, setLists] = useState({ medicines: [], supplements: [] });
+  // Nutrition: three notes side by side, by key.
+  const [nutrition, setNutrition] = useState({ weekdays: "", saturday: "", considerations: "" });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
   const [editingLink, setEditingLink] = useState(null); // the line whose web address is open for editing
   const [notesLoaded, setNotesLoaded] = useState(false);
@@ -67,6 +75,11 @@ export default function HW() {
           medicines: Array.isArray(d.medicines) ? d.medicines : [],
           supplements: Array.isArray(d.supplements) ? d.supplements : [],
         });
+        setNutrition({
+          weekdays: d.nutrition?.weekdays || "",
+          saturday: d.nutrition?.saturday || "",
+          considerations: d.nutrition?.considerations || "",
+        });
         setNotesLoaded(true);
       });
   }, []);
@@ -76,10 +89,15 @@ export default function HW() {
       .from("admin_docs")
       .upsert({ id: NOTES_ID, data: doc, updated_at: new Date().toISOString() })
       .then(({ error }) => setErr(error ? error.message : ""));
+  const saveNutrition = (key, text) => {
+    const next = { ...nutrition, [key]: text };
+    setNutrition(next);
+    persist({ foundational: notes, ...lists, nutrition: next });
+  };
   const saveList = (key, next) => {
     const all = { ...lists, [key]: next };
     setLists(all);
-    persist({ foundational: notes, ...all });
+    persist({ foundational: notes, ...all, nutrition });
   };
   // A list never shows empty: a blank line stands ready until the first is typed.
   const listRows = (key) => (lists[key].length ? lists[key] : [{ id: "blank", name: "", text: "" }]);
@@ -159,7 +177,7 @@ export default function HW() {
     setNotes(next);
     supabase
       .from("admin_docs")
-      .upsert({ id: NOTES_ID, data: { foundational: next, ...lists }, updated_at: new Date().toISOString() })
+      .upsert({ id: NOTES_ID, data: { foundational: next, ...lists, nutrition }, updated_at: new Date().toISOString() })
       .then(({ error }) => setErr(error ? error.message : ""));
   };
   // Never an empty section: a blank entry stands ready until the first is typed.
@@ -257,6 +275,25 @@ export default function HW() {
           <span className={head}>Supplements</span>
         </div>
         {notesLoaded && listBlock("supplements", true)}
+        {/* Nutrition: no grey band before it. Three notes side by side, so the whole week
+            reads at once, left to right; each grows with what is written. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Nutrition</span>
+        </div>
+        <div className="grid grid-cols-3 border-t border-black" style={{ backgroundColor: BAR_BG }}>
+          {NUTRITION_PARTS.map(([key, label], i) => (
+            <span key={key} className={`flex h-[22px] items-center px-2 ${head} ${i ? "border-l border-black" : ""}`}>{label}</span>
+          ))}
+        </div>
+        {notesLoaded && (
+          <div className="grid grid-cols-3 border-t border-black">
+            {NUTRITION_PARTS.map(([key], i) => (
+              <span key={key} className={`px-2 py-[3px] ${i ? "border-l border-black" : ""}`}>
+                <GrowText value={nutrition[key]} onChange={(t) => saveNutrition(key, t)} rows={4} />
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
