@@ -387,6 +387,14 @@ export default function Costs({ seed }) {
             <MoneyInput value={doc.balances.card} onChange={(v) => setBalance("card", v)} placeholder="0.00" fit />
           </span>
         </div>
+        {/* The mortgage isn't shared by the bank either, so what is still owed is typed in. */}
+        <div className="flex h-[22px] items-stretch border-t border-black">
+          <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">Debt – mortgage outstanding</span>
+          <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+            <span>EUR</span>
+            <MoneyInput value={doc.balances.debt} onChange={(v) => setBalance("debt", v)} placeholder="0.00" fit />
+          </span>
+        </div>
         {/* With no bank connected yet, a line to connect one. */}
         {!bank?.accounts?.length && (
           <div className="flex h-[22px] items-center border-t border-black px-2 text-[10px] uppercase tracking-wide text-neutral-500">
