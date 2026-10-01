@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ChevronDown, SquarePen, ExternalLink } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Health and wellbeing, lifted from the HE tab of the planning workbook. It holds
@@ -51,6 +51,7 @@ export default function HW() {
   // Name-and-details lists, by key: medicines, supplements.
   const [lists, setLists] = useState({ medicines: [], supplements: [] });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
+  const [editingLink, setEditingLink] = useState(null); // the line whose web address is open for editing
   const [notesLoaded, setNotesLoaded] = useState(false);
   useEffect(() => {
     supabase
@@ -102,7 +103,22 @@ export default function HW() {
           </span>
           <span className="flex flex-1 items-start gap-2 border-l border-black px-2 py-[3px]">
             <span className="min-w-0 flex-1">
-              <GrowText value={m.text || ""} onChange={(t) => editItem(key, m.id, { text: t })} rows={1} />
+              {/* A web address reads as a link with the shop's name; the pencil opens it for
+                  editing, and clicking away turns it back into the link. */}
+              {isWebAddress(m.text) && editingLink !== m.id ? (
+                <span className="flex items-center gap-2">
+                  <a href={m.text.trim()} target="_blank" rel="noreferrer" title={m.text.trim()} className="inline-flex items-center gap-1 text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
+                    {siteName(m.text)} <ExternalLink size={10} />
+                  </a>
+                  <button onClick={() => setEditingLink(m.id)} title="Edit the address" className="text-neutral-400 hover:text-neutral-900">
+                    <SquarePen size={11} />
+                  </button>
+                </span>
+              ) : (
+                <span onBlur={() => setEditingLink(null)}>
+                  <GrowText value={m.text || ""} onChange={(t) => editItem(key, m.id, { text: t })} rows={1} autoFocus={editingLink === m.id} />
+                </span>
+              )}
             </span>
             {m.id !== "blank" && (
               <button onClick={() => setListConfirm({ key, id: m.id })} title="Remove" className="mt-[2px] shrink-0 text-neutral-900 hover:text-[#C1440E]">
@@ -344,8 +360,14 @@ export default function HW() {
 
 // Add a row or a section under this line, or bin it. Shown on hover only, so the
 // table stays clean to read.
+// A whole web address, and the site it belongs to, read as "amazon.de".
+const isWebAddress = (v) => /^https?:\/\/\S+$/i.test(String(v || "").trim());
+const siteName = (v) => {
+  try { return new URL(String(v).trim()).hostname.replace(/^www\./, ""); } catch { return String(v); }
+};
+
 // Notes that grow with what is typed, so nothing is ever cut off or scrolls inside.
-function GrowText({ value, onChange, rows = 2 }) {
+function GrowText({ value, onChange, rows = 2, autoFocus = false }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
@@ -357,6 +379,7 @@ function GrowText({ value, onChange, rows = 2 }) {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       rows={rows}
+      autoFocus={autoFocus}
       spellCheck={false}
       className="block w-full resize-none bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
     />
