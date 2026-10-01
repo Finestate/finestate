@@ -9,6 +9,9 @@ const DOC_ID = "costs-fc";
 // The read-only bank connection: which accounts it covers, until when, and the last
 // balances read. Kept in Supabase like everything else.
 const BANK_ID = "bank-link";
+// How often an expense goes out, as offered in its dropdown.
+const PAYMENT_FREQUENCIES = ["Monthly"];
+
 // The columns of an expense line, left to right.
 const EXPENSE_COLS = [
   { label: "Description" },
@@ -793,7 +796,15 @@ export default function Costs({ seed }) {
                 </select>
               </span>
               <span className={cell}>
-                <input value={e.freq || ""} onChange={(ev) => editHome(e.id, { freq: ev.target.value })} className="w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none" />
+                {/* How often it goes out. Monthly to start; more patterns follow one by one. */}
+                <select
+                  value={e.freq || ""}
+                  onChange={(ev) => editHome(e.id, { freq: ev.target.value })}
+                  className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
+                >
+                  <option value="" />
+                  {PAYMENT_FREQUENCIES.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
               </span>
               <span className={`${cell} justify-end gap-1`}>
                 <span>EUR</span>
