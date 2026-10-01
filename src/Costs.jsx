@@ -320,26 +320,25 @@ export default function Costs({ seed }) {
             const b = bank.balances?.[a.uid];
             return b && !b.error && b.amount !== "" ? num(b.amount) : null;
           };
-          // Until when the bank's approval runs, and the two controls as teal links, in small grey after your account number. The
-          // controls don't open or shut the accounts under it.
+          // The controls don't open or shut the accounts under the line.
           const stop = (e) => e.stopPropagation();
           const expired = bank?.valid_until && new Date(bank.valid_until) < new Date();
+          // At the right of your account line, before the chevron: Reconnect with the date
+          // the access runs out (red once it has), then the refresh arrow on its own.
           const status = (
-            <span className="ml-3 flex items-center gap-1.5 whitespace-nowrap text-[10px] text-neutral-400">
-              {bank?.valid_until && (
-                <>
-                  <span className={expired ? "font-semibold text-[#C1440E]" : ""}>
-                    {expired ? "Access expired" : `Access until ${new Date(bank.valid_until).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`}
-                  </span>
-                </>
-              )}
-              <span>·</span>
-              <button onClick={(e) => { stop(e); refreshBank(bank, true); }} disabled={bankBusy} title="Fetch the latest balances now" className="flex items-center gap-0.5 text-[#0f766e] hover:text-[#0c5e57]">
-                <RefreshCw size={10} className={bankBusy ? "animate-spin" : ""} /> <span className="underline underline-offset-2">Refresh</span>
+            <span className="ml-auto flex items-center gap-2 whitespace-nowrap pl-3 text-[10px]">
+              <button
+                onClick={(e) => { stop(e); connectBank(); }}
+                disabled={bankBusy}
+                title="Approve access at Sparkasse again"
+                className={`underline underline-offset-2 ${expired ? "font-semibold text-[#C1440E]" : "text-[#0f766e] hover:text-[#0c5e57]"}`}
+              >
+                {bank?.valid_until
+                  ? `Reconnect ${new Date(bank.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
+                  : "Reconnect"}
               </button>
-              <span>·</span>
-              <button onClick={(e) => { stop(e); connectBank(); }} disabled={bankBusy} title="Approve access at Sparkasse again" className={`underline underline-offset-2 ${expired ? "font-semibold text-[#C1440E]" : "text-[#0f766e] hover:text-[#0c5e57]"}`}>
-                Reconnect
+              <button onClick={(e) => { stop(e); refreshBank(bank, true); }} disabled={bankBusy} title="Fetch the latest balances now" className="text-[#0f766e] hover:text-[#0c5e57]">
+                <RefreshCw size={11} className={bankBusy ? "animate-spin" : ""} />
               </button>
             </span>
           );
@@ -359,7 +358,7 @@ export default function Costs({ seed }) {
                     (a.name || a.product || "Account").toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase())
                   }${a.iban ? `: ${a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}` : ""}`}
                   {!sub && status}
-                  {toggle && <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${kidsOpen ? "rotate-180" : ""}`} />}
+                  {toggle && <ChevronDown size={12} className={`${sub ? "ml-auto" : ""} shrink-0 transition-transform ${kidsOpen ? "rotate-180" : ""}`} />}
                 </span>
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
                   {v == null ? "–" : `${b.currency || "EUR"} ${money(v)}`}
