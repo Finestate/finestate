@@ -90,7 +90,7 @@ export default function HW() {
     );
   // Two framed columns, no headings: a short one for the name, a long one for the
   // details, which grows with its text. Then the Add line under the last one.
-  // withLink adds a short third column for where to buy: the address shows only as
+  // withLink adds a short column, right after the name, for where to buy: the address shows only as
   // "Link to buy", with a pencil to change it. An address typed into the details
   // before this column existed is read as the link.
   const listBlock = (key, withLink = false) => (
@@ -109,9 +109,6 @@ export default function HW() {
                 onChange={(e) => editItem(key, m.id, { name: e.target.value })}
                 className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
               />
-            </span>
-            <span className="flex min-w-0 flex-1 items-start border-l border-black px-2 py-[3px]">
-              <GrowText value={details} onChange={setDetails} rows={1} />
             </span>
             {withLink && (
               <span className="flex w-36 shrink-0 items-start border-l border-black px-2 py-[3px]">
@@ -134,6 +131,9 @@ export default function HW() {
                     className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
                   />
                 )}
+            <span className="flex min-w-0 flex-1 items-start border-l border-black px-2 py-[3px]">
+              <GrowText value={details} onChange={setDetails} rows={1} />
+            </span>
               </span>
             )}
             <span className="flex shrink-0 items-start px-2 py-[5px]">
