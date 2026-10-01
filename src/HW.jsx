@@ -128,6 +128,7 @@ export default function HW() {
                   className="w-1/4 min-w-[160px] bg-transparent py-0 text-[11px] font-bold leading-none text-neutral-900 outline-none"
                 />
                 <span className="flex-1" />
+                <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${n.open ? "rotate-180" : ""}`} />
                 {n.id !== "blank" && (
                   <button
                     onClick={(e) => { e.stopPropagation(); setNoteConfirm(n.id); }}
@@ -137,7 +138,6 @@ export default function HW() {
                     <Trash2 size={11} />
                   </button>
                 )}
-                <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${n.open ? "rotate-180" : ""}`} />
               </div>
               {n.open && (
                 <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
