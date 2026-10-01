@@ -714,7 +714,7 @@ export default function Costs({ seed }) {
                   {/* Under the last loan, a quiet line to add the next one. */}
                   <button
                     onClick={() => setLoans([...loans, { id: newId(), name: "", number: "", rate: "", expires: "", amount: "" }])}
-                    className="flex h-[22px] w-full items-center gap-0.5 border-t border-black pl-6 text-[11px] font-semibold text-neutral-400 transition-colors hover:text-neutral-900"
+                    className="flex h-[22px] w-full items-center gap-0.5 border-t border-black pl-6 text-[11px] font-semibold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
                     style={{ backgroundColor: "#FBEFEC" }}
                   >
                     <Plus size={11} strokeWidth={3} /> Add loan
@@ -790,7 +790,7 @@ export default function Costs({ seed }) {
         {/* Always under the last tax payment: a quiet line to add the next one. */}
         <button
           onClick={() => save({ ...doc, taxPayments: [...taxPayments, { id: newId(), date: "", amount: "" }] })}
-          className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-neutral-400 transition-colors hover:text-neutral-900"
+          className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
         >
           <Plus size={11} strokeWidth={3} /> Add payment
         </button>
@@ -855,7 +855,7 @@ export default function Costs({ seed }) {
               {k.open && (
                 <button
                   onClick={() => editKid(k.id, { payments: [...(k.payments || []), { id: newId(), date: "", amount: "" }] })}
-                  className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-neutral-400 transition-colors hover:text-neutral-900"
+                  className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
                   style={{ backgroundColor: "#FBEFEC" }}
                 >
                   <Plus size={11} strokeWidth={3} /> Add payment
@@ -946,7 +946,7 @@ export default function Costs({ seed }) {
               })}
               <button
                 onClick={() => setExpenseRows(g.id, [...rows, blankExpense()])}
-                className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-neutral-400 transition-colors hover:text-neutral-900"
+                className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
               >
                 <Plus size={11} strokeWidth={3} /> Add expense
               </button>
@@ -955,7 +955,7 @@ export default function Costs({ seed }) {
         })}
         <button
           onClick={() => setExpenseGroups([...expenseGroups, { id: newId(), name: "New group", rows: [] }])}
-          className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-neutral-400 transition-colors hover:text-neutral-900"
+          className="flex h-[22px] w-full items-center gap-0.5 border-t border-black px-2 text-[11px] font-semibold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
           style={{ backgroundColor: SUB_BG }}
         >
           <Plus size={11} strokeWidth={3} /> Add group
