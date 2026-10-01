@@ -438,17 +438,20 @@ export default function Costs({ seed }) {
   };
   const paymentRows = (k) => ((k.payments || []).length ? k.payments : [{ id: "blank", date: "", amount: "" }]);
 
-  // Home-related expense lines, kept in Supabase. A blank line stands ready while
-  // there are none, and the first thing typed into it makes it real.
-  const homeExpenses = doc.expenses?.home || [];
-  const setHome = (list) => save({ ...doc, expenses: { ...(doc.expenses || {}), home: list } });
-  const editHome = (id, fields) =>
-    setHome(
-      homeExpenses.length
-        ? homeExpenses.map((e) => (e.id === id ? { ...e, ...fields } : e))
-        : [{ id: newId(), description: "", source: "", freq: "", amount: "", pending: "", ...fields }]
-    );
-  const homeRows = homeExpenses.length ? homeExpenses : [{ id: "blank", description: "", source: "", freq: "", amount: "", pending: "" }];
+  // Expenses in groups, each with its own lines, kept in Supabase. Lines saved before
+  // under Home-related carry over as the first group.
+  const blankExpense = () => ({ id: newId(), description: "", source: "", freq: "", amount: "" });
+  const expenseGroups = doc.expenses?.groups || [{ id: "home", name: "Home-related", rows: doc.expenses?.home || [] }];
+  const setExpenseGroups = (groups) => save({ ...doc, expenses: { groups } });
+  const setExpenseRows = (gid, rows) => setExpenseGroups(expenseGroups.map((g) => (g.id === gid ? { ...g, rows } : g)));
+  // A group never shows empty: a blank line stands ready, and the first thing typed
+  // into it makes it real.
+  const rowsOf = (g) => (g.rows?.length ? g.rows : [{ ...blankExpense(), id: "blank" }]);
+  const editExpense = (gid, id, fields) => {
+    const rows = expenseGroups.find((g) => g.id === gid)?.rows || [];
+    setExpenseRows(gid, rows.length ? rows.map((e) => (e.id === id ? { ...e, ...fields } : e)) : [{ ...blankExpense(), ...fields }]);
+  };
+  const allExpenses = expenseGroups.flatMap((g) => g.rows || []);
   // Where an expense is paid from. Your own account appears as SP and its number, read
   // from the connected bank, so the number itself never sits in this code.
   const paymentSources = (() => {
@@ -467,8 +470,8 @@ export default function Costs({ seed }) {
   const dueThisMonth = (e) => /month/i.test(e.freq || "") || new RegExp(`\\b${thisMonth}`, "i").test(e.freq || "");
   const isPaid = (e) => e.paidMonth === monthKey;
   const pendingOf = (e) => (dueThisMonth(e) && !isPaid(e) ? num(e.amount) : 0);
-  const pendingFixed = homeExpenses.reduce((sum, e) => sum + pendingOf(e), 0);
-  const homeMonthly = homeExpenses.reduce((sum, e) => sum + monthlyAvg(e), 0);
+  const pendingFixed = allExpenses.reduce((sum, e) => sum + pendingOf(e), 0);
+  const expensesMonthly = allExpenses.reduce((sum, e) => sum + monthlyAvg(e), 0);
   // Your own account's balance, read from the bank (not the company's or the kids').
   const ownBalance = (() => {
     const own = (bank?.accounts || []).find((a) => !/jugend|gesch|business|gmbh/i.test(`${a.product || ""} ${a.name || ""}`));
@@ -825,76 +828,106 @@ export default function Costs({ seed }) {
 
         <Gap />
         <Section>Expenses</Section>
-        {/* Expenses come in groups, each under its own bar; the lines are being built one at a time. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
-          <span className={head}>Home-related</span>
-        </div>
-        {/* The column headings for the expense lines: six equal, framed columns, the
-            money ones set to the right. */}
-        <div className="grid h-[22px] grid-cols-6 border-t border-black">
-          {EXPENSE_COLS.map((c, i) => (
-            <span key={c.label} className={`flex items-center px-2 ${colHead} ${i ? "border-l border-black" : ""} ${c.money ? "justify-end text-right" : ""}`}>
-              {c.label}
-            </span>
-          ))}
-        </div>
-        {homeRows.map((e) => {
-          const cell = "flex min-w-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900";
+        {/* Expenses come in groups, each built the same: its bar (the name typed straight
+            into it), the column headings, its lines, Add expense, and its total. */}
+        {expenseGroups.map((g) => {
+          const rows = g.rows || [];
           return (
-            <div key={e.id} className="group grid h-[22px] grid-cols-6 border-t border-black">
-              <span className="flex min-w-0 items-center px-2">
-                <input value={e.description || ""} onChange={(ev) => editHome(e.id, { description: ev.target.value })} className="w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none" />
-                <button onClick={() => ask(() => setHome(homeExpenses.filter((x) => x.id !== e.id)))} title="Remove" className="ml-1 shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
-                  <Trash2 size={11} />
-                </button>
-              </span>
-              <span className={cell}>
-                <select
-                  // A line saved under the old name reads under the new one.
-                  value={e.source === "Silke Account" ? "SSI account" : e.source || ""}
-                  onChange={(ev) => editHome(e.id, { source: ev.target.value })}
-                  className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
-                >
-                  <option value="" />
-                  {paymentSources.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </span>
-              <span className={cell}>
-                <FrequencyPicker value={e.freq} onChange={(v) => editHome(e.id, { freq: v })} />
-              </span>
-              <span className={`${cell} justify-end gap-1`}>
-                <span>EUR</span>
-                <MoneyInput value={e.amount} onChange={(v) => editHome(e.id, { amount: v })} placeholder="0.00" fit />
-              </span>
-              <span className={`${cell} justify-end`}>EUR {money(monthlyAvg(e))}</span>
-              <span className={`${cell} justify-end`}>
-                {/* Due this month: a tick marks it paid; it shows teal once ticked. */}
-                {dueThisMonth(e) && e.id !== "blank" && (
-                  <button
-                    onClick={() => editHome(e.id, { paidMonth: isPaid(e) ? "" : monthKey })}
-                    title={isPaid(e) ? "Paid this month (click to undo)" : "Mark as paid this month"}
-                    className={`mr-auto ${isPaid(e) ? "text-[#0f766e]" : "text-neutral-300 hover:text-neutral-700"}`}
-                  >
-                    <Check size={12} strokeWidth={3} />
+            <div key={g.id}>
+              <div className="group flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+                <input
+                  value={g.name || ""}
+                  onChange={(ev) => setExpenseGroups(expenseGroups.map((x) => (x.id === g.id ? { ...x, name: ev.target.value } : x)))}
+                  className={`w-full bg-transparent py-0 outline-none ${head}`}
+                />
+                {expenseGroups.length > 1 && (
+                  <button onClick={() => ask(() => setExpenseGroups(expenseGroups.filter((x) => x.id !== g.id)))} title="Remove this group" className="ml-1 shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
+                    <Trash2 size={11} />
                   </button>
                 )}
-                EUR {money(pendingOf(e))}
-              </span>
+              </div>
+              {/* The column headings: six equal, framed columns, the money ones set right. */}
+              <div className="grid h-[22px] grid-cols-6 border-t border-black">
+                {EXPENSE_COLS.map((c, i) => (
+                  <span key={c.label} className={`flex items-center px-2 ${colHead} ${i ? "border-l border-black" : ""} ${c.money ? "justify-end text-right" : ""}`}>
+                    {c.label}
+                  </span>
+                ))}
+              </div>
+              {rowsOf(g).map((e) => {
+                const cell = "flex min-w-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900";
+                const edit = (fields) => editExpense(g.id, e.id, fields);
+                return (
+                  <div key={e.id} className="group grid h-[22px] grid-cols-6 border-t border-black">
+                    <span className="flex min-w-0 items-center px-2">
+                      <input value={e.description || ""} onChange={(ev) => edit({ description: ev.target.value })} className="w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none" />
+                      <button onClick={() => ask(() => setExpenseRows(g.id, rows.filter((x) => x.id !== e.id)))} title="Remove" className="ml-1 shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
+                        <Trash2 size={11} />
+                      </button>
+                    </span>
+                    <span className={cell}>
+                      <select
+                        // A line saved under the old name reads under the new one.
+                        value={e.source === "Silke Account" ? "SSI account" : e.source || ""}
+                        onChange={(ev) => edit({ source: ev.target.value })}
+                        className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
+                      >
+                        <option value="" />
+                        {paymentSources.map((o) => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                    </span>
+                    <span className={cell}>
+                      <FrequencyPicker value={e.freq} onChange={(v) => edit({ freq: v })} />
+                    </span>
+                    <span className={`${cell} justify-end gap-1`}>
+                      <span>EUR</span>
+                      <MoneyInput value={e.amount} onChange={(v) => edit({ amount: v })} placeholder="0.00" fit />
+                    </span>
+                    <span className={`${cell} justify-end`}>EUR {money(monthlyAvg(e))}</span>
+                    <span className={`${cell} justify-end`}>
+                      {/* Due this month: a tick marks it paid; it shows teal once ticked. */}
+                      {dueThisMonth(e) && e.id !== "blank" && (
+                        <button
+                          onClick={() => edit({ paidMonth: isPaid(e) ? "" : monthKey })}
+                          title={isPaid(e) ? "Paid this month (click to undo)" : "Mark as paid this month"}
+                          className={`mr-auto ${isPaid(e) ? "text-[#0f766e]" : "text-neutral-300 hover:text-neutral-700"}`}
+                        >
+                          <Check size={12} strokeWidth={3} />
+                        </button>
+                      )}
+                      EUR {money(pendingOf(e))}
+                    </span>
+                  </div>
+                );
+              })}
+              <button
+                onClick={() => setExpenseRows(g.id, [...rows, blankExpense()])}
+                className="flex h-[22px] w-full items-center gap-1 border-t border-black px-2 text-[11px] text-neutral-400 transition-colors hover:text-neutral-900"
+              >
+                <Plus size={11} /> Add expense
+              </button>
+              {/* The group's total: what it averages a month, and what is still to go this month. */}
+              <div className="grid h-[22px] grid-cols-6 border-t border-black">
+            <span className="col-span-4 flex items-center px-2 text-[11px] font-bold text-neutral-900">{g.name || "Group"} total</span>
+            <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(rows.reduce((sum, x) => sum + monthlyAvg(x), 0))}</span>
+            <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(rows.reduce((sum, x) => sum + pendingOf(x), 0))}</span>
+          </div>
             </div>
           );
         })}
         <button
-          onClick={() => setHome([...homeExpenses, { id: newId(), description: "", source: "", freq: "", amount: "", pending: "" }])}
+          onClick={() => setExpenseGroups([...expenseGroups, { id: newId(), name: "New group", rows: [] }])}
           className="flex h-[22px] w-full items-center gap-1 border-t border-black px-2 text-[11px] text-neutral-400 transition-colors hover:text-neutral-900"
+          style={{ backgroundColor: SUB_BG }}
         >
-          <Plus size={11} /> Add expense
+          <Plus size={11} /> Add group
         </button>
-        {/* The group's total: what it averages a month, and what is still to go this month. */}
-        <div className="grid h-[22px] grid-cols-6 border-t border-black">
-          <span className="col-span-4 flex items-center px-2 text-[11px] font-bold text-neutral-900">Home-related total</span>
-          <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(homeMonthly)}</span>
-          <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(pendingFixed)}</span>
-        </div>
+        {/* Every group together. */}
+        <div className="grid h-[22px] grid-cols-6 border-t border-black" style={{ backgroundColor: MAIN_BG }}>
+            <span className="col-span-4 flex items-center px-2 text-[11px] font-bold text-neutral-900">Expenses total</span>
+            <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(expensesMonthly)}</span>
+            <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(pendingFixed)}</span>
+          </div>
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
