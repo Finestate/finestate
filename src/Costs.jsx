@@ -9,7 +9,7 @@ const DOC_ID = "costs-fc";
 // The read-only bank connection: which accounts it covers, until when, and the last
 // balances read. Kept in Supabase like everything else.
 const BANK_ID = "bank-link";
-const MONTH_CODES = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const MONTH_CODES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 // The bank allows only a few reads a day, so a balance is read again at most every
 // six hours.
 const BANK_STALE_MS = 6 * 60 * 60 * 1000;
@@ -527,18 +527,7 @@ export default function Costs({ seed }) {
                     size={Math.max((doc.debtName || "").length, 6)}
                     className="bg-transparent py-0 text-[11px] leading-none outline-none"
                   />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const l = { id: newId(), name: "", number: "", rate: "", expires: "", amount: "" };
-                      save({ ...doc, loans: [...loans, l], ui: { ...(doc.ui || {}), debtOpen: true } });
-                    }}
-                    title="Add a loan"
-                    className="ml-auto shrink-0 text-neutral-400 hover:text-neutral-900"
-                  >
-                    <Plus size={12} />
-                  </button>
-                  <ChevronDown size={12} className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+                  <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
                 </span>
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#C1440E]">
                   EUR {money(total)}
@@ -548,7 +537,8 @@ export default function Costs({ seed }) {
                 <>
                   {/* One framed row per loan: four equal columns, each with a faint label of
                       what goes in it, and the amount on the right. Always ready to type in. */}
-                  {loanRows.map((l) => {
+                  {loanRows.map((l, i) => {
+                    const last = i === loanRows.length - 1;
                     const col = "flex min-w-0 items-center border-l border-black px-2";
                     const box = `${cellTxt} w-full placeholder:text-neutral-400`;
                     return (
@@ -570,6 +560,11 @@ export default function Costs({ seed }) {
                             <button onClick={() => ask(() => setLoans(loans.filter((x) => x.id !== l.id)))} title="Remove this loan" className="ml-1 shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
                               <Trash2 size={11} />
                             </button>
+                            {last && (
+                              <button onClick={() => setLoans([...loans, { id: newId(), name: "", number: "", rate: "", expires: "", amount: "" }])} title="Add a loan" className="ml-1 shrink-0 text-neutral-400 hover:text-neutral-900">
+                                <Plus size={11} />
+                              </button>
+                            )}
                           </span>
                         </div>
                         <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
@@ -628,11 +623,8 @@ export default function Costs({ seed }) {
             documents) and the amount on the right. Editable from the start. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
           <span className={head}>Tax payments</span>
-          <button onClick={() => save({ ...doc, taxPayments: [...taxPayments, { id: newId(), date: "", amount: "" }] })} title="Add a tax payment" className="ml-auto text-neutral-500 hover:text-neutral-900">
-            <Plus size={12} />
-          </button>
         </div>
-        {taxRows.map((t) => (
+        {taxRows.map((t, i, all) => { const last = i === all.length - 1; return (
           <div key={t.id} className="group flex h-[22px] items-stretch border-t border-black">
             <span className="flex flex-1 items-center gap-2 px-2">
               <span className="w-40">
@@ -641,13 +633,18 @@ export default function Costs({ seed }) {
               <button onClick={() => ask(() => save({ ...doc, taxPayments: taxPayments.filter((x) => x.id !== t.id) }))} title="Remove" className="ml-auto text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
                 <Trash2 size={11} />
               </button>
+              {last && (
+                              <button onClick={() => save({ ...doc, taxPayments: [...taxPayments, { id: newId(), date: "", amount: "" }] })} title="Add a tax payment" className="ml-1 shrink-0 text-neutral-400 hover:text-neutral-900">
+                                <Plus size={11} />
+                              </button>
+                            )}
             </span>
             <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
               <span>EUR</span>
               <MoneyInput value={t.amount} onChange={(v) => editTax(t.id, "amount", v)} placeholder="0.00" fit />
             </span>
           </div>
-        ))}
+        ); })}
 
         {/* Pocket money: one line per child, with their initial and the month, and what
             was paid out that month in total. Each line opens, on the faint pink, onto the
@@ -670,7 +667,7 @@ export default function Costs({ seed }) {
                 </span>
                 <span className="flex w-20 shrink-0 items-center border-l border-black px-1">
                   <select
-                    value={k.month || ""}
+                    value={k.month ? k.month.charAt(0).toUpperCase() + k.month.slice(1).toLowerCase() : ""}
                     onChange={(e) => editKid(k.id, { month: e.target.value })}
                     className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
                   >
@@ -682,21 +679,13 @@ export default function Costs({ seed }) {
                   onClick={() => editKid(k.id, { open: !k.open })}
                   className="flex flex-1 cursor-pointer select-none items-center gap-2 border-l border-black px-2 text-[11px] text-neutral-500"
                 >
-                  {(k.payments || []).length ? `${k.payments.length} payment${k.payments.length === 1 ? "" : "s"}` : ""}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); editKid(k.id, { open: true, payments: [...(k.payments || []), { id: newId(), date: "", amount: "" }] }); }}
-                    title="Add a payment"
-                    className="ml-auto text-neutral-400 hover:text-neutral-900"
-                  >
-                    <Plus size={12} />
-                  </button>
-                  <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${k.open ? "rotate-180" : ""}`} />
+                  <ChevronDown size={12} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${k.open ? "rotate-180" : ""}`} />
                 </span>
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
                   EUR {money(total)}
                 </span>
               </div>
-              {k.open && paymentRows(k).map((x) => (
+              {k.open && paymentRows(k).map((x, i, all) => { const last = i === all.length - 1; return (
                 <div key={x.id} className="group flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: "#FBEFEC" }}>
                   <span className="flex flex-1 items-center gap-2 px-2">
                     {/* Pulled left by the icon's own inner margin, so it lines up with the A and S. */}
@@ -706,13 +695,18 @@ export default function Costs({ seed }) {
                     <button onClick={() => ask(() => editKid(k.id, { payments: k.payments.filter((y) => y.id !== x.id) }))} title="Remove" className="ml-auto text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100">
                       <Trash2 size={11} />
                     </button>
+                    {last && (
+                              <button onClick={() => editKid(k.id, { payments: [...(k.payments || []), { id: newId(), date: "", amount: "" }] })} title="Add a payment" className="ml-1 shrink-0 text-neutral-400 hover:text-neutral-900">
+                                <Plus size={11} />
+                              </button>
+                            )}
                   </span>
                   <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
                     <span>EUR</span>
                     <MoneyInput value={x.amount} onChange={(v) => editPayment(k.id, x.id, { amount: v })} placeholder="0.00" fit />
                   </span>
                 </div>
-              ))}
+              ); })}
             </div>
           );
         })}
