@@ -68,6 +68,28 @@ const colHead = "whitespace-nowrap text-[11px] font-bold uppercase leading-none 
 
 // A money field: shows 13,882.06 when you are not in it, the plain figure while typing,
 // and tidies to two decimals when you leave.
+// A card number, kept only as its first and last four digits, the way the bank shows
+// it. Whatever is typed stays in this box until you leave it; only the masked form is
+// ever saved, so the full number is never stored.
+const maskCard = (v) => {
+  const d = String(v || "").replace(/\D/g, "");
+  return d.length >= 8 ? `${d.slice(0, 4)} •••• •••• ${d.slice(-4)}` : String(v || "").trim();
+};
+function CardNumber({ value, onChange }) {
+  const [draft, setDraft] = useState(null);
+  const shown = draft ?? value ?? "";
+  return (
+    <input
+      value={shown}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => { if (draft != null) onChange(maskCard(draft)); setDraft(null); }}
+      onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+      size={Math.max(shown.length, 6)}
+      className="bg-transparent py-0 text-[11px] leading-none tabular-nums text-neutral-900 outline-none"
+    />
+  );
+}
+
 // `fit` sizes the box to the figure, so a label such as EUR can sit right beside it.
 function MoneyInput({ value, onChange, placeholder = "0.00", fit = false }) {
   const [focus, setFocus] = useState(false);
@@ -382,7 +404,9 @@ export default function Costs({ seed }) {
         })()}
         {/* The credit card isn't shared by the bank, so its figure is typed in. */}
         <div className="flex h-[22px] items-stretch border-t border-black">
-          <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">Credit card</span>
+          <span className="flex flex-1 items-center gap-1 px-2 text-[11px] text-neutral-900">
+            Credit card: <CardNumber value={doc.cardNumber} onChange={(v) => save({ ...doc, cardNumber: v })} />
+          </span>
           <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
             <span>EUR</span>
             <MoneyInput value={doc.balances.card} onChange={(v) => setBalance("card", v)} placeholder="0.00" fit />
