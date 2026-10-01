@@ -414,7 +414,8 @@ export default function Costs({ seed }) {
         </div>
         {/* The mortgage isn't shared by the bank, so its loans are typed in. The Debt line
             shows what they add up to, and opens, like your account line, onto the loans
-            themselves on the same faint pink: name, account number, expiry and amount.
+            themselves on the same faint pink: name, account number, interest rate, expiry
+            and amount.
             The lines read as plain text; a double click opens one for editing. */}
         {(() => {
           const loans = doc.loans || [];
@@ -445,7 +446,7 @@ export default function Costs({ seed }) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      const l = { id: newId(), name: "", number: "", expires: "", amount: "" };
+                      const l = { id: newId(), name: "", number: "", rate: "", expires: "", amount: "" };
                       save({ ...doc, loans: [...loans, l], ui: { ...(doc.ui || {}), debtOpen: true } });
                       setEditLoanId(l.id);
                     }}
@@ -471,6 +472,10 @@ export default function Costs({ seed }) {
                           <span className="flex flex-1 items-center gap-3 pl-6 pr-2">
                             <input autoFocus value={l.name || ""} onChange={(e) => editLoan(l.id, "name", e.target.value)} className={`${cellTxt} w-44 border-b border-neutral-300`} />
                             <input value={l.number || ""} onChange={(e) => editLoan(l.id, "number", e.target.value)} className={`${cellTxt} w-40 border-b border-neutral-300 tabular-nums`} />
+                            <span className="flex items-center">
+                              <input value={l.rate || ""} onChange={(e) => editLoan(l.id, "rate", e.target.value.replace(/[^0-9.,]/g, ""))} className={`${cellTxt} w-10 border-b border-neutral-300 text-right tabular-nums`} />
+                              <span className="text-[11px] text-neutral-900">%</span>
+                            </span>
                             <input value={l.expires || ""} onChange={(e) => editLoan(l.id, "expires", e.target.value)} className={`${cellTxt} w-24 border-b border-neutral-300`} />
                             <button onClick={() => ask(() => setLoans(loans.filter((x) => x.id !== l.id)))} title="Remove this loan" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
                               <Trash2 size={11} />
@@ -483,7 +488,11 @@ export default function Costs({ seed }) {
                           // Read: Name: number (expires date), like the account line.
                           <span className="flex flex-1 items-center gap-1 pl-6 pr-2 text-[11px] text-neutral-900">
                             {[l.name, l.number].filter(Boolean).join(": ")}
-                            {l.expires && <span className="whitespace-nowrap lowercase text-[#C1440E]">(expires {l.expires})</span>}
+                            {(l.rate || l.expires) && (
+                              <span className="whitespace-nowrap lowercase text-[#C1440E]">
+                                ({[l.rate && `${l.rate}%`, l.expires && `expires ${l.expires}`].filter(Boolean).join(" · ")})
+                              </span>
+                            )}
                           </span>
                         )}
                         <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
