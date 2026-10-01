@@ -969,13 +969,22 @@ export default function Costs({ seed }) {
         <Gap />
       </div>
 
+      {/* The warning: a heavy red frame, the question in bold, a solid button to go ahead. */}
       {confirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setConfirm(null)}>
-          <div className="w-full max-w-sm rounded-xl border bg-white p-6 text-center shadow-xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-[13px] font-semibold text-neutral-800">{confirm.question || "Delete this?"}</p>
-            <div className="mt-5 flex justify-center gap-6 text-[13px] font-semibold uppercase tracking-wide">
-              <button onClick={() => { confirm.run(); setConfirm(null); }} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>{confirm.action || "Delete"}</button>
-              <button onClick={() => setConfirm(null)} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>Cancel</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setConfirm(null)}>
+          <div className="w-full max-w-sm border-[5px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">{confirm.question || "Delete this?"}</p>
+            <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
+              <button
+                onClick={() => { confirm.run(); setConfirm(null); }}
+                className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80"
+                style={{ backgroundColor: "#C1440E", borderColor: "#C1440E" }}
+              >
+                {confirm.action || "Delete"}
+              </button>
+              <button onClick={() => setConfirm(null)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: "#C1440E", color: "#C1440E" }}>
+                Cancel
+              </button>
             </div>
           </div>
         </div>
