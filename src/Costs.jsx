@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown, RefreshCw } from "lucide-react";
+import { Plus, Trash2, ChevronDown, RefreshCw, Check } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { DateCell } from "./LegalDocuments.jsx";
 
@@ -458,7 +458,23 @@ export default function Costs({ seed }) {
   })();
 
   // Fixed costs still to go out: nil until the costs part of the table is built.
-  const pendingFixed = 0;
+  // An expense is due this month when it goes out monthly, or this month is one of its
+  // months. It is pending until ticked as paid for this month; the tick is kept with
+  // the month it was made in, so next month it is pending again by itself.
+  const now = new Date();
+  const thisMonth = FREQ_MONTHS[now.getMonth()];
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const dueThisMonth = (e) => /month/i.test(e.freq || "") || new RegExp(`\\b${thisMonth}`, "i").test(e.freq || "");
+  const isPaid = (e) => e.paidMonth === monthKey;
+  const pendingOf = (e) => (dueThisMonth(e) && !isPaid(e) ? num(e.amount) : 0);
+  const pendingFixed = homeExpenses.reduce((sum, e) => sum + pendingOf(e), 0);
+  const homeMonthly = homeExpenses.reduce((sum, e) => sum + monthlyAvg(e), 0);
+  // Your own account's balance, read from the bank (not the company's or the kids').
+  const ownBalance = (() => {
+    const own = (bank?.accounts || []).find((a) => !/jugend|gesch|business|gmbh/i.test(`${a.product || ""} ${a.name || ""}`));
+    const b = own && bank.balances?.[own.uid];
+    return b && !b.error && b.amount !== "" ? num(b.amount) : 0;
+  })();
 
   if (!loaded) return <p className="px-2 py-3 text-[11px] italic text-neutral-400">Loading…</p>;
 
@@ -569,11 +585,11 @@ export default function Costs({ seed }) {
           </span>
         </div>
         {/* Your account's balance once the pending fixed costs and the credit card bill
-            have gone out. Nil for now, until the costs are in. */}
+            have gone out. The card counts as owed whichever way its sign was typed. */}
         <div className="flex h-[22px] items-stretch border-t border-black">
           <span className="flex flex-1 items-center px-2 text-[11px] font-bold text-neutral-900">Bank balance after fixed costs and credit card deductions</span>
           <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">
-            EUR {money(0)}
+            EUR {money(ownBalance - pendingFixed - Math.abs(num(doc.balances.card)))}
           </span>
         </div>
         {/* The mortgage isn't shared by the bank, so its loans are typed in. The Debt line
@@ -851,9 +867,18 @@ export default function Costs({ seed }) {
                 <MoneyInput value={e.amount} onChange={(v) => editHome(e.id, { amount: v })} placeholder="0.00" fit />
               </span>
               <span className={`${cell} justify-end`}>EUR {money(monthlyAvg(e))}</span>
-              <span className={`${cell} justify-end gap-1`}>
-                <span>EUR</span>
-                <MoneyInput value={e.pending} onChange={(v) => editHome(e.id, { pending: v })} placeholder="0.00" fit />
+              <span className={`${cell} justify-end`}>
+                {/* Due this month: a tick marks it paid; it shows teal once ticked. */}
+                {dueThisMonth(e) && e.id !== "blank" && (
+                  <button
+                    onClick={() => editHome(e.id, { paidMonth: isPaid(e) ? "" : monthKey })}
+                    title={isPaid(e) ? "Paid this month (click to undo)" : "Mark as paid this month"}
+                    className={`mr-auto ${isPaid(e) ? "text-[#0f766e]" : "text-neutral-300 hover:text-neutral-700"}`}
+                  >
+                    <Check size={12} strokeWidth={3} />
+                  </button>
+                )}
+                EUR {money(pendingOf(e))}
               </span>
             </div>
           );
@@ -864,6 +889,12 @@ export default function Costs({ seed }) {
         >
           <Plus size={11} /> Add expense
         </button>
+        {/* The group's total: what it averages a month, and what is still to go this month. */}
+        <div className="grid h-[22px] grid-cols-6 border-t border-black">
+          <span className="col-span-4 flex items-center px-2 text-[11px] font-bold text-neutral-900">Home-related total</span>
+          <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(homeMonthly)}</span>
+          <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(pendingFixed)}</span>
+        </div>
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
