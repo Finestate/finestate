@@ -90,46 +90,66 @@ export default function HW() {
     );
   // Two framed columns, no headings: a short one for the name, a long one for the
   // details, which grows with its text. Then the Add line under the last one.
-  const listBlock = (key) => (
+  // withLink adds a short third column for where to buy: the address shows only as
+  // "Link to buy", with a pencil to change it. An address typed into the details
+  // before this column existed is read as the link.
+  const listBlock = (key, withLink = false) => (
     <>
-      {listRows(key).map((m) => (
-        <div key={m.id} className="flex items-stretch border-t border-black">
-          <span className="flex w-1/4 min-w-[160px] shrink-0 items-start px-2 py-[3px]">
-            <input
-              value={m.name || ""}
-              onChange={(e) => editItem(key, m.id, { name: e.target.value })}
-              className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
-            />
-          </span>
-          <span className="flex flex-1 items-start gap-2 border-l border-black px-2 py-[3px]">
-            <span className="min-w-0 flex-1">
-              {/* A web address reads as a link with the shop's name; the pencil opens it for
-                  editing, and clicking away turns it back into the link. */}
-              {isWebAddress(m.text) && editingLink !== m.id ? (
-                <span className="flex items-center gap-2">
-                  <a href={m.text.trim()} target="_blank" rel="noreferrer" title={m.text.trim()} className="inline-flex items-center gap-1 text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
-                    {siteName(m.text)} <ExternalLink size={10} />
-                  </a>
-                  <button onClick={() => setEditingLink(m.id)} title="Edit the address" className="text-neutral-400 hover:text-neutral-900">
-                    <SquarePen size={11} />
-                  </button>
-                </span>
+      {listRows(key).map((m) => {
+        const oldLink = withLink && !m.link && isWebAddress(m.text);
+        const link = withLink ? (m.link ?? (oldLink ? m.text : "")) : "";
+        const details = oldLink ? "" : m.text || "";
+        const setDetails = (t) => editItem(key, m.id, oldLink ? { text: t, link: m.text } : { text: t });
+        const setLink = (v) => editItem(key, m.id, oldLink ? { link: v, text: "" } : { link: v });
+        return (
+          <div key={m.id} className="flex items-stretch border-t border-black">
+            <span className="flex w-1/4 min-w-[160px] shrink-0 items-start px-2 py-[3px]">
+              <input
+                value={m.name || ""}
+                onChange={(e) => editItem(key, m.id, { name: e.target.value })}
+                className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
+              />
+            </span>
+            <span className="flex min-w-0 flex-1 items-start border-l border-black px-2 py-[3px]">
+              <GrowText value={details} onChange={setDetails} rows={1} />
+            </span>
+            {withLink && (
+              <span className="flex w-36 shrink-0 items-start border-l border-black px-2 py-[3px]">
+                {isWebAddress(link) && editingLink !== m.id ? (
+                  <span className="flex items-center gap-2">
+                    <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} className="inline-flex items-center gap-1 whitespace-nowrap text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
+                      Link to buy <ExternalLink size={10} />
+                    </a>
+                    <button onClick={() => setEditingLink(m.id)} title="Change the address" className="text-neutral-400 hover:text-neutral-900">
+                      <SquarePen size={11} />
+                    </button>
+                  </span>
+                ) : (
+                  <input
+                    autoFocus={editingLink === m.id}
+                    value={link}
+                    onChange={(e) => setLink(e.target.value)}
+                    onBlur={() => setEditingLink(null)}
+                    onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                    className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
+                  />
+                )}
+              </span>
+            )}
+            <span className="flex shrink-0 items-start px-2 py-[5px]">
+              {m.id !== "blank" ? (
+                <button onClick={() => setListConfirm({ key, id: m.id })} title="Remove" className="text-neutral-900 hover:text-[#C1440E]">
+                  <Trash2 size={11} />
+                </button>
               ) : (
-                <span onBlur={() => setEditingLink(null)}>
-                  <GrowText value={m.text || ""} onChange={(t) => editItem(key, m.id, { text: t })} rows={1} autoFocus={editingLink === m.id} />
-                </span>
+                <span className="w-[11px]" />
               )}
             </span>
-            {m.id !== "blank" && (
-              <button onClick={() => setListConfirm({ key, id: m.id })} title="Remove" className="mt-[2px] shrink-0 text-neutral-900 hover:text-[#C1440E]">
-                <Trash2 size={11} />
-              </button>
-            )}
-          </span>
-        </div>
-      ))}
+          </div>
+        );
+      })}
       <button
-        onClick={() => saveList(key, [...lists[key], { id: newId(), name: "", text: "" }])}
+        onClick={() => saveList(key, [...lists[key], { id: newId(), name: "", text: "", ...(withLink ? { link: "" } : {}) }])}
         className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
       >
         <Plus size={11} strokeWidth={3} />Add
@@ -237,7 +257,7 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Supplements</span>
         </div>
-        {notesLoaded && listBlock("supplements")}
+        {notesLoaded && listBlock("supplements", true)}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
