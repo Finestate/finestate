@@ -934,7 +934,7 @@ export default function Costs({ seed }) {
                           <Check size={12} strokeWidth={3} />
                         </button>
                       )}
-                      {e.freq ? `EUR ${money(pendingOf(e))}` : ""}
+                      {pendingOf(e) ? `EUR ${money(pendingOf(e))}` : ""}
                     </span>
                   </div>
                 );
