@@ -302,17 +302,21 @@ export default function App() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // The signed-in person's own row: role, status and the pages they may open.
+  // The signed-in person's own row: role, status and the pages they may open. Read
+  // again only when the person changes: the login renews itself about hourly, and
+  // treating that as a new sign-in blanked and rebuilt the whole page, which looked
+  // like the site refreshing by itself.
+  const userId = session?.user?.id || null;
   useEffect(() => {
-    if (!supabaseReady || !session) { setProfile(null); setProfileReady(!session); return; }
+    if (!supabaseReady || !userId) { setProfile(null); setProfileReady(!userId); return; }
     setProfileReady(false);
     supabase
       .from("profiles")
       .select("id, email, full_name, role, status, access")
-      .eq("id", session.user.id)
+      .eq("id", userId)
       .single()
       .then(({ data }) => { setProfile(data || null); setProfileReady(true); });
-  }, [session]);
+  }, [userId]);
 
   // Everyone else, for the admin's "view as" list. RLS returns only this row for members.
   useEffect(() => {
