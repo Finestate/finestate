@@ -298,11 +298,7 @@ export default function Costs({ seed }) {
           <span className={head}>Income and costs</span>
         </div>
         {/* Balances always come first. */}
-        <Sub>Balances</Sub>
-        {/* The accounts read from the bank, under their own heading. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUBSUB_BG }}>
-          <span className={head}>Accounts</span>
-        </div>
+        <Sub>Accounts</Sub>
         {/* Your own account on its own line, with a chevron; a click anywhere in its
             name cell opens the other accounts (the company's and the kids') under it.
             Told apart by the bank's own account type, so no number sits in this code. */}
