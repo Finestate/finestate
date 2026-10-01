@@ -323,13 +323,11 @@ export default function Costs({ seed }) {
             return (
               <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black">
                 <span className={`flex flex-1 items-center text-[11px] text-neutral-900 ${sub ? "pl-6 pr-2" : "px-2"}`}>
-                  {/* Account name - holder - number. The bank sends the holder in capitals,
-                      so it is set in ordinary case; the number reads in blocks of four. */}
-                  {[
-                    a.product,
-                    a.name && a.name.toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase()),
-                    a.iban && a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim(),
-                  ].filter(Boolean).join(" - ") || "Account"}
+                  {/* Bank – holder: number. The bank sends the holder in capitals, so it is
+                      set in ordinary case; the number reads in blocks of four. */}
+                  {`Stadtsparkasse – ${
+                    (a.name || a.product || "Account").toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase())
+                  }${a.iban ? `: ${a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}` : ""}`}
                 </span>
                 <span className="w-36 shrink-0 border-l border-black" />
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900" title={b?.all?.join("\n") || b?.error || undefined}>
