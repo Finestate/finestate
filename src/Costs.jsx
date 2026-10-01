@@ -320,18 +320,14 @@ export default function Costs({ seed }) {
             const b = bank.balances?.[a.uid];
             return b && !b.error && b.amount !== "" ? num(b.amount) : null;
           };
-          // When the balances were last updated, until when the bank's approval runs,
-          // and the two controls as teal links, in small grey after your account number. The
+          // Until when the bank's approval runs, and the two controls as teal links, in small grey after your account number. The
           // controls don't open or shut the accounts under it.
           const stop = (e) => e.stopPropagation();
-          const fmtWhen = (d) => new Date(d).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
           const expired = bank?.valid_until && new Date(bank.valid_until) < new Date();
           const status = (
             <span className="ml-3 flex items-center gap-1.5 whitespace-nowrap text-[10px] text-neutral-400">
-              <span>{bankBusy ? "Updating…" : bank?.at ? `Updated ${fmtWhen(bank.at)}` : "Not updated yet"}</span>
               {bank?.valid_until && (
                 <>
-                  <span>·</span>
                   <span className={expired ? "font-semibold text-[#C1440E]" : ""}>
                     {expired ? "Access expired" : `Access until ${new Date(bank.valid_until).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`}
                   </span>
