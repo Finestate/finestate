@@ -90,9 +90,8 @@ export default function HW() {
     );
   // Two framed columns, no headings: a short one for the name, a long one for the
   // details, which grows with its text. Then the Add line under the last one.
-  // withLink adds a column, right after the name, for where to buy: the address itself,
-  // as a link, sharing the width equally with the details; a click in the space after it
-  // opens it to change. An address typed into the details
+  // withLink adds a column, right after the name, for where to buy: it reads "Link to
+  // buy", and a click in the space beside the words opens the address to change it. An address typed into the details
   // before this column existed is read as the link.
   const listBlock = (key, withLink = false) => (
     <>
@@ -115,11 +114,11 @@ export default function HW() {
             {withLink && (
               <span
                 onClick={() => { if (isWebAddress(link)) setEditingLink(m.id); }}
-                className={`block min-w-0 flex-1 border-l border-black px-2 py-[3px] ${isWebAddress(link) && editingLink !== m.id ? "cursor-text" : ""}`}
+                className={`block w-56 shrink-0 border-l border-black px-2 py-[3px] ${isWebAddress(link) && editingLink !== m.id ? "cursor-text" : ""}`}
               >
                 {isWebAddress(link) && editingLink !== m.id ? (
-                  <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} onClick={(e) => e.stopPropagation()} className="break-all text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
-                    {link.trim()}
+                  <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} onClick={(e) => e.stopPropagation()} className="text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
+                    Link to buy
                   </a>
                 ) : (
                   <input
