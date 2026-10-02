@@ -296,7 +296,8 @@ export default function HW() {
             <div key={n.id} {...dropProps("foundational", idx, (from, to) => saveNotes(moved(notes, from, to)))}>
               {marker("foundational", idx)}
               <div
-                onClick={() => editNote(n.id, { open: !n.open })}
+                // Only one entry open at a time: opening one shuts the others.
+                onClick={() => (notes.length ? saveNotes(notes.map((x) => ({ ...x, open: x.id === n.id ? !x.open : false }))) : editNote(n.id, { open: !n.open }))}
                 className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
               >
                 {grip("foundational", idx, n.id !== "blank")}
