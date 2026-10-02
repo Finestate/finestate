@@ -311,6 +311,10 @@ export default function HW() {
     saveNotes(notes.length ? notes.map((n) => (n.id === id ? { ...n, ...fields } : n)) : [{ id: newId(), title: "", text: "", open: false, ...fields }]);
 
 
+  // Nothing is drawn until the saved table is in, so the whole page appears at once
+  // rather than its bars first and the rest a moment later.
+  if (!notesLoaded) return <div className="w-full" />;
+
   return (
     <div className="w-full overflow-x-auto">
       {/* The HW table, in the Monthly page's style: grey bands between sections. */}
