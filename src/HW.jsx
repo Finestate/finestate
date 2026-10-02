@@ -58,7 +58,7 @@ export default function HW() {
   const [noteConfirm, setNoteConfirm] = useState(null); // entry waiting on Delete or Cancel
   const [notes, setNotes] = useState([]);
   // Name-and-details lists, by key: medicines, supplements.
-  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [], diagnostics: [], procedures: [], vaccinations: [], labs: [] });
+  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [], diagnostics: [], procedures: [], vaccinations: [], labs: [], insurance: [] });
   // Nutrition: three notes side by side, by key.
   const [nutrition, setNutrition] = useState({ meals: {} });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
@@ -140,6 +140,7 @@ export default function HW() {
           procedures: Array.isArray(d.procedures) ? d.procedures : [],
           vaccinations: Array.isArray(d.vaccinations) ? d.vaccinations : [],
           labs: Array.isArray(d.labs) ? d.labs : [],
+          insurance: Array.isArray(d.insurance) ? d.insurance : [],
         });
         setNutrition({ ...(d.nutrition || {}), meals: d.nutrition?.meals || {} });
         setNotesLoaded(true);
@@ -594,6 +595,12 @@ export default function HW() {
           <span className={head}>Labs</span>
         </div>
         {notesLoaded && listBlock("labs")}
+        {/* The grey band, then Insurance: single-column lines, like Vaccinations. */}
+        <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Insurance</span>
+        </div>
+        {notesLoaded && lineBlock("insurance")}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
