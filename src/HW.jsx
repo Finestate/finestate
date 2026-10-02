@@ -567,7 +567,8 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Testing</span>
         </div>
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        {/* One level down from Testing, so the lighter shade. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
           <span className={head}>Diagnostics</span>
         </div>
         {notesLoaded && listBlock("diagnostics")}
