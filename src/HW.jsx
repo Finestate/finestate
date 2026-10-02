@@ -194,6 +194,17 @@ export default function HW() {
       next.procedures = [];
       changed = true;
     }
+    // Lines copied in twice: only the first of each exact title and path is kept.
+    {
+      const seen = new Set();
+      const once = next.diagnostics.filter((r) => {
+        const k = `${(r.name || "").trim()}|${(r.text || "").trim()}`;
+        if (k !== "|" && seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+      if (once.length !== next.diagnostics.length) { next.diagnostics = once; changed = true; }
+    }
     if (changed) {
       setLists(next);
       persist({ foundational: notes, ...next, nutrition });
