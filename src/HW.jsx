@@ -58,7 +58,7 @@ export default function HW() {
   const [noteConfirm, setNoteConfirm] = useState(null); // entry waiting on Delete or Cancel
   const [notes, setNotes] = useState([]);
   // Name-and-details lists, by key: medicines, supplements.
-  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [], diagnostics: [], procedures: [], vaccinations: [] });
+  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [], diagnostics: [], procedures: [], vaccinations: [], labs: [] });
   // Nutrition: three notes side by side, by key.
   const [nutrition, setNutrition] = useState({ meals: {} });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
@@ -139,6 +139,7 @@ export default function HW() {
           diagnostics: Array.isArray(d.diagnostics) ? d.diagnostics : [],
           procedures: Array.isArray(d.procedures) ? d.procedures : [],
           vaccinations: Array.isArray(d.vaccinations) ? d.vaccinations : [],
+          labs: Array.isArray(d.labs) ? d.labs : [],
         });
         setNutrition({ ...(d.nutrition || {}), meals: d.nutrition?.meals || {} });
         setNotesLoaded(true);
@@ -193,6 +194,22 @@ export default function HW() {
       next.diagnostics = [...next.diagnostics, ...lists.procedures];
       next.procedures = [];
       changed = true;
+    }
+    // Labs: the old lines from the one starting 2023-09-14 down to the next heading, in
+    // the same title and path form. Any of them that went into Diagnostics leave it.
+    if (empty(lists.labs, ["name", "text"])) {
+      const start = rows.findIndex((r) => r.kind === "row" && (r.a || "").trim().startsWith("2023-09-14"));
+      const got = [];
+      for (let i = start; start >= 0 && i < rows.length && rows[i].kind === "row"; i++) {
+        if ((rows[i].a || "").trim() || (rows[i].b || "").trim()) got.push(titleAndPath(rows[i]));
+      }
+      if (got.length) {
+        const key = (r) => `${(r.name || "").trim()}|${(r.text || "").trim()}`;
+        const lab = new Set(got.map(key));
+        next.labs = got;
+        next.diagnostics = next.diagnostics.filter((r) => !lab.has(key(r)));
+        changed = true;
+      }
     }
     // Lines copied in twice: only the first of each exact title and path is kept.
     {
@@ -572,6 +589,11 @@ export default function HW() {
           <span className={head}>Diagnostics</span>
         </div>
         {notesLoaded && listBlock("diagnostics")}
+        {/* Labs, the same as Diagnostics: one level under Testing. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
+          <span className={head}>Labs</span>
+        </div>
+        {notesLoaded && listBlock("labs")}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
