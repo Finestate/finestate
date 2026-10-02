@@ -110,7 +110,7 @@ function Sidebar({ route, onGo, allowed }) {
       : "text-neutral-500 hover:text-neutral-900 hover:bg-black/[0.04]");
 
   const subCls = (active, locked) =>
-    "w-full flex items-center gap-2 pl-12 pr-3 py-1.5 rounded-md text-[11px] uppercase tracking-wide transition-colors " +
+    "w-full flex items-center gap-2 pl-12 pr-3 py-1.5 rounded-md text-[12px] uppercase tracking-wide transition-colors " +
     (locked
       ? "text-neutral-300 cursor-not-allowed"
       : active
