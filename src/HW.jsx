@@ -589,6 +589,9 @@ export default function HW() {
           <span className={head}>Labs</span>
         </div>
         {notesLoaded && listBlock("labs")}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Procedures tracking</span>
+        </div>
         {/* Vaccinations, under Labs: single-column lines for now. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Vaccinations</span>
