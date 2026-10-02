@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown, List, GripVertical } from "lucide-react";
+import { Plus, Trash2, ChevronDown, List, GripVertical, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Health and wellbeing. It holds medical history, membership numbers and private links,
@@ -358,7 +358,11 @@ export default function HW() {
               </div>
               {n.open && (
                 <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
-                  <GrowText value={n.text || ""} onChange={(t) => editNote(n.id, { text: t })} />
+                  <RichNotes
+                    key={n.id}
+                    html={n.html ?? plainToHtml(n.text)}
+                    onChange={(html) => editNote(n.id, { html })}
+                  />
                 </div>
               )}
             </div>
@@ -521,6 +525,61 @@ const isWebAddress = (v) => /^https?:\/\/\S+$/i.test(String(v || "").trim());
 const siteName = (v) => {
   try { return new URL(String(v).trim()).hostname.replace(/^www\./, ""); } catch { return String(v); }
 };
+
+// Notes written before formatting arrived were plain text; they show the same, line by line.
+const plainToHtml = (t) =>
+  String(t || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br>");
+
+// The Daily page's editing bar over formatted notes: bold, red, bullets and indent, each
+// acting on whatever is selected. Uncontrolled, so the cursor never jumps while typing.
+const INK_RED = "#B01E2F";
+function RichNotes({ html, onChange }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (el && document.activeElement !== el && el.innerHTML !== (html || "")) el.innerHTML = html || "";
+  }, [html]);
+  const run = (cmd, arg) => {
+    const el = ref.current;
+    if (!el) return;
+    el.focus();
+    document.execCommand(cmd, false, arg);
+    onChange(el.innerHTML);
+  };
+  const red = () => {
+    const now = String(document.queryCommandValue("foreColor") || "").replace(/\s/g, "");
+    const isRed = now === "rgb(176,30,47)" || now.toLowerCase() === INK_RED.toLowerCase();
+    run("foreColor", isRed ? "#171717" : INK_RED);
+  };
+  const btn = "flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]";
+  const keep = (e) => e.preventDefault();
+  return (
+    <>
+      <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
+        <button onMouseDown={keep} onClick={() => run("bold")} title="Bold the highlighted words" className={btn}>
+          <span className="text-[13px] font-black leading-none tracking-tight">B</span>
+        </button>
+        <button onMouseDown={keep} onClick={red} title="Switch the highlighted words between red and black" className="flex h-4 w-4 items-center justify-center">
+          <span className="block h-3 w-3" style={{ background: `linear-gradient(135deg, ${INK_RED} 50%, #171717 50%)` }} />
+        </button>
+        <button onMouseDown={keep} onClick={() => run("insertUnorderedList")} title="Bullet the selected lines" className={btn}><List size={14} strokeWidth={2.75} /></button>
+        <button onMouseDown={keep} onClick={() => run("outdent")} title="Decrease indent" className={btn}><ChevronsLeft size={14} strokeWidth={2.75} /></button>
+        <button onMouseDown={keep} onClick={() => run("indent")} title="Increase indent" className={btn}><ChevronsRight size={14} strokeWidth={2.75} /></button>
+      </div>
+      <div
+        ref={ref}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={(e) => onChange(e.currentTarget.innerHTML)}
+        className="rich-line block min-h-[30px] w-full whitespace-pre-wrap break-words text-[11px] leading-[15px] text-neutral-900 outline-none"
+      />
+    </>
+  );
+}
 
 // Notes that grow with what is typed, so nothing is ever cut off or scrolls inside.
 // `bullets`: a line started with "- " becomes a bullet, Enter starts the next one, and
