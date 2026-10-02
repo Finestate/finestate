@@ -58,7 +58,7 @@ export default function HW() {
   const [noteConfirm, setNoteConfirm] = useState(null); // entry waiting on Delete or Cancel
   const [notes, setNotes] = useState([]);
   // Name-and-details lists, by key: medicines, supplements.
-  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [] });
+  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [], diagnostics: [], procedures: [] });
   // Nutrition: three notes side by side, by key.
   const [nutrition, setNutrition] = useState({ meals: {} });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
@@ -136,28 +136,58 @@ export default function HW() {
           supplements: Array.isArray(d.supplements) ? d.supplements : [],
           fitness: Array.isArray(d.fitness) ? d.fitness : [],
           monitoring: Array.isArray(d.monitoring) ? d.monitoring : [],
+          diagnostics: Array.isArray(d.diagnostics) ? d.diagnostics : [],
+          procedures: Array.isArray(d.procedures) ? d.procedures : [],
         });
         setNutrition({ ...(d.nutrition || {}), meals: d.nutrition?.meals || {} });
         setNotesLoaded(true);
       });
   }, []);
-  // ONE-OFF: the old table's Appointments and strategy lines fill the new Monitoring, first column into
-  // Focus, second into Planning, once both tables have loaded cleanly and only while the
-  // new one is still empty. The old table is left as it is. To be removed once done.
+  // ONE-OFF: lines from the old table fill the new sections, once both tables have
+  // loaded cleanly, each only while that new section has nothing typed in it. The old
+  // table is left as it is. To be removed once done.
+  //   Appointments and strategy -> Monitoring: first column Focus, second Planning.
+  //   Diagnostics, Procedures -> their sections: the title (without its colon) and the path.
   const notesOk = useRef(false);
   const oldOk = useRef(false);
   useEffect(() => {
-    const typed = lists.monitoring.some((r) => `${r.focus || ""}${r.planning || ""}${r.situation || ""}`.trim());
-    if (!loaded || !notesLoaded || !notesOk.current || !oldOk.current || typed) return;
-    const start = rows.findIndex((r) => r.kind !== "row" && /appointments and strategy/i.test(r.a || ""));
-    if (start < 0) return;
-    const copied = [];
-    for (let i = start + 1; i < rows.length && rows[i].kind !== "section"; i++) {
-      const r = rows[i];
-      if (r.kind === "subhead" || (!(r.a || "").trim() && !(r.b || "").trim())) continue;
-      copied.push({ id: newId(), focus: r.a || "", planning: r.b || "", situation: "" });
+    if (!loaded || !notesLoaded || !notesOk.current || !oldOk.current) return;
+    const linesUnder = (re) => {
+      const start = rows.findIndex((r) => r.kind !== "row" && re.test(r.a || ""));
+      if (start < 0) return [];
+      const out = [];
+      for (let i = start + 1; i < rows.length && rows[i].kind === "row"; i++) {
+        const r = rows[i];
+        if ((r.a || "").trim() || (r.b || "").trim()) out.push(r);
+      }
+      return out;
+    };
+    // A title and a path: from two cells, or from one cell split at its first ": ".
+    const titleAndPath = (r) => {
+      let title = (r.a || "").trim();
+      let path = (r.b || "").trim();
+      if (!path && title.includes(": ")) {
+        path = title.slice(title.indexOf(": ") + 2).trim();
+        title = title.slice(0, title.indexOf(": "));
+      }
+      return { id: newId(), name: title.replace(/:\s*$/, ""), text: path };
+    };
+    const empty = (list, fields) => !list.some((r) => fields.map((f) => r[f] || "").join("").trim());
+    const next = { ...lists };
+    let changed = false;
+    if (empty(lists.monitoring, ["focus", "planning", "situation"])) {
+      const got = linesUnder(/appointments and strategy/i).map((r) => ({ id: newId(), focus: r.a || "", planning: r.b || "", situation: "" }));
+      if (got.length) { next.monitoring = got; changed = true; }
     }
-    if (copied.length) saveList("monitoring", copied);
+    for (const [key, re] of [["diagnostics", /diagnostic/i], ["procedures", /procedure/i]]) {
+      if (!empty(lists[key], ["name", "text"])) continue;
+      const got = linesUnder(re).map(titleAndPath);
+      if (got.length) { next[key] = got; changed = true; }
+    }
+    if (changed) {
+      setLists(next);
+      persist({ foundational: notes, ...next, nutrition });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, notesLoaded]);
 
@@ -505,6 +535,20 @@ export default function HW() {
           <span className={head}>Monitoring</span>
         </div>
         {notesLoaded && columnsBlock("monitoring", [["focus", "Focus"], ["planning", "Planning"], ["situation", "Situation"]])}
+        {/* The grey band, then Testing, with Diagnostics and Procedures under it: a title and
+            its full Dropbox path on each line. */}
+        <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Testing</span>
+        </div>
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Diagnostics</span>
+        </div>
+        {notesLoaded && listBlock("diagnostics")}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Procedures</span>
+        </div>
+        {notesLoaded && listBlock("procedures")}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
