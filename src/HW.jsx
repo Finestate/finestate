@@ -559,7 +559,7 @@ function RichNotes({ html, onChange }) {
   const keep = (e) => e.preventDefault();
   return (
     <>
-      <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
+      <div className="-mx-2 mb-1.5 flex items-center gap-1 border-b border-[#C1440E] px-2 pb-1">
         <button onMouseDown={keep} onClick={() => run("bold")} title="Bold the highlighted words" className={btn}>
           <span className="text-[13px] font-black leading-none tracking-tight">B</span>
         </button>
