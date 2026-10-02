@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Plus, Trash2, ChevronDown, RefreshCw, Check } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
-import { EXPENSES_SEED } from "./expensesSeed.js";
 import { DateCell } from "./LegalDocuments.jsx";
 
 // Cash flow page, rebuilt from the FC tab of HEIE Planning. The figures are private,
@@ -362,26 +361,6 @@ export default function Costs({ seed }) {
         const loadedDoc = { ...EMPTY, ...d, balances: { ...EMPTY.balances, ...(d.balances || {}) } };
         setDoc(loadedDoc);
         setLoaded(true);
-        // ONE-OFF: the expense lines from the sheet go into Supabase once, and only when
-        // the saved page loaded cleanly, so nothing already there can be written over.
-        if (!error && !loadedDoc.expensesSeeded) {
-          const next = {
-            ...loadedDoc,
-            expenses: {
-              groups: EXPENSES_SEED.map((g) => ({
-                id: newId(),
-                name: g.name,
-                rows: g.rows.map(([description, source, amount]) => ({ id: newId(), description, source, freq: "", amount })),
-              })),
-            },
-            expensesSeeded: true,
-          };
-          setDoc(next);
-          supabase
-            .from("admin_docs")
-            .upsert({ id: DOC_ID, data: next, updated_at: new Date().toISOString() })
-            .then(({ error: e }) => setErr(e ? e.message : ""));
-        }
       });
   }, []);
 
