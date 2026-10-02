@@ -317,7 +317,7 @@ export default function HW() {
     <div className="w-full overflow-x-auto">
       {/* The new table, being rebuilt section by section, in the Monthly page's style:
           a grey band top and bottom and between sections. */}
-      <div spellCheck={false} className="mb-48 w-full min-w-[760px] overflow-hidden border border-black bg-white shadow-sm">
+      <div spellCheck className="mb-48 w-full min-w-[760px] overflow-hidden border border-black bg-white shadow-sm">
         <div className="h-[10px]" style={{ backgroundColor: GAP_BG }} />
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Foundational</span>
@@ -560,8 +560,8 @@ const siteName = (v) => {
 // Notes that grow with what is typed, so nothing is ever cut off or scrolls inside.
 // `bullets`: a line started with "- " becomes a bullet, Enter starts the next one, and
 // Enter on an empty bullet ends the list.
-// `spell`: the browser underlines misspelt words, as in Nutrition.
-function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = false, boxRef = null, spell = false }) {
+// `spell`: the browser underlines misspelt words (on everywhere in the new table).
+function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = false, boxRef = null, spell = true }) {
   const ref = useRef(null);
   if (boxRef) boxRef.current = ref.current;
   const onKeyDown = (e) => {
