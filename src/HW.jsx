@@ -574,11 +574,6 @@ export default function HW() {
           <span className={head}>Monitoring</span>
         </div>
         {notesLoaded && columnsBlock("monitoring", [["focus", "Focus"], ["planning", "Planning"], ["situation", "Situation"]])}
-        {/* Vaccinations, part of the Monitoring area: single-column lines for now. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={head}>Vaccinations</span>
-        </div>
-        {notesLoaded && lineBlock("vaccinations")}
         {/* The grey band, then Testing, with Diagnostics under it: a title and its full
             Dropbox path on each line. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
@@ -595,6 +590,11 @@ export default function HW() {
           <span className={head}>Labs</span>
         </div>
         {notesLoaded && listBlock("labs")}
+        {/* Vaccinations, under Labs: single-column lines for now. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Vaccinations</span>
+        </div>
+        {notesLoaded && lineBlock("vaccinations")}
         {/* The grey band, then Insurance: single-column lines, like Vaccinations. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
