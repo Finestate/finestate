@@ -767,7 +767,7 @@ export default function Costs({ seed }) {
           <div key={t.id} className="group flex h-[22px] items-stretch border-t border-black">
             <span className="flex flex-1 items-center gap-2 px-2">
               <span className="w-40">
-                <DateCell value={t.date} onChange={(v) => editTax(t.id, "date", v)} placeholder="Date" />
+                <DateCell value={t.date} onChange={(v) => editTax(t.id, "date", v)} />
               </span>
               <button onClick={() => ask(() => save({ ...doc, taxPayments: taxPayments.filter((x) => x.id !== t.id) }))} title="Remove" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
                 <Trash2 size={11} />
