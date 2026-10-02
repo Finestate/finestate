@@ -52,7 +52,7 @@ const NAV = [
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
       { id: "admin/users", name: "Users", icon: Users },
       // Always last: the pages outside services ask us to have, gathered on one page.
-      { id: "admin/integrations", name: "Integrations (required pages)" },
+      { id: "admin/integrations", name: "(Integrations)" },
     ],
   },
   {
