@@ -560,18 +560,9 @@ function BibleChat({ chat, onChange }) {
     }
   };
   return (
-    <div className="-mx-2 mt-2 border-t border-[#C1440E] px-2 pt-1.5">
-      <div className="mb-1 flex items-center">
-        <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Ask Claude</span>
-        {chat.length > 0 && (
-          <button
-            onClick={() => { if (window.confirm("Clear this conversation?")) onChange([]); }}
-            className="ml-auto text-[11px] text-neutral-500 underline underline-offset-2 hover:text-[#C1440E]"
-          >
-            Clear
-          </button>
-        )}
-      </div>
+    // Just the conversation and an empty box: a question is sent with Enter, leaves the
+    // box at once, and the answer appears when it is ready.
+    <div className="mt-2">
       {chat.map((m, i) => (
         <div key={i} className="mb-1.5 text-[11px] leading-[15px] text-neutral-900">
           <span className="font-bold">{m.role === "user" ? "You" : "Claude"}: </span>
@@ -580,8 +571,8 @@ function BibleChat({ chat, onChange }) {
       ))}
       {busy && <p className="mb-1.5 text-[11px] italic text-neutral-500">Claude is thinking…</p>}
       {error && <p className="mb-1.5 text-[11px] font-semibold text-[#C1440E]">{error}</p>}
-      <div className="flex items-end gap-2 border border-black bg-white px-2 py-1">
-        <span className="min-w-0 flex-1">
+      <div className="border border-black bg-white px-2 py-1">
+        <span className="block">
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -590,13 +581,6 @@ function BibleChat({ chat, onChange }) {
             className="block w-full resize-none bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
           />
         </span>
-        <button
-          onClick={ask}
-          disabled={busy || !draft.trim()}
-          className="shrink-0 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] disabled:text-neutral-300"
-        >
-          Ask
-        </button>
       </div>
     </div>
   );
