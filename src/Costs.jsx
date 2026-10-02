@@ -790,7 +790,7 @@ export default function Costs({ seed }) {
                     value={k.initial || ""}
                     onChange={(e) => editKid(k.id, { initial: e.target.value.slice(0, 1).toUpperCase() })}
                     placeholder="–"
-                    className="w-full bg-transparent py-0 text-[11px] font-bold leading-none text-neutral-900 outline-none placeholder:text-neutral-400"
+                    className="w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none placeholder:text-neutral-400"
                   />
                 </span>
                 <span className="flex w-20 shrink-0 items-center border-l border-black px-1">
