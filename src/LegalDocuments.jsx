@@ -97,7 +97,8 @@ const withinAYear = (v) => {
 };
 
 // Also used on the Monthly page, for the loans' expiry dates.
-export function DateCell({ value, onChange, flagSoon, placeholder }) {
+// `wholeCell`: a click anywhere on the field opens the calendar, not only its icon.
+export function DateCell({ value, onChange, flagSoon, placeholder, wholeCell = false }) {
   const [anchor, setAnchor] = useState(null);
   const btn = useRef(null);
   const open = () => {
@@ -109,11 +110,11 @@ export function DateCell({ value, onChange, flagSoon, placeholder }) {
     setAnchor({ top, left: Math.min(r.left, window.innerWidth - 236) });
   };
   return (
-    <span className="flex w-full items-center gap-1.5">
-      <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} title="Pick a date" className="shrink-0 text-neutral-400 hover:text-[#9c7c33]">
+    <span onClick={wholeCell ? () => { if (!anchor) open(); } : undefined} className={`flex w-full items-center gap-1.5 ${wholeCell ? "cursor-pointer" : ""}`}>
+      <button ref={btn} type="button" onClick={(e) => { e.stopPropagation(); anchor ? setAnchor(null) : open(); }} title="Pick a date" className="shrink-0 text-neutral-400 hover:text-[#9c7c33]">
         <Calendar size={12} />
       </button>
-      <input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={`${cell} placeholder:text-neutral-400 ${flagSoon && withinAYear(value) ? "!font-bold !text-[#E0101F] !bg-[#E0101F]/10 rounded px-1" : ""}`} />
+      <input value={value || ""} readOnly={wholeCell} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={`${cell} placeholder:text-neutral-400 ${wholeCell ? "cursor-pointer" : ""} ${flagSoon && withinAYear(value) ? "!font-bold !text-[#E0101F] !bg-[#E0101F]/10 rounded px-1" : ""}`} />
       {anchor && <DatePicker value={value} anchor={anchor} onClose={() => setAnchor(null)} onPick={(v) => { onChange(v); setAnchor(null); }} />}
     </span>
   );
