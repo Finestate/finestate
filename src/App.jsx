@@ -55,12 +55,8 @@ const NAV = [
       { id: "admin/integrations", name: "(Required integrations)" },
     ],
   },
-  {
-    id: "costs",
-    name: "Cash flow",
-    icon: CreditCard,
-    children: [{ id: "costs/monthly", name: "Monthly" }],
-  },
+  // Cash flow is one page now; the route keeps its old id so access lists still match.
+  { id: "costs/monthly", name: "Cash flow", icon: CreditCard },
   // Assets is one page now; the route keeps its old id so access lists still match.
   { id: "assets/snapshot", name: "Assets", icon: Wallet },
   // Investing stands on its own with its own pages; Knowledge is the Intel board.
