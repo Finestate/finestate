@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
@@ -363,6 +363,19 @@ function AutoTextarea({ value, onChange, ...props }) {
 // out (`sub`), so an indented one from before reads as one step.
 const MAX_LEVEL = 4;
 const levelOf = (x) => (Number.isFinite(x?.level) ? x.level : x?.sub ? 1 : 0);
+// A line with stepped-in lines right under it heads a group: it can be closed and
+// opened, and closing it hides everything under it until the next line at its level.
+const isHead = (list, i) => i + 1 < list.length && levelOf(list[i + 1]) > levelOf(list[i]);
+const hiddenRows = (list) => {
+  const hidden = new Set();
+  let closedAt = null;
+  list.forEach((r, i) => {
+    if (closedAt != null && levelOf(r) > closedAt) { hidden.add(r.id); return; }
+    closedAt = null;
+    if (r.closed && isHead(list, i)) closedAt = levelOf(r);
+  });
+  return hidden;
+};
 const stepLevel = (x, d) => {
   const level = Math.max(0, Math.min(MAX_LEVEL, levelOf(x) + d));
   return { ...x, level, sub: level > 0 };
@@ -418,6 +431,7 @@ export default function Planning() {
   const addColRow = (k, sub = false) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "", sub }] });
   const setColRow = (k, id, text) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) });
   const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
+  const toggleColClosed = (k, id) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, closed: !r.closed } : r)) });
   const stepColRow = (k, id, d) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? stepLevel(r, d) : r)) });
   // Ticked lines write themselves into the Errandsprios brackets on today's line,
   // joined by a dash with no spaces, in the red the brackets already use.
@@ -1243,7 +1257,7 @@ export default function Planning() {
   const renderTwoCols = (lineIdx) => (
     <>
       <div className="order-4 col-span-3 grid grid-cols-3 items-start gap-1.5">
-        {TWOCOLS.map(([k, label]) => (
+        {TWOCOLS.map(([k, label]) => { const hidden = hiddenRows(cols[k]); return (
           // TEMPORARY: reminder-red turns all text in these two columns red, as a note
           // that they still need finishing. Remove the class to put them back.
           <div key={k} className="reminder-red flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
@@ -1254,7 +1268,7 @@ export default function Planning() {
               onDrop={() => dropColRow(k)}
               onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropAt(null); }}
             >
-              {cols[k].map((r, i) => (
+              {cols[k].map((r, i) => hidden.has(r.id) ? null : (
                 <div key={r.id}>
                 {/* A red marker shows exactly where the line will land. */}
                 {dragC?.col === k && dropAt?.col === k && dropAt.index === i && (
@@ -1272,6 +1286,14 @@ export default function Planning() {
                   style={levelOf(r) ? { marginLeft: `${20 * levelOf(r)}px` } : undefined}
                   className={`flex items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
                 >
+                  {/* A group head opens and closes at a click; other lines keep the space. */}
+                  <span className="flex h-[15px] w-[11px] shrink-0 items-center">
+                    {isHead(cols[k], i) && (
+                      <button onClick={() => toggleColClosed(k, r.id)} title={r.closed ? "Open" : "Close"} className="flex items-center text-neutral-900 hover:text-[#C1440E]">
+                        {r.closed ? <ChevronRight size={11} strokeWidth={2.75} /> : <ChevronDown size={11} strokeWidth={2.75} />}
+                      </button>
+                    )}
+                  </span>
                   {/* Boxed to the exact line height, so it sits dead centre on the first line. */}
                   <span className="flex h-[15px] shrink-0 items-center">
                     <input
@@ -1330,7 +1352,7 @@ export default function Planning() {
               </button>
             </div>
           </div>
-        ))}
+        ); })}
         {/* Third column: a free field, no lines and no tick boxes, just text. */}
         <div className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
           <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
