@@ -785,7 +785,7 @@ export default function Costs({ seed }) {
           return (
             <div key={k.id}>
               <div className="flex h-[22px] items-stretch border-t border-black">
-                <span className="flex w-10 shrink-0 items-center px-2">
+                <span className="flex w-24 shrink-0 items-center px-2">
                   <input
                     value={k.initial || ""}
                     onChange={(e) => editKid(k.id, { initial: e.target.value.slice(0, 1).toUpperCase() })}
@@ -793,7 +793,7 @@ export default function Costs({ seed }) {
                     className="w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none placeholder:text-neutral-400"
                   />
                 </span>
-                <span className="flex w-20 shrink-0 items-center border-l border-black px-1">
+                <span className="flex w-24 shrink-0 items-center border-l border-black px-1">
                   <select
                     value={k.month ? k.month.charAt(0).toUpperCase() + k.month.slice(1).toLowerCase() : ""}
                     onChange={(e) => editKid(k.id, { month: e.target.value })}
