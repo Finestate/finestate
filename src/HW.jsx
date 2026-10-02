@@ -338,10 +338,10 @@ export default function HW() {
             </span>
           </div>
         )}
-        {/* The grey band, then Workout. */}
+        {/* The grey band, then Fitness. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={head}>Workout</span>
+          <span className={head}>Fitness</span>
         </div>
       </div>
 
