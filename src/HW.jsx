@@ -128,6 +128,7 @@ export default function HW() {
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) setErr(error.message);
+        notesOk.current = !error;
         setNotes(Array.isArray(data?.data?.foundational) ? data.data.foundational : []);
         const d = data?.data || {};
         setLists({
@@ -140,6 +141,25 @@ export default function HW() {
         setNotesLoaded(true);
       });
   }, []);
+  // ONE-OFF: the old table's Monitoring lines fill the new Monitoring, first column into
+  // Focus, second into Planning, once both tables have loaded cleanly and only while the
+  // new one is still empty. The old table is left as it is. To be removed once done.
+  const notesOk = useRef(false);
+  const oldOk = useRef(false);
+  useEffect(() => {
+    if (!loaded || !notesLoaded || !notesOk.current || !oldOk.current || lists.monitoring.length) return;
+    const start = rows.findIndex((r) => r.kind === "section" && /monitor/i.test(r.a || ""));
+    if (start < 0) return;
+    const copied = [];
+    for (let i = start + 1; i < rows.length && rows[i].kind !== "section"; i++) {
+      const r = rows[i];
+      if (r.kind === "subhead" || (!(r.a || "").trim() && !(r.b || "").trim())) continue;
+      copied.push({ id: newId(), focus: r.a || "", planning: r.b || "", situation: "" });
+    }
+    if (copied.length) saveList("monitoring", copied);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, notesLoaded]);
+
   // The whole new table is one saved document; each section saves with the others.
   const persist = (doc) =>
     supabase
@@ -336,6 +356,7 @@ export default function HW() {
       .then(({ data, error }) => {
         if (error) setErr(error.message);
         const list = Array.isArray(data?.data) ? data.data : [];
+        oldOk.current = !error;
         setRows(list.map((r) => (r.id ? r : { ...r, id: newId() })));
         setLoaded(true);
       });
