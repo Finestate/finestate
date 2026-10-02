@@ -58,7 +58,7 @@ export default function HW() {
   const [noteConfirm, setNoteConfirm] = useState(null); // entry waiting on Delete or Cancel
   const [notes, setNotes] = useState([]);
   // Name-and-details lists, by key: medicines, supplements.
-  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [], diagnostics: [], procedures: [] });
+  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [], diagnostics: [], procedures: [], vaccinations: [] });
   // Nutrition: three notes side by side, by key.
   const [nutrition, setNutrition] = useState({ meals: {} });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
@@ -138,6 +138,7 @@ export default function HW() {
           monitoring: Array.isArray(d.monitoring) ? d.monitoring : [],
           diagnostics: Array.isArray(d.diagnostics) ? d.diagnostics : [],
           procedures: Array.isArray(d.procedures) ? d.procedures : [],
+          vaccinations: Array.isArray(d.vaccinations) ? d.vaccinations : [],
         });
         setNutrition({ ...(d.nutrition || {}), meals: d.nutrition?.meals || {} });
         setNotesLoaded(true);
@@ -535,6 +536,11 @@ export default function HW() {
           <span className={head}>Monitoring</span>
         </div>
         {notesLoaded && columnsBlock("monitoring", [["focus", "Focus"], ["planning", "Planning"], ["situation", "Situation"]])}
+        {/* Vaccinations, part of the Monitoring area: single-column lines for now. */}
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Vaccinations</span>
+        </div>
+        {notesLoaded && lineBlock("vaccinations")}
         {/* The grey band, then Testing, with Diagnostics and Procedures under it: a title and
             its full Dropbox path on each line. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
