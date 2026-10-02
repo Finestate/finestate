@@ -184,8 +184,7 @@ export default function HW() {
           <div key={m.id} {...dropProps(key, idx, (from, to) => saveList(key, moved(lists[key], from, to)))}>
           {marker(key, idx)}
           <div className="flex items-stretch border-t border-black">
-            <span className="flex w-1/4 min-w-[160px] shrink-0 items-start gap-2 px-2 py-[3px]">
-              <span className="flex h-[15px] items-center">{grip(key, idx, m.id !== "blank")}</span>
+            <span className="flex w-1/4 min-w-[160px] shrink-0 items-start px-2 py-[3px]">
               <input
                 value={m.name || ""}
                 onChange={(e) => editItem(key, m.id, { name: e.target.value })}
@@ -217,7 +216,9 @@ export default function HW() {
             <span className="flex min-w-0 flex-1 items-start border-l border-black px-2 py-[3px]">
               <GrowText value={details} onChange={setDetails} rows={1} />
             </span>
-            <span className="flex shrink-0 items-start px-2 py-[5px]">
+            {/* The grip always sits just left of the bin. */}
+            <span className="flex shrink-0 items-start gap-2 px-2 py-[5px]">
+              {grip(key, idx, m.id !== "blank")}
               {m.id !== "blank" ? (
                 <button onClick={() => setListConfirm({ key, id: m.id })} title="Remove" className="text-neutral-900 hover:text-[#C1440E]">
                   <Trash2 size={11} />
@@ -300,7 +301,6 @@ export default function HW() {
                 onClick={() => (notes.length ? saveNotes(notes.map((x) => ({ ...x, open: x.id === n.id ? !x.open : false }))) : editNote(n.id, { open: !n.open }))}
                 className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
               >
-                {grip("foundational", idx, n.id !== "blank")}
                 <input
                   value={n.title || ""}
                   onClick={(e) => e.stopPropagation()}
@@ -311,6 +311,8 @@ export default function HW() {
                 />
                 <span className="flex-1" />
                 <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${n.open ? "rotate-180" : ""}`} />
+                {/* The grip always sits just left of the bin. */}
+                {grip("foundational", idx, n.id !== "blank")}
                 {n.id !== "blank" && (
                   <button
                     onClick={(e) => { e.stopPropagation(); setNoteConfirm(n.id); }}
