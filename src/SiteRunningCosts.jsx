@@ -26,10 +26,16 @@ const COSTS = [
 ];
 
 export default function SiteRunningCosts() {
-  // The Anthropic figure: null while it loads, a number once read.
-  const [anthropic, setAnthropic] = useState(null);
+  // The Anthropic figure: null while it loads, a number once read. It is read once a day
+  // and kept in this browser, so the page shows it at once on every other visit.
+  const today = new Date().toISOString().slice(0, 10);
+  const saved = (() => {
+    try { return JSON.parse(localStorage.getItem("anthropic-cost") || "null"); } catch { return null; }
+  })();
+  const [anthropic, setAnthropic] = useState(saved?.day === today ? saved.usd : null);
   const [err, setErr] = useState("");
   useEffect(() => {
+    if (saved?.day === today) return;
     (async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -37,6 +43,7 @@ export default function SiteRunningCosts() {
         const j = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(j.error || "Could not read the Anthropic costs");
         setAnthropic(j.usd);
+        try { localStorage.setItem("anthropic-cost", JSON.stringify({ day: today, usd: j.usd })); } catch {}
       } catch (e) {
         setErr(e.message);
       }
