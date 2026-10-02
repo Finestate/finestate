@@ -6,7 +6,7 @@ export const PAGES = [
   { id: "admin/logins", label: "Admin – Logins" },
   { id: "admin/site-running-costs", label: "Admin – Site running costs" },
   { id: "admin/users", label: "Admin – Users" },
-  { id: "admin/integrations", label: "Admin – Integrations" },
+  { id: "admin/integrations", label: "Admin – (Required)" },
   { id: "assets/snapshot", label: "Assets" },
   { id: "assets/investing", label: "Investing – Knowledge" },
   { id: "costs/monthly", label: "Cash flow" },

@@ -52,7 +52,7 @@ const NAV = [
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
       { id: "admin/users", name: "Users", icon: Users },
       // Always last: the pages outside services ask us to have, gathered on one page.
-      { id: "admin/integrations", name: "(Required integrations)" },
+      { id: "admin/integrations", name: "(Required)" },
     ],
   },
   // Cash flow is one page now; the route keeps its old id so access lists still match.

@@ -15,7 +15,7 @@ export default function Integrations() {
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[560px] border border-black bg-white shadow-sm">
         <div className="flex h-[22px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={head}>Integrations (required pages)</span>
+          <span className={head}>Required</span>
         </div>
         {PAGES.map((p) => (
           <div key={p.href} className="flex h-[22px] items-stretch border-t border-black">
@@ -23,7 +23,7 @@ export default function Integrations() {
               href={p.href}
               target="_blank"
               rel="noreferrer"
-              className="flex w-1/3 items-center gap-1 px-2 text-[11px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]"
+              className="flex w-28 shrink-0 items-center gap-1 px-2 text-[11px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]"
             >
               {p.name} <ExternalLink size={10} />
             </a>
