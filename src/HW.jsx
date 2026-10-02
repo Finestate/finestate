@@ -1,12 +1,11 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown, SquarePen, ExternalLink, List, GripVertical } from "lucide-react";
+import { Plus, Trash2, ChevronDown, List, GripVertical } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
-// Health and wellbeing, lifted from the HE tab of the planning workbook. It holds
-// medical history, membership numbers and private links, so it lives in Supabase
-// and never in this public repo.
-const DOC_ID = "hw";
-const NOTES_ID = "hw-notes"; // the new table, being rebuilt section by section
+// Health and wellbeing. It holds medical history, membership numbers and private links,
+// so it lives in Supabase and never in this public repo. (The earlier table's data is
+// still kept in Supabase under "hw", untouched, but is no longer shown.)
+const NOTES_ID = "hw-notes"; // the HW table, saved in Supabase
 // The meals of the day, one row each in Nutrition.
 const MEALS = ["Meal 1", "Meal 2", "Meal 3", "Meal 4"];
 // The three parts of Nutrition, left to right, in equal columns. The saved keys stay
@@ -18,42 +17,15 @@ const NUTRITION_PARTS = [
 ];
 const BAR_BG = "#F2C46D";   // section bars
 const HEADER_BG = "#FFE4B3"; // column headings inside a section
-const GOLD = "#9c7c33";
 const GAP_BG = "#8A8A8A"; // the grey band, as on the Monthly page
 
 let _idc = 0;
 const newId = () => "h" + Date.now().toString(36) + "-" + (_idc++);
 
 const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
-const cellText = "text-[11px] leading-[15px] text-neutral-900";
-
-// Any address in a cell becomes a link reading "Link", so rows stay one line tall.
-const LINK_RE = /(https?:\/\/\S+)/;
-
-// Uncontrolled so the caret never jumps, and it wraps rather than cutting words off.
-function Cell({ text, onChange, className }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (el && document.activeElement !== el && el.textContent !== (text || "")) el.textContent = text || "";
-  }, [text]);
-  return (
-    <span
-      ref={ref}
-      contentEditable
-      suppressContentEditableWarning
-      spellCheck={false}
-      onInput={(e) => onChange(e.currentTarget.textContent)}
-      className={className}
-    />
-  );
-}
 
 export default function HW() {
-  const [rows, setRows] = useState([]);
-  const [loaded, setLoaded] = useState(false);
   const [err, setErr] = useState("");
-  const [confirm, setConfirm] = useState(null);
   // The new table: its entries, each a title that opens onto notes. Kept in Supabase.
   const [noteConfirm, setNoteConfirm] = useState(null); // entry waiting on Delete or Cancel
   const [notes, setNotes] = useState([]);
@@ -128,7 +100,6 @@ export default function HW() {
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) setErr(error.message);
-        notesOk.current = !error;
         setNotes(Array.isArray(data?.data?.foundational) ? data.data.foundational : []);
         const d = data?.data || {};
         setLists({
@@ -147,89 +118,6 @@ export default function HW() {
         setNotesLoaded(true);
       });
   }, []);
-  // ONE-OFF: lines from the old table fill the new sections, once both tables have
-  // loaded cleanly, each only while that new section has nothing typed in it. The old
-  // table is left as it is. To be removed once done.
-  //   Appointments and strategy -> Monitoring: first column Focus, second Planning.
-  //   Diagnostics and Procedures -> Diagnostics: the title (without its colon) and the path.
-  const notesOk = useRef(false);
-  const oldOk = useRef(false);
-  useEffect(() => {
-    if (!loaded || !notesLoaded || !notesOk.current || !oldOk.current) return;
-    const linesUnder = (re) => {
-      const start = rows.findIndex((r) => r.kind !== "row" && re.test(r.a || ""));
-      if (start < 0) return [];
-      const out = [];
-      for (let i = start + 1; i < rows.length && rows[i].kind === "row"; i++) {
-        const r = rows[i];
-        if ((r.a || "").trim() || (r.b || "").trim()) out.push(r);
-      }
-      return out;
-    };
-    // A title and a path: from two cells, or from one cell split at its first ": ".
-    const titleAndPath = (r) => {
-      let title = (r.a || "").trim();
-      let path = (r.b || "").trim();
-      if (!path && title.includes(": ")) {
-        path = title.slice(title.indexOf(": ") + 2).trim();
-        title = title.slice(0, title.indexOf(": "));
-      }
-      return { id: newId(), name: title.replace(/:\s*$/, ""), text: path };
-    };
-    const empty = (list, fields) => !list.some((r) => fields.map((f) => r[f] || "").join("").trim());
-    const next = { ...lists };
-    let changed = false;
-    if (empty(lists.monitoring, ["focus", "planning", "situation"])) {
-      const got = linesUnder(/appointments and strategy/i).map((r) => ({ id: newId(), focus: r.a || "", planning: r.b || "", situation: "" }));
-      if (got.length) { next.monitoring = got; changed = true; }
-    }
-    // Diagnostics holds everything from the old Diagnostics and Procedures, in one list.
-    if (empty(lists.diagnostics, ["name", "text"])) {
-      const seen = new Set();
-      const got = [...linesUnder(/diagnostic/i), ...linesUnder(/procedure/i)]
-        .filter((r) => (seen.has(r.id) ? false : seen.add(r.id)))
-        .map(titleAndPath);
-      if (got.length) { next.diagnostics = got; changed = true; }
-    }
-    // Anything already copied under Procedures moves up into Diagnostics.
-    if (!empty(lists.procedures, ["name", "text"])) {
-      next.diagnostics = [...next.diagnostics, ...lists.procedures];
-      next.procedures = [];
-      changed = true;
-    }
-    // Labs: the old lines from the one starting 2023-09-14 down to the next heading, in
-    // the same title and path form. Any of them that went into Diagnostics leave it.
-    if (empty(lists.labs, ["name", "text"])) {
-      const start = rows.findIndex((r) => r.kind === "row" && (r.a || "").trim().startsWith("2023-09-14"));
-      const got = [];
-      for (let i = start; start >= 0 && i < rows.length && rows[i].kind === "row"; i++) {
-        if ((rows[i].a || "").trim() || (rows[i].b || "").trim()) got.push(titleAndPath(rows[i]));
-      }
-      if (got.length) {
-        const key = (r) => `${(r.name || "").trim()}|${(r.text || "").trim()}`;
-        const lab = new Set(got.map(key));
-        next.labs = got;
-        next.diagnostics = next.diagnostics.filter((r) => !lab.has(key(r)));
-        changed = true;
-      }
-    }
-    // Lines copied in twice: only the first of each exact title and path is kept.
-    {
-      const seen = new Set();
-      const once = next.diagnostics.filter((r) => {
-        const k = `${(r.name || "").trim()}|${(r.text || "").trim()}`;
-        if (k !== "|" && seen.has(k)) return false;
-        seen.add(k);
-        return true;
-      });
-      if (once.length !== next.diagnostics.length) { next.diagnostics = once; changed = true; }
-    }
-    if (changed) {
-      setLists(next);
-      persist({ foundational: notes, ...next, nutrition });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaded, notesLoaded]);
 
   // The whole new table is one saved document; each section saves with the others.
   const persist = (doc) =>
@@ -422,42 +310,11 @@ export default function HW() {
   const editNote = (id, fields) =>
     saveNotes(notes.length ? notes.map((n) => (n.id === id ? { ...n, ...fields } : n)) : [{ id: newId(), title: "", text: "", open: false, ...fields }]);
 
-  useEffect(() => {
-    supabase
-      .from("admin_docs")
-      .select("data")
-      .eq("id", DOC_ID)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) setErr(error.message);
-        const list = Array.isArray(data?.data) ? data.data : [];
-        oldOk.current = !error;
-        setRows(list.map((r) => (r.id ? r : { ...r, id: newId() })));
-        setLoaded(true);
-      });
-  }, []);
-
-  const save = (next) => {
-    setRows(next);
-    supabase
-      .from("admin_docs")
-      .upsert({ id: DOC_ID, data: next, updated_at: new Date().toISOString() })
-      .then(({ error }) => setErr(error ? error.message : ""));
-  };
-
-  const update = (i, key, val) => save(rows.map((r, idx) => (idx === i ? { ...r, [key]: val } : r)));
-  const addAfter = (i, kind) =>
-    save([...rows.slice(0, i + 1), { id: newId(), kind, a: "", b: "" }, ...rows.slice(i + 1)]);
-  const remove = () => {
-    save(rows.filter((_, idx) => idx !== confirm));
-    setConfirm(null);
-  };
 
   return (
     <div className="w-full overflow-x-auto">
-      {/* The new table, being rebuilt section by section, in the Monthly page's style:
-          a grey band top and bottom and between sections. */}
-      <div spellCheck className="mb-48 w-full min-w-[760px] overflow-hidden border border-black bg-white shadow-sm">
+      {/* The HW table, in the Monthly page's style: grey bands between sections. */}
+      <div spellCheck className="w-full min-w-[760px] overflow-hidden border border-black bg-white shadow-sm">
         <div className="h-[10px]" style={{ backgroundColor: GAP_BG }} />
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Foundational</span>
@@ -607,63 +464,6 @@ export default function HW() {
         {notesLoaded && lineBlock("insurance")}
       </div>
 
-      {/* The earlier table, kept below as a holding area while the new one is built. */}
-      <div spellCheck={false} className="w-full min-w-[760px] border border-black bg-white shadow-sm">
-        <div className="flex h-[18px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={head}>HW</span>
-        </div>
-
-        {!loaded ? (
-          <p className="px-2 py-2 text-[11px] italic text-neutral-400">Loading…</p>
-        ) : (
-          rows.map((r, i) => {
-            const rule = "border-t border-black";
-            if (r.kind === "section")
-              return (
-                <div key={r.id} className={`group flex h-[18px] items-center gap-2 px-2 ${rule}`} style={{ backgroundColor: BAR_BG }}>
-                  <Cell text={r.a} onChange={(t) => update(i, "a", t)} className={`min-w-0 flex-1 ${head} outline-none`} />
-                  <RowTools i={i} onAdd={addAfter} onRemove={setConfirm} />
-                </div>
-              );
-            if (r.kind === "subhead")
-              return (
-                <div key={r.id} className={`group flex h-[18px] items-center gap-2 px-2 ${rule}`} style={{ backgroundColor: HEADER_BG }}>
-                  <Cell text={r.a} onChange={(t) => update(i, "a", t)} className={`w-[30%] shrink-0 ${head} outline-none`} />
-                  <Cell text={r.b} onChange={(t) => update(i, "b", t)} className={`min-w-0 flex-1 ${head} outline-none`} />
-                  <RowTools i={i} onAdd={addAfter} onRemove={setConfirm} />
-                </div>
-              );
-            const link = LINK_RE.exec(r.b || "") || LINK_RE.exec(r.a || "");
-            return (
-              <div key={r.id} className={`group flex items-start gap-2 px-2 py-[3px] ${rule}`}>
-                <Cell text={r.a} onChange={(t) => update(i, "a", t)} className={`w-[30%] shrink-0 whitespace-pre-wrap break-words font-semibold ${cellText} outline-none`} />
-                <Cell text={r.b} onChange={(t) => update(i, "b", t)} className={`min-w-0 flex-1 whitespace-pre-wrap break-words ${cellText} outline-none`} />
-                {link && (
-                  <a
-                    href={link[1]}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="shrink-0 text-[11px] leading-[15px] underline underline-offset-2"
-                    style={{ color: GOLD }}
-                  >
-                    Open
-                  </a>
-                )}
-                <RowTools i={i} onAdd={addAfter} onRemove={setConfirm} />
-              </div>
-            );
-          })
-        )}
-
-        <button
-          onClick={() => addAfter(rows.length - 1, "row")}
-          style={{ color: "#C1440E" }}
-          className="flex h-[21px] w-full items-center gap-1 border-t border-black bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide transition-opacity hover:opacity-70"
-        >
-          <Plus size={12} /> Add
-        </button>
-      </div>
-
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
 
       {listConfirm != null && (
@@ -706,21 +506,6 @@ export default function HW() {
         </div>
       )}
 
-      {confirm != null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setConfirm(null)}>
-          <div className="w-full max-w-sm border-[5px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">Delete this?</p>
-            <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
-              <button onClick={remove} className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80" style={{ backgroundColor: "#C1440E", borderColor: "#C1440E" }}>
-                Delete
-              </button>
-              <button onClick={() => setConfirm(null)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: "#C1440E", color: "#C1440E" }}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -772,12 +557,3 @@ function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = fals
   );
 }
 
-function RowTools({ i, onAdd, onRemove }) {
-  return (
-    <span className="flex h-[15px] shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-      <button onClick={() => onAdd(i, "row")} title="Add a line below" className="text-neutral-900 hover:text-[#9c7c33]"><Plus size={11} /></button>
-      <button onClick={() => onAdd(i, "section")} title="Add a section below" className="text-[10px] font-bold text-neutral-900 hover:text-[#9c7c33]">S</button>
-      <button onClick={() => onRemove(i)} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={11} /></button>
-    </span>
-  );
-}
