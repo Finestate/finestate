@@ -308,7 +308,7 @@ export default function HW() {
               </Fragment>
             ))}
             <span className="border-l border-t border-black px-2 py-[3px]" style={{ gridColumn: 4, gridRow: `1 / span ${MEALS.length}` }}>
-              <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={4} />
+              <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={4} bullets />
             </span>
           </div>
         )}
@@ -441,8 +441,24 @@ const siteName = (v) => {
 };
 
 // Notes that grow with what is typed, so nothing is ever cut off or scrolls inside.
-function GrowText({ value, onChange, rows = 2, autoFocus = false }) {
+// `bullets`: a line started with "- " becomes a bullet, Enter starts the next one, and
+// Enter on an empty bullet ends the list.
+function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = false }) {
   const ref = useRef(null);
+  const onKeyDown = (e) => {
+    if (!bullets || e.key !== "Enter" || e.shiftKey) return;
+    const el = e.currentTarget;
+    const at = el.selectionStart;
+    const lineStart = value.lastIndexOf("\n", at - 1) + 1;
+    const line = value.slice(lineStart, at);
+    if (!line.startsWith("• ")) return;
+    e.preventDefault();
+    // An empty bullet: Enter takes it away and the list ends there.
+    const next = line === "• " ? value.slice(0, lineStart) + value.slice(at) : value.slice(0, at) + "\n• " + value.slice(el.selectionEnd);
+    const caret = line === "• " ? lineStart : at + 3;
+    onChange(next);
+    requestAnimationFrame(() => { el.selectionStart = el.selectionEnd = caret; });
+  };
   useEffect(() => {
     const el = ref.current;
     if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
@@ -451,7 +467,8 @@ function GrowText({ value, onChange, rows = 2, autoFocus = false }) {
     <textarea
       ref={ref}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e) => onChange(bullets ? e.target.value.replace(/(^|\n)- /g, "$1• ") : e.target.value)}
+      onKeyDown={onKeyDown}
       rows={rows}
       autoFocus={autoFocus}
       spellCheck={false}
