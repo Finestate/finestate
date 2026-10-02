@@ -281,7 +281,7 @@ export default function HW() {
           <span className={head}>Nutrition</span>
         </div>
         <div className="flex border-t border-black" style={{ backgroundColor: HEADER_BG }}>
-          <span className="w-20 shrink-0" />
+          <span className={`flex h-[22px] w-28 shrink-0 items-center px-2 ${head}`}>Meal number</span>
           <div className="grid flex-1 grid-cols-3">
             {NUTRITION_PARTS.map(([key, label]) => (
               <span key={key} className={`flex h-[22px] items-center border-l border-black px-2 ${head}`}>{label}</span>
@@ -291,7 +291,7 @@ export default function HW() {
         {notesLoaded &&
           MEALS.map((meal) => (
             <div key={meal} className="flex border-t border-black">
-              <span className={`flex w-20 shrink-0 items-start px-2 py-[3px] ${head}`}>{meal}</span>
+              <span className={`flex w-28 shrink-0 items-start px-2 py-[3px] ${head}`}>{meal}</span>
               <div className="grid flex-1 grid-cols-3">
                 {NUTRITION_PARTS.map(([key]) => (
                   <span key={key} className="border-l border-black px-2 py-[3px]">
