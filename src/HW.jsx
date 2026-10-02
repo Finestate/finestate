@@ -141,14 +141,15 @@ export default function HW() {
         setNotesLoaded(true);
       });
   }, []);
-  // ONE-OFF: the old table's Monitoring lines fill the new Monitoring, first column into
+  // ONE-OFF: the old table's Appointments and strategy lines fill the new Monitoring, first column into
   // Focus, second into Planning, once both tables have loaded cleanly and only while the
   // new one is still empty. The old table is left as it is. To be removed once done.
   const notesOk = useRef(false);
   const oldOk = useRef(false);
   useEffect(() => {
-    if (!loaded || !notesLoaded || !notesOk.current || !oldOk.current || lists.monitoring.length) return;
-    const start = rows.findIndex((r) => r.kind === "section" && /monitor/i.test(r.a || ""));
+    const typed = lists.monitoring.some((r) => `${r.focus || ""}${r.planning || ""}${r.situation || ""}`.trim());
+    if (!loaded || !notesLoaded || !notesOk.current || !oldOk.current || typed) return;
+    const start = rows.findIndex((r) => r.kind !== "row" && /appointments and strategy/i.test(r.a || ""));
     if (start < 0) return;
     const copied = [];
     for (let i = start + 1; i < rows.length && rows[i].kind !== "section"; i++) {
