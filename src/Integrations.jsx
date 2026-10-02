@@ -6,8 +6,8 @@ const BAR_BG = "#F2C46D";
 const head = "text-[11px] font-bold uppercase leading-none tracking-[0.06em] text-neutral-900";
 
 const PAGES = [
-  { name: "Privacy page", href: "/privacy", note: "Required by Enable Banking (bank connection)" },
-  { name: "Terms page", href: "/terms", note: "Required by Enable Banking (bank connection)" },
+  { name: "Privacy page", href: "/privacy", note: "Required by Enable Banking (bank connection)." },
+  { name: "Terms page", href: "/terms", note: "Required by Enable Banking (bank connection)." },
 ];
 
 export default function Integrations() {
