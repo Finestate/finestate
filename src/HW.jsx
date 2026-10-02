@@ -203,7 +203,11 @@ export default function HW() {
             <span key={field} className={`flex h-[22px] items-center px-2 ${head} ${i ? "border-l border-black" : ""}`}>{label}</span>
           ))}
         </div>
-        <span className="w-[49px] shrink-0 border-l border-black" />
+        {/* The grip and bin shown in the heading too, so the columns line up and balance. */}
+        <span className="flex w-[49px] shrink-0 items-center gap-2 border-l border-black px-2 text-neutral-900">
+          <GripVertical size={11} />
+          <Trash2 size={11} />
+        </span>
       </div>
       {listRows(key).map((m, idx) => (
         <div key={m.id} {...dropProps(key, idx, (from, to) => saveList(key, moved(lists[key], from, to)))}>
