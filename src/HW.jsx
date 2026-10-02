@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown, SquarePen, ExternalLink, List } from "lucide-react";
+import { Plus, Trash2, ChevronDown, SquarePen, ExternalLink, List, GripVertical } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Health and wellbeing, lifted from the HE tab of the planning workbook. It holds
@@ -63,6 +63,48 @@ export default function HW() {
   const [nutrition, setNutrition] = useState({ meals: {} });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
   const [editingLink, setEditingLink] = useState(null); // the line whose web address is open for editing
+  // Moving lines by drag and drop, within their own section. A red line marks where the
+  // dragged line will land.
+  const [drag, setDrag] = useState(null); // { section, from }
+  const [dropAt, setDropAt] = useState(null); // { section, index }
+  const moved = (list, from, to) => {
+    const next = list.slice();
+    const [item] = next.splice(from, 1);
+    next.splice(to > from ? to - 1 : to, 0, item);
+    return next;
+  };
+  // Props for a draggable line: where it is, and what to do when something lands on it.
+  const dropProps = (section, index, onDrop) => ({
+    onDragOver: (e) => {
+      if (drag?.section !== section) return;
+      e.preventDefault();
+      const box = e.currentTarget.getBoundingClientRect();
+      setDropAt({ section, index: e.clientY < box.top + box.height / 2 ? index : index + 1 });
+    },
+    onDrop: (e) => {
+      e.preventDefault();
+      if (drag?.section === section && dropAt?.section === section && dropAt.index !== drag.from && dropAt.index !== drag.from + 1) onDrop(drag.from, dropAt.index);
+      setDrag(null);
+      setDropAt(null);
+    },
+  });
+  const marker = (section, index) =>
+    drag?.section === section && dropAt?.section === section && dropAt.index === index ? <div className="h-[2px] w-full bg-[#C1440E]" /> : null;
+  const grip = (section, index, real) =>
+    real ? (
+      <span
+        draggable
+        onDragStart={(e) => { e.stopPropagation(); setDrag({ section, from: index }); }}
+        onDragEnd={() => { setDrag(null); setDropAt(null); }}
+        onClick={(e) => e.stopPropagation()}
+        title="Drag to move"
+        className="flex shrink-0 cursor-grab items-center text-neutral-400 hover:text-neutral-900 active:cursor-grabbing"
+      >
+        <GripVertical size={11} />
+      </span>
+    ) : (
+      <span className="w-[11px] shrink-0" />
+    );
   const [notesLoaded, setNotesLoaded] = useState(false);
   const considerationsBox = useRef(null);
   // The bullet button: the line the cursor is on becomes a bullet, or stops being one.
@@ -132,15 +174,18 @@ export default function HW() {
   // before this column existed is read as the link.
   const listBlock = (key, withLink = false) => (
     <>
-      {listRows(key).map((m) => {
+      {listRows(key).map((m, idx) => {
         const oldLink = withLink && !m.link && isWebAddress(m.text);
         const link = withLink ? (m.link ?? (oldLink ? m.text : "")) : "";
         const details = oldLink ? "" : m.text || "";
         const setDetails = (t) => editItem(key, m.id, oldLink ? { text: t, link: m.text } : { text: t });
         const setLink = (v) => editItem(key, m.id, oldLink ? { link: v, text: "" } : { link: v });
         return (
-          <div key={m.id} className="flex items-stretch border-t border-black">
-            <span className="flex w-1/4 min-w-[160px] shrink-0 items-start px-2 py-[3px]">
+          <div key={m.id} {...dropProps(key, idx, (from, to) => saveList(key, moved(lists[key], from, to)))}>
+          {marker(key, idx)}
+          <div className="flex items-stretch border-t border-black">
+            <span className="flex w-1/4 min-w-[160px] shrink-0 items-start gap-2 px-2 py-[3px]">
+              <span className="flex h-[15px] items-center">{grip(key, idx, m.id !== "blank")}</span>
               <input
                 value={m.name || ""}
                 onChange={(e) => editItem(key, m.id, { name: e.target.value })}
@@ -181,6 +226,7 @@ export default function HW() {
                 <span className="w-[11px]" />
               )}
             </span>
+          </div>
           </div>
         );
       })}
@@ -246,17 +292,21 @@ export default function HW() {
         {/* Each entry is one line: a title typed on the left; a click anywhere else on
             the line, or its arrow, opens the notes underneath on the faint pink. */}
         {notesLoaded &&
-          noteRows.map((n) => (
-            <div key={n.id}>
+          noteRows.map((n, idx) => (
+            <div key={n.id} {...dropProps("foundational", idx, (from, to) => saveNotes(moved(notes, from, to)))}>
+              {marker("foundational", idx)}
               <div
                 onClick={() => editNote(n.id, { open: !n.open })}
                 className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
               >
+                {grip("foundational", idx, n.id !== "blank")}
                 <input
                   value={n.title || ""}
                   onClick={(e) => e.stopPropagation()}
                   onChange={(e) => editNote(n.id, { title: e.target.value })}
-                  className="w-1/4 min-w-[160px] bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
+                  // Only as wide as its words, so a click just after them opens the line.
+                  size={Math.max((n.title || "").length + 1, 6)}
+                  className="bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
                 />
                 <span className="flex-1" />
                 <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${n.open ? "rotate-180" : ""}`} />
