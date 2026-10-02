@@ -148,7 +148,7 @@ export default function HW() {
   // loaded cleanly, each only while that new section has nothing typed in it. The old
   // table is left as it is. To be removed once done.
   //   Appointments and strategy -> Monitoring: first column Focus, second Planning.
-  //   Diagnostics, Procedures -> their sections: the title (without its colon) and the path.
+  //   Diagnostics and Procedures -> Diagnostics: the title (without its colon) and the path.
   const notesOk = useRef(false);
   const oldOk = useRef(false);
   useEffect(() => {
@@ -180,10 +180,19 @@ export default function HW() {
       const got = linesUnder(/appointments and strategy/i).map((r) => ({ id: newId(), focus: r.a || "", planning: r.b || "", situation: "" }));
       if (got.length) { next.monitoring = got; changed = true; }
     }
-    for (const [key, re] of [["diagnostics", /diagnostic/i], ["procedures", /procedure/i]]) {
-      if (!empty(lists[key], ["name", "text"])) continue;
-      const got = linesUnder(re).map(titleAndPath);
-      if (got.length) { next[key] = got; changed = true; }
+    // Diagnostics holds everything from the old Diagnostics and Procedures, in one list.
+    if (empty(lists.diagnostics, ["name", "text"])) {
+      const seen = new Set();
+      const got = [...linesUnder(/diagnostic/i), ...linesUnder(/procedure/i)]
+        .filter((r) => (seen.has(r.id) ? false : seen.add(r.id)))
+        .map(titleAndPath);
+      if (got.length) { next.diagnostics = got; changed = true; }
+    }
+    // Anything already copied under Procedures moves up into Diagnostics.
+    if (!empty(lists.procedures, ["name", "text"])) {
+      next.diagnostics = [...next.diagnostics, ...lists.procedures];
+      next.procedures = [];
+      changed = true;
     }
     if (changed) {
       setLists(next);
@@ -541,8 +550,8 @@ export default function HW() {
           <span className={head}>Vaccinations</span>
         </div>
         {notesLoaded && lineBlock("vaccinations")}
-        {/* The grey band, then Testing, with Diagnostics and Procedures under it: a title and
-            its full Dropbox path on each line. */}
+        {/* The grey band, then Testing, with Diagnostics under it: a title and its full
+            Dropbox path on each line. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Testing</span>
@@ -551,10 +560,6 @@ export default function HW() {
           <span className={head}>Diagnostics</span>
         </div>
         {notesLoaded && listBlock("diagnostics")}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={head}>Procedures</span>
-        </div>
-        {notesLoaded && listBlock("procedures")}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
