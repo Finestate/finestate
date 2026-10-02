@@ -58,7 +58,7 @@ export default function HW() {
   const [noteConfirm, setNoteConfirm] = useState(null); // entry waiting on Delete or Cancel
   const [notes, setNotes] = useState([]);
   // Name-and-details lists, by key: medicines, supplements.
-  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [] });
+  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [] });
   // Nutrition: three notes side by side, by key.
   const [nutrition, setNutrition] = useState({ meals: {} });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
@@ -134,6 +134,7 @@ export default function HW() {
           medicines: Array.isArray(d.medicines) ? d.medicines : [],
           supplements: Array.isArray(d.supplements) ? d.supplements : [],
           fitness: Array.isArray(d.fitness) ? d.fitness : [],
+          monitoring: Array.isArray(d.monitoring) ? d.monitoring : [],
         });
         setNutrition({ ...(d.nutrition || {}), meals: d.nutrition?.meals || {} });
         setNotesLoaded(true);
@@ -173,6 +174,49 @@ export default function HW() {
   // withLink adds a column, right after the name, for where to buy: it reads "Link to
   // buy", and a click in the space beside the words opens the address to change it. An address typed into the details
   // before this column existed is read as the link.
+  const columnsBlock = (key, cols) => (
+    <>
+      <div className="flex border-t border-black" style={{ backgroundColor: HEADER_BG }}>
+        <div className="grid flex-1" style={{ gridTemplateColumns: `repeat(${cols.length}, minmax(0, 1fr))` }}>
+          {cols.map(([field, label], i) => (
+            <span key={field} className={`flex h-[22px] items-center px-2 ${head} ${i ? "border-l border-black" : ""}`}>{label}</span>
+          ))}
+        </div>
+        <span className="w-[49px] shrink-0 border-l border-black" />
+      </div>
+      {listRows(key).map((m, idx) => (
+        <div key={m.id} {...dropProps(key, idx, (from, to) => saveList(key, moved(lists[key], from, to)))}>
+          {marker(key, idx)}
+          <div className="flex items-stretch border-t border-black">
+            <div className="grid flex-1" style={{ gridTemplateColumns: `repeat(${cols.length}, minmax(0, 1fr))` }}>
+              {cols.map(([field], i) => (
+                <span key={field} className={`min-w-0 px-2 py-[3px] ${i ? "border-l border-black" : ""}`}>
+                  <GrowText value={m[field] || ""} onChange={(t) => editItem(key, m.id, { [field]: t })} rows={1} />
+                </span>
+              ))}
+            </div>
+            {/* The grip always sits just left of the bin. */}
+            <span className="flex w-[49px] shrink-0 items-start gap-2 border-l border-black px-2 py-[5px]">
+              {grip(key, idx, m.id !== "blank")}
+              {m.id !== "blank" ? (
+                <button onClick={() => setListConfirm({ key, id: m.id })} title="Remove" className="text-neutral-900 hover:text-[#C1440E]">
+                  <Trash2 size={11} />
+                </button>
+              ) : (
+                <span className="w-[11px]" />
+              )}
+            </span>
+          </div>
+        </div>
+      ))}
+      <button
+        onClick={() => saveList(key, [...lists[key], { id: newId(), name: "", text: "" }])}
+        className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+      >
+        <Plus size={11} strokeWidth={3} />Add
+      </button>
+    </>
+  );
   const lineBlock = (key) => (
     <>
       {listRows(key).map((m, idx) => (
@@ -429,6 +473,12 @@ export default function HW() {
           <span className={head}>Fitness</span>
         </div>
         {notesLoaded && lineBlock("fitness")}
+        {/* The grey band, then Monitoring: Focus, Planning and Situation side by side. */}
+        <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Monitoring</span>
+        </div>
+        {notesLoaded && columnsBlock("monitoring", [["focus", "Focus"], ["planning", "Planning"], ["situation", "Situation"]])}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
