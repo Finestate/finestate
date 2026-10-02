@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Plus, Trash2, ChevronDown, SquarePen, ExternalLink } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
@@ -88,6 +88,11 @@ export default function HW() {
       .from("admin_docs")
       .upsert({ id: NOTES_ID, data: doc, updated_at: new Date().toISOString() })
       .then(({ error }) => setErr(error ? error.message : ""));
+  const saveConsiderations = (text) => {
+    const next = { ...nutrition, considerations: text };
+    setNutrition(next);
+    persist({ foundational: notes, ...lists, nutrition: next });
+  };
   const saveNutrition = (meal, key, text) => {
     const meals = nutrition.meals || {};
     const next = { ...nutrition, meals: { ...meals, [meal]: { ...(meals[meal] || {}), [key]: text } } };
@@ -280,27 +285,33 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Nutrition</span>
         </div>
-        <div className="flex border-t border-black" style={{ backgroundColor: HEADER_BG }}>
-          <span className={`flex h-[22px] w-28 shrink-0 items-center px-2 ${head}`}>Meal number</span>
-          <div className="grid flex-1 grid-cols-3">
-            {NUTRITION_PARTS.map(([key, label]) => (
-              <span key={key} className={`flex h-[22px] items-center border-l border-black px-2 ${head}`}>{label}</span>
-            ))}
-          </div>
+        {/* One grid: the meal number, the two groups of days per meal, and Considerations
+            as a single block down the right, the full height of all four meals. */}
+        <div className="grid grid-cols-[7rem_1fr_1fr_1fr] border-t border-black" style={{ backgroundColor: HEADER_BG }}>
+          <span className={`flex h-[22px] items-center px-2 ${head}`}>Meal number</span>
+          {NUTRITION_PARTS.map(([key, label]) => (
+            <span key={key} className={`flex h-[22px] items-center border-l border-black px-2 ${head}`}>{label}</span>
+          ))}
         </div>
-        {notesLoaded &&
-          MEALS.map((meal) => (
-            <div key={meal} className="flex border-t border-black">
-              <span className={`flex w-28 shrink-0 items-start px-2 py-[3px] ${head}`}>{meal}</span>
-              <div className="grid flex-1 grid-cols-3">
-                {NUTRITION_PARTS.map(([key]) => (
-                  <span key={key} className="border-l border-black px-2 py-[3px]">
+        {notesLoaded && (
+          <div className="grid grid-cols-[7rem_1fr_1fr_1fr]">
+            {MEALS.map((meal, i) => (
+              <Fragment key={meal}>
+                <span className={`flex items-start border-t border-black px-2 py-[3px] ${head}`} style={{ gridColumn: 1, gridRow: i + 1 }}>
+                  {meal}
+                </span>
+                {NUTRITION_PARTS.filter(([key]) => key !== "considerations").map(([key], j) => (
+                  <span key={key} className="border-l border-t border-black px-2 py-[3px]" style={{ gridColumn: j + 2, gridRow: i + 1 }}>
                     <GrowText value={nutrition.meals?.[meal]?.[key] || ""} onChange={(t) => saveNutrition(meal, key, t)} rows={1} />
                   </span>
                 ))}
-              </div>
-            </div>
-          ))}
+              </Fragment>
+            ))}
+            <span className="border-l border-t border-black px-2 py-[3px]" style={{ gridColumn: 4, gridRow: `1 / span ${MEALS.length}` }}>
+              <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={4} />
+            </span>
+          </div>
+        )}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
