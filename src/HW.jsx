@@ -328,13 +328,13 @@ export default function HW() {
                 </span>
                 {NUTRITION_PARTS.filter(([key]) => key !== "considerations").map(([key], j) => (
                   <span key={key} className="border-l border-t border-black px-2 py-[3px]" style={{ gridColumn: j + 2, gridRow: i + 1 }}>
-                    <GrowText value={nutrition.meals?.[meal]?.[key] || ""} onChange={(t) => saveNutrition(meal, key, t)} rows={1} />
+                    <GrowText value={nutrition.meals?.[meal]?.[key] || ""} onChange={(t) => saveNutrition(meal, key, t)} rows={1} spell />
                   </span>
                 ))}
               </Fragment>
             ))}
             <span className="border-l border-t border-black px-2 py-[3px]" style={{ gridColumn: 4, gridRow: `1 / span ${MEALS.length}` }}>
-              <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={4} bullets boxRef={considerationsBox} />
+              <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={4} bullets boxRef={considerationsBox} spell />
             </span>
           </div>
         )}
@@ -469,7 +469,8 @@ const siteName = (v) => {
 // Notes that grow with what is typed, so nothing is ever cut off or scrolls inside.
 // `bullets`: a line started with "- " becomes a bullet, Enter starts the next one, and
 // Enter on an empty bullet ends the list.
-function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = false, boxRef = null }) {
+// `spell`: the browser underlines misspelt words, as in Nutrition.
+function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = false, boxRef = null, spell = false }) {
   const ref = useRef(null);
   if (boxRef) boxRef.current = ref.current;
   const onKeyDown = (e) => {
@@ -498,7 +499,7 @@ function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = fals
       onKeyDown={onKeyDown}
       rows={rows}
       autoFocus={autoFocus}
-      spellCheck={false}
+      spellCheck={spell}
       className="block w-full resize-none bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
     />
   );
