@@ -565,7 +565,7 @@ function BibleChat({ chat, onChange }) {
     <div className="relative mt-2 border border-black bg-white px-2 py-1">
       {chat.length > 0 && (
         <button
-          onClick={() => { if (window.confirm("Clear this conversation?")) onChange([]); }}
+          onClick={() => onChange([])}
           className="absolute right-2 top-1 text-[11px] text-neutral-500 underline underline-offset-2 hover:text-[#C1440E]"
         >
           Clear
