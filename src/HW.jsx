@@ -7,6 +7,8 @@ import { supabase } from "./lib/supabaseClient.js";
 // and never in this public repo.
 const DOC_ID = "hw";
 const NOTES_ID = "hw-notes"; // the new table, being rebuilt section by section
+// The meals of the day, one row each in Nutrition.
+const MEALS = ["Meal 1", "Meal 2", "Meal 3", "Meal 4"];
 // The three parts of Nutrition, left to right, in equal columns. The saved keys stay
 // as they were, so anything already written keeps its column.
 const NUTRITION_PARTS = [
@@ -58,7 +60,7 @@ export default function HW() {
   // Name-and-details lists, by key: medicines, supplements.
   const [lists, setLists] = useState({ medicines: [], supplements: [] });
   // Nutrition: three notes side by side, by key.
-  const [nutrition, setNutrition] = useState({ weekdays: "", saturday: "", considerations: "" });
+  const [nutrition, setNutrition] = useState({ meals: {} });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
   const [editingLink, setEditingLink] = useState(null); // the line whose web address is open for editing
   const [notesLoaded, setNotesLoaded] = useState(false);
@@ -76,11 +78,7 @@ export default function HW() {
           medicines: Array.isArray(d.medicines) ? d.medicines : [],
           supplements: Array.isArray(d.supplements) ? d.supplements : [],
         });
-        setNutrition({
-          weekdays: d.nutrition?.weekdays || "",
-          saturday: d.nutrition?.saturday || "",
-          considerations: d.nutrition?.considerations || "",
-        });
+        setNutrition({ ...(d.nutrition || {}), meals: d.nutrition?.meals || {} });
         setNotesLoaded(true);
       });
   }, []);
@@ -90,8 +88,9 @@ export default function HW() {
       .from("admin_docs")
       .upsert({ id: NOTES_ID, data: doc, updated_at: new Date().toISOString() })
       .then(({ error }) => setErr(error ? error.message : ""));
-  const saveNutrition = (key, text) => {
-    const next = { ...nutrition, [key]: text };
+  const saveNutrition = (meal, key, text) => {
+    const meals = nutrition.meals || {};
+    const next = { ...nutrition, meals: { ...meals, [meal]: { ...(meals[meal] || {}), [key]: text } } };
     setNutrition(next);
     persist({ foundational: notes, ...lists, nutrition: next });
   };
@@ -276,25 +275,32 @@ export default function HW() {
           <span className={head}>Supplements</span>
         </div>
         {notesLoaded && listBlock("supplements", true)}
-        {/* Nutrition: no grey band before it. Three notes side by side, so the whole week
-            reads at once, left to right; each grows with what is written. */}
+        {/* Nutrition: no grey band before it. A row per meal, a column per group of days
+            and one for considerations; every cell grows with what is written. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Nutrition</span>
         </div>
-        <div className="grid grid-cols-3 border-t border-black" style={{ backgroundColor: HEADER_BG }}>
-          {NUTRITION_PARTS.map(([key, label], i) => (
-            <span key={key} className={`flex h-[22px] items-center px-2 ${head} ${i ? "border-l border-black" : ""}`}>{label}</span>
-          ))}
-        </div>
-        {notesLoaded && (
-          <div className="grid grid-cols-3 border-t border-black">
-            {NUTRITION_PARTS.map(([key], i) => (
-              <span key={key} className={`px-2 py-[3px] ${i ? "border-l border-black" : ""}`}>
-                <GrowText value={nutrition[key]} onChange={(t) => saveNutrition(key, t)} rows={4} />
-              </span>
+        <div className="flex border-t border-black" style={{ backgroundColor: HEADER_BG }}>
+          <span className="w-20 shrink-0" />
+          <div className="grid flex-1 grid-cols-3">
+            {NUTRITION_PARTS.map(([key, label]) => (
+              <span key={key} className={`flex h-[22px] items-center border-l border-black px-2 ${head}`}>{label}</span>
             ))}
           </div>
-        )}
+        </div>
+        {notesLoaded &&
+          MEALS.map((meal) => (
+            <div key={meal} className="flex border-t border-black">
+              <span className={`flex w-20 shrink-0 items-start px-2 py-[3px] ${head}`}>{meal}</span>
+              <div className="grid flex-1 grid-cols-3">
+                {NUTRITION_PARTS.map(([key]) => (
+                  <span key={key} className="border-l border-black px-2 py-[3px]">
+                    <GrowText value={nutrition.meals?.[meal]?.[key] || ""} onChange={(t) => saveNutrition(meal, key, t)} rows={1} />
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
       </div>
 
       {/* The earlier table, kept below as a holding area while the new one is built. */}
