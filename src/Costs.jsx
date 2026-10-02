@@ -270,6 +270,7 @@ export default function Costs({ seed }) {
   const [loaded, setLoaded] = useState(false);
   const [err, setErr] = useState("");
   const [confirm, setConfirm] = useState(null); // delete waiting on Delete or Cancel
+  const nextPaymentId = useRef({}); // per child: the id the blank payment line will be saved under
   const [live, setLive] = useState(null); // today's exchange rates against the euro
   const [bank, setBank] = useState(null); // the bank connection and its last balances
   const [bankMsg, setBankMsg] = useState("");
@@ -446,13 +447,25 @@ export default function Costs({ seed }) {
     { id: "kid-2", initial: "", month: "", payments: [], open: false },
   ];
   const editKid = (id, fields) => save({ ...doc, pocketKids: pocketKids.map((k) => (k.id === id ? { ...k, ...fields } : k)) });
+  // Payments always end on a blank line, ready to type into, as soon as the line above
+  // has both a date and an amount. The blank line keeps the id it will be saved under,
+  // so typing into it never loses the cursor.
+  const blankPayment = (kidId) => (nextPaymentId.current[kidId] ||= newId());
   const editPayment = (kidId, payId, fields) => {
     const list = pocketKids.find((k) => k.id === kidId)?.payments || [];
-    editKid(kidId, {
-      payments: list.length ? list.map((x) => (x.id === payId ? { ...x, ...fields } : x)) : [{ id: newId(), date: "", amount: "", ...fields }],
-    });
+    if (list.some((x) => x.id === payId)) {
+      editKid(kidId, { payments: list.map((x) => (x.id === payId ? { ...x, ...fields } : x)) });
+    } else {
+      delete nextPaymentId.current[kidId];
+      editKid(kidId, { payments: [...list, { id: payId, date: "", amount: "", ...fields }] });
+    }
   };
-  const paymentRows = (k) => ((k.payments || []).length ? k.payments : [{ id: "blank", date: "", amount: "" }]);
+  const paymentRows = (k) => {
+    const list = k.payments || [];
+    const last = list[list.length - 1];
+    const done = (x) => String(x.date || "").trim() && String(x.amount ?? "").trim();
+    return !last || done(last) ? [...list, { id: blankPayment(k.id), date: "", amount: "", blank: true }] : list;
+  };
 
   // Expenses in groups, each with its own lines, kept in Supabase. Lines saved before
   // under Home-related carry over as the first group.
@@ -820,9 +833,11 @@ export default function Costs({ seed }) {
                     <span className="-ml-[1.5px] min-w-0 flex-1">
                       <DateCell value={x.date} onChange={(v) => editPayment(k.id, x.id, { date: v })} placeholder="Date" wholeCell />
                     </span>
-                    <button onClick={() => ask(() => editKid(k.id, { payments: k.payments.filter((y) => y.id !== x.id) }))} title="Remove" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
-                      <Trash2 size={11} />
-                    </button>
+                    {!x.blank && (
+                      <button onClick={() => ask(() => editKid(k.id, { payments: k.payments.filter((y) => y.id !== x.id) }))} title="Remove" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
+                        <Trash2 size={11} />
+                      </button>
+                    )}
                   </span>
                   <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
                     <span>EUR</span>
@@ -830,16 +845,6 @@ export default function Costs({ seed }) {
                   </span>
                 </div>
               ))}
-              {/* Under the last payment, a quiet line to add the next one. */}
-              {k.open && (
-                <button
-                  onClick={() => editKid(k.id, { payments: [...(k.payments || []), { id: newId(), date: "", amount: "" }] })}
-                  className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
-                  style={{ backgroundColor: "#FBEFEC" }}
-                >
-                  <Plus size={11} strokeWidth={3} />Add payment
-                </button>
-              )}
             </div>
           );
         })}
