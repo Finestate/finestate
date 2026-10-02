@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown, SquarePen, ExternalLink } from "lucide-react";
+import { Plus, Trash2, ChevronDown, SquarePen, ExternalLink, List } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Health and wellbeing, lifted from the HE tab of the planning workbook. It holds
@@ -64,6 +64,20 @@ export default function HW() {
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
   const [editingLink, setEditingLink] = useState(null); // the line whose web address is open for editing
   const [notesLoaded, setNotesLoaded] = useState(false);
+  const considerationsBox = useRef(null);
+  // The bullet button: the line the cursor is on becomes a bullet, or stops being one.
+  const toggleBullet = () => {
+    const el = considerationsBox.current;
+    const text = nutrition.considerations || "";
+    if (!el) return;
+    const at = document.activeElement === el ? el.selectionStart : text.length;
+    const lineStart = text.lastIndexOf("\n", at - 1) + 1;
+    const bulleted = text.startsWith("• ", lineStart);
+    const next = bulleted ? text.slice(0, lineStart) + text.slice(lineStart + 2) : text.slice(0, lineStart) + "• " + text.slice(lineStart);
+    saveConsiderations(next);
+    const caret = bulleted ? Math.max(lineStart, at - 2) : at + 2;
+    requestAnimationFrame(() => { el.focus(); el.selectionStart = el.selectionEnd = caret; });
+  };
   useEffect(() => {
     supabase
       .from("admin_docs")
@@ -290,7 +304,19 @@ export default function HW() {
         <div className="grid grid-cols-[7rem_1fr_1fr_1fr] border-t border-black" style={{ backgroundColor: HEADER_BG }}>
           <span className={`flex h-[22px] items-center px-2 ${head}`}>Meal number</span>
           {NUTRITION_PARTS.map(([key, label]) => (
-            <span key={key} className={`flex h-[22px] items-center border-l border-black px-2 ${head}`}>{label}</span>
+            <span key={key} className={`flex h-[22px] items-center border-l border-black px-2 ${head}`}>
+              {label}
+              {key === "considerations" && (
+                <button
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={toggleBullet}
+                  title="Bullet the line the cursor is on"
+                  className="ml-auto text-neutral-900 hover:text-[#9c7c33]"
+                >
+                  <List size={14} strokeWidth={2.75} />
+                </button>
+              )}
+            </span>
           ))}
         </div>
         {notesLoaded && (
@@ -308,7 +334,7 @@ export default function HW() {
               </Fragment>
             ))}
             <span className="border-l border-t border-black px-2 py-[3px]" style={{ gridColumn: 4, gridRow: `1 / span ${MEALS.length}` }}>
-              <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={4} bullets />
+              <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={4} bullets boxRef={considerationsBox} />
             </span>
           </div>
         )}
@@ -443,8 +469,9 @@ const siteName = (v) => {
 // Notes that grow with what is typed, so nothing is ever cut off or scrolls inside.
 // `bullets`: a line started with "- " becomes a bullet, Enter starts the next one, and
 // Enter on an empty bullet ends the list.
-function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = false }) {
+function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = false, boxRef = null }) {
   const ref = useRef(null);
+  if (boxRef) boxRef.current = ref.current;
   const onKeyDown = (e) => {
     if (!bullets || e.key !== "Enter" || e.shiftKey) return;
     const el = e.currentTarget;
@@ -465,7 +492,7 @@ function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = fals
   }, [value]);
   return (
     <textarea
-      ref={ref}
+      ref={(el) => { ref.current = el; if (boxRef) boxRef.current = el; }}
       value={value}
       onChange={(e) => onChange(bullets ? e.target.value.replace(/(^|\n)- /g, "$1• ") : e.target.value)}
       onKeyDown={onKeyDown}
