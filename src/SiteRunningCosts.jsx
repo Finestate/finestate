@@ -1,5 +1,9 @@
+import { useEffect, useState } from "react";
+import { supabase } from "./lib/supabaseClient.js";
+
 // Read-only table: the lines and figures are maintained here in code, so changes
-// come through Claude rather than being typed into the page.
+// come through Claude rather than being typed into the page. The Anthropic line is the
+// one exception: it is read live from Anthropic's cost report.
 const BAR_BG = "#F2C46D"; // same ramp as the Costs table: darkest gold on the title bar
 
 const TITLE = "Name";
@@ -9,8 +13,9 @@ const txt = "text-[11px] leading-[15px] text-neutral-900";
 const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
 
 // Every paid or potentially paid service behind the site, A to Z. Free tiers sit at 0.00.
+// `live` marks the line whose figure comes from Anthropic this month.
 const COSTS = [
-  { item: "Anthropic – Claude API (AI research, planned)", price: "0.00" },
+  { item: "Anthropic – Claude API (this month, all sites on the account)", price: "0.00", live: true },
   { item: "Claude – Claude Code plan (building the site)", price: "0.00" },
   { item: "Domain name – finestate.xyz", price: "0.00" },
   { item: "Dropbox – project files", price: "0.00" },
@@ -21,7 +26,25 @@ const COSTS = [
 ];
 
 export default function SiteRunningCosts() {
-  const total = COSTS.reduce((sum, c) => sum + (parseFloat(c.price) || 0), 0);
+  // The Anthropic figure: null while it loads, a number once read.
+  const [anthropic, setAnthropic] = useState(null);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const r = await fetch("/api/anthropic-cost", { headers: { Authorization: `Bearer ${data?.session?.access_token || ""}` } });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || "Could not read the Anthropic costs");
+        setAnthropic(j.usd);
+      } catch (e) {
+        setErr(e.message);
+      }
+    })();
+  }, []);
+
+  const priceOf = (c) => (c.live ? (anthropic ?? 0) : parseFloat(c.price) || 0);
+  const total = COSTS.reduce((sum, c) => sum + priceOf(c), 0);
 
   return (
     // Narrow windows scroll the table sideways rather than squashing the columns.
@@ -38,7 +61,7 @@ export default function SiteRunningCosts() {
               <span className={`flex-1 ${txt}`}>{c.item}</span>
               <div className="flex w-32 shrink-0 items-center justify-end gap-1">
                 <span className={txt}>USD</span>
-                <span className={`tabular-nums ${txt}`}>{c.price}</span>
+                <span className={`tabular-nums ${txt}`}>{c.live && anthropic == null ? "…" : priceOf(c).toFixed(2)}</span>
               </div>
             </div>
           ))}
@@ -52,6 +75,7 @@ export default function SiteRunningCosts() {
           </div>
         </div>
       </div>
+      {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
     </div>
   );
 }
