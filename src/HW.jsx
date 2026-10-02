@@ -574,9 +574,8 @@ export default function HW() {
           <span className={head}>Monitoring</span>
         </div>
         {notesLoaded && columnsBlock("monitoring", [["focus", "Focus"], ["planning", "Planning"], ["situation", "Situation"]])}
-        {/* The grey band, then Testing, with Diagnostics under it: a title and its full
-            Dropbox path on each line. */}
-        <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
+        {/* Testing, straight after Monitoring, with Diagnostics under it: a title and its
+            full Dropbox path on each line. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Testing</span>
         </div>
