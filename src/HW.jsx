@@ -560,28 +560,31 @@ function BibleChat({ chat, onChange }) {
     }
   };
   return (
-    // Just the conversation and an empty box: a question is sent with Enter, leaves the
-    // box at once, and the answer appears when it is ready.
-    <div className="mt-2">
+    // One white box holds it all: the conversation, then the line to type on. Enter sends,
+    // the line empties at once, and the answer appears in the box when it is ready.
+    <div className="relative mt-2 border border-black bg-white px-2 py-1">
+      {chat.length > 0 && (
+        <button
+          onClick={() => { if (window.confirm("Clear this conversation?")) onChange([]); }}
+          className="absolute right-2 top-1 text-[11px] text-neutral-500 underline underline-offset-2 hover:text-[#C1440E]"
+        >
+          Clear
+        </button>
+      )}
       {chat.map((m, i) => (
-        <div key={i} className="mb-1.5 text-[11px] leading-[15px] text-neutral-900">
-          <span className="font-bold">{m.role === "user" ? "You" : "Claude"}: </span>
-          <span className="whitespace-pre-wrap">{m.content}</span>
-        </div>
+        <p key={i} className={`mb-1.5 whitespace-pre-wrap text-[11px] leading-[15px] text-neutral-900 ${m.role === "user" ? "pr-12 font-bold" : ""}`}>
+          {m.content}
+        </p>
       ))}
       {busy && <p className="mb-1.5 text-[11px] italic text-neutral-500">Claude is thinking…</p>}
       {error && <p className="mb-1.5 text-[11px] font-semibold text-[#C1440E]">{error}</p>}
-      <div className="border border-black bg-white px-2 py-1">
-        <span className="block">
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } }}
-            rows={2}
-            className="block w-full resize-none bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
-          />
-        </span>
-      </div>
+      <textarea
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } }}
+        rows={2}
+        className="block w-full resize-none bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
+      />
     </div>
   );
 }
