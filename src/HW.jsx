@@ -363,6 +363,9 @@ export default function HW() {
                     html={n.html ?? plainToHtml(n.text)}
                     onChange={(html) => editNote(n.id, { html })}
                   />
+                  {/^g(od)?$/i.test((n.title || "").trim()) && (
+                    <BibleChat chat={n.chat || []} onChange={(chat) => editNote(n.id, { chat })} />
+                  )}
                 </div>
               )}
             </div>
@@ -525,6 +528,79 @@ const isWebAddress = (v) => /^https?:\/\/\S+$/i.test(String(v || "").trim());
 const siteName = (v) => {
   try { return new URL(String(v).trim()).hostname.replace(/^www\./, ""); } catch { return String(v); }
 };
+
+// A conversation with Claude for Bible questions, under the G entry. Every question and
+// answer is saved with the entry in Supabase, so it is all there next time.
+function BibleChat({ chat, onChange }) {
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const ask = async () => {
+    const question = draft.trim();
+    if (!question || busy) return;
+    const asked = [...chat, { role: "user", content: question }];
+    onChange(asked);
+    setDraft("");
+    setBusy(true);
+    setError("");
+    try {
+      const { data } = await supabase.auth.getSession();
+      const r = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${data?.session?.access_token || ""}` },
+        body: JSON.stringify({ messages: asked }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || "Claude could not answer.");
+      onChange([...asked, { role: "assistant", content: j.reply }]);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="-mx-2 mt-2 border-t border-[#C1440E] px-2 pt-1.5">
+      <div className="mb-1 flex items-center">
+        <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Ask Claude</span>
+        {chat.length > 0 && (
+          <button
+            onClick={() => { if (window.confirm("Clear this conversation?")) onChange([]); }}
+            className="ml-auto text-[11px] text-neutral-500 underline underline-offset-2 hover:text-[#C1440E]"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+      {chat.map((m, i) => (
+        <div key={i} className="mb-1.5 text-[11px] leading-[15px] text-neutral-900">
+          <span className="font-bold">{m.role === "user" ? "You" : "Claude"}: </span>
+          <span className="whitespace-pre-wrap">{m.content}</span>
+        </div>
+      ))}
+      {busy && <p className="mb-1.5 text-[11px] italic text-neutral-500">Claude is thinking…</p>}
+      {error && <p className="mb-1.5 text-[11px] font-semibold text-[#C1440E]">{error}</p>}
+      <div className="flex items-end gap-2 border border-black bg-white px-2 py-1">
+        <span className="min-w-0 flex-1">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } }}
+            rows={2}
+            className="block w-full resize-none bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
+          />
+        </span>
+        <button
+          onClick={ask}
+          disabled={busy || !draft.trim()}
+          className="shrink-0 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] disabled:text-neutral-300"
+        >
+          Ask
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // Notes written before formatting arrived were plain text; they show the same, line by line.
 const plainToHtml = (t) =>
