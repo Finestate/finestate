@@ -905,19 +905,17 @@ export default function Costs({ seed }) {
                     </span>
                     {/* Worked out from the frequency, so blank until one is set. */}
                     <span className={`${cell} justify-end`}>{e.freq ? `EUR ${money(monthlyAvg(e))}` : ""}</span>
-                    <span className={`${cell} justify-end`}>
-                      {/* Due this month: tick and amount in red while still to pay, both green once paid. */}
+                    {/* Due this month: the whole cell is the button. A thin frame just inside it and the
+                        amount are red while still to pay, and both turn green once clicked as paid. */}
+                    <span className={`${cell} relative justify-end`}>
                       {dueThisMonth(e) && e.id !== "blank" && (
                         <button
                           onClick={() => edit({ paidMonth: isPaid(e) ? "" : monthKey })}
                           title={isPaid(e) ? "Paid this month (click to undo)" : "Mark as paid this month"}
-                          className={`mr-auto ${isPaid(e) ? "text-[#0f766e]" : "text-[#C1440E] hover:text-[#a63a0c]"}`}
+                          className={`absolute inset-[2px] flex items-center justify-end border px-[6px] tabular-nums ${isPaid(e) ? "border-[#0f766e] text-[#0f766e]" : "border-[#C1440E] text-[#C1440E] hover:bg-[#C1440E]/5"}`}
                         >
-                          <Check size={12} strokeWidth={3} />
+                          EUR {money(pendingOf(e))}
                         </button>
-                      )}
-                      {dueThisMonth(e) && e.id !== "blank" && (
-                        <span className={isPaid(e) ? "text-[#0f766e]" : "text-[#C1440E]"}>EUR {money(pendingOf(e))}</span>
                       )}
                     </span>
                   </div>
