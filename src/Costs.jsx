@@ -831,7 +831,7 @@ export default function Costs({ seed }) {
                   <span className="flex flex-1 items-center gap-2 px-2">
                     {/* Pulled left by the icon's own inner margin, so it lines up with the A and S. */}
                     <span className="-ml-[1.5px] min-w-0 flex-1">
-                      <DateCell value={x.date} onChange={(v) => editPayment(k.id, x.id, { date: v })} placeholder="Date" wholeCell />
+                      <DateCell value={x.date} onChange={(v) => editPayment(k.id, x.id, { date: v })} wholeCell />
                     </span>
                     {!x.blank && (
                       <button onClick={() => ask(() => editKid(k.id, { payments: k.payments.filter((y) => y.id !== x.id) }))} title="Remove" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
