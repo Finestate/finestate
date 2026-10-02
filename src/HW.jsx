@@ -58,7 +58,7 @@ export default function HW() {
   const [noteConfirm, setNoteConfirm] = useState(null); // entry waiting on Delete or Cancel
   const [notes, setNotes] = useState([]);
   // Name-and-details lists, by key: medicines, supplements.
-  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [], diagnostics: [], procedures: [], vaccinations: [], labs: [], insurance: [] });
+  const [lists, setLists] = useState({ medicines: [], supplements: [], fitness: [], monitoring: [], diagnostics: [], procedures: [], vaccinations: [], labs: [], insurance: [], procedureTracking: [] });
   // Nutrition: three notes side by side, by key.
   const [nutrition, setNutrition] = useState({ meals: {} });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
@@ -141,6 +141,7 @@ export default function HW() {
           vaccinations: Array.isArray(d.vaccinations) ? d.vaccinations : [],
           labs: Array.isArray(d.labs) ? d.labs : [],
           insurance: Array.isArray(d.insurance) ? d.insurance : [],
+          procedureTracking: Array.isArray(d.procedureTracking) ? d.procedureTracking : [],
         });
         setNutrition({ ...(d.nutrition || {}), meals: d.nutrition?.meals || {} });
         setNotesLoaded(true);
@@ -592,6 +593,7 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Procedures tracking</span>
         </div>
+        {notesLoaded && lineBlock("procedureTracking")}
         {/* Vaccinations, under Labs: single-column lines for now. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Vaccinations</span>
