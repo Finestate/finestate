@@ -863,9 +863,11 @@ export default function Planning() {
 
   // Today: the first line of every board, stacked here and working exactly as it does
   // in its own section, pickers and all.
-  const renderToday = () => (
+  // `first`: Today opens the table (the Daily bar above it is hidden), so the frame
+  // already draws the line over it.
+  const renderToday = (first = false) => (
     <>
-      <div className="flex h-[18px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
+      <div className={`flex h-[18px] items-center px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
         <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
       </div>
       {BOARDS.map(([b]) => (
@@ -1441,7 +1443,8 @@ export default function Planning() {
             const board = boardOf(r);
             const dailyHead = isTodoHeader(r);
             const plainHead = r.type !== "text" && !dailyHead;
-            const bg = r.type === "text" || plainHead ? "#fff" : board ? HEADER_BG : BAR_BG;
+            // Prep, the master board, takes the top orange like Today; other boards one shade down.
+            const bg = r.type === "text" || plainHead ? "#fff" : board && board !== "master" ? HEADER_BG : BAR_BG;
             // The heading the checklist hangs under is locked: no typing, no bin, no dragging.
             const locked = isTodoHeader(r);
             const field = locked ? (
@@ -1494,6 +1497,8 @@ export default function Planning() {
             // A section ends where the next header starts, or at the foot of the table.
             const sectionEnd =
               (i === rows.length - 1 || rows[i + 1].type !== "text") && !isTodoHeader(headingFor(i) || {});
+            // The Daily bar itself is not shown; Today, which hangs under it, opens the table.
+            if (isDailyGroup(r)) return <div key={r.id}>{renderToday(i === 0)}</div>;
             return (
               <div key={r.id}>
                 <div
