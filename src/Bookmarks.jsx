@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AppWindow, Bookmark, Columns2, ExternalLink, GripVertical, Pencil, Trash2 } from "lucide-react";
+import { AppWindow, Bookmark, Columns2, ExternalLink, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // The bookmarks that used to live in Chrome. They hold private links (sheets, drives,
@@ -281,19 +281,23 @@ export default function Bookmarks() {
                 {drag && dropAt && dropAt.si === si && dropAt.gi === gi && dropAt.bi === g.length && <div className="h-[2px] w-full bg-[#C1440E]" />}
               </div>
             ))}
-            {/* Always a blank line ready: a name, the link, Enter to add. */}
-            <div className="flex items-center gap-1 border-t border-neutral-300 px-2 py-1">
-              {[["title", "Name", "w-1/3"], ["href", "Link", "flex-1"]].map(([f, ph, w]) => (
-                <input
-                  key={f}
-                  value={drafts[si]?.[f] || ""}
-                  placeholder={ph}
-                  onChange={(e) => setDrafts({ ...drafts, [si]: { ...(drafts[si] || {}), [f]: e.target.value } })}
-                  onKeyDown={(e) => { if (e.key === "Enter") addLink(si); }}
-                  className={`${w} min-w-0 border border-neutral-300 bg-white px-1 text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-500`}
-                />
-              ))}
-              <button onClick={() => addLink(si)} className="shrink-0 text-[11px] font-semibold text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">Add</button>
+            {/* Always a blank row ready, framed like the others: a name, the link, Enter or + to add. */}
+            <div className="border-t border-neutral-300 px-2 py-1.5">
+              <div className="flex items-center gap-1.5 border border-dashed border-neutral-400 bg-white px-1.5 focus-within:border-solid focus-within:border-[#0f766e]">
+                <button onClick={() => addLink(si)} title="Add" className="shrink-0 text-[#0f766e] hover:text-[#0c5e57]">
+                  <Plus size={11} strokeWidth={2.75} />
+                </button>
+                {[["title", "New bookmark", "w-2/5"], ["href", "Paste link", "flex-1"]].map(([f, ph, w], fi) => (
+                  <input
+                    key={f}
+                    value={drafts[si]?.[f] || ""}
+                    placeholder={ph}
+                    onChange={(e) => setDrafts({ ...drafts, [si]: { ...(drafts[si] || {}), [f]: e.target.value } })}
+                    onKeyDown={(e) => { if (e.key === "Enter") addLink(si); }}
+                    className={`${w} min-w-0 bg-transparent text-[11px] leading-[17px] text-neutral-900 outline-none placeholder:text-neutral-400 ${fi ? "border-l border-neutral-300 pl-1.5" : ""}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         ))}
