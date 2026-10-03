@@ -168,7 +168,7 @@ export default function Bookmarks() {
         {/* Title: the page's own mark and its name. */}
         <div className="flex h-[26px] items-center gap-1.5 border-b border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <Bookmark size={13} strokeWidth={2.5} className="shrink-0 fill-neutral-900 text-neutral-900" />
-          <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-neutral-900">Bookmarks</span>
+          <span className="text-[13px] font-bold uppercase tracking-[0.06em] text-neutral-900">Bookmarks</span>
           <span className="flex-1" />
           {/* Only while the page is empty: importing again would replace everything. */}
           {empty && (
