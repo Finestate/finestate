@@ -244,7 +244,7 @@ export default function Bookmarks() {
                     </a>
                     )}
                     {!isEdit && OPENERS.map((o) => (
-                      <button key={o.key} onClick={() => o.run(b.href)} title={o.title} className="shrink-0 text-[#D9466F] hover:text-[#A8284F]">
+                      <button key={o.key} onClick={() => o.run(b.href)} title={o.title} className="shrink-0 text-[#C8506A] hover:text-[#A33A52]">
                         <o.icon size={11} />
                       </button>
                     ))}
@@ -253,7 +253,7 @@ export default function Bookmarks() {
                     <button
                       onClick={() => setEditing({ si, gi, bi, title: b.title, href: b.href })}
                       title="Edit this link"
-                      className="shrink-0 text-[#D9466F] hover:text-[#A8284F]"
+                      className="shrink-0 text-[#C8506A] hover:text-[#A33A52]"
                     >
                       <Pencil size={11} />
                     </button>
@@ -263,14 +263,14 @@ export default function Bookmarks() {
                       onDragStart={() => setDrag({ si, gi, bi })}
                       onDragEnd={() => { setDrag(null); setDropAt(null); }}
                       title="Drag to move"
-                      className="shrink-0 cursor-grab text-[#D9466F] active:cursor-grabbing"
+                      className="shrink-0 cursor-grab text-[#C8506A] active:cursor-grabbing"
                     >
                       <GripVertical size={11} />
                     </span>
                     <button
                       onClick={() => setConfirm({ run: () => removeLink(si, gi, bi), question: `Delete ${b.title}?` })}
                       title="Delete this link"
-                      className="shrink-0 text-[#D9466F] hover:text-[#A8284F]"
+                      className="shrink-0 text-[#C8506A] hover:text-[#A33A52]"
                     >
                       <Trash2 size={11} />
                     </button>
