@@ -18,13 +18,13 @@ const NUTRITION_PARTS = [
 // The week, one line a day. Each day first shows what its old group of days held,
 // until something is written for that day itself.
 const DAYS = [
-  ["sun", "Sunday", "weekdays"],
   ["mon", "Monday", "weekdays"],
   ["tue", "Tuesday", "weekdays"],
   ["wed", "Wednesday", "saturday"],
   ["thu", "Thursday", "weekdays"],
   ["fri", "Friday", "weekdays"],
   ["sat", "Saturday", "saturday"],
+  ["sun", "Sunday", "weekdays"],
 ];
 const BAR_BG = "#F2C46D";   // section bars
 const HEADER_BG = "#FFE4B3"; // column headings inside a section
@@ -150,7 +150,7 @@ export default function HW() {
     persist({ foundational: notes, ...lists, nutrition: next });
   };
   // The day open in Nutrition: today, until another is clicked. One at a time.
-  const todayKey = DAYS[new Date().getDay()][0];
+  const todayKey = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
   const [openDay, setOpenDay] = useState(todayKey);
   const saveList = (key, next) => {
     const all = { ...lists, [key]: next };
