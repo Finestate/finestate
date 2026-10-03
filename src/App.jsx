@@ -13,6 +13,7 @@ import {
   KeyRound,
   Users,
   ChevronDown,
+  Bookmark,
 } from "lucide-react";
 import Investing from "./Investing.jsx";
 import Opportunities from "./Opportunities.jsx";
@@ -22,6 +23,7 @@ import Integrations from "./Integrations.jsx";
 import Logins from "./Logins.jsx";
 import LegalDocuments from "./LegalDocuments.jsx";
 import Costs from "./Costs.jsx";
+import Bookmarks from "./Bookmarks.jsx";
 import HW from "./HW.jsx";
 import KnowledgeFeeds from "./KnowledgeFeeds.jsx";
 import ErrorBoundary from "./ErrorBoundary.jsx";
@@ -42,6 +44,8 @@ const NAV = [
       { id: "hw", name: "HW", icon: Leaf },
     ],
   },
+  // Links that used to live in Chrome; each opens in a new tab.
+  { id: "bookmarks", name: "Bookmarks", icon: Bookmark },
   {
     id: "admin",
     name: "Admin",
@@ -380,6 +384,7 @@ export default function App() {
         ) : (
           <ErrorBoundary routeKey={route}>
             {route === "admin/planning" && <Planning />}
+            {route === "bookmarks" && <Bookmarks />}
             {route === "admin/legal-documents" && <LegalDocuments />}
             {route === "costs/monthly" && <Costs />}
             {route === "hw" && <HW />}

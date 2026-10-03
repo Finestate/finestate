@@ -3,6 +3,7 @@
 export const PAGES = [
   { id: "admin/planning", label: "Planning – Daily" },
   { id: "hw", label: "Planning – HW" },
+  { id: "bookmarks", label: "Bookmarks" },
   { id: "admin/legal-documents", label: "Admin – Legal documents" },
   { id: "admin/logins", label: "Admin – Logins" },
   { id: "admin/site-running-costs", label: "Admin – Site running costs" },
