@@ -440,7 +440,7 @@ export default function HW() {
                   <div className="border-t border-black px-2 py-1" style={{ backgroundColor: "#FBEFEC" }}>
                     {MEALS.map((meal) => (
                       <div key={meal} className="flex items-start gap-2 py-[2px]">
-                        <span className="w-[52px] shrink-0 text-[11px] font-bold leading-[15px] text-neutral-900">{meal}</span>
+                        <span className="w-[34px] shrink-0 text-[11px] font-bold leading-[15px] text-neutral-900">Meal</span>
                         <div className="min-w-0 flex-1">
                           <GrowText value={mealOf(day, group, meal)} onChange={(t) => saveDayMeal(day, meal, t)} rows={1} spell />
                         </div>
