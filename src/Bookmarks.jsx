@@ -198,9 +198,6 @@ export default function Bookmarks() {
         <div className="grid items-start" style={{ gridTemplateColumns: `repeat(${data.sections.length}, minmax(0, 1fr))` }}>
         {data.sections.map((s, si) => (
           <div key={si} className={si > 0 ? "border-l border-black" : ""}>
-            <div className="flex h-[18px] items-center border-y border-black bg-[#FFE4B3] px-2">
-              <span className={head}>{s.name}</span>
-            </div>
             {s.groups.map((g, gi) => (
               <div
                 key={gi}
