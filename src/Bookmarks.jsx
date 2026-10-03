@@ -157,18 +157,15 @@ export default function Bookmarks() {
 
   if (!data) return null;
   const empty = !data.sections.length;
-  const count = data.sections.reduce((n, s) => n + s.groups.reduce((m, g) => m + g.length, 0), 0);
 
   return (
     <div className="w-full">
       <div className="w-full border border-black bg-white shadow-sm">
-        {/* Title: the page's own mark, its name and how many links it holds. */}
+        {/* Title: the page's own mark and its name. */}
         <div className="flex h-[26px] items-center gap-1.5 border-b border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <Bookmark size={13} strokeWidth={2.5} className="shrink-0 fill-neutral-900 text-neutral-900" />
           <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-neutral-900">Bookmarks</span>
-          <span className="flex-1 pl-1 text-[11px] text-neutral-700">
-            {count} {count === 1 ? "link" : "links"}
-          </span>
+          <span className="flex-1" />
           {/* Only while the page is empty: importing again would replace everything. */}
           {empty && (
             <button
