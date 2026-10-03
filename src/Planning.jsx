@@ -411,7 +411,7 @@ export default function Planning() {
   const [todoAnchor, setTodoAnchor] = useState(() => { try { return localStorage.getItem(TODO_ANCHOR_KEY) || null; } catch { return null; } });
   // Errands prios and H+F order: plain lists, each line typed, moved or binned.
   // These hold door codes and names, so they live in Supabase, never in this public repo.
-  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [] });
+  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [], temp: "" });
   useEffect(() => {
     supabase
       .from("admin_docs")
@@ -421,7 +421,7 @@ export default function Planning() {
       .then(({ data }) => {
         const d = data?.data;
         // A column added later starts empty rather than undefined.
-        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [] });
+        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [], temp: d.temp || "" });
       });
   }, []);
   const saveCols = (next) => {
@@ -1213,6 +1213,17 @@ export default function Planning() {
                       >
                         <Plus size={12} />
                       </button>
+                      {/* Finestate only: a plain box under the points to park some text for now,
+                          always in red. Saved in Supabase with the lists below. */}
+                      {g === "core" && MEETING_BOARDS.includes(b) && (
+                        <textarea
+                          value={cols.temp || ""}
+                          onChange={(e) => saveCols({ ...cols, temp: e.target.value })}
+                          rows={4}
+                          spellCheck
+                          className="w-full resize-y rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold leading-[15px] text-[#C1440E] outline-none focus:border-neutral-400"
+                        />
+                      )}
                     </div>
                   </div>
                 ))}
