@@ -62,6 +62,10 @@ const OPENERS = [
   },
 ];
 
+const hostOf = (href) => {
+  try { return new URL(href).hostname; } catch { return ""; }
+};
+
 export default function Bookmarks() {
   const [data, setData] = useState(null); // { sections: [...] }
   const [err, setErr] = useState("");
@@ -238,9 +242,19 @@ export default function Bookmarks() {
                       target="_blank"
                       rel="noreferrer"
                       title={b.href}
-                      className="min-w-0 flex-1 truncate text-[11px] leading-[17px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]"
+                      className="group/link flex min-w-0 flex-1 items-center gap-1.5 text-[11px] font-medium leading-[19px] text-neutral-900"
                     >
-                      {b.title}
+                      {/* The site's own little logo, so each link is known at a glance. */}
+                      <img
+                        src={`https://www.google.com/s2/favicons?sz=32&domain=${encodeURIComponent(hostOf(b.href))}`}
+                        alt=""
+                        loading="lazy"
+                        className="h-3 w-3 shrink-0"
+                        onError={(e) => { e.currentTarget.style.visibility = "hidden"; }}
+                      />
+                      <span className="truncate underline decoration-neutral-300 underline-offset-[3px] group-hover/link:text-[#A33A52] group-hover/link:decoration-[#C8506A]">
+                        {b.title}
+                      </span>
                     </a>
                     )}
                     {!isEdit && OPENERS.map((o) => (
