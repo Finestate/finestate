@@ -244,7 +244,7 @@ export default function Bookmarks() {
                     </a>
                     )}
                     {!isEdit && OPENERS.map((o) => (
-                      <button key={o.key} onClick={() => o.run(b.href)} title={o.title} className="shrink-0 text-neutral-900 hover:text-[#0f766e]">
+                      <button key={o.key} onClick={() => o.run(b.href)} title={o.title} className="shrink-0 text-[#D9466F] hover:text-[#A8284F]">
                         <o.icon size={11} />
                       </button>
                     ))}
@@ -253,7 +253,7 @@ export default function Bookmarks() {
                     <button
                       onClick={() => setEditing({ si, gi, bi, title: b.title, href: b.href })}
                       title="Edit this link"
-                      className="shrink-0 text-neutral-900 hover:text-[#0f766e]"
+                      className="shrink-0 text-[#D9466F] hover:text-[#A8284F]"
                     >
                       <Pencil size={11} />
                     </button>
@@ -263,14 +263,14 @@ export default function Bookmarks() {
                       onDragStart={() => setDrag({ si, gi, bi })}
                       onDragEnd={() => { setDrag(null); setDropAt(null); }}
                       title="Drag to move"
-                      className="shrink-0 cursor-grab text-neutral-400 active:cursor-grabbing"
+                      className="shrink-0 cursor-grab text-[#D9466F] active:cursor-grabbing"
                     >
                       <GripVertical size={11} />
                     </span>
                     <button
                       onClick={() => setConfirm({ run: () => removeLink(si, gi, bi), question: `Delete ${b.title}?` })}
                       title="Delete this link"
-                      className="shrink-0 text-neutral-900 hover:text-[#C1440E]"
+                      className="shrink-0 text-[#D9466F] hover:text-[#A8284F]"
                     >
                       <Trash2 size={11} />
                     </button>
