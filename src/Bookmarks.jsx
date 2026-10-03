@@ -258,7 +258,7 @@ export default function Bookmarks() {
                     </a>
                     )}
                     {!isEdit && OPENERS.map((o) => (
-                      <button key={o.key} onClick={() => o.run(b.href)} title={o.title} className="shrink-0 text-[#C8506A] hover:text-[#A33A52]">
+                      <button key={o.key} onClick={() => o.run(b.href)} title={o.title} className="shrink-0 text-[#9c7c33] hover:text-[#6f5620]">
                         <o.icon size={11} />
                       </button>
                     ))}
@@ -267,7 +267,7 @@ export default function Bookmarks() {
                     <button
                       onClick={() => setEditing({ si, gi, bi, title: b.title, href: b.href })}
                       title="Edit this link"
-                      className="shrink-0 text-[#C8506A] hover:text-[#A33A52]"
+                      className="shrink-0 text-[#9c7c33] hover:text-[#6f5620]"
                     >
                       <Pencil size={11} />
                     </button>
@@ -277,14 +277,14 @@ export default function Bookmarks() {
                       onDragStart={() => setDrag({ si, gi, bi })}
                       onDragEnd={() => { setDrag(null); setDropAt(null); }}
                       title="Drag to move"
-                      className="shrink-0 cursor-grab text-[#C8506A] active:cursor-grabbing"
+                      className="shrink-0 cursor-grab text-[#9c7c33] active:cursor-grabbing"
                     >
                       <GripVertical size={11} />
                     </span>
                     <button
                       onClick={() => setConfirm({ run: () => removeLink(si, gi, bi), question: `Delete ${b.title}?` })}
                       title="Delete this link"
-                      className="shrink-0 text-[#C8506A] hover:text-[#A33A52]"
+                      className="shrink-0 text-[#9c7c33] hover:text-[#6f5620]"
                     >
                       <Trash2 size={11} />
                     </button>
@@ -295,23 +295,24 @@ export default function Bookmarks() {
                 {drag && dropAt && dropAt.si === si && dropAt.gi === gi && dropAt.bi === g.length && <div className="h-[2px] w-full bg-[#C1440E]" />}
               </div>
             ))}
-            {/* Always a blank row ready, framed like the others: a name, the link, Enter or + to add. */}
-            <div className="border-t border-neutral-300 px-2 py-1.5">
-              <div className="flex items-center gap-1.5 border border-dashed border-neutral-400 bg-white px-1.5 focus-within:border-solid focus-within:border-[#0f766e]">
-                <button onClick={() => addLink(si)} title="Add" className="shrink-0 text-[#0f766e] hover:text-[#0c5e57]">
-                  <Plus size={11} strokeWidth={2.75} />
-                </button>
-                {[["title", "New bookmark", "w-2/5"], ["href", "Paste link", "flex-1"]].map(([f, ph, w], fi) => (
-                  <input
-                    key={f}
-                    value={drafts[si]?.[f] || ""}
-                    placeholder={ph}
-                    onChange={(e) => setDrafts({ ...drafts, [si]: { ...(drafts[si] || {}), [f]: e.target.value } })}
-                    onKeyDown={(e) => { if (e.key === "Enter") addLink(si); }}
-                    className={`${w} min-w-0 bg-transparent text-[11px] leading-[17px] text-neutral-900 outline-none placeholder:text-neutral-400 ${fi ? "border-l border-neutral-300 pl-1.5" : ""}`}
-                  />
-                ))}
-              </div>
+            {/* Always a blank row ready on a soft pink band: a name, the link, and Add. */}
+            <div className="flex items-center gap-1.5 border-t border-neutral-300 bg-[#FBEFEC] px-2 py-1.5">
+              {[["title", "New bookmark", "w-2/5"], ["href", "Paste link", "flex-1"]].map(([f, ph, w]) => (
+                <input
+                  key={f}
+                  value={drafts[si]?.[f] || ""}
+                  placeholder={ph}
+                  onChange={(e) => setDrafts({ ...drafts, [si]: { ...(drafts[si] || {}), [f]: e.target.value } })}
+                  onKeyDown={(e) => { if (e.key === "Enter") addLink(si); }}
+                  className={`${w} h-[22px] min-w-0 border border-neutral-400 bg-white px-1.5 text-[11px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#0f766e]`}
+                />
+              ))}
+              <button
+                onClick={() => addLink(si)}
+                className="flex h-[22px] shrink-0 items-center gap-1 border border-[#0f766e] bg-[#0f766e] px-2.5 text-[11px] font-bold uppercase tracking-wide text-white hover:bg-[#0c5e57]"
+              >
+                <Plus size={11} strokeWidth={3} /> Add
+              </button>
             </div>
           </div>
         ))}
