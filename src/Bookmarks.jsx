@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AppWindow, Bookmark, Columns2, ExternalLink, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { AppWindow, Bookmark, Columns2, ExternalLink, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // The bookmarks that used to live in Chrome. They hold private links (sheets, drives,
@@ -70,7 +70,7 @@ export default function Bookmarks() {
   const [data, setData] = useState(null); // { sections: [...] }
   const [err, setErr] = useState("");
   const fileRef = useRef(null);
-  const [drafts, setDrafts] = useState({}); // the blank line at the foot of each column
+  const [adding, setAdding] = useState(null); // the add popup: { title, href, col }
   const [confirm, setConfirm] = useState(null);
 
   const save = (next) => {
@@ -78,9 +78,10 @@ export default function Bookmarks() {
     supabase.from("admin_docs").upsert({ id: DOC_ID, data: next, updated_at: new Date().toISOString() })
       .then(({ error }) => { if (error) setErr(error.message); });
   };
-  // A new link goes to the foot of the column. A link typed without http gets https.
-  const addLink = (si) => {
-    const d = drafts[si] || {};
+  // A new link goes to the foot of the chosen column. A link typed without http gets https.
+  const addLink = () => {
+    const d = adding || {};
+    const si = d.col ?? 0;
     const title = (d.title || "").trim();
     let href = (d.href || "").trim();
     if (!href) return;
@@ -92,7 +93,7 @@ export default function Bookmarks() {
       return { ...s, groups };
     });
     save({ ...data, sections });
-    setDrafts({ ...drafts, [si]: {} });
+    setAdding(null);
   };
   // Editing one link in place: its name and its address.
   const [editing, setEditing] = useState(null); // { si, gi, bi, title, href }
@@ -167,8 +168,13 @@ export default function Bookmarks() {
       <div className="w-full border border-black bg-white shadow-sm">
         {/* Title: the page's own mark and its name. */}
         <div className="flex h-[26px] items-center gap-1.5 border-b border-black px-2" style={{ backgroundColor: BAR_BG }}>
-          <Bookmark size={12} strokeWidth={2.5} className="shrink-0 fill-neutral-900 text-neutral-900" />
           <span className="text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900">Bookmarks</span>
+          {/* The mark beside the name adds a bookmark. */}
+          {!empty && (
+            <button onClick={() => setAdding({ title: "", href: "", col: 0 })} title="Add a bookmark" className="flex items-center text-neutral-900 hover:text-[#0f766e]">
+              <Bookmark size={12} strokeWidth={2.5} className="fill-current" />
+            </button>
+          )}
           <span className="flex-1" />
           {/* Only while the page is empty: importing again would replace everything. */}
           {empty && (
@@ -295,31 +301,56 @@ export default function Bookmarks() {
                 {drag && dropAt && dropAt.si === si && dropAt.gi === gi && dropAt.bi === g.length && <div className="h-[2px] w-full bg-[#C1440E]" />}
               </div>
             ))}
-            {/* Always a blank row ready on a soft pink band: a name, the link, and Add. */}
-            <div className="flex items-center gap-1.5 border-t border-neutral-300 bg-[#FBEFEC] px-2 py-1.5">
-              {[["title", "New bookmark", "w-2/5"], ["href", "Paste link", "flex-1"]].map(([f, ph, w]) => (
-                <input
-                  key={f}
-                  value={drafts[si]?.[f] || ""}
-                  placeholder={ph}
-                  onChange={(e) => setDrafts({ ...drafts, [si]: { ...(drafts[si] || {}), [f]: e.target.value } })}
-                  onKeyDown={(e) => { if (e.key === "Enter") addLink(si); }}
-                  className={`${w} h-[22px] min-w-0 border border-neutral-400 bg-white px-1.5 text-[11px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#0f766e]`}
-                />
-              ))}
-              <button
-                onClick={() => addLink(si)}
-                className="flex h-[22px] shrink-0 items-center gap-1 border border-[#0f766e] bg-[#0f766e] px-2.5 text-[11px] font-bold uppercase tracking-wide text-white hover:bg-[#0c5e57]"
-              >
-                <Plus size={11} strokeWidth={3} /> Add
-              </button>
-            </div>
           </div>
         ))}
         </div>
         )}
       </div>
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
+
+      {/* Adding a bookmark: its name, its link, and which column it goes in. */}
+      {adding && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setAdding(null)}>
+          <div className="flex w-full max-w-sm flex-col gap-2 border border-black bg-white p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <p className="flex items-center justify-center gap-1.5 pb-1 text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900">
+              New bookmark <Bookmark size={12} strokeWidth={2.5} className="fill-current" />
+            </p>
+            {[["title", "Name"], ["href", "Link"]].map(([f, ph]) => (
+              <input
+                key={f}
+                autoFocus={f === "title"}
+                value={adding[f]}
+                placeholder={ph}
+                onChange={(e) => setAdding({ ...adding, [f]: e.target.value })}
+                onKeyDown={(e) => { if (e.key === "Enter") addLink(); if (e.key === "Escape") setAdding(null); }}
+                className="h-[24px] w-full border border-neutral-400 bg-white px-2 text-[11px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#0f766e]"
+              />
+            ))}
+            {/* One bar per column; the chosen one is filled. */}
+            <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${data.sections.length}, minmax(0, 1fr))` }}>
+              {data.sections.map((sec, i) => (
+                <button
+                  key={i}
+                  onClick={() => setAdding({ ...adding, col: i })}
+                  className={`h-[24px] border text-[11px] font-bold uppercase tracking-wide ${
+                    adding.col === i ? "border-[#9c7c33] bg-[#F2C46D] text-neutral-900" : "border-neutral-400 bg-white text-neutral-500 hover:border-neutral-600"
+                  }`}
+                >
+                  Column {i + 1}
+                </button>
+              ))}
+            </div>
+            <div className="mt-1 grid grid-cols-2 gap-1.5 text-[11px] font-bold uppercase tracking-wide">
+              <button onClick={addLink} disabled={!adding.href.trim()} className="h-[24px] border border-[#0f766e] bg-[#0f766e] text-white hover:bg-[#0c5e57] disabled:opacity-40">
+                Save
+              </button>
+              <button onClick={() => setAdding(null)} className="h-[24px] border border-neutral-500 bg-white text-neutral-700 hover:border-neutral-900">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* The warning: a heavy red frame, the question in bold, a solid button to go ahead. */}
       {confirm && (
