@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, GripVertical, Pencil, Trash2 } from "lucide-react";
+import { AppWindow, Bookmark, Columns2, ExternalLink, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // The bookmarks that used to live in Chrome. They hold private links (sheets, drives,
@@ -40,6 +40,27 @@ function parseChrome(html) {
   if (top) walk(top, "Bookmarks");
   return sections.filter((s) => s.groups.length);
 }
+
+// Three ways to open a link, like Chrome's own. A site cannot start Chrome's split view
+// itself, so "side by side" opens its own window filling the right half of the screen.
+const OPENERS = [
+  { key: "tab", icon: ExternalLink, title: "Open in a new tab", run: (href) => window.open(href, "_blank", "noopener") },
+  {
+    key: "window",
+    icon: AppWindow,
+    title: "Open in a new window",
+    run: (href) => window.open(href, "_blank", `noopener,popup,width=${Math.round(screen.availWidth * 0.8)},height=${Math.round(screen.availHeight * 0.85)}`),
+  },
+  {
+    key: "split",
+    icon: Columns2,
+    title: "Open side by side (right half of the screen)",
+    run: (href) => {
+      const w = Math.round(screen.availWidth / 2);
+      window.open(href, "_blank", `noopener,popup,width=${w},height=${screen.availHeight},left=${(screen.availLeft || 0) + w},top=${screen.availTop || 0}`);
+    },
+  },
+];
 
 export default function Bookmarks() {
   const [data, setData] = useState(null); // { sections: [...] }
@@ -228,6 +249,12 @@ export default function Bookmarks() {
                       {b.title}
                     </a>
                     )}
+                    {!isEdit && OPENERS.map((o) => (
+                      <button key={o.key} onClick={() => o.run(b.href)} title={o.title} className="shrink-0 text-neutral-900 hover:text-[#0f766e]">
+                        <o.icon size={11} />
+                      </button>
+                    ))}
+                    {!isEdit && <span className="h-[11px] w-px shrink-0 bg-neutral-300" />}
                     {!isEdit && (
                     <button
                       onClick={() => setEditing({ si, gi, bi, title: b.title, href: b.href })}
