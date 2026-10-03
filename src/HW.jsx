@@ -149,9 +149,13 @@ export default function HW() {
     setNutrition(next);
     persist({ foundational: notes, ...lists, nutrition: next });
   };
-  // The day open in Nutrition: today, until another is clicked. One at a time.
+  // The days open in Nutrition: today to start. Each line opens and closes on its own,
+  // and the chevron on the bar opens or closes them all at once.
   const todayKey = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
-  const [openDay, setOpenDay] = useState(todayKey);
+  const [openDays, setOpenDays] = useState(() => [todayKey]);
+  const ALL_NUTRITION = [...DAYS.map(([d]) => d), "considerations"];
+  const allOpen = openDays.length === ALL_NUTRITION.length;
+  const toggleDay = (day) => setOpenDays((list) => (list.includes(day) ? list.filter((d) => d !== day) : [...list, day]));
   const saveList = (key, next) => {
     const all = { ...lists, [key]: next };
     setLists(all);
@@ -406,17 +410,25 @@ export default function HW() {
         {/* Nutrition: no grey band before it. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Nutrition</span>
+          {/* Opens every day at once, or closes them all. */}
+          <button
+            onClick={() => setOpenDays(allOpen ? [] : ALL_NUTRITION)}
+            title={allOpen ? "Close all" : "Open all"}
+            className="ml-auto text-neutral-900 hover:text-[#9c7c33]"
+          >
+            <ChevronDown size={14} strokeWidth={2.75} className={`transition-transform ${allOpen ? "rotate-180" : ""}`} />
+          </button>
         </div>
-        {/* Seven lines, Sunday to Saturday, like Foundational. A click opens a day's meals
+        {/* Seven lines, Monday to Sunday, like Foundational. A click opens a day's meals
             underneath on the faint pink; today is open to start. Considerations closes the
             list the same way. */}
         {notesLoaded &&
           [...DAYS, ["considerations", "Considerations"]].map(([day, name, group]) => {
-            const open = openDay === day;
+            const open = openDays.includes(day);
             return (
               <div key={day}>
                 <div
-                  onClick={() => setOpenDay(open ? null : day)}
+                  onClick={() => toggleDay(day)}
                   className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
                 >
                   <span className="text-[11px] leading-none text-neutral-900">{name}</span>
