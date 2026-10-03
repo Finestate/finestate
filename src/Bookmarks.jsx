@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Bookmark, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // The bookmarks that used to live in Chrome. They hold private links (sheets, drives,
@@ -105,18 +105,27 @@ export default function Bookmarks() {
 
   if (!data) return null;
   const empty = !data.sections.length;
+  const count = data.sections.reduce((n, s) => n + s.groups.reduce((m, g) => m + g.length, 0), 0);
 
   return (
     <div className="w-full">
       <div className="w-full border border-black bg-white shadow-sm">
-        <div className="flex h-[18px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={`flex-1 ${head}`}>Bookmarks</span>
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="text-[11px] font-semibold text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]"
-          >
-            {empty ? "Import from Chrome" : "Import again (replaces all)"}
-          </button>
+        {/* Title: the page's own mark, its name and how many links it holds. */}
+        <div className="flex h-[26px] items-center gap-1.5 border-b border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <Bookmark size={13} strokeWidth={2.5} className="shrink-0 fill-neutral-900 text-neutral-900" />
+          <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-neutral-900">Bookmarks</span>
+          <span className="flex-1 pl-1 text-[11px] text-neutral-700">
+            {count} {count === 1 ? "link" : "links"}
+          </span>
+          {/* Only while the page is empty: importing again would replace everything. */}
+          {empty && (
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="text-[11px] font-semibold text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]"
+            >
+              Import from Chrome
+            </button>
+          )}
           <input
             ref={fileRef}
             type="file"
