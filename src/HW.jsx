@@ -429,10 +429,10 @@ export default function HW() {
               <div key={day}>
                 <div
                   onClick={() => toggleDay(day)}
-                  className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
+                  // Today's line sits on the pink, so it stands out from the other days.
+                  className={`flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2 ${day === todayKey ? "bg-[#FBEFEC]" : ""}`}
                 >
                   <span className="text-[11px] leading-none text-neutral-900">{name}</span>
-                  {day === todayKey && <span className="h-[5px] w-[5px] shrink-0 rounded-full bg-[#C1440E]" title="Today" />}
                   <span className="flex-1" />
                   <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${open ? "rotate-180" : ""}`} />
                 </div>
