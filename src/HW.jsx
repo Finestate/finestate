@@ -411,7 +411,7 @@ export default function HW() {
         {/* One line per day of the week. The day in focus (today, to start) is open with its
             four meals to write in; the other days show a short line and open at a click.
             Considerations runs down the right beside the whole week. */}
-        <div className="grid grid-cols-[6rem_1fr_1fr_1fr_1fr_1fr] border-t border-black" style={{ backgroundColor: HEADER_BG }}>
+        <div className="grid grid-cols-[6rem_1fr_1fr_1fr_1fr_calc(20%-1.2rem)] border-t border-black" style={{ backgroundColor: HEADER_BG }}>
           <span className={`flex h-[22px] items-center px-2 ${head}`}>Day</span>
           {MEALS.map((meal) => (
             <span key={meal} className={`flex h-[22px] items-center border-l border-black px-2 ${head}`}>{meal}</span>
@@ -429,7 +429,8 @@ export default function HW() {
           </span>
         </div>
         {notesLoaded && (
-          <div className="grid grid-cols-[6rem_1fr_1fr_1fr_1fr_1fr]">
+          <div className="grid grid-cols-[1fr_calc(20%-1.2rem)]">
+          <div className="grid grid-cols-[6rem_1fr_1fr_1fr_1fr] content-start">
             {DAYS.map(([day, name, group], i) => {
               const inFocus = day === focusDay;
               return (
@@ -450,7 +451,7 @@ export default function HW() {
                       style={{ gridColumn: j + 2, gridRow: i + 1 }}
                     >
                       {inFocus ? (
-                        <GrowText value={mealOf(day, group, meal)} onChange={(t) => saveDayMeal(day, meal, t)} rows={2} spell />
+                        <GrowText value={mealOf(day, group, meal)} onChange={(t) => saveDayMeal(day, meal, t)} rows={1} spell />
                       ) : (
                         <span className="block truncate text-[11px] leading-[15px] text-neutral-400">{mealOf(day, group, meal).split(/\r?\n/)[0]}</span>
                       )}
@@ -459,7 +460,8 @@ export default function HW() {
                 </Fragment>
               );
             })}
-            <span className="border-l border-t border-black px-2 py-[3px]" style={{ gridColumn: 6, gridRow: `1 / span ${DAYS.length}` }}>
+          </div>
+            <span className="border-l border-t border-black px-2 py-[3px]">
               <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={4} bullets boxRef={considerationsBox} spell />
             </span>
           </div>
