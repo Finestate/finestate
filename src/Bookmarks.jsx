@@ -342,7 +342,7 @@ export default function Bookmarks() {
             </div>
             <div className="mt-1 grid grid-cols-2 gap-1.5 text-[11px] font-bold uppercase tracking-wide">
               <button onClick={addLink} disabled={!adding.href.trim()} className="h-[24px] border border-[#0f766e] bg-[#0f766e] text-white hover:bg-[#0c5e57] disabled:opacity-40">
-                Save
+                Add
               </button>
               <button onClick={() => setAdding(null)} className="h-[24px] border border-neutral-500 bg-white text-neutral-700 hover:border-neutral-900">
                 Cancel
