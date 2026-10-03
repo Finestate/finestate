@@ -183,7 +183,7 @@ export default function Bookmarks() {
             {s.groups.map((g, gi) => (
               <div
                 key={gi}
-                className={`flex flex-col px-2 py-1 ${gi > 0 ? "border-t border-neutral-300" : ""}`}
+                className={`flex flex-col gap-1 px-2 py-1.5 ${gi > 0 ? "border-t border-neutral-300" : ""}`}
                 onDragOver={(e) => { if (drag) { e.preventDefault(); if (e.target === e.currentTarget) setDropAt({ si, gi, bi: g.length }); } }}
                 onDrop={(e) => { e.preventDefault(); moveLink(); }}
               >
@@ -194,7 +194,7 @@ export default function Bookmarks() {
                   <div key={bi}>
                   {marked && dropAt.bi === bi && <div className="h-[2px] w-full bg-[#C1440E]" />}
                   <div
-                    className={`group flex items-center gap-1 ${drag && drag.si === si && drag.gi === gi && drag.bi === bi ? "opacity-40" : ""}`}
+                    className={`flex items-center gap-1.5 border border-neutral-300 bg-white px-1.5 ${drag && drag.si === si && drag.gi === gi && drag.bi === bi ? "opacity-40" : ""}`}
                     onDragOver={(e) => {
                       if (!drag) return;
                       e.preventDefault();
@@ -232,7 +232,7 @@ export default function Bookmarks() {
                     <button
                       onClick={() => setEditing({ si, gi, bi, title: b.title, href: b.href })}
                       title="Edit this link"
-                      className="shrink-0 text-neutral-900 opacity-0 hover:text-[#0f766e] group-hover:opacity-100"
+                      className="shrink-0 text-neutral-900 hover:text-[#0f766e]"
                     >
                       <Pencil size={11} />
                     </button>
@@ -242,14 +242,14 @@ export default function Bookmarks() {
                       onDragStart={() => setDrag({ si, gi, bi })}
                       onDragEnd={() => { setDrag(null); setDropAt(null); }}
                       title="Drag to move"
-                      className="shrink-0 cursor-grab text-neutral-400 opacity-0 active:cursor-grabbing group-hover:opacity-100"
+                      className="shrink-0 cursor-grab text-neutral-400 active:cursor-grabbing"
                     >
                       <GripVertical size={11} />
                     </span>
                     <button
                       onClick={() => setConfirm({ run: () => removeLink(si, gi, bi), question: `Delete ${b.title}?` })}
                       title="Delete this link"
-                      className="shrink-0 text-neutral-900 opacity-0 hover:text-[#C1440E] group-hover:opacity-100"
+                      className="shrink-0 text-neutral-900 hover:text-[#C1440E]"
                     >
                       <Trash2 size={11} />
                     </button>
