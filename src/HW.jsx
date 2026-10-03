@@ -149,9 +149,9 @@ export default function HW() {
     setNutrition(next);
     persist({ foundational: notes, ...lists, nutrition: next });
   };
-  // The day in focus: today, until another day is clicked.
+  // The day open in Nutrition: today, until another is clicked. One at a time.
   const todayKey = DAYS[new Date().getDay()][0];
-  const [focusDay, setFocusDay] = useState(todayKey);
+  const [openDay, setOpenDay] = useState(todayKey);
   const saveList = (key, next) => {
     const all = { ...lists, [key]: next };
     setLists(all);
@@ -403,69 +403,57 @@ export default function HW() {
           <span className={head}>Supplements</span>
         </div>
         {notesLoaded && listBlock("supplements", true)}
-        {/* Nutrition: no grey band before it. A row per meal, a column per group of days
-            and one for considerations; every cell grows with what is written. */}
+        {/* Nutrition: no grey band before it. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Nutrition</span>
         </div>
-        {/* One line per day of the week. The day in focus (today, to start) is open with its
-            four meals to write in; the other days show a short line and open at a click.
-            Considerations runs down the right beside the whole week. */}
-        <div className="grid grid-cols-[6rem_1fr_1fr_1fr_1fr_calc(20%-1.2rem)] border-t border-black" style={{ backgroundColor: HEADER_BG }}>
-          <span className={`flex h-[22px] items-center px-2 ${head}`}>Day</span>
-          {MEALS.map((meal) => (
-            <span key={meal} className={`flex h-[22px] items-center border-l border-black px-2 ${head}`}>{meal}</span>
-          ))}
-          <span className={`flex h-[22px] items-center border-l border-black px-2 ${head}`}>
-            Considerations
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={toggleBullet}
-              title="Bullet the line the cursor is on"
-              className="ml-auto text-neutral-900 hover:text-[#9c7c33]"
-            >
-              <List size={14} strokeWidth={2.75} />
-            </button>
-          </span>
-        </div>
-        {notesLoaded && (
-          <div className="grid grid-cols-[1fr_calc(20%-1.2rem)]">
-          <div className="grid grid-cols-[6rem_1fr_1fr_1fr_1fr] content-start">
-            {DAYS.map(([day, name, group], i) => {
-              const inFocus = day === focusDay;
-              return (
-                <Fragment key={day}>
-                  <button
-                    onClick={() => setFocusDay(day)}
-                    className={`flex items-start gap-1 border-t border-black px-2 py-[3px] text-left ${head} ${inFocus ? "bg-[#FBEFEC]" : "hover:bg-neutral-50"}`}
-                    style={{ gridColumn: 1, gridRow: i + 1 }}
-                  >
-                    <span className={inFocus ? "" : "text-neutral-400"}>{name}</span>
-                    {day === todayKey && <span className="mt-[5px] h-[5px] w-[5px] shrink-0 rounded-full bg-[#C1440E]" title="Today" />}
-                  </button>
-                  {MEALS.map((meal, j) => (
-                    <span
-                      key={meal}
-                      onClick={inFocus ? undefined : () => setFocusDay(day)}
-                      className={`border-l border-t border-black px-2 py-[3px] ${inFocus ? "bg-[#FBEFEC]" : "cursor-pointer hover:bg-neutral-50"}`}
-                      style={{ gridColumn: j + 2, gridRow: i + 1 }}
+        {/* Seven lines, Sunday to Saturday, like Foundational. A click opens a day's meals
+            underneath on the faint pink; today is open to start. Considerations closes the
+            list the same way. */}
+        {notesLoaded &&
+          [...DAYS, ["considerations", "Considerations"]].map(([day, name, group]) => {
+            const open = openDay === day;
+            return (
+              <div key={day}>
+                <div
+                  onClick={() => setOpenDay(open ? null : day)}
+                  className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
+                >
+                  <span className="text-[11px] leading-none text-neutral-900">{name}</span>
+                  {day === todayKey && <span className="h-[5px] w-[5px] shrink-0 rounded-full bg-[#C1440E]" title="Today" />}
+                  <span className="flex-1" />
+                  <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${open ? "rotate-180" : ""}`} />
+                </div>
+                {open && day !== "considerations" && (
+                  <div className="border-t border-black px-2 py-1" style={{ backgroundColor: "#FBEFEC" }}>
+                    {MEALS.map((meal) => (
+                      <div key={meal} className="flex items-start gap-2 py-[2px]">
+                        <span className="w-[52px] shrink-0 text-[11px] font-bold leading-[15px] text-neutral-900">{meal}</span>
+                        <div className="min-w-0 flex-1">
+                          <GrowText value={mealOf(day, group, meal)} onChange={(t) => saveDayMeal(day, meal, t)} rows={1} spell />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {open && day === "considerations" && (
+                  <div className="flex items-start gap-2 border-t border-black px-2 py-1" style={{ backgroundColor: "#FBEFEC" }}>
+                    <div className="min-w-0 flex-1">
+                      <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={2} bullets boxRef={considerationsBox} spell />
+                    </div>
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={toggleBullet}
+                      title="Bullet the line the cursor is on"
+                      className="shrink-0 text-neutral-900 hover:text-[#9c7c33]"
                     >
-                      {inFocus ? (
-                        <GrowText value={mealOf(day, group, meal)} onChange={(t) => saveDayMeal(day, meal, t)} rows={1} spell />
-                      ) : (
-                        <span className="block truncate text-[11px] leading-[15px] text-neutral-400">{mealOf(day, group, meal).split(/\r?\n/)[0]}</span>
-                      )}
-                    </span>
-                  ))}
-                </Fragment>
-              );
-            })}
-          </div>
-            <span className="border-l border-t border-black px-2 py-[3px]">
-              <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={4} bullets boxRef={considerationsBox} spell />
-            </span>
-          </div>
-        )}
+                      <List size={14} strokeWidth={2.75} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         {/* The grey band, then Fitness. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
