@@ -437,15 +437,18 @@ export default function HW() {
                   <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${open ? "rotate-180" : ""}`} />
                 </div>
                 {open && day !== "considerations" && (
-                  <div className="border-t border-black px-2 py-1" style={{ backgroundColor: "#FBEFEC" }}>
-                    {MEALS.map((meal) => (
-                      <div key={meal} className="flex items-start gap-2 py-[2px]">
-                        <span className="w-[34px] shrink-0 text-[11px] font-bold leading-[15px] text-neutral-900">Meal</span>
-                        <div className="min-w-0 flex-1">
-                          <GrowText value={mealOf(day, group, meal)} onChange={(t) => saveDayMeal(day, meal, t)} rows={1} spell />
+                  <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
+                    {/* A thin framed grid: Meal on the left, what it is on the right. */}
+                    <div className="border border-neutral-400 bg-white">
+                      {MEALS.map((meal, mi) => (
+                        <div key={meal} className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
+                          <span className="w-[44px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px] text-[11px] font-bold leading-[15px] text-neutral-900">Meal</span>
+                          <div className="min-w-0 flex-1 px-1.5 py-[2px]">
+                            <GrowText value={mealOf(day, group, meal)} onChange={(t) => saveDayMeal(day, meal, t)} rows={1} spell />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
                 {open && day === "considerations" && (
