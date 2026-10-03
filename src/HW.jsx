@@ -438,8 +438,8 @@ export default function HW() {
                 </div>
                 {open && day !== "considerations" && (
                   <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
-                    {/* A thin framed grid: Meal on the left, what it is on the right. */}
-                    <div className="border border-neutral-400 bg-white">
+                    {/* A thin framed grid on the pink: Meal on the left, what it is on the right. */}
+                    <div className="border border-neutral-400">
                       {MEALS.map((meal, mi) => (
                         <div key={meal} className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
                           <span className="w-[44px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px] text-[11px] font-bold leading-[15px] text-neutral-900">Meal</span>
