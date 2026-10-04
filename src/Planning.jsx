@@ -472,27 +472,38 @@ export default function Planning() {
     supabase.from("admin_docs").upsert({ id: TWOCOL_KEY, data: next, updated_at: new Date().toISOString() }).then(() => {});
   };
   const addColRow = (k, sub = false) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "", sub }] });
-  const setColRow = (k, id, text) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) });
+  // Retyping a ticked line updates the Errandsprios brackets on every day line it is ticked on.
+  const setColRow = (k, id, text) => {
+    const next = { ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) };
+    saveCols(next);
+    const row = cols[k].find((r) => r.id === id);
+    const lines = boards.master.lines.map((_, i) => i).filter((i) => isPicked(row, i));
+    if (lines.length) syncErrands(next, lines);
+  };
   const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
   const toggleColClosed = (k, id) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, closed: !r.closed } : r)) });
   const stepColRow = (k, id, d) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? stepLevel(r, d) : r)) });
   // Ticked lines write themselves into the Errandsprios brackets on today's line,
   // joined by a dash with no spaces, in the red the brackets already use.
+  // `lineIdx` is one day line, or a list of them to update together.
   const syncErrands = (next, lineIdx = 0) => {
+    const which = Array.isArray(lineIdx) ? lineIdx : [lineIdx];
     const master = boards.master;
     // Whatever the point is called now, it is the one about errands with brackets.
     const code = [...master.points.core, ...master.points.rest]
       .map((p) => String(p.code).trim())
       .find((c) => /errands/i.test(c) && /\(\s*\)$/.test(c));
     if (!code) return;
-    const text = TWOCOLS
-      .flatMap(([k]) => (next[k] || []).filter((r) => isPicked(r, lineIdx)).map((r) => String(r.text || "").trim()))
+    const textFor = (li) => TWOCOLS
+      .flatMap(([k]) => (next[k] || []).filter((r) => isPicked(r, li)).map((r) => String(r.text || "").trim()))
       .filter(Boolean)
       .join("-");
     // It lands on the day line whose picker is open, not always today's.
-    const line = master.lines[lineIdx] || master.lines[0];
-    const codes = line.codes.includes(code) ? line.codes : [...line.codes, code];
-    saveLines("master", master.lines.map((l, i) => (i === lineIdx ? { ...l, codes, fills: { ...(l.fills || {}), [code]: text } } : l)));
+    saveLines("master", master.lines.map((l, i) => {
+      if (!which.includes(i)) return l;
+      const codes = l.codes.includes(code) ? l.codes : [...l.codes, code];
+      return { ...l, codes, fills: { ...(l.fills || {}), [code]: textFor(i) } };
+    }));
   };
   // The lists themselves are shared between the two day lines, but a tick belongs to
   // the line it was made on, so each day carries its own errands.
