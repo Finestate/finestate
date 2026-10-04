@@ -198,6 +198,19 @@ export default function Assets() {
           </div>
         );
       })}
+      {/* The group's total: every account added up, in AED and in EUR. */}
+      <div className="flex h-[22px] items-stretch border-t border-black">
+        <span className={`flex flex-1 items-center px-2 ${head}`}>Total</span>
+        <span className="w-28 shrink-0 border-l border-black" />
+        {["aed", "eur"].map((cur) => {
+          const vals = (doc[list] || []).flatMap((r) => r.subs || [r]).map((x) => num(shown(x, cur))).filter((n) => n != null);
+          return (
+            <span key={cur} className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">
+              {vals.length ? `${cur.toUpperCase()} ${money(vals.reduce((a, b) => a + b, 0))}` : ""}
+            </span>
+          );
+        })}
+      </div>
     </>
   );
   const cash = (
