@@ -376,6 +376,37 @@ const hiddenRows = (list) => {
   });
   return hidden;
 };
+// Only the SC point has the notes dropdown.
+const hasNotes = (p) => /^SC/i.test(String(p?.code || "").trim());
+// A small text box that grows with its text. A line starting "- " becomes a bullet,
+// and Enter on a bullet starts the next one.
+function BulletBox({ value, onChange }) {
+  const onKeyDown = (e) => {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    const el = e.currentTarget;
+    const at = el.selectionStart;
+    const lineStart = value.lastIndexOf("\n", at - 1) + 1;
+    const line = value.slice(lineStart, at);
+    if (!line.startsWith("• ")) return;
+    e.preventDefault();
+    const next = line === "• " ? value.slice(0, lineStart) + value.slice(at) : value.slice(0, at) + "\n• " + value.slice(el.selectionEnd);
+    const caret = line === "• " ? lineStart : at + 3;
+    onChange(next);
+    requestAnimationFrame(() => { el.selectionStart = el.selectionEnd = caret; });
+  };
+  return (
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value.replace(/(^|\n)- /g, "$1• "))}
+      onKeyDown={onKeyDown}
+      rows={2}
+      placeholder="- for a bullet"
+      spellCheck
+      ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = `${el.scrollHeight + 2}px`; } }}
+      className="block w-full resize-none overflow-hidden rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+    />
+  );
+}
 const stepLevel = (x, d) => {
   const level = Math.max(0, Math.min(MAX_LEVEL, levelOf(x) + d));
   return { ...x, level, sub: level > 0 };
@@ -762,6 +793,9 @@ export default function Planning() {
   // A point with stepped-in points under it opens and closes like a little dropdown.
   const togglePointClosed = (b, g, id) =>
     savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? { ...p, closed: !p.closed } : p)) });
+  // The SC point carries its own little dropdown of bullet notes.
+  const patchPoint = (b, g, id, fields) =>
+    savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? { ...p, ...fields } : p)) });
   const stepPoint = (b, g, id, d) =>
     savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? stepLevel(p, d) : p)) });
   const addPoint = (b, g) => {
@@ -1161,6 +1195,11 @@ export default function Planning() {
                         >
                           {/* A group head opens and closes at a click; other points keep the space. */}
                           <span className="flex h-[15px] w-[11px] shrink-0 items-center">
+                            {hasNotes(it) && !isHead(points[g], pi) && (
+                              <button onClick={() => patchPoint(b, g, it.id, { notesOpen: !it.notesOpen })} title={it.notesOpen ? "Close" : "Open"} className="flex items-center text-neutral-900 hover:text-[#C1440E]">
+                                {it.notesOpen ? <ChevronDown size={11} strokeWidth={2.75} /> : <ChevronRight size={11} strokeWidth={2.75} />}
+                              </button>
+                            )}
                             {isHead(points[g], pi) && (
                               <button onClick={() => togglePointClosed(b, g, it.id)} title={it.closed ? "Open" : "Close"} className="flex items-center text-neutral-900 hover:text-[#C1440E]">
                                 {it.closed ? <ChevronRight size={11} strokeWidth={2.75} /> : <ChevronDown size={11} strokeWidth={2.75} />}
@@ -1210,6 +1249,11 @@ export default function Planning() {
                             <Trash2 size={11} />
                           </button>
                         </div>
+                        {hasNotes(it) && it.notesOpen && (
+                          <div className="mt-1" style={levelOf(it) ? { marginLeft: `${20 * levelOf(it)}px` } : undefined}>
+                            <BulletBox value={it.notes || ""} onChange={(t) => patchPoint(b, g, it.id, { notes: t })} />
+                          </div>
+                        )}
                         </div>
                       ))}
                       {dragP?.board === b && dragP.group === g && dropP?.board === b && dropP.group === g && dropP.index === points[g].length && (
