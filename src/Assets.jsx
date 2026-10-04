@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // What is owned, section by section. Built up step by step; the figures live in
@@ -87,9 +87,9 @@ export default function Assets() {
       .then(({ data, error }) => {
         if (error) setErr(error.message);
         const d = data?.data || {};
-        // A company line left completely empty is dropped.
+        // A line left completely empty is dropped.
         const used = (r) => r.subs || r.name?.trim() || r.aed || r.eur;
-        setDoc({ ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: d.personal || [] });
+        setDoc({ ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: (d.personal || []).filter(used) });
       });
   }, []);
 
@@ -251,6 +251,13 @@ export default function Assets() {
           </div>
         );
       })}
+      {/* Add puts a fresh line at the foot of the group, ready to type in. */}
+      <button
+        onClick={() => save({ ...doc, [list]: [...(doc[list] || []), { id: newId(), name: "" }] })}
+        className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+      >
+        <Plus size={11} strokeWidth={3} />Add
+      </button>
       {/* The group's total: every account added up, in EUR only, far right. */}
       <div className="flex h-[22px] items-stretch border-t border-black">
         <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
@@ -269,7 +276,7 @@ export default function Assets() {
   const cash = (
     <>
       {cashGroup("cash", "Company accounts", false)}
-      {cashGroup("personal", "Personal accounts", true)}
+      {cashGroup("personal", "Personal accounts", false)}
     </>
   );
 
