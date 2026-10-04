@@ -133,6 +133,18 @@ export default function Assets() {
     })();
   }, [tickers, quoteTick]);
 
+  // The mortgage loans, as typed on the Cash flow page (its Debt line), so the house
+  // here always nets off the same figures.
+  const [loans, setLoans] = useState([]);
+  useEffect(() => {
+    supabase
+      .from("admin_docs")
+      .select("data")
+      .eq("id", "costs-fc")
+      .maybeSingle()
+      .then(({ data }) => setLoans((data?.data?.loans || []).filter((l) => num(l.amount) != null)));
+  }, []);
+
   const save = (next) => {
     setDoc(next);
     supabase
@@ -366,6 +378,66 @@ export default function Assets() {
     </>
     );
   };
+  // Real estate: the house opens onto its value (typed here) and its mortgage loans
+  // (from Cash flow, in blue); its own line shows what is owned – value less the loans.
+  const house = doc.house || { name: "Hunkelestr. house", value: "", updated: "" };
+  const saveHouse = (fields) => save({ ...doc, house: { ...house, ...fields, updated: new Date().toISOString() } });
+  const owed = loans.reduce((sum, l) => sum + Math.abs(num(l.amount) || 0), 0);
+  const owned = num(house.value) != null ? num(house.value) - owed : null;
+  const houseOpen = !!doc.ui?.open?.house;
+  const reRow = "flex h-[22px] items-stretch border-t border-black";
+  const reCell = "flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums";
+  const realEstate = (
+    <>
+      <div className={reRow} style={{ backgroundColor: HEADER_BG }}>
+        <span className={`flex flex-1 items-center px-2 ${head}`}>Property</span>
+        <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
+        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
+      </div>
+      {/* The whole line opens and closes it; only the name itself is for typing. */}
+      <div onClick={() => toggleOpen("house")} className={`${reRow} cursor-pointer select-none`}>
+        <span className="flex min-w-0 flex-1 items-center gap-1 px-2">
+          <input
+            value={house.name}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => saveHouse({ name: e.target.value })}
+            style={{ fieldSizing: "content" }}
+            className="min-w-0 bg-transparent text-[11px] text-neutral-900 outline-none"
+          />
+          <button title={houseOpen ? "Close" : "Open"} className="ml-auto shrink-0 text-neutral-900 hover:text-[#9c7c33]">
+            <ChevronDown size={12} className={`transition-transform ${houseOpen ? "rotate-180" : ""}`} />
+          </button>
+        </span>
+        <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(house.updated)}</span>
+        <span className={`${reCell} text-neutral-900`} title="House value less the mortgage loans">{owned != null && `EUR ${money(owned)}`}</span>
+      </div>
+      {houseOpen && (
+        <>
+          <div className={reRow} style={{ backgroundColor: "#FBEFEC" }}>
+            <span className="flex flex-1 items-center pl-6 pr-2 text-[11px] text-neutral-900">House value</span>
+            <span className="w-28 shrink-0 border-l border-black" />
+            <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
+              <Amount cur="EUR" value={house.value} onChange={(v) => saveHouse({ value: v })} />
+            </span>
+          </div>
+          {loans.map((l) => (
+            <div key={l.id} className={reRow} style={{ backgroundColor: "#FBEFEC" }}>
+              <span className="flex flex-1 items-center pl-6 pr-2 text-[11px] text-neutral-900">Mortgage{l.name ? `: ${l.name}` : ""}</span>
+              <span className="w-28 shrink-0 border-l border-black" />
+              <span className={`${reCell} text-[#1d4ed8]`} title="From the Debt line on the Cash flow page">
+                EUR -{money(Math.abs(num(l.amount)))}
+              </span>
+            </div>
+          ))}
+        </>
+      )}
+      <div className={reRow}>
+        <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
+        <span className={`${reCell} font-bold text-neutral-900`}>{owned != null && `EUR ${money(owned)}`}</span>
+      </div>
+    </>
+  );
+
   const cash = (
     <>
       {cashGroup("cash", "Company accounts", false)}
@@ -385,6 +457,7 @@ export default function Assets() {
               <span className={head}>{name}</span>
             </div>
             {name === "Cash" && cash}
+            {name === "Real estate" && realEstate}
             {name === "Stocks" && cashGroup("stocks", "", false, "Account", [["ticker", "Ticker", "w-20"], ["shares", "Shares", "w-20"], ["price", "Price", "w-28"]], ["chf", "usd", "eur"], "w-32")}
           </div>
         ))}
