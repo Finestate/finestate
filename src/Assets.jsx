@@ -386,7 +386,10 @@ export default function Assets() {
   const owned = num(house.value) != null ? num(house.value) - owed : null;
   // The Kennedy Court flat in Varosha: listed, though sealed off since 1974 and so with
   // no market value for now. Its value is typed, like the house's.
-  const flat = doc.flat || { name: "Kennedy Court apartment – Varosha, Famagusta, Cyprus", value: "", updated: "" };
+  const FLAT_NAME = "Kennedy Court apartment – JFK Avenue, Varosha, Famagusta, Cyprus";
+  const flat0 = doc.flat || { name: FLAT_NAME, value: "", updated: "" };
+  // The first name it had, without the avenue, takes the fuller one.
+  const flat = flat0.name === "Kennedy Court apartment – Varosha, Famagusta, Cyprus" ? { ...flat0, name: FLAT_NAME } : flat0;
   const saveFlat = (fields) => save({ ...doc, flat: { ...flat, ...fields, updated: new Date().toISOString() } });
   const reTotal = (owned ?? 0) + (num(flat.value) ?? 0);
   const houseOpen = !!doc.ui?.open?.house;
