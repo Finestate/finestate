@@ -608,7 +608,7 @@ export default function Costs({ seed }) {
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => save({ ...doc, accountNames: { ...(doc.accountNames || {}), [a.uid]: e.target.value } })}
                     // Only as wide as its words, so a click just after them still opens the line.
-                    size={Math.max(label.length + 1, 6)}
+                    style={{ fieldSizing: "content" }}
                     className="min-w-0 bg-transparent text-[11px] text-neutral-900 outline-none"
                   />
                   {!sub && status}
