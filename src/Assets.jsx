@@ -107,7 +107,7 @@ export default function Assets() {
         // The same rule as Cash flow: yours is the one that is not a youth or business account.
         const own = (link.accounts || []).find((a) => !/jugend|gesch|business|gmbh/i.test(`${a.product || ""} ${a.name || ""}`));
         const b = own && link.balances?.[own.uid];
-        if (b && !b.error && b.amount !== "" && num(b.amount) != null) setOwnBank({ eur: num(b.amount), at: link.at });
+        if (b && !b.error && b.amount !== "" && num(b.amount) != null) setOwnBank({ eur: num(b.amount), at: link.at, nr: String(own.iban || "").replace(/s/g, "").slice(-8) });
       });
   }, []);
 
@@ -144,11 +144,14 @@ export default function Assets() {
   };
   // The rows of a list as shown: your Stadtsparkasse account, wherever it sits among the
   // personal accounts, takes its EUR balance and date from the bank; its AED follows at
-  // today's rate. It is found by its name.
+  // today's rate. It is found by its account number in the name.
   const rowsOf = (list) => {
     const rows = doc[list] || [];
     if (list !== "personal" || !ownBank) return rows;
-    const at = rows.findIndex((r) => /sparkasse/i.test(r.name || ""));
+    // The row carrying your account number; failing that, the only Sparkasse row.
+    const digits = (r) => String(r.name || "").replace(/D/g, "");
+    let at = ownBank.nr ? rows.findIndex((r) => digits(r).includes(ownBank.nr)) : -1;
+    if (at < 0) { const sp = rows.filter((r) => /sparkasse/i.test(r.name || "")); if (sp.length === 1) at = rows.indexOf(sp[0]); }
     return rows.map((r, i) => (i === at ? { ...r, from: "eur", eur: String(ownBank.eur), updated: ownBank.at, live: true } : r));
   };
   const [confirm, setConfirm] = useState(null); // a line waiting on Delete or Cancel
