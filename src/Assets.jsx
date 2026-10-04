@@ -79,7 +79,7 @@ export default function Assets() {
   };
   const editCash = (id, fields) => save({ ...doc, cash: doc.cash.map((r) => (r.id === id ? { ...r, ...fields } : r)) });
   // A balance is typed in one currency; the other follows at today's rate, and the
-  // row is marked with the day it was typed.
+  // row is marked with the day it was typed. Any change to the row marks it too.
   const setBalance = (id, cur, v) => editCash(id, { [cur]: v, from: cur, updated: new Date().toISOString() });
   const shown = (r, cur) => {
     if (!r.from || r.from === cur) return r[cur] || "";
@@ -109,7 +109,7 @@ export default function Assets() {
         <div key={r.id} className="flex h-[22px] items-stretch border-t border-black">
           <input
             value={r.name}
-            onChange={(e) => editCash(r.id, { name: e.target.value })}
+            onChange={(e) => editCash(r.id, { name: e.target.value, updated: new Date().toISOString() })}
             className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
           />
           <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(r.updated)}</span>
