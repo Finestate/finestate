@@ -1205,19 +1205,6 @@ export default function Planning() {
                         <div className="h-[2px] w-full bg-[#C1440E]" />
                       )}
 
-                      {/* Finestate only: a plain box between the points and the add, to park some text for now,
-                          always in red. Saved in Supabase with the lists below. */}
-                      {g === "core" && MEETING_BOARDS.includes(b) && (
-                        <textarea
-                          value={cols.temp || ""}
-                          onChange={(e) => saveCols({ ...cols, temp: e.target.value })}
-                          rows={8}
-                          // Grows with the text, so all of it is always in view.
-                          ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = `${el.scrollHeight + 2}px`; } }}
-                          spellCheck
-                          className="my-auto w-full resize-none overflow-hidden rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold leading-[15px] text-[#C1440E] outline-none focus:border-neutral-400"
-                        />
-                      )}
                       {/* Both groups take new points straight from here, on the floor of the column. */}
                       <button
                         onClick={() => addPoint(b, g)}
