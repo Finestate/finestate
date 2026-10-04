@@ -457,6 +457,94 @@ export default function Assets() {
     </>
   );
 
+  // Canada: the Canaccord account opens onto its three parts, each typed in CAD with
+  // EUR beside it at today's rate. The taxable part carries its tax rate; the tax it
+  // would cost is worked out under them, and the Total is what is left after tax.
+  const CANACCORD_PARTS = [
+    { id: "taxable", name: "Taxable", tax: "50" },
+    { id: "tfsa", name: "A and S – grandkids' TFSA (tax free)", tax: "0" },
+    { id: "free", name: "Remainder (tax free)", tax: "0" },
+  ];
+  const acct = doc.canaccord || { name: "Canaccord account", subs: CANACCORD_PARTS };
+  const editPart = (id, fields) =>
+    save({ ...doc, canaccord: { ...acct, subs: acct.subs.map((x) => (x.id === id ? { ...x, ...fields, updated: new Date().toISOString() } : x)) } });
+  const eurOf = (x) => num(shown(x, "eur")) ?? 0;
+  const cadOf = (x) => num(shown(x, "cad")) ?? 0;
+  const taxEur = acct.subs.reduce((sum, x) => sum + (eurOf(x) * (num(x.tax) ?? 0)) / 100, 0);
+  const taxCad = acct.subs.reduce((sum, x) => sum + (cadOf(x) * (num(x.tax) ?? 0)) / 100, 0);
+  const grossEur = acct.subs.reduce((sum, x) => sum + eurOf(x), 0);
+  const grossCad = acct.subs.reduce((sum, x) => sum + cadOf(x), 0);
+  const caOpen = !!doc.ui?.open?.canaccord;
+  const caLatest = acct.subs.map((x) => x.updated).filter(Boolean).sort().pop();
+  const caRow = "flex h-[22px] items-stretch border-t border-black";
+  const caFig = "flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums";
+  const canada = (
+    <>
+      <div className={caRow} style={{ backgroundColor: HEADER_BG }}>
+        <span className={`flex flex-1 items-center px-2 ${head}`}>Account</span>
+        <span className={`flex w-20 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Tax %</span>
+        <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
+        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>CAD</span>
+        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
+      </div>
+      {/* The whole line opens and closes it; only the name itself is for typing. */}
+      <div onClick={() => toggleOpen("canaccord")} className={`${caRow} cursor-pointer select-none`}>
+        <span className="flex min-w-0 flex-1 items-center gap-1 px-2">
+          <input
+            value={acct.name}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => save({ ...doc, canaccord: { ...acct, name: e.target.value } })}
+            style={{ fieldSizing: "content" }}
+            className="min-w-0 bg-transparent text-[11px] text-neutral-900 outline-none"
+          />
+          <button title={caOpen ? "Close" : "Open"} className="ml-auto shrink-0 text-neutral-900 hover:text-[#9c7c33]">
+            <ChevronDown size={12} className={`transition-transform ${caOpen ? "rotate-180" : ""}`} />
+          </button>
+        </span>
+        <span className="w-20 shrink-0 border-l border-black" />
+        <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(caLatest)}</span>
+        <span className={`${caFig} text-neutral-900`}>{grossCad ? `CAD ${money(grossCad)}` : ""}</span>
+        <span className={`${caFig} text-neutral-900`}>{grossEur ? `EUR ${money(grossEur)}` : ""}</span>
+      </div>
+      {caOpen &&
+        acct.subs.map((x) => (
+          <div key={x.id} className={caRow} style={{ backgroundColor: "#FBEFEC" }}>
+            <input
+              value={x.name}
+              onChange={(e) => editPart(x.id, { name: e.target.value })}
+              className="min-w-0 flex-1 bg-transparent pl-6 pr-2 text-[11px] text-neutral-900 outline-none"
+            />
+            <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
+              <input
+                value={x.tax ?? ""}
+                onChange={(e) => editPart(x.id, { tax: e.target.value })}
+                inputMode="decimal"
+                className="w-full bg-transparent text-right text-[11px] tabular-nums text-neutral-900 outline-none"
+              />
+            </span>
+            <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
+            {["cad", "eur"].map((cur) => (
+              <span key={cur} className="flex w-40 shrink-0 items-center border-l border-black px-2">
+                <Amount cur={cur.toUpperCase()} auto={!!x.from && x.from !== cur} value={shown(x, cur)} onChange={(v) => editPart(x.id, { [cur]: v, from: cur })} />
+              </span>
+            ))}
+          </div>
+        ))}
+      {/* What the taxable part would cost in tax, at its rate. */}
+      <div className={caRow}>
+        <span className="flex flex-1 items-center px-2 text-[11px] text-[#C1440E]">Estimated tax</span>
+        <span className="w-20 shrink-0 border-l border-black" />
+        <span className="w-28 shrink-0 border-l border-black" />
+        <span className={`${caFig} text-[#C1440E]`}>{taxCad ? `CAD -${money(taxCad)}` : ""}</span>
+        <span className={`${caFig} text-[#C1440E]`}>{taxEur ? `EUR -${money(taxEur)}` : ""}</span>
+      </div>
+      <div className={caRow}>
+        <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total after tax</span>
+        <span className={`${caFig} font-bold text-neutral-900`}>{grossEur ? `EUR ${money(grossEur - taxEur)}` : ""}</span>
+      </div>
+    </>
+  );
+
   const cash = (
     <>
       {cashGroup("cash", "Company accounts", false)}
@@ -477,6 +565,7 @@ export default function Assets() {
             </div>
             {name === "Cash" && cash}
             {name === "Real estate" && realEstate}
+            {name === "Canada" && canada}
             {name === "Stocks" && cashGroup("stocks", "", false, "Account", [["ticker", "Ticker", "w-20"], ["shares", "Shares", "w-20"], ["price", "Price", "w-28"]], ["chf", "usd", "eur"], "w-32")}
           </div>
         ))}
