@@ -377,7 +377,7 @@ const hiddenRows = (list) => {
   return hidden;
 };
 // Only the SC point has the notes dropdown.
-const hasNotes = (p) => /^SCb/i.test(String(p?.code || "").trim());
+const hasNotes = (p) => /^SC\b/i.test(String(p?.code || "").trim());
 // A small text box that grows with its text. A line starting "- " becomes a bullet,
 // and Enter on a bullet starts the next one.
 function BulletBox({ value, onChange }) {
