@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
@@ -34,6 +34,9 @@ const withParts = (cash) =>
     return { ...rest, subs: DIB_PARTS.map((x) => (x.id === "balance" ? { ...x, aed, eur, from, updated } : { ...x })) };
   });
 
+let _idc = 0;
+const newId = () => "a" + Date.now().toString(36) + "-" + (_idc++);
+
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 // Amounts are kept as typed; on screen they read with thousands commas and two decimals.
@@ -65,6 +68,7 @@ function Amount({ value, onChange, cur }) {
 export default function Assets() {
   const [doc, setDoc] = useState(null);
   const [err, setErr] = useState("");
+  const blankId = useRef(newId()); // the id the blank line will keep once typed in
   // Today's rates against the euro: rates.AED is how many dirhams one euro buys.
   const [rates, setRates] = useState(null);
   useEffect(() => {
@@ -83,7 +87,7 @@ export default function Assets() {
       .then(({ data, error }) => {
         if (error) setErr(error.message);
         const d = data?.data || {};
-        setDoc({ ...d, cash: withParts(d.cash || START_CASH) });
+        setDoc({ ...d, cash: withParts(d.cash || START_CASH), personal: d.personal || [] });
       });
   }, []);
 
@@ -94,17 +98,23 @@ export default function Assets() {
       .upsert({ id: DOC_ID, data: next, updated_at: new Date().toISOString() })
       .then(({ error }) => setErr(error ? error.message : ""));
   };
-  // `sub` is one of the lines inside an account, such as DIB's Bank balance.
-  const editCash = (id, fields, sub) =>
+  // `list` is "cash" (Silx) or "personal". `sub` is one of the lines inside an
+  // account, such as DIB's Bank balance. Typing in the blank line at the foot of a
+  // list makes it a real line, and a fresh blank one appears under it.
+  const editCash = (list, id, fields, sub) => {
+    const rows = doc[list] || [];
+    // The blank line already carries the id it will keep, so the caret stays put.
+    if (!rows.some((r) => r.id === id)) { blankId.current = newId(); save({ ...doc, [list]: [...rows, { id, name: "", ...fields }] }); return; }
     save({
       ...doc,
-      cash: doc.cash.map((r) =>
+      [list]: rows.map((r) =>
         r.id !== id ? r : sub ? { ...r, subs: r.subs.map((x) => (x.id === sub ? { ...x, ...fields } : x)) } : { ...r, ...fields }
       ),
     });
+  };
   // A balance is typed in one currency; the other follows at today's rate, and the
   // row is marked with the day it was typed. Any change to the row marks it too.
-  const setBalance = (id, cur, v, sub) => editCash(id, { [cur]: v, from: cur, updated: new Date().toISOString() }, sub);
+  const setBalance = (list, id, cur, v, sub) => editCash(list, id, { [cur]: v, from: cur, updated: new Date().toISOString() }, sub);
   const toggleOpen = (id) => save({ ...doc, ui: { ...(doc.ui || {}), open: { ...(doc.ui?.open || {}), [id]: !doc.ui?.open?.[id] } } });
   const shown = (r, cur) => {
     if (!r.from || r.from === cur) return r[cur] || "";
@@ -121,12 +131,13 @@ export default function Assets() {
   if (!doc) return <div className="w-full" />;
 
   // Cash: the account on the left, the day it was last updated, then its balance in AED
-  // and in EUR. Type either; the other fills itself at today's rate.
-  const cash = (
+  // and in EUR. Type either; the other fills itself at today's rate. One group of
+  // accounts after another, each under its own bar.
+  const cashGroup = (list, title, withBlank) => (
     <>
       {/* Whose accounts these are, then the column headings under it. */}
       <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
-        <span className={head}>Silx FZ LLE accounts</span>
+        <span className={head}>{title}</span>
       </div>
       <div className="flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>Account</span>
@@ -134,21 +145,21 @@ export default function Assets() {
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>AED</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
       </div>
-      {doc.cash.map((r) => {
+      {[...(doc[list] || []), ...(withBlank ? [{ id: blankId.current, name: "" }] : [])].map((r) => {
         const row = (x, sub) => (
           // The lines inside an account sit on the faint pink, as in Cash flow.
           <div key={sub || x.id} className="flex h-[22px] items-stretch border-t border-black" style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
             <input
               value={x.name}
-              onChange={(e) => editCash(r.id, { name: e.target.value, updated: new Date().toISOString() }, sub)}
+              onChange={(e) => editCash(list, r.id, { name: e.target.value, updated: new Date().toISOString() }, sub)}
               className={`min-w-0 flex-1 bg-transparent text-[11px] text-neutral-900 outline-none ${sub ? "pl-6 pr-2" : "px-2"}`}
             />
             <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
             <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-              <Amount cur="AED" value={shown(x, "aed")} onChange={(v) => setBalance(r.id, "aed", v, sub)} />
+              <Amount cur="AED" value={shown(x, "aed")} onChange={(v) => setBalance(list, r.id, "aed", v, sub)} />
             </span>
             <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-              <Amount cur="EUR" value={shown(x, "eur")} onChange={(v) => setBalance(r.id, "eur", v, sub)} />
+              <Amount cur="EUR" value={shown(x, "eur")} onChange={(v) => setBalance(list, r.id, "eur", v, sub)} />
             </span>
           </div>
         );
@@ -167,7 +178,7 @@ export default function Assets() {
               <span className="flex min-w-0 flex-1 items-center gap-1 px-2">
                 <input
                   value={r.name}
-                  onChange={(e) => editCash(r.id, { name: e.target.value })}
+                  onChange={(e) => editCash(list, r.id, { name: e.target.value })}
                   size={Math.max(r.name.length + 1, 6)}
                   className="min-w-0 bg-transparent text-[11px] text-neutral-900 outline-none"
                 />
@@ -183,6 +194,12 @@ export default function Assets() {
           </div>
         );
       })}
+    </>
+  );
+  const cash = (
+    <>
+      {cashGroup("cash", "Silx FZ LLE accounts", false)}
+      {cashGroup("personal", "Personal accounts", true)}
     </>
   );
 
