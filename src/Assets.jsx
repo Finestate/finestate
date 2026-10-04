@@ -200,7 +200,7 @@ export default function Assets() {
       })}
       {/* The group's total: every account added up, in EUR only, far right. */}
       <div className="flex h-[22px] items-stretch border-t border-black">
-        <span className={`flex flex-1 items-center px-2 ${head}`}>Totals</span>
+        <span className="flex flex-1 items-center px-2 text-[11px] font-bold text-neutral-900">Total</span>
         <span className="w-28 shrink-0 border-l border-black" />
         <span className="w-40 shrink-0 border-l border-black" />
         {["eur"].map((cur) => {
