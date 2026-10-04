@@ -18,6 +18,8 @@ const START_CASH = [
   { id: "moneycorp", name: "Moneycorp (Silx FZ LLE)", aed: "", eur: "" },
 ];
 
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
 // Amounts are kept as typed; on screen they read with thousands commas and two decimals.
 const num = (v) => {
   const n = parseFloat(String(v ?? "").replace(/[^0-9.-]/g, ""));
@@ -46,6 +48,14 @@ function Amount({ value, onChange }) {
 export default function Assets() {
   const [doc, setDoc] = useState(null);
   const [err, setErr] = useState("");
+  // Today's rates against the euro: rates.AED is how many dirhams one euro buys.
+  const [rates, setRates] = useState(null);
+  useEffect(() => {
+    fetch("/api/fx")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (j?.rates) setRates(j.rates); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     supabase
@@ -68,14 +78,30 @@ export default function Assets() {
       .then(({ error }) => setErr(error ? error.message : ""));
   };
   const editCash = (id, fields) => save({ ...doc, cash: doc.cash.map((r) => (r.id === id ? { ...r, ...fields } : r)) });
+  // A balance is typed in one currency; the other follows at today's rate, and the
+  // row is marked with the day it was typed.
+  const setBalance = (id, cur, v) => editCash(id, { [cur]: v, from: cur, updated: new Date().toISOString() });
+  const shown = (r, cur) => {
+    if (!r.from || r.from === cur) return r[cur] || "";
+    const n = num(r[r.from]);
+    if (n == null || !rates?.AED) return "";
+    return (cur === "eur" ? n / rates.AED : n * rates.AED).toFixed(2);
+  };
+  const dateOf = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  };
 
   if (!doc) return <div className="w-full" />;
 
-  // Cash: the account on the left, its balance in AED and in EUR on the right.
+  // Cash: the account on the left, the day it was last updated, then its balance in AED
+  // and in EUR. Type either; the other fills itself at today's rate.
   const cash = (
     <>
       <div className="flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>Account</span>
+        <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>AED</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
       </div>
@@ -86,11 +112,12 @@ export default function Assets() {
             onChange={(e) => editCash(r.id, { name: e.target.value })}
             className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
           />
+          <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(r.updated)}</span>
           <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-            <Amount value={r.aed} onChange={(v) => editCash(r.id, { aed: v })} />
+            <Amount value={shown(r, "aed")} onChange={(v) => setBalance(r.id, "aed", v)} />
           </span>
           <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-            <Amount value={r.eur} onChange={(v) => editCash(r.id, { eur: v })} />
+            <Amount value={shown(r, "eur")} onChange={(v) => setBalance(r.id, "eur", v)} />
           </span>
         </div>
       ))}
