@@ -470,8 +470,12 @@ export default function Assets() {
     save({ ...doc, canaccord: { ...acct, subs: acct.subs.map((x) => (x.id === id ? { ...x, ...fields, updated: new Date().toISOString() } : x)) } });
   const eurOf = (x) => num(shown(x, "eur")) ?? 0;
   const cadOf = (x) => num(shown(x, "cad")) ?? 0;
-  const taxEur = acct.subs.reduce((sum, x) => sum + (eurOf(x) * (num(x.tax) ?? 0)) / 100, 0);
-  const taxCad = acct.subs.reduce((sum, x) => sum + (cadOf(x) * (num(x.tax) ?? 0)) / 100, 0);
+  // The family home, on its own line under the account, typed the same way.
+  const caHouse = doc.caHouse || { name: "870 Farmleigh Road, West Vancouver, BC, Canada", tax: "0" };
+  const editHouse = (fields) => save({ ...doc, caHouse: { ...caHouse, ...fields, updated: new Date().toISOString() } });
+  const taxed = [...acct.subs, caHouse];
+  const taxEur = taxed.reduce((sum, x) => sum + (eurOf(x) * (num(x.tax) ?? 0)) / 100, 0);
+  const taxCad = taxed.reduce((sum, x) => sum + (cadOf(x) * (num(x.tax) ?? 0)) / 100, 0);
   const grossEur = acct.subs.reduce((sum, x) => sum + eurOf(x), 0);
   const grossCad = acct.subs.reduce((sum, x) => sum + cadOf(x), 0);
   const caOpen = !!doc.ui?.open?.canaccord;
@@ -530,7 +534,28 @@ export default function Assets() {
             ))}
           </div>
         ))}
-      {/* What the taxable part would cost in tax, at its rate. */}
+      <div className={caRow}>
+        <input
+          value={caHouse.name}
+          onChange={(e) => editHouse({ name: e.target.value })}
+          className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
+        />
+        <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
+          <input
+            value={caHouse.tax ?? ""}
+            onChange={(e) => editHouse({ tax: e.target.value })}
+            inputMode="decimal"
+            className="w-full bg-transparent text-right text-[11px] tabular-nums text-neutral-900 outline-none"
+          />
+        </span>
+        <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(caHouse.updated)}</span>
+        {["cad", "eur"].map((cur) => (
+          <span key={cur} className="flex w-40 shrink-0 items-center border-l border-black px-2">
+            <Amount cur={cur.toUpperCase()} auto={!!caHouse.from && caHouse.from !== cur} value={shown(caHouse, cur)} onChange={(v) => editHouse({ [cur]: v, from: cur })} />
+          </span>
+        ))}
+      </div>
+      {/* What the taxable parts would cost in tax, at their rates. */}
       <div className={caRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] text-[#C1440E]">Estimated tax</span>
         <span className="w-20 shrink-0 border-l border-black" />
@@ -540,7 +565,7 @@ export default function Assets() {
       </div>
       <div className={caRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total after tax</span>
-        <span className={`${caFig} font-bold text-neutral-900`}>{grossEur ? `EUR ${money(grossEur - taxEur)}` : ""}</span>
+        <span className={`${caFig} font-bold text-neutral-900`}>{grossEur + eurOf(caHouse) ? `EUR ${money(grossEur + eurOf(caHouse) - taxEur)}` : ""}</span>
       </div>
     </>
   );
