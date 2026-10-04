@@ -93,6 +93,24 @@ export default function Assets() {
       });
   }, []);
 
+  // Your own Stadtsparkasse account, as last read from the bank on the Cash flow page.
+  // It fills the first personal account, so the two pages always agree.
+  const [ownBank, setOwnBank] = useState(null); // { eur, at }
+  useEffect(() => {
+    supabase
+      .from("admin_docs")
+      .select("data")
+      .eq("id", "bank-link")
+      .maybeSingle()
+      .then(({ data }) => {
+        const link = data?.data || {};
+        // The same rule as Cash flow: yours is the one that is not a youth or business account.
+        const own = (link.accounts || []).find((a) => !/jugend|gesch|business|gmbh/i.test(`${a.product || ""} ${a.name || ""}`));
+        const b = own && link.balances?.[own.uid];
+        if (b && !b.error && b.amount !== "" && num(b.amount) != null) setOwnBank({ eur: num(b.amount), at: link.at });
+      });
+  }, []);
+
   const save = (next) => {
     setDoc(next);
     supabase
@@ -124,6 +142,12 @@ export default function Assets() {
     if (n == null || !rates?.AED) return "";
     return (cur === "eur" ? n / rates.AED : n * rates.AED).toFixed(2);
   };
+  // The rows of a list as shown: the first personal account takes its EUR balance and
+  // date from the bank; its AED follows at today's rate.
+  const rowsOf = (list) =>
+    (doc[list] || []).map((r, i) =>
+      list === "personal" && i === 0 && ownBank ? { ...r, from: "eur", eur: String(ownBank.eur), updated: ownBank.at, live: true } : r
+    );
   const dateOf = (iso) => {
     if (!iso) return "";
     const d = new Date(iso);
@@ -147,7 +171,7 @@ export default function Assets() {
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>AED</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
       </div>
-      {[...(doc[list] || []), ...(withBlank ? [{ id: blankId.current, name: "" }] : [])].map((r) => {
+      {[...rowsOf(list), ...(withBlank ? [{ id: blankId.current, name: "" }] : [])].map((r) => {
         const row = (x, sub) => (
           // The lines inside an account sit on the faint pink, as in Cash flow.
           <div key={sub || x.id} className="flex h-[22px] items-stretch border-t border-black" style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
@@ -157,12 +181,23 @@ export default function Assets() {
               className={`min-w-0 flex-1 bg-transparent text-[11px] text-neutral-900 outline-none ${sub ? "pl-6 pr-2" : "px-2"}`}
             />
             <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
-            <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-              <Amount cur="AED" value={shown(x, "aed")} onChange={(v) => setBalance(list, r.id, "aed", v, sub)} />
-            </span>
-            <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-              <Amount cur="EUR" value={shown(x, "eur")} onChange={(v) => setBalance(list, r.id, "eur", v, sub)} />
-            </span>
+            {x.live ? (
+              // From the bank: not typed here, so shown as plain figures.
+              ["aed", "eur"].map((cur) => (
+                <span key={cur} title="From the bank, as on the Cash flow page" className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                  {money(shown(x, cur)) && `${cur.toUpperCase()} ${money(shown(x, cur))}`}
+                </span>
+              ))
+            ) : (
+              <>
+                <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
+                  <Amount cur="AED" value={shown(x, "aed")} onChange={(v) => setBalance(list, r.id, "aed", v, sub)} />
+                </span>
+                <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
+                  <Amount cur="EUR" value={shown(x, "eur")} onChange={(v) => setBalance(list, r.id, "eur", v, sub)} />
+                </span>
+              </>
+            )}
           </div>
         );
         if (!r.subs) return row(r);
@@ -204,7 +239,7 @@ export default function Assets() {
         <span className="w-28 shrink-0 border-l border-black" />
         <span className="w-40 shrink-0 border-l border-black" />
         {["eur"].map((cur) => {
-          const vals = (doc[list] || []).flatMap((r) => r.subs || [r]).map((x) => num(shown(x, cur))).filter((n) => n != null);
+          const vals = rowsOf(list).flatMap((r) => r.subs || [r]).map((x) => num(shown(x, cur))).filter((n) => n != null);
           return (
             <span key={cur} className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">
               {vals.length ? `${cur.toUpperCase()} ${money(vals.reduce((a, b) => a + b, 0))}` : ""}
