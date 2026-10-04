@@ -140,11 +140,14 @@ export default function Assets() {
   // row is marked with the day it was typed. Any change to the row marks it too.
   const setBalance = (list, id, cur, v, sub) => editCash(list, id, { [cur]: v, from: cur, updated: new Date().toISOString() }, sub);
   const toggleOpen = (id) => save({ ...doc, ui: { ...(doc.ui || {}), open: { ...(doc.ui?.open || {}), [id]: !doc.ui?.open?.[id] } } });
+  // Any currency to any other, through the euro: rates.X is how much X one euro buys.
+  const rateOf = (cur) => (cur === "eur" ? 1 : rates?.[cur.toUpperCase()]);
   const shown = (r, cur) => {
     if (!r.from || r.from === cur) return r[cur] || "";
     const n = num(r[r.from]);
-    if (n == null || !rates?.AED) return "";
-    return (cur === "eur" ? n / rates.AED : n * rates.AED).toFixed(2);
+    const a = rateOf(r.from), b = rateOf(cur);
+    if (n == null || !a || !b) return "";
+    return ((n / a) * b).toFixed(2);
   };
   // The rows of a list as shown: your Stadtsparkasse account, wherever it sits among the
   // personal accounts, takes its EUR balance and date from the bank; its AED follows at
@@ -181,7 +184,8 @@ export default function Assets() {
   // `title` is left out where the section bar already says it all, as in Stocks.
   // `extra`: more typed columns after the name, such as Ticker and Shares for a holding.
   // They are filled in on the lines inside an account; the account line leaves them empty.
-  const cashGroup = (list, title, withBlank, firstCol = "Account", extra = []) => (
+  // `local`: the currency shown left of EUR – AED for the Dubai accounts, CHF for Swissquote.
+  const cashGroup = (list, title, withBlank, firstCol = "Account", extra = [], local = "aed") => (
     <>
       {/* Whose accounts these are, then the column headings under it. */}
       {title && (
@@ -195,7 +199,7 @@ export default function Assets() {
           <span key={k} className={`flex ${w} shrink-0 items-center border-l border-black px-2 ${head}`}>{label}</span>
         ))}
         <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
-        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>AED</span>
+        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>{local.toUpperCase()}</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
         <span className="flex w-7 shrink-0 items-center justify-center border-l border-black text-neutral-900"><Trash2 size={11} /></span>
       </div>
@@ -222,7 +226,7 @@ export default function Assets() {
             <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
             {x.live ? (
               // From the bank: not typed here, so shown as plain figures.
-              ["aed", "eur"].map((cur) => (
+              [local, "eur"].map((cur) => (
                 <span key={cur} title="From the bank, as on the Cash flow page" className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">
                   {money(shown(x, cur)) && `${cur.toUpperCase()} ${money(shown(x, cur))}`}
                 </span>
@@ -230,10 +234,10 @@ export default function Assets() {
             ) : (
               <>
                 <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-                  <Amount cur="AED" auto={x.from === "eur"} value={shown(x, "aed")} onChange={(v) => setBalance(list, r.id, "aed", v, sub)} />
+                  <Amount cur={local.toUpperCase()} auto={!!x.from && x.from !== local} value={shown(x, local)} onChange={(v) => setBalance(list, r.id, local, v, sub)} />
                 </span>
                 <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-                  <Amount cur="EUR" auto={x.from === "aed"} value={shown(x, "eur")} onChange={(v) => setBalance(list, r.id, "eur", v, sub)} />
+                  <Amount cur="EUR" auto={!!x.from && x.from !== "eur"} value={shown(x, "eur")} onChange={(v) => setBalance(list, r.id, "eur", v, sub)} />
                 </span>
               </>
             )}
@@ -273,7 +277,7 @@ export default function Assets() {
               </span>
               {extra.map(([k, , w]) => <span key={k} className={`${w} shrink-0 border-l border-black`} />)}
               <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(latest)}</span>
-              <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{sum("aed") && `AED ${sum("aed")}`}</span>
+              <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{sum(local) && `${local.toUpperCase()} ${sum(local)}`}</span>
               <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{sum("eur") && `EUR ${sum("eur")}`}</span>
               <span className="flex w-7 shrink-0 items-center justify-center border-l border-black">
                 <button onClick={(e) => { e.stopPropagation(); setConfirm({ list, id: r.id, name: r.name }); }} title="Delete" className="text-neutral-900 hover:text-[#C1440E]">
@@ -336,7 +340,7 @@ export default function Assets() {
               <span className={head}>{name}</span>
             </div>
             {name === "Cash" && cash}
-            {name === "Stocks" && cashGroup("stocks", "", false, "Account", [["ticker", "Ticker", "w-24"], ["shares", "Shares", "w-24"]])}
+            {name === "Stocks" && cashGroup("stocks", "", false, "Account", [["ticker", "Ticker", "w-24"], ["shares", "Shares", "w-24"]], "chf")}
           </div>
         ))}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
