@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // What is owned, section by section. Built up step by step; the figures live in
@@ -117,16 +117,21 @@ export default function Assets() {
 
   // Latest share prices for every ticker under Stocks, read once the page has its figures.
   const [quotes, setQuotes] = useState({});
+  const [quoteTick, setQuoteTick] = useState(0); // bumped by the refresh button
+  const [quoteBusy, setQuoteBusy] = useState(false);
   const tickers = [...new Set((doc?.stocks || []).flatMap((r) => r.subs || []).map((x) => String(x.ticker || "").trim().toUpperCase()).filter(Boolean))].join(",");
   useEffect(() => {
     if (!tickers) return;
     (async () => {
+      setQuoteBusy(true);
       const { data } = await supabase.auth.getSession();
-      const r = await fetch(`/api/quote?symbols=${encodeURIComponent(tickers)}`, { headers: { Authorization: `Bearer ${data?.session?.access_token || ""}` } });
+      // A refresh skips the browser's short-term copy and asks again.
+      const r = await fetch(`/api/quote?symbols=${encodeURIComponent(tickers)}`, { cache: quoteTick ? "no-store" : "default", headers: { Authorization: `Bearer ${data?.session?.access_token || ""}` } });
       const j = await r.json().catch(() => ({}));
       if (r.ok && j.quotes) setQuotes(j.quotes);
+      setQuoteBusy(false);
     })();
-  }, [tickers]);
+  }, [tickers, quoteTick]);
 
   const save = (next) => {
     setDoc(next);
@@ -211,8 +216,12 @@ export default function Assets() {
   // `title` is left out where the section bar already says it all, as in Stocks.
   // `extra`: more typed columns after the name, such as Ticker and Shares for a holding.
   // They are filled in on the lines inside an account; the account line leaves them empty.
-  // `local`: the currency shown left of EUR – AED for the Dubai accounts, CHF for Swissquote.
-  const cashGroup = (list, title, withBlank, firstCol = "Account", extra = [], local = "aed") => (
+  // `curs`: the money columns, EUR always last – AED and EUR for the Dubai accounts;
+  // CHF, USD and EUR for Swissquote. `cw` is their width.
+  // An `extra` column named "price" is not typed: it shows a holding's latest share price.
+  const cashGroup = (list, title, withBlank, firstCol = "Account", extra = [], curs = ["aed", "eur"], cw = "w-40") => {
+    const local = curs[0];
+    return (
     <>
       {/* Whose accounts these are, then the column headings under it. */}
       {title && (
@@ -223,11 +232,19 @@ export default function Assets() {
       <div className="flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>{firstCol}</span>
         {extra.map(([k, label, w]) => (
-          <span key={k} className={`flex ${w} shrink-0 items-center border-l border-black px-2 ${head}`}>{label}</span>
+          <span key={k} className={`flex ${w} shrink-0 items-center gap-1 border-l border-black px-2 ${head}`}>
+            {label}
+            {k === "price" && (
+              <button onClick={() => setQuoteTick((t) => t + 1)} disabled={quoteBusy} title="Fetch the latest prices now" className="ml-auto text-[#0f766e] hover:text-[#0c5e57]">
+                <RefreshCw size={11} className={quoteBusy ? "animate-spin" : ""} />
+              </button>
+            )}
+          </span>
         ))}
         <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
-        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>{local.toUpperCase()}</span>
-        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
+        {curs.map((cur) => (
+          <span key={cur} className={`flex ${cw} shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>{cur.toUpperCase()}</span>
+        ))}
         <span className="flex w-7 shrink-0 items-center justify-center border-l border-black text-neutral-900"><Trash2 size={11} /></span>
       </div>
       {[...rowsOf(list), ...(withBlank ? [{ id: blankId.current, name: "" }] : [])].map((r) => {
@@ -240,8 +257,10 @@ export default function Assets() {
               className={`min-w-0 flex-1 bg-transparent text-[11px] text-neutral-900 outline-none ${sub ? "pl-6 pr-2" : "px-2"}`}
             />
             {extra.map(([k, , w]) => (
-              <span key={k} className={`flex ${w} shrink-0 items-center border-l border-black px-2`}>
-                {sub && (
+              <span key={k} className={`flex ${w} shrink-0 items-center border-l border-black px-2 ${k === "price" ? "justify-end" : ""}`}>
+                {k === "price" ? (
+                  x.price && <span className="text-[11px] tabular-nums text-[#1d4ed8]">{`${x.price.currency} ${money(x.price.price)}`}</span>
+                ) : sub && (
                   <input
                     value={x[k] || ""}
                     onChange={(e) => editCash(list, r.id, { [k]: k === "ticker" ? e.target.value.toUpperCase() : e.target.value, updated: new Date().toISOString() }, sub)}
@@ -253,20 +272,17 @@ export default function Assets() {
             <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
             {x.live ? (
               // From the bank: not typed here, so shown as plain figures.
-              [local, "eur"].map((cur) => (
-                <span key={cur} title={x.price ? `${x.shares} shares at ${x.price.currency} ${money(x.price.price)}, latest price` : "From the bank, as on the Cash flow page"} className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">
+              curs.map((cur) => (
+                <span key={cur} title={x.price ? `${x.shares} shares at ${x.price.currency} ${money(x.price.price)}, latest price` : "From the bank, as on the Cash flow page"} className={`flex ${cw} shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]`}>
                   {money(shown(x, cur)) && `${cur.toUpperCase()} ${money(shown(x, cur))}`}
                 </span>
               ))
             ) : (
-              <>
-                <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-                  <Amount cur={local.toUpperCase()} auto={!!x.from && x.from !== local} value={shown(x, local)} onChange={(v) => setBalance(list, r.id, local, v, sub)} />
+              curs.map((cur) => (
+                <span key={cur} className={`flex ${cw} shrink-0 items-center border-l border-black px-2`}>
+                  <Amount cur={cur.toUpperCase()} auto={!!x.from && x.from !== cur} value={shown(x, cur)} onChange={(v) => setBalance(list, r.id, cur, v, sub)} />
                 </span>
-                <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-                  <Amount cur="EUR" auto={!!x.from && x.from !== "eur"} value={shown(x, "eur")} onChange={(v) => setBalance(list, r.id, "eur", v, sub)} />
-                </span>
-              </>
+              ))
             )}
             <span className="flex w-7 shrink-0 items-center justify-center border-l border-black">
               {(sub || (doc[list] || []).some((y) => y.id === r.id)) && (
@@ -304,8 +320,9 @@ export default function Assets() {
               </span>
               {extra.map(([k, , w]) => <span key={k} className={`${w} shrink-0 border-l border-black`} />)}
               <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(latest)}</span>
-              <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{sum(local) && `${local.toUpperCase()} ${sum(local)}`}</span>
-              <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{sum("eur") && `EUR ${sum("eur")}`}</span>
+              {curs.map((cur) => (
+                <span key={cur} className={`flex ${cw} shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900`}>{sum(cur) && `${cur.toUpperCase()} ${sum(cur)}`}</span>
+              ))}
               <span className="flex w-7 shrink-0 items-center justify-center border-l border-black">
                 <button onClick={(e) => { e.stopPropagation(); setConfirm({ list, id: r.id, name: r.name }); }} title="Delete" className="text-neutral-900 hover:text-[#C1440E]">
                   <Trash2 size={11} />
@@ -339,7 +356,7 @@ export default function Assets() {
         {["eur"].map((cur) => {
           const vals = rowsOf(list).flatMap((r) => r.subs || [r]).map((x) => num(shown(x, cur))).filter((n) => n != null);
           return (
-            <span key={cur} className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">
+            <span key={cur} className={`flex ${cw} shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900`}>
               {vals.length ? `${cur.toUpperCase()} ${money(vals.reduce((a, b) => a + b, 0))}` : ""}
             </span>
           );
@@ -347,7 +364,8 @@ export default function Assets() {
         <span className="w-7 shrink-0 border-l border-black" />
       </div>
     </>
-  );
+    );
+  };
   const cash = (
     <>
       {cashGroup("cash", "Company accounts", false)}
@@ -367,7 +385,7 @@ export default function Assets() {
               <span className={head}>{name}</span>
             </div>
             {name === "Cash" && cash}
-            {name === "Stocks" && cashGroup("stocks", "", false, "Account", [["ticker", "Ticker", "w-24"], ["shares", "Shares", "w-24"]], "chf")}
+            {name === "Stocks" && cashGroup("stocks", "", false, "Account", [["ticker", "Ticker", "w-20"], ["shares", "Shares", "w-20"], ["price", "Price", "w-28"]], ["chf", "usd", "eur"], "w-32")}
           </div>
         ))}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
