@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
@@ -149,6 +149,18 @@ function FillText({ text, onChange }) {
     />
   );
 }
+
+// Rich notes saved as HTML, read back as plain lines for a backup file.
+const htmlToLines = (html) => {
+  const box = document.createElement("textarea");
+  box.innerHTML = String(html || "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "- ")
+    .replace(/<[^>]+>/g, "");
+  return box.value.replace(/\n{3,}/g, "\n\n").trim();
+};
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 // Put the caret at the end of an editable span.
 const focusEnd = (el) => {
@@ -929,10 +941,56 @@ export default function Planning() {
   // in its own section, pickers and all.
   // `first`: Today opens the table (the Daily bar above it is hidden), so the frame
   // already draws the line over it.
+  // A plain text copy of everything in the dropdowns (meetings, points with their
+  // notes, the personal lists and the free fields), not the day lines themselves.
+  const downloadBackup = () => {
+    const out = [];
+    const now = new Date();
+    const stamp = `${String(now.getDate()).padStart(2, "0")} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+    const pad = (x) => "  ".repeat(levelOf(x));
+    out.push(`FINESTATE – DAILY DROPDOWNS – ${stamp}`, "");
+    BOARDS.forEach(([b, name]) => {
+      const board = boards[b];
+      if (!board) return;
+      out.push("=".repeat(40), name.toUpperCase(), "=".repeat(40));
+      if (MEETING_BOARDS.includes(b)) {
+        out.push("", "Meetings");
+        (board.meetings || []).forEach((m) => out.push(`- ${m.name}${m.permanent ? " (permanent)" : ""}`));
+      }
+      ["core", "rest"].forEach((g, gi) => {
+        const label = (GROUP_LABELS[b] || [])[gi] || (g === "core" ? "Core points" : "Other points");
+        out.push("", label);
+        (board.points?.[g] || []).forEach((it) => {
+          out.push(`${pad(it)}- ${it.code}`);
+          if (it.notes) it.notes.split("\n").forEach((l) => out.push(`${pad(it)}    ${l}`));
+        });
+      });
+      if (!MEETING_BOARDS.includes(b) && board.notes) out.push("", "Notes", htmlToLines(board.notes));
+      if (MEETING_BOARDS.includes(b)) {
+        TWOCOLS.forEach(([k, label]) => {
+          out.push("", label);
+          (cols[k] || []).forEach((r) => out.push(`${pad(r)}- ${r.text || ""}`));
+        });
+        if (cols.scratch) out.push("", "Free field", htmlToLines(cols.scratch));
+      }
+      out.push("");
+    });
+    const blob = new Blob([out.join("\r\n")], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Finestate Daily backup ${stamp}.txt`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   const renderToday = (first = false) => (
     <>
       <div className={`flex h-[18px] items-center px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
         <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
+        <button onClick={downloadBackup} title="Download a backup of the dropdowns" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
+          <Download size={12} strokeWidth={2.5} />
+        </button>
       </div>
       {BOARDS.map(([b]) => (
         <div key={b}>{renderTodoLines(b, 0)}</div>
