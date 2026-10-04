@@ -24,6 +24,7 @@ import Logins from "./Logins.jsx";
 import LegalDocuments from "./LegalDocuments.jsx";
 import Costs from "./Costs.jsx";
 import Bookmarks from "./Bookmarks.jsx";
+import Assets from "./Assets.jsx";
 import HW from "./HW.jsx";
 import KnowledgeFeeds from "./KnowledgeFeeds.jsx";
 import ErrorBoundary from "./ErrorBoundary.jsx";
@@ -385,6 +386,7 @@ export default function App() {
           <ErrorBoundary routeKey={route}>
             {route === "admin/planning" && <Planning />}
             {route === "bookmarks" && <Bookmarks />}
+            {route === "assets/snapshot" && <Assets />}
             {route === "admin/legal-documents" && <LegalDocuments />}
             {route === "costs/monthly" && <Costs />}
             {route === "hw" && <HW />}
