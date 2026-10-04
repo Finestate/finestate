@@ -984,7 +984,7 @@ export default function Costs({ seed }) {
         </button>
         {/* Every group together, on white, in bold red: money going out. */}
         <div className="grid h-[22px] grid-cols-6 border-t border-black">
-            <span className="col-span-4 flex items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-[#C1440E]">Expenses total</span>
+            <span className="col-span-4 flex items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-[#C1440E]">Total</span>
             <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(expensesMonthly)}</span>
             <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(pendingFixed)}</span>
           </div>
