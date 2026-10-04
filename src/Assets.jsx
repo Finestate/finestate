@@ -200,7 +200,7 @@ export default function Assets() {
   );
   const cash = (
     <>
-      {cashGroup("cash", "Silx FZ LLE accounts", false)}
+      {cashGroup("cash", "Company accounts", true)}
       {cashGroup("personal", "Personal accounts", true)}
     </>
   );
