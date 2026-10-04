@@ -45,13 +45,13 @@ const NAV = [
       { id: "hw", name: "HW", icon: Leaf },
     ],
   },
-  // Links that used to live in Chrome; each opens in a new tab.
-  { id: "bookmarks", name: "Bookmarks", icon: Bookmark },
   {
     id: "admin",
     name: "Admin",
     icon: Shield,
     children: [
+      // Links that used to live in Chrome; each opens in a new tab.
+      { id: "bookmarks", name: "Bookmarks", icon: Bookmark },
       { id: "admin/legal-documents", name: "Legal documents", icon: FileText },
       { id: "admin/logins", name: "Logins", icon: KeyRound },
       { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
