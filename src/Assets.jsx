@@ -107,7 +107,7 @@ export default function Assets() {
         // The same rule as Cash flow: yours is the one that is not a youth or business account.
         const own = (link.accounts || []).find((a) => !/jugend|gesch|business|gmbh/i.test(`${a.product || ""} ${a.name || ""}`));
         const b = own && link.balances?.[own.uid];
-        if (b && !b.error && b.amount !== "" && num(b.amount) != null) setOwnBank({ eur: num(b.amount), at: link.at, nr: String(own.iban || "").replace(/s/g, "").slice(-8) });
+        if (b && !b.error && b.amount !== "" && num(b.amount) != null) setOwnBank({ eur: num(b.amount), at: link.at, nr: String(own.iban || "").replace(/\D/g, "").slice(-8) });
       });
   }, []);
 
@@ -149,7 +149,7 @@ export default function Assets() {
     const rows = doc[list] || [];
     if (list !== "personal" || !ownBank) return rows;
     // The row carrying your account number; failing that, the only Sparkasse row.
-    const digits = (r) => String(r.name || "").replace(/D/g, "");
+    const digits = (r) => String(r.name || "").replace(/\D/g, "");
     let at = ownBank.nr ? rows.findIndex((r) => digits(r).includes(ownBank.nr)) : -1;
     if (at < 0) { const sp = rows.filter((r) => /sparkasse/i.test(r.name || "")); if (sp.length === 1) at = rows.indexOf(sp[0]); }
     return rows.map((r, i) => (i === at ? { ...r, from: "eur", eur: String(ownBank.eur), updated: ownBank.at, live: true } : r));
