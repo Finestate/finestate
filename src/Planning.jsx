@@ -884,9 +884,22 @@ export default function Planning() {
       {list.map((c, i) => {
         const fillable = /\(\)$/.test(c);
         const fill = boards[b].lines[idx]?.fills?.[c] || "";
+        // SC carries its letters in brackets. On the line they show in red and can be
+        // trimmed as each is done; the point below keeps them all, and unticking it
+        // brings them back in full next time.
+        const trim = hasNotes({ code: c }) && c.match(/^(.*\()([^)]+)\)$/);
+        const trimmed = boards[b].lines[idx]?.fills?.[c] ?? (trim ? trim[2] : "");
         return (
           <span key={c} className="inline-flex items-center gap-1.5">
-            {fillable ? (
+            {trim ? (
+              <span className="inline-flex items-center">
+                {trim[1]}
+                <span onClick={(e) => e.stopPropagation()}>
+                  <FillText key={`${b}-${idx}-${c}-trim`} text={trimmed} onChange={(t) => setFill(b, idx, c, t)} />
+                </span>
+                )
+              </span>
+            ) : fillable ? (
               // The ticks below fill the brackets. A double click puts the caret at the
               // very end, after them, to type anything else; a single click still just
               // opens the picker.
