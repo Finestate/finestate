@@ -388,8 +388,8 @@ const hiddenRows = (list) => {
   });
   return hidden;
 };
-// Only the SC point has the notes dropdown.
-const hasNotes = (p) => /^SC\b/i.test(String(p?.code || "").trim());
+// Only the SC (CCEDB) point has the notes dropdown and the trimmable red letters.
+const hasNotes = (p) => /^SC\s*\(CCEDB/i.test(String(p?.code || "").trim());
 // A small text box that grows with its text. A line starting "- " becomes a bullet,
 // and Enter on a bullet starts the next one.
 function BulletBox({ value, onChange }) {
