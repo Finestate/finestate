@@ -87,7 +87,9 @@ export default function Assets() {
       .then(({ data, error }) => {
         if (error) setErr(error.message);
         const d = data?.data || {};
-        setDoc({ ...d, cash: withParts(d.cash || START_CASH), personal: d.personal || [] });
+        // A company line left completely empty is dropped.
+        const used = (r) => r.subs || r.name?.trim() || r.aed || r.eur;
+        setDoc({ ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: d.personal || [] });
       });
   }, []);
 
@@ -200,7 +202,7 @@ export default function Assets() {
   );
   const cash = (
     <>
-      {cashGroup("cash", "Company accounts", true)}
+      {cashGroup("cash", "Company accounts", false)}
       {cashGroup("personal", "Personal accounts", true)}
     </>
   );
