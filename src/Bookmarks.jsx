@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, GripVertical, Pencil, Trash2 } from "lucide-react";
+import { Bookmark, Download, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
+import { backupStamp, downloadText } from "./backup.js";
 
 // The bookmarks that used to live in Chrome. They hold private links (sheets, drives,
 // logins), so they live in Supabase, never in this public repo. Each opens in a new tab.
@@ -139,6 +140,19 @@ export default function Bookmarks() {
     }
   };
 
+  // A plain text copy of every bookmark: column by column, a blank line between groups.
+  const downloadBackup = () => {
+    const out = [`FINESTATE – BOOKMARKS – ${backupStamp()}`];
+    data.sections.forEach((s, si) => {
+      out.push("", "=".repeat(40), `COLUMN ${si + 1}`, "=".repeat(40));
+      s.groups.forEach((g, gi) => {
+        if (gi) out.push("");
+        g.forEach((b) => out.push(`${b.title} – ${b.href}`));
+      });
+    });
+    downloadText("Bookmarks", out);
+  };
+
   if (!data) return null;
   const empty = !data.sections.length;
 
@@ -155,6 +169,11 @@ export default function Bookmarks() {
             </button>
           )}
           <span className="flex-1" />
+          {!empty && (
+            <button onClick={downloadBackup} title="Download a backup of all bookmarks" className="text-neutral-900 hover:text-[#9c7c33]">
+              <Download size={12} strokeWidth={2.5} />
+            </button>
+          )}
           {/* Only while the page is empty: importing again would replace everything. */}
           {empty && (
             <button

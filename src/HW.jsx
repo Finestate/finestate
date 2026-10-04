@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown, List, GripVertical, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Plus, Trash2, ChevronDown, List, GripVertical, ChevronsLeft, ChevronsRight, Download } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
+import { backupStamp, downloadText, htmlToLines } from "./backup.js";
 
 // Health and wellbeing. It holds medical history, membership numbers and private links,
 // so it lives in Supabase and never in this public repo. (The earlier table's data is
@@ -333,6 +334,48 @@ export default function HW() {
 
   // Nothing is drawn until the saved table is in, so the whole page appears at once
   // rather than its bars first and the rest a moment later.
+  // A plain text copy of the whole HW page, section by section, top to bottom.
+  const downloadBackup = () => {
+    const out = [`FINESTATE – HW – ${backupStamp()}`, ""];
+    const section = (name) => out.push("", "=".repeat(40), name.toUpperCase(), "=".repeat(40));
+    const indent = (text, by = "    ") => String(text || "").split("\n").forEach((l) => out.push(by + l));
+    section("Foundational");
+    notes.forEach((n) => {
+      out.push("", `- ${n.title || "(untitled)"}`);
+      indent(n.html != null ? htmlToLines(n.html) : n.text);
+      (n.chat || []).forEach((m) => indent(`${m.role === "user" ? "You" : "Claude"}: ${m.content}`));
+    });
+    const named = (key, title) => {
+      section(title);
+      (lists[key] || []).forEach((m) => {
+        out.push(`- ${m.name || ""}${m.link ? ` (${m.link})` : ""}`);
+        if (m.text) indent(m.text);
+      });
+    };
+    const lines = (key, title) => {
+      section(title);
+      (lists[key] || []).forEach((m) => out.push(`- ${m.text || ""}`));
+    };
+    named("medicines", "Medicines");
+    named("supplements", "Supplements");
+    section("Nutrition");
+    DAYS.forEach(([day, name, group]) => {
+      out.push("", name);
+      MEALS.forEach((meal) => out.push(`- Meal: ${mealOf(day, group, meal)}`));
+    });
+    out.push("", "Considerations");
+    indent(nutrition.considerations);
+    lines("fitness", "Fitness");
+    section("Monitoring");
+    (lists.monitoring || []).forEach((m) => out.push(`- Focus: ${m.focus || ""} | Planning: ${m.planning || ""} | Situation: ${m.situation || ""}`));
+    named("diagnostics", "Diagnostics");
+    named("labs", "Labs");
+    lines("procedureTracking", "Procedures tracking");
+    lines("vaccinations", "Vaccinations");
+    lines("insurance", "Insurance");
+    downloadText("HW", out);
+  };
+
   if (!notesLoaded) return <div className="w-full" />;
 
   return (
@@ -342,6 +385,9 @@ export default function HW() {
         <div className="h-[10px]" style={{ backgroundColor: GAP_BG }} />
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Foundational</span>
+          <button onClick={downloadBackup} title="Download a backup of this page" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
+            <Download size={12} strokeWidth={2.5} />
+          </button>
         </div>
         {/* Each entry is one line: a title typed on the left; a click anywhere else on
             the line, or its arrow, opens the notes underneath on the faint pink. */}
