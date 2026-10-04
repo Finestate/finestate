@@ -71,12 +71,11 @@ export default function Assets() {
 
   if (!doc) return <div className="w-full" />;
 
-  // Cash: the account and its number on the left, its balance in AED and in EUR on the right.
+  // Cash: the account on the left, its balance in AED and in EUR on the right.
   const cash = (
     <>
       <div className="flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>Account</span>
-        <span className={`flex w-56 shrink-0 items-center border-l border-black px-2 ${head}`}>Account number</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>AED</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
       </div>
@@ -86,11 +85,6 @@ export default function Assets() {
             value={r.name}
             onChange={(e) => editCash(r.id, { name: e.target.value })}
             className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
-          />
-          <input
-            value={r.number || ""}
-            onChange={(e) => editCash(r.id, { number: e.target.value })}
-            className="w-56 shrink-0 border-l border-black bg-transparent px-2 text-[11px] tabular-nums text-neutral-900 outline-none"
           />
           <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
             <Amount value={r.aed} onChange={(v) => editCash(r.id, { aed: v })} />
