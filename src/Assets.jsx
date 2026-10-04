@@ -235,7 +235,7 @@ export default function Assets() {
       })}
       {/* The group's total: every account added up, in EUR only, far right. */}
       <div className="flex h-[22px] items-stretch border-t border-black">
-        <span className="flex flex-1 items-center px-2 text-[11px] font-bold text-neutral-900">Total</span>
+        <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
         {["eur"].map((cur) => {
           const vals = rowsOf(list).flatMap((r) => r.subs || [r]).map((x) => num(shown(x, cur))).filter((n) => n != null);
           return (

@@ -788,7 +788,7 @@ export default function Costs({ seed }) {
         })}
         {/* The month's income in euros, every line added up. */}
         <div className="flex h-[22px] items-stretch border-t border-black">
-          <span className="flex flex-1 items-center px-2 text-[11px] font-bold text-neutral-900">Total</span>
+          <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
           <span className="w-36 shrink-0 border-l border-black" />
           <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">
             EUR {money(totalIncome)}
@@ -984,7 +984,7 @@ export default function Costs({ seed }) {
         </button>
         {/* Every group together, on white, in bold red: money going out. */}
         <div className="grid h-[22px] grid-cols-6 border-t border-black">
-            <span className="col-span-4 flex items-center px-2 text-[11px] font-bold text-[#C1440E]">Expenses total</span>
+            <span className="col-span-4 flex items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-[#C1440E]">Expenses total</span>
             <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(expensesMonthly)}</span>
             <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(pendingFixed)}</span>
           </div>
