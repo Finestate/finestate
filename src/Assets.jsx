@@ -384,6 +384,11 @@ export default function Assets() {
   const saveHouse = (fields) => save({ ...doc, house: { ...house, ...fields, updated: new Date().toISOString() } });
   const owed = loans.reduce((sum, l) => sum + Math.abs(num(l.amount) || 0), 0);
   const owned = num(house.value) != null ? num(house.value) - owed : null;
+  // The Kennedy Court flat in Varosha: listed, though sealed off since 1974 and so with
+  // no market value for now. Its value is typed, like the house's.
+  const flat = doc.flat || { name: "Kennedy Court apartment – Varosha, Famagusta, Cyprus", value: "", updated: "" };
+  const saveFlat = (fields) => save({ ...doc, flat: { ...flat, ...fields, updated: new Date().toISOString() } });
+  const reTotal = (owned ?? 0) + (num(flat.value) ?? 0);
   const houseOpen = !!doc.ui?.open?.house;
   const reRow = "flex h-[22px] items-stretch border-t border-black";
   const reCell = "flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums";
@@ -432,8 +437,19 @@ export default function Assets() {
         </>
       )}
       <div className={reRow}>
+        <input
+          value={flat.name}
+          onChange={(e) => saveFlat({ name: e.target.value })}
+          className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
+        />
+        <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(flat.updated)}</span>
+        <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
+          <Amount cur="EUR" value={flat.value} onChange={(v) => saveFlat({ value: v })} />
+        </span>
+      </div>
+      <div className={reRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
-        <span className={`${reCell} font-bold text-neutral-900`}>{owned != null && `EUR ${money(owned)}`}</span>
+        <span className={`${reCell} font-bold text-neutral-900`}>EUR {money(reTotal)}</span>
       </div>
     </>
   );
