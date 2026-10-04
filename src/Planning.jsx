@@ -925,10 +925,10 @@ export default function Planning() {
               title="Choose to-dos"
               className="flex min-h-[21px] cursor-pointer items-start hover:brightness-[0.98]"
             >
-              {/* The core codes lead, meetings sit under them, then the long list. */}
+              {/* Meetings lead, the core codes sit under them, then the long list. */}
               <div className="flex flex-1 flex-col gap-0 px-2 py-[3px]">
                 {line.meetings.length > 0 && (
-                  <div className="order-2 flex flex-wrap items-center gap-x-2 gap-y-0 leading-[15px]">
+                  <div className="order-1 flex flex-wrap items-center gap-x-2 gap-y-0 leading-[15px]">
                     {line.meetings.map((m, mi) => (
                       <span
                         key={m.id}
@@ -992,7 +992,7 @@ export default function Planning() {
                     the letter codes. */}
                 {MEETING_BOARDS.includes(b) ? (
                   <>
-                    <div className="order-1">{coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}</div>
+                    <div className="order-2">{coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}</div>
                     <div className="order-3">{restCodes.length > 0 && renderCodeLine(b, restCodes, "#171717", idx)}</div>
                   </>
                 ) : (
@@ -1024,8 +1024,8 @@ export default function Planning() {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => { if (drag?.from === "pool") dropPoolMeeting(b); else returnToPool(b); }}
                   onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropM(null); }}
-                  // Meetings sit in the middle: the core codes come first.
-                  className="order-2 flex flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
+                  // Meetings come first, on the left; the core codes sit in the middle.
+                  className="order-1 flex flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
                 >
                   {meetings.map((m, mi) => (
                     <div key={m.id}>
@@ -1128,7 +1128,7 @@ export default function Planning() {
                 )}
 
                 {["core", "rest"].map((g, gi) => (
-                  <div key={g} className={`${g === "core" ? "order-1" : "order-3"} self-stretch border-[3px] border-[#C1440E] p-1.5`}>
+                  <div key={g} className={`${g === "core" ? "order-2" : "order-3"} self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     <div
                       className="flex h-full flex-col gap-1"
                       onDragOver={(e) => e.preventDefault()}
