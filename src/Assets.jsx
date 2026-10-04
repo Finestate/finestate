@@ -179,7 +179,9 @@ export default function Assets() {
   // and in EUR. Type either; the other fills itself at today's rate. One group of
   // accounts after another, each under its own bar.
   // `title` is left out where the section bar already says it all, as in Stocks.
-  const cashGroup = (list, title, withBlank, firstCol = "Account") => (
+  // `extra`: more typed columns after the name, such as Ticker and Shares for a holding.
+  // They are filled in on the lines inside an account; the account line leaves them empty.
+  const cashGroup = (list, title, withBlank, firstCol = "Account", extra = []) => (
     <>
       {/* Whose accounts these are, then the column headings under it. */}
       {title && (
@@ -189,6 +191,9 @@ export default function Assets() {
       )}
       <div className="flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>{firstCol}</span>
+        {extra.map(([k, label, w]) => (
+          <span key={k} className={`flex ${w} shrink-0 items-center border-l border-black px-2 ${head}`}>{label}</span>
+        ))}
         <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>AED</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
@@ -203,6 +208,17 @@ export default function Assets() {
               onChange={(e) => editCash(list, r.id, { name: e.target.value, updated: new Date().toISOString() }, sub)}
               className={`min-w-0 flex-1 bg-transparent text-[11px] text-neutral-900 outline-none ${sub ? "pl-6 pr-2" : "px-2"}`}
             />
+            {extra.map(([k, , w]) => (
+              <span key={k} className={`flex ${w} shrink-0 items-center border-l border-black px-2`}>
+                {sub && (
+                  <input
+                    value={x[k] || ""}
+                    onChange={(e) => editCash(list, r.id, { [k]: k === "ticker" ? e.target.value.toUpperCase() : e.target.value, updated: new Date().toISOString() }, sub)}
+                    className="w-full bg-transparent text-[11px] tabular-nums text-neutral-900 outline-none"
+                  />
+                )}
+              </span>
+            ))}
             <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
             {x.live ? (
               // From the bank: not typed here, so shown as plain figures.
@@ -255,6 +271,7 @@ export default function Assets() {
                   <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />
                 </button>
               </span>
+              {extra.map(([k, , w]) => <span key={k} className={`${w} shrink-0 border-l border-black`} />)}
               <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(latest)}</span>
               <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{sum("aed") && `AED ${sum("aed")}`}</span>
               <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{sum("eur") && `EUR ${sum("eur")}`}</span>
@@ -319,7 +336,7 @@ export default function Assets() {
               <span className={head}>{name}</span>
             </div>
             {name === "Cash" && cash}
-            {name === "Stocks" && cashGroup("stocks", "", false)}
+            {name === "Stocks" && cashGroup("stocks", "", false, "Account", [["ticker", "Ticker", "w-24"], ["shares", "Shares", "w-24"]])}
           </div>
         ))}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
