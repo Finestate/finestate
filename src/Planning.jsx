@@ -759,6 +759,9 @@ export default function Planning() {
     savePoints(b, { ...pts, [g]: pts[g].filter((p) => p.id !== id) });
     if (gone) saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.filter((c) => c !== gone) })));
   };
+  // A point with stepped-in points under it opens and closes like a little dropdown.
+  const togglePointClosed = (b, g, id) =>
+    savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? { ...p, closed: !p.closed } : p)) });
   const stepPoint = (b, g, id, d) =>
     savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? stepLevel(p, d) : p)) });
   const addPoint = (b, g) => {
@@ -1138,7 +1141,7 @@ export default function Planning() {
                       {(GROUP_LABELS[b] || [])[gi] && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
                       )}
-                      {points[g].map((it, pi) => (
+                      {points[g].map((it, pi) => hiddenRows(points[g]).has(it.id) ? null : (
                         <div key={it.id}>
                         {/* A red marker shows exactly where the point will land. */}
                         {dragP?.board === b && dragP.group === g && dropP?.board === b && dropP.group === g && dropP.index === pi && (
@@ -1156,6 +1159,14 @@ export default function Planning() {
                           style={levelOf(it) ? { marginLeft: `${20 * levelOf(it)}px` } : undefined}
                           className={`flex items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
                         >
+                          {/* A group head opens and closes at a click; other points keep the space. */}
+                          <span className="flex h-[15px] w-[11px] shrink-0 items-center">
+                            {isHead(points[g], pi) && (
+                              <button onClick={() => togglePointClosed(b, g, it.id)} title={it.closed ? "Open" : "Close"} className="flex items-center text-neutral-900 hover:text-[#C1440E]">
+                                {it.closed ? <ChevronRight size={11} strokeWidth={2.75} /> : <ChevronDown size={11} strokeWidth={2.75} />}
+                              </button>
+                            )}
+                          </span>
                           {/* Boxed to the line height so it sits dead centre on the words. */}
                           <span className="flex h-[15px] shrink-0 items-center">
                             <input
