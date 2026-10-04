@@ -51,7 +51,8 @@ const money = (v) => {
 
 // A typed amount: plain while you type in it, then shown with its currency, as in
 // Cash flow, once you leave it.
-function Amount({ value, onChange, cur }) {
+// `auto`: the figure was worked out by the site, so it reads in blue.
+function Amount({ value, onChange, cur, auto }) {
   const [typing, setTyping] = useState(false);
   return (
     <input
@@ -60,7 +61,7 @@ function Amount({ value, onChange, cur }) {
       onBlur={() => setTyping(false)}
       onChange={(e) => onChange(e.target.value)}
       inputMode="decimal"
-      className="w-full bg-transparent text-right text-[11px] tabular-nums text-neutral-900 outline-none"
+      className={`w-full bg-transparent text-right text-[11px] tabular-nums outline-none ${auto && !typing ? "text-[#1d4ed8]" : "text-neutral-900"}`}
     />
   );
 }
@@ -193,17 +194,17 @@ export default function Assets() {
             {x.live ? (
               // From the bank: not typed here, so shown as plain figures.
               ["aed", "eur"].map((cur) => (
-                <span key={cur} title="From the bank, as on the Cash flow page" className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                <span key={cur} title="From the bank, as on the Cash flow page" className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">
                   {money(shown(x, cur)) && `${cur.toUpperCase()} ${money(shown(x, cur))}`}
                 </span>
               ))
             ) : (
               <>
                 <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-                  <Amount cur="AED" value={shown(x, "aed")} onChange={(v) => setBalance(list, r.id, "aed", v, sub)} />
+                  <Amount cur="AED" auto={x.from === "eur"} value={shown(x, "aed")} onChange={(v) => setBalance(list, r.id, "aed", v, sub)} />
                 </span>
                 <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-                  <Amount cur="EUR" value={shown(x, "eur")} onChange={(v) => setBalance(list, r.id, "eur", v, sub)} />
+                  <Amount cur="EUR" auto={x.from === "aed"} value={shown(x, "eur")} onChange={(v) => setBalance(list, r.id, "eur", v, sub)} />
                 </span>
               </>
             )}

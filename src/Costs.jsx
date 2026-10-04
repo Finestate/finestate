@@ -614,7 +614,7 @@ export default function Costs({ seed }) {
                   {!sub && status}
                   {toggle && <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${kidsOpen ? "rotate-180" : ""}`} />}
                 </span>
-                <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black text-[11px] tabular-nums text-neutral-900 ${sub ? "px-2" : "pl-1 pr-2"}`} title={b?.all?.join("\n") || b?.error || undefined}>
+                <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black text-[11px] tabular-nums text-[#1d4ed8] ${sub ? "px-2" : "pl-1 pr-2"}`} title={b?.all?.join("\n") || b?.error || undefined}>
                   {!sub && (
                     <button onClick={() => refreshBank(bank, true)} disabled={bankBusy} title="Fetch the latest balances now" className="mr-auto text-[#0f766e] hover:text-[#0c5e57]">
                       <RefreshCw size={11} className={bankBusy ? "animate-spin" : ""} />
@@ -778,7 +778,8 @@ export default function Costs({ seed }) {
               <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
                 {cur !== "EUR" && `${cur} ${money(num(r.amount))}`}
               </span>
-              <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900"
+              {/* Worked out at today's rate, so in the blue of anything filled in by the site. */}
+              <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums ${cur !== "EUR" ? "text-[#1d4ed8]" : "text-neutral-900"}`}
                 title={cur !== "EUR" && live?.rates?.[cur] ? `1 ${cur} = ${(1 / live.rates[cur]).toFixed(4)} EUR, today's rate` : undefined}
               >
                 EUR {money(toEur(r.amount, r.currency))}
