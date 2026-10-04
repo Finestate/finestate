@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SquarePen, X } from "lucide-react";
+import { Plus, Trash2, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SquarePen, X, Download } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
+import { backupStamp, downloadText } from "./backup.js";
 
 // Personal ID numbers live in Supabase, never in this repo.
 const DOC_ID = "legal-documents";
@@ -224,6 +225,20 @@ export default function LegalDocuments() {
     setNewLinkName("");
     setNewLinkUrl("");
   };
+  // A plain text copy of every document, section by section, in the order shown.
+  const downloadBackup = () => {
+    const out = [`FINESTATE – LEGAL DOCUMENTS – ${backupStamp()}`];
+    order.forEach((i) => {
+      const r = items[i];
+      if (r.kind === "section") { out.push("", "=".repeat(40), (r.label || "").toUpperCase(), "=".repeat(40)); return; }
+      out.push(`- ${r.item || "(untitled)"}`);
+      if (r.number) out.push(`    Number: ${r.number}`);
+      if (r.issued) out.push(`    Issued: ${r.issued}`);
+      if (r.expiry) out.push(`    Expires: ${r.expiry}`);
+      linksOf(r).forEach((l) => out.push(`    Link: ${l.name ? `${l.name} – ` : ""}${l.url}`));
+    });
+    downloadText("Legal documents", out);
+  };
   const add = (kind) =>
     save([...items, kind === "section" ? { id: newId(), kind: "section", label: "" } : { id: newId(), kind: "row", item: "", number: "", issued: "", expiry: "", scan: "" }]);
 
@@ -245,6 +260,11 @@ export default function LegalDocuments() {
                 {/* Section bars carry no bin – a section only goes when I remove it. */}
                 <div className={`flex h-[18px] items-center px-2 ${rule}`} style={{ backgroundColor: BAR_BG }}>
                   <input value={r.label || ""} onChange={(e) => update(i, "label", e.target.value)} className={`block w-full bg-transparent py-0 ${head} outline-none`} />
+                  {pos === 0 && (
+                    <button onClick={downloadBackup} title="Download a backup of this page" className="ml-2 shrink-0 text-neutral-900 hover:text-[#9c7c33]">
+                      <Download size={12} strokeWidth={2.5} />
+                    </button>
+                  )}
                 </div>
                 <div className="flex h-[18px] items-center gap-2 border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
                   <span className="flex min-w-0 flex-1 items-center gap-2">

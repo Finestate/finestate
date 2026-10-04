@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown, RefreshCw, Check } from "lucide-react";
+import { Plus, Trash2, ChevronDown, RefreshCw, Check, Download } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
+import { backupStamp, downloadText, dumpLines } from "./backup.js";
 import { DateCell } from "./LegalDocuments.jsx";
 
 // Cash flow page, rebuilt from the FC tab of HEIE Planning. The figures are private,
@@ -225,9 +226,10 @@ const GAP_BG = "#8A8A8A"; // mid grey
 // `first`: the band that opens the table, where the frame already draws the line above.
 const Gap = ({ first }) => <div className={`h-[10px] ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: GAP_BG }} />;
 // The new table's section bars, in the top orange; the groups under them take the next shade.
-const Section = ({ children, first }) => (
+const Section = ({ children, first, right }) => (
   <div className={`${first ? "" : "border-t border-black"} flex h-[22px] items-center px-2`} style={{ backgroundColor: MAIN_BG }}>
     <span className={head}>{children}</span>
+    {right && <span className="ml-auto flex items-center">{right}</span>}
   </div>
 );
 // `first`: the bar that opens a table, where the frame already draws the line above.
@@ -291,6 +293,21 @@ export default function Costs({ seed }) {
     } finally {
       setBankBusy(false);
     }
+  };
+
+  // A plain text copy of everything typed on this page, plus the bank balances as last read.
+  const downloadBackup = () => {
+    const out = [`FINESTATE – CASH FLOW – ${backupStamp()}`, ""];
+    if (bank?.accounts?.length) {
+      out.push("BANK BALANCES" + (bank.at ? ` (last read ${new Date(bank.at).toLocaleString()})` : ""));
+      bank.accounts.forEach((a) => {
+        const b = bank.balances?.[a.uid];
+        out.push(`- ${a.name || a.product || "Account"}${a.iban ? ` ${a.iban}` : ""}: ${b?.amount != null ? `${b.currency || "EUR"} ${b.amount}` : "–"}`);
+      });
+      out.push("");
+    }
+    out.push(...dumpLines(doc, ["id", "ui", "seeded"]));
+    downloadText("Cash flow", out);
   };
 
   // On open: the saved connection, then, if the bank has just sent you back, the
@@ -518,7 +535,15 @@ export default function Costs({ seed }) {
         {/* Balances always come first. */}
         {/* On trial: the same grey band at the very top and very bottom, for balance. */}
         <Gap first />
-        <Section>Accounts</Section>
+        <Section
+          right={
+            <button onClick={downloadBackup} title="Download a backup of this page" className="text-neutral-900 hover:text-[#9c7c33]">
+              <Download size={12} strokeWidth={2.5} />
+            </button>
+          }
+        >
+          Accounts
+        </Section>
         {/* Your own account on its own line, with a chevron; a click anywhere in its
             name cell opens the other accounts (the company's and the kids') under it.
             Told apart by the bank's own account type, so no number sits in this code. */}

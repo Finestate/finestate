@@ -30,3 +30,29 @@ export const downloadText = (page, lines) => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
+
+// Any saved record as indented plain lines: names written out in words, ids and screen
+// settings left out, empty values skipped.
+const words = (k) => String(k).replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
+export const dumpLines = (value, skip = ["id", "ui"], depth = 0) => {
+  const out = [];
+  const pad = "  ".repeat(depth);
+  const isEmpty = (v) => v == null || v === "" || (Array.isArray(v) && !v.length) || (typeof v === "object" && !Array.isArray(v) && !Object.keys(v).length);
+  if (Array.isArray(value)) {
+    value.forEach((item) => {
+      if (item && typeof item === "object") {
+        const flat = Object.entries(item).filter(([k, v]) => !skip.includes(k) && !isEmpty(v) && typeof v !== "object");
+        const deep = Object.entries(item).filter(([k, v]) => !skip.includes(k) && !isEmpty(v) && typeof v === "object");
+        out.push(`${pad}- ${flat.map(([k, v]) => `${words(k)}: ${v}`).join(" | ")}`);
+        deep.forEach(([k, v]) => { out.push(`${pad}  ${words(k)}`); out.push(...dumpLines(v, skip, depth + 2)); });
+      } else if (!isEmpty(item)) out.push(`${pad}- ${item}`);
+    });
+  } else if (value && typeof value === "object") {
+    Object.entries(value).forEach(([k, v]) => {
+      if (skip.includes(k) || isEmpty(v)) return;
+      if (typeof v === "object") { out.push(`${pad}${words(k)}`); out.push(...dumpLines(v, skip, depth + 1)); }
+      else out.push(`${pad}${words(k)}: ${v}`);
+    });
+  }
+  return out;
+};
