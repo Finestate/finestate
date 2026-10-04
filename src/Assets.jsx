@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // What is owned, section by section. Built up step by step; the figures live in
@@ -142,12 +142,17 @@ export default function Assets() {
     if (n == null || !rates?.AED) return "";
     return (cur === "eur" ? n / rates.AED : n * rates.AED).toFixed(2);
   };
-  // The rows of a list as shown: the first personal account takes its EUR balance and
-  // date from the bank; its AED follows at today's rate.
-  const rowsOf = (list) =>
-    (doc[list] || []).map((r, i) =>
-      list === "personal" && i === 0 && ownBank ? { ...r, from: "eur", eur: String(ownBank.eur), updated: ownBank.at, live: true } : r
-    );
+  // The rows of a list as shown: your Stadtsparkasse account, wherever it sits among the
+  // personal accounts, takes its EUR balance and date from the bank; its AED follows at
+  // today's rate. It is found by its name.
+  const rowsOf = (list) => {
+    const rows = doc[list] || [];
+    if (list !== "personal" || !ownBank) return rows;
+    const at = rows.findIndex((r) => /sparkasse/i.test(r.name || ""));
+    return rows.map((r, i) => (i === at ? { ...r, from: "eur", eur: String(ownBank.eur), updated: ownBank.at, live: true } : r));
+  };
+  const [confirm, setConfirm] = useState(null); // a line waiting on Delete or Cancel
+  const removeRow = (list, id) => save({ ...doc, [list]: (doc[list] || []).filter((r) => r.id !== id) });
   const dateOf = (iso) => {
     if (!iso) return "";
     const d = new Date(iso);
@@ -170,6 +175,7 @@ export default function Assets() {
         <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>AED</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
+        <span className="flex w-7 shrink-0 items-center justify-center border-l border-black text-neutral-900"><Trash2 size={11} /></span>
       </div>
       {[...rowsOf(list), ...(withBlank ? [{ id: blankId.current, name: "" }] : [])].map((r) => {
         const row = (x, sub) => (
@@ -198,6 +204,13 @@ export default function Assets() {
                 </span>
               </>
             )}
+            <span className="flex w-7 shrink-0 items-center justify-center border-l border-black">
+              {!sub && (doc[list] || []).some((y) => y.id === r.id) && (
+                <button onClick={() => setConfirm({ list, id: r.id, name: x.name })} title="Delete" className="text-neutral-900 hover:text-[#C1440E]">
+                  <Trash2 size={11} />
+                </button>
+              )}
+            </span>
           </div>
         );
         if (!r.subs) return row(r);
@@ -228,6 +241,11 @@ export default function Assets() {
               <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(latest)}</span>
               <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{sum("aed") && `AED ${sum("aed")}`}</span>
               <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{sum("eur") && `EUR ${sum("eur")}`}</span>
+              <span className="flex w-7 shrink-0 items-center justify-center border-l border-black">
+                <button onClick={(e) => { e.stopPropagation(); setConfirm({ list, id: r.id, name: r.name }); }} title="Delete" className="text-neutral-900 hover:text-[#C1440E]">
+                  <Trash2 size={11} />
+                </button>
+              </span>
             </div>
             {open && r.subs.map((x) => row(x, x.id))}
           </div>
@@ -244,6 +262,7 @@ export default function Assets() {
             </span>
           );
         })}
+        <span className="w-7 shrink-0 border-l border-black" />
       </div>
     </>
   );
@@ -271,6 +290,27 @@ export default function Assets() {
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
       </div>
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
+
+      {/* The warning: a heavy red frame, the question in bold, a solid button to go ahead. */}
+      {confirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setConfirm(null)}>
+          <div className="w-full max-w-sm border-[5px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">Delete {confirm.name || "this line"}?</p>
+            <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
+              <button
+                onClick={() => { removeRow(confirm.list, confirm.id); setConfirm(null); }}
+                className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80"
+                style={{ backgroundColor: "#C1440E", borderColor: "#C1440E" }}
+              >
+                Delete
+              </button>
+              <button onClick={() => setConfirm(null)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: "#C1440E", color: "#C1440E" }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
