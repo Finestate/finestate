@@ -174,15 +174,17 @@ export default function Assets() {
         const latest = r.subs.map((x) => x.updated).filter(Boolean).sort().pop();
         return (
           <div key={r.id}>
-            <div className="flex h-[22px] items-stretch border-t border-black">
+            {/* The whole line opens and closes it, as in Cash flow; only the name itself is for typing. */}
+            <div onClick={() => toggleOpen(r.id)} className="flex h-[22px] cursor-pointer select-none items-stretch border-t border-black">
               <span className="flex min-w-0 flex-1 items-center gap-1 px-2">
                 <input
                   value={r.name}
+                  onClick={(e) => e.stopPropagation()}
                   onChange={(e) => editCash(list, r.id, { name: e.target.value })}
                   style={{ fieldSizing: "content" }}
                   className="min-w-0 bg-transparent text-[11px] text-neutral-900 outline-none"
                 />
-                <button onClick={() => toggleOpen(r.id)} title={open ? "Close" : "Open"} className="ml-auto shrink-0 text-neutral-900 hover:text-[#9c7c33]">
+                <button title={open ? "Close" : "Open"} className="ml-auto shrink-0 text-neutral-900 hover:text-[#9c7c33]">
                   <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />
                 </button>
               </span>
