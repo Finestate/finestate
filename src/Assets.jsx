@@ -179,7 +179,7 @@ export default function Assets() {
                 <input
                   value={r.name}
                   onChange={(e) => editCash(list, r.id, { name: e.target.value })}
-                  size={Math.max(r.name.length + 1, 6)}
+                  style={{ fieldSizing: "content" }}
                   className="min-w-0 bg-transparent text-[11px] text-neutral-900 outline-none"
                 />
                 <button onClick={() => toggleOpen(r.id)} title={open ? "Close" : "Open"} className="ml-auto shrink-0 text-neutral-900 hover:text-[#9c7c33]">
