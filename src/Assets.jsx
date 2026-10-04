@@ -30,12 +30,13 @@ const money = (v) => {
   return n == null ? "" : n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-// A typed amount: plain while you type in it, formatted once you leave it.
-function Amount({ value, onChange }) {
+// A typed amount: plain while you type in it, then shown with its currency, as in
+// Cash flow, once you leave it.
+function Amount({ value, onChange, cur }) {
   const [typing, setTyping] = useState(false);
   return (
     <input
-      value={typing ? value : money(value)}
+      value={typing ? value : money(value) && `${cur} ${money(value)}`}
       onFocus={() => setTyping(true)}
       onBlur={() => setTyping(false)}
       onChange={(e) => onChange(e.target.value)}
@@ -114,10 +115,10 @@ export default function Assets() {
           />
           <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(r.updated)}</span>
           <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-            <Amount value={shown(r, "aed")} onChange={(v) => setBalance(r.id, "aed", v)} />
+            <Amount cur="AED" value={shown(r, "aed")} onChange={(v) => setBalance(r.id, "aed", v)} />
           </span>
           <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-            <Amount value={shown(r, "eur")} onChange={(v) => setBalance(r.id, "eur", v)} />
+            <Amount cur="EUR" value={shown(r, "eur")} onChange={(v) => setBalance(r.id, "eur", v)} />
           </span>
         </div>
       ))}
