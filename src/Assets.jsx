@@ -115,6 +115,19 @@ export default function Assets() {
       });
   }, []);
 
+  // Latest share prices for every ticker under Stocks, read once the page has its figures.
+  const [quotes, setQuotes] = useState({});
+  const tickers = [...new Set((doc?.stocks || []).flatMap((r) => r.subs || []).map((x) => String(x.ticker || "").trim().toUpperCase()).filter(Boolean))].join(",");
+  useEffect(() => {
+    if (!tickers) return;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const r = await fetch(`/api/quote?symbols=${encodeURIComponent(tickers)}`, { headers: { Authorization: `Bearer ${data?.session?.access_token || ""}` } });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok && j.quotes) setQuotes(j.quotes);
+    })();
+  }, [tickers]);
+
   const save = (next) => {
     setDoc(next);
     supabase
@@ -154,6 +167,20 @@ export default function Assets() {
   // today's rate. It is found by its account number in the name.
   const rowsOf = (list) => {
     const rows = doc[list] || [];
+    // A holding with a ticker and a number of shares is valued at the latest price, in
+    // the share's own currency; the CHF and EUR follow at today's rates.
+    if (list === "stocks") {
+      return rows.map((r) => ({
+        ...r,
+        subs: (r.subs || []).map((x) => {
+          const q = quotes[String(x.ticker || "").trim().toUpperCase()];
+          const n = num(x.shares);
+          if (!q || n == null) return x;
+          const cur = q.currency.toLowerCase();
+          return { ...x, [cur]: String(q.price * n), from: cur, updated: q.at || x.updated, live: true, price: q };
+        }),
+      }));
+    }
     if (list !== "personal" || !ownBank) return rows;
     // The row carrying your account number; failing that, the only Sparkasse row.
     const digits = (r) => String(r.name || "").replace(/\D/g, "");
@@ -227,7 +254,7 @@ export default function Assets() {
             {x.live ? (
               // From the bank: not typed here, so shown as plain figures.
               [local, "eur"].map((cur) => (
-                <span key={cur} title="From the bank, as on the Cash flow page" className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">
+                <span key={cur} title={x.price ? `${x.shares} shares at ${x.price.currency} ${money(x.price.price)}, latest price` : "From the bank, as on the Cash flow page"} className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">
                   {money(shown(x, cur)) && `${cur.toUpperCase()} ${money(shown(x, cur))}`}
                 </span>
               ))
