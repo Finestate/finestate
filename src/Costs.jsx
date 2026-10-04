@@ -588,6 +588,11 @@ export default function Costs({ seed }) {
           const line = (a, sub, toggle) => {
             const b = bank.balances?.[a.uid];
             const v = amountOf(a);
+            const label =
+              doc.accountNames?.[a.uid] ??
+              `Stadtsparkasse – ${
+                (a.name || a.product || "Account").toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase())
+              }${a.iban ? `: ${a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}` : ""}`;
             return (
               // The accounts that open under yours sit on the faint pink of Planning's day lines.
               <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black" style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
@@ -596,10 +601,16 @@ export default function Costs({ seed }) {
                   className={`flex flex-1 items-center gap-1 text-[11px] text-neutral-900 ${sub ? "pl-6 pr-2" : "px-2"} ${toggle ? "cursor-pointer select-none" : ""}`}
                 >
                   {/* Bank – holder: number. The bank sends the holder in capitals, so it is
-                      set in ordinary case; the number reads in blocks of four. */}
-                  {`Stadtsparkasse – ${
-                    (a.name || a.product || "Account").toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase())
-                  }${a.iban ? `: ${a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}` : ""}`}
+                      set in ordinary case; the number reads in blocks of four. The name can
+                      be retyped; what you type is kept and the bank's version steps aside. */}
+                  <input
+                    value={label}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => save({ ...doc, accountNames: { ...(doc.accountNames || {}), [a.uid]: e.target.value } })}
+                    // Only as wide as its words, so a click just after them still opens the line.
+                    size={Math.max(label.length + 1, 6)}
+                    className="min-w-0 bg-transparent text-[11px] text-neutral-900 outline-none"
+                  />
                   {!sub && status}
                   {toggle && <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${kidsOpen ? "rotate-180" : ""}`} />}
                 </span>
@@ -759,7 +770,11 @@ export default function Costs({ seed }) {
           const cur = String(r.currency || "EUR").trim().toUpperCase() || "EUR";
           return (
             <div key={r.id} className="flex h-[22px] items-stretch border-t border-black">
-              <span className="flex flex-1 items-center px-2 text-[11px] text-neutral-900">{r.name}</span>
+              <input
+                value={r.name || ""}
+                onChange={(e) => save({ ...doc, income: doc.income.map((x) => (x.id === r.id ? { ...x, name: e.target.value } : x)) })}
+                className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
+              />
               <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
                 {cur !== "EUR" && `${cur} ${money(num(r.amount))}`}
               </span>
