@@ -6,7 +6,8 @@ import { supabase } from "./lib/supabaseClient.js";
 // Supabase, never in this public repo.
 const DOC_ID = "assets";
 const BAR_BG = "#F2C46D"; // section bars
-const HEADER_BG = "#FFE4B3"; // column headings inside a section
+const SUB_BG = "#FFE4B3"; // a group inside a section, one step down
+const HEADER_BG = "#FCEFCF"; // column headings, one step further down
 const GAP_BG = "#8A8A8A"; // the grey band between sections
 const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
 
@@ -123,6 +124,10 @@ export default function Assets() {
   // and in EUR. Type either; the other fills itself at today's rate.
   const cash = (
     <>
+      {/* Whose accounts these are, then the column headings under it. */}
+      <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+        <span className={head}>Silx FZ LLE accounts</span>
+      </div>
       <div className="flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>Account</span>
         <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
