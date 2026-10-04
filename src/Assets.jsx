@@ -15,6 +15,9 @@ const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] t
 const SECTIONS = ["Cash", "Stocks", "Real estate", "Canada"];
 
 // The cash accounts to start with; balances are typed in by hand for now.
+// Stocks start with one account that opens onto its holdings, added as you go.
+const START_STOCKS = [{ id: "swissquote", name: "Swissquote (Silx FZ LLE)", subs: [] }];
+
 const START_CASH = [
   { id: "dib", name: "Dubai Islamic Bank (Silx FZ LLE)", aed: "", eur: "" },
   { id: "moneycorp", name: "Moneycorp (Silx FZ LLE)", aed: "", eur: "" },
@@ -90,7 +93,7 @@ export default function Assets() {
         const d = data?.data || {};
         // A line left completely empty is dropped.
         const used = (r) => r.subs || r.name?.trim() || r.aed || r.eur;
-        setDoc({ ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: (d.personal || []).filter(used) });
+        setDoc({ ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: (d.personal || []).filter(used), stocks: d.stocks || START_STOCKS });
       });
   }, []);
 
@@ -156,7 +159,14 @@ export default function Assets() {
     return rows.map((r, i) => (i === at ? { ...r, from: "eur", eur: String(ownBank.eur), updated: ownBank.at, live: true } : r));
   };
   const [confirm, setConfirm] = useState(null); // a line waiting on Delete or Cancel
-  const removeRow = (list, id) => save({ ...doc, [list]: (doc[list] || []).filter((r) => r.id !== id) });
+  const removeRow = (list, id, sub) =>
+    save({
+      ...doc,
+      [list]: (doc[list] || []).flatMap((r) => (sub ? (r.id === id ? [{ ...r, subs: r.subs.filter((x) => x.id !== sub) }] : [r]) : r.id === id ? [] : [r])),
+    });
+  // A new line inside an account, such as a holding under Swissquote.
+  const addSub = (list, id) =>
+    save({ ...doc, [list]: (doc[list] || []).map((r) => (r.id === id ? { ...r, subs: [...(r.subs || []), { id: newId(), name: "" }] } : r)) });
   const dateOf = (iso) => {
     if (!iso) return "";
     const d = new Date(iso);
@@ -168,14 +178,17 @@ export default function Assets() {
   // Cash: the account on the left, the day it was last updated, then its balance in AED
   // and in EUR. Type either; the other fills itself at today's rate. One group of
   // accounts after another, each under its own bar.
-  const cashGroup = (list, title, withBlank) => (
+  // `title` is left out where the section bar already says it all, as in Stocks.
+  const cashGroup = (list, title, withBlank, firstCol = "Account") => (
     <>
       {/* Whose accounts these are, then the column headings under it. */}
-      <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
-        <span className={head}>{title}</span>
-      </div>
+      {title && (
+        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+          <span className={head}>{title}</span>
+        </div>
+      )}
       <div className="flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
-        <span className={`flex flex-1 items-center px-2 ${head}`}>Account</span>
+        <span className={`flex flex-1 items-center px-2 ${head}`}>{firstCol}</span>
         <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>AED</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
@@ -209,8 +222,8 @@ export default function Assets() {
               </>
             )}
             <span className="flex w-7 shrink-0 items-center justify-center border-l border-black">
-              {!sub && (doc[list] || []).some((y) => y.id === r.id) && (
-                <button onClick={() => setConfirm({ list, id: r.id, name: x.name })} title="Delete" className="text-neutral-900 hover:text-[#C1440E]">
+              {(sub || (doc[list] || []).some((y) => y.id === r.id)) && (
+                <button onClick={() => setConfirm({ list, id: r.id, sub, name: x.name })} title="Delete" className="text-neutral-900 hover:text-[#C1440E]">
                   <Trash2 size={11} />
                 </button>
               )}
@@ -252,6 +265,16 @@ export default function Assets() {
               </span>
             </div>
             {open && r.subs.map((x) => row(x, x.id))}
+            {/* Inside an open account (not DIB, whose two lines are fixed): a line to add another. */}
+            {open && r.id !== "dib" && (
+              <button
+                onClick={() => addSub(list, r.id)}
+                className="flex h-[22px] w-full items-center gap-[2px] border-t border-black pl-6 pr-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                style={{ backgroundColor: "#FBEFEC" }}
+              >
+                <Plus size={11} strokeWidth={3} />Add
+              </button>
+            )}
           </div>
         );
       })}
@@ -296,6 +319,7 @@ export default function Assets() {
               <span className={head}>{name}</span>
             </div>
             {name === "Cash" && cash}
+            {name === "Stocks" && cashGroup("stocks", "", false)}
           </div>
         ))}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
@@ -309,7 +333,7 @@ export default function Assets() {
             <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">Delete {confirm.name || "this line"}?</p>
             <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
               <button
-                onClick={() => { removeRow(confirm.list, confirm.id); setConfirm(null); }}
+                onClick={() => { removeRow(confirm.list, confirm.id, confirm.sub); setConfirm(null); }}
                 className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80"
                 style={{ backgroundColor: "#C1440E", borderColor: "#C1440E" }}
               >
