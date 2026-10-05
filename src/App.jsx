@@ -32,46 +32,9 @@ import Auth from "./Auth.jsx";
 import { supabase, supabaseReady } from "./lib/supabaseClient.js";
 import infinityImg from "../Website Images/Infinity.webp";
 import { ALL_PAGE_IDS } from "./pages.js";
+import { NAV } from "./nav.js";
 
-// Sidebar sections. A section with `children` is an accordion; without, a direct page.
-const NAV = [
-  // Planning heads the sidebar. Daily keeps its old route id so access lists still match.
-  {
-    id: "planning",
-    name: "Planning",
-    icon: CalendarDays,
-    children: [
-      { id: "admin/planning", name: "Daily", icon: CalendarDays },
-      { id: "hw", name: "HW", icon: Leaf },
-    ],
-  },
-  {
-    id: "admin",
-    name: "Admin",
-    icon: Shield,
-    children: [
-      // Links that used to live in Chrome; each opens in a new tab.
-      { id: "bookmarks", name: "Bookmarks", icon: Bookmark },
-      { id: "admin/legal-documents", name: "Legal documents", icon: FileText },
-      { id: "admin/logins", name: "Logins", icon: KeyRound },
-      { id: "admin/site-running-costs", name: "Site running costs", icon: Receipt },
-      { id: "admin/users", name: "Users", icon: Users },
-      // Always last: the pages outside services ask us to have, gathered on one page.
-      { id: "admin/integrations", name: "(Required)" },
-    ],
-  },
-  // Cash flow is one page now; the route keeps its old id so access lists still match.
-  { id: "costs/monthly", name: "Cash flow", icon: CreditCard },
-  // Assets is one page now; the route keeps its old id so access lists still match.
-  { id: "assets/snapshot", name: "Assets", icon: Wallet },
-  // Investing stands on its own with its own pages; Knowledge is the Intel board.
-  {
-    id: "investing",
-    name: "Investing",
-    icon: TrendingUp,
-    children: [{ id: "assets/investing", name: "Knowledge" }],
-  },
-];
+// The sidebar lives in nav.js, so the Users page reads its page list from the same place.
 
 const VIEW_AS_KEY = "finestate.viewAs";
 
