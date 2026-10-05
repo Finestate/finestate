@@ -19,10 +19,12 @@ const COSTS = [
   { item: "Claude – Claude Code plan (building the site)", price: "0.00" },
   { item: "Domain name – finestate.xyz", price: "0.00" },
   { item: "Dropbox – project files", price: "0.00" },
+  { item: "Enable Banking – bank connection (Sparkasse balances)", price: "0.00" },
+  { item: "Exchange rates – open.er-api.com (live currency rates)", price: "0.00" },
   { item: "GitHub – code repository", price: "0.00" },
-  { item: "Stock data API – market feed (planned)", price: "0.00" },
   { item: "Supabase – logins and database", price: "0.00" },
   { item: "Vercel – hosting", price: "0.00" },
+  { item: "Yahoo Finance – share prices", price: "0.00" },
 ];
 
 export default function SiteRunningCosts() {
