@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
@@ -542,9 +542,20 @@ export default function Planning() {
   const [dropM, setDropM] = useState(null); // where a picker meeting would land: { board, index }
   // Both use the same rule as the personal order lines: land on the marker, counting
   // the gap the dragged box leaves behind.
-  const dropPoint = (b, g) => {
-    if (dragP?.board === b && dragP.group === g && dropP?.board === b && dropP.group === g) {
-      movePoint(b, g, dragP.index, dropP.index > dragP.index ? dropP.index - 1 : dropP.index);
+  // A point can also be dragged into the other group of its column, as from Regular
+  // prios up into Hyper-prios.
+  const dropPoint = (b) => {
+    if (dragP?.board === b && dropP?.board === b) {
+      if (dragP.group === dropP.group) {
+        movePoint(b, dropP.group, dragP.index, dropP.index > dragP.index ? dropP.index - 1 : dropP.index);
+      } else {
+        const pts = boards[b].points;
+        const from = (pts[dragP.group] || []).slice();
+        const [moved] = from.splice(dragP.index, 1);
+        const to = (pts[dropP.group] || []).slice();
+        to.splice(dropP.index, 0, moved);
+        savePoints(b, { ...pts, [dragP.group]: from, [dropP.group]: to });
+      }
     }
     setDragP(null);
     setDropP(null);
@@ -968,8 +979,9 @@ export default function Planning() {
         out.push("", "Meetings");
         (board.meetings || []).forEach((m) => out.push(`- ${m.name}${m.permanent ? " (permanent)" : ""}`));
       }
-      ["core", "rest"].forEach((g, gi) => {
-        const label = (GROUP_LABELS[b] || [])[gi] || (g === "core" ? "Core points" : "Other points");
+      (b === "master" ? ["core", "rest"] : ["hyper", "core", "rest"]).forEach((g) => {
+        const gi = g === "rest" ? 1 : 0;
+        const label = g === "hyper" ? "Hyper-prios" : (GROUP_LABELS[b] || [])[gi] || (g === "core" ? "Core points" : "Other points");
         out.push("", label);
         (board.points?.[g] || []).forEach((it) => {
           out.push(`${pad(it)}- ${it.code}`);
@@ -1029,7 +1041,7 @@ export default function Planning() {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
         // Selected points keep their group on the line: meetings, core codes, then the rest.
-        const coreCodes = points.core.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
+        const coreCodes = [...(points.hyper || []), ...points.core].filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
@@ -1246,21 +1258,38 @@ export default function Planning() {
                 </div>
                 )}
 
-                {["core", "rest"].map((g, gi) => (
-                  <div key={g} className={`${g === "core" ? "order-2" : "order-3"} self-stretch border-[3px] border-[#C1440E] p-1.5`}>
+                {["core", "rest"].map((col, gi) => (
+                  <div key={col} className={`${col === "core" ? "order-2" : "order-3"} self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     <div
                       className="flex h-full flex-col gap-1"
                       onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => dropPoint(b, g)}
+                      onDrop={() => dropPoint(b)}
                       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropP(null); }}
                     >
                       {(GROUP_LABELS[b] || [])[gi] && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
                       )}
-                      {points[g].map((it, pi) => hiddenRows(points[g]).has(it.id) ? null : (
+                      {/* A company board's Prios split in two: Hyper-prios on top, then the
+                          regular ones; points are dragged between them. */}
+                      {(col === "core" && b !== "master" ? ["hyper", "core"] : [col]).map((g) => {
+                        const list = points[g] || [];
+                        return (
+                      <Fragment key={g}>
+                      {col === "core" && b !== "master" && (
+                        <p className="pl-2 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
+                      )}
+                      {/* An empty group still takes a dragged point. */}
+                      {list.length === 0 && (
+                        <div
+                          onDragOver={(e) => { e.preventDefault(); setDropP({ board: b, group: g, index: 0 }); }}
+                          onDrop={(e) => { e.stopPropagation(); dropPoint(b); }}
+                          className={`h-[19px] rounded border border-dashed ${dragP?.board === b && dropP?.board === b && dropP.group === g ? "border-[#C1440E]" : "border-neutral-300"}`}
+                        />
+                      )}
+                      {list.map((it, pi) => hiddenRows(list).has(it.id) ? null : (
                         <div key={it.id}>
                         {/* A red marker shows exactly where the point will land. */}
-                        {dragP?.board === b && dragP.group === g && dropP?.board === b && dropP.group === g && dropP.index === pi && (
+                        {dragP?.board === b && dropP?.board === b && dropP.group === g && dropP.index === pi && (
                           <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />
                         )}
                         <div
@@ -1270,19 +1299,19 @@ export default function Planning() {
                             const box = e.currentTarget.getBoundingClientRect();
                             setDropP({ board: b, group: g, index: e.clientY < box.top + box.height / 2 ? pi : pi + 1 });
                           }}
-                          onDrop={(e) => { e.stopPropagation(); dropPoint(b, g); }}
+                          onDrop={(e) => { e.stopPropagation(); dropPoint(b); }}
                           // A stepped in point is the same box, shifted from the left, a step at a time.
                           style={levelOf(it) ? { marginLeft: `${20 * levelOf(it)}px` } : undefined}
                           className={`flex items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
                         >
                           {/* A group head opens and closes at a click; other points keep the space. */}
                           <span className="flex h-[15px] w-[11px] shrink-0 items-center">
-                            {hasNotes(it) && !isHead(points[g], pi) && (
+                            {hasNotes(it) && !isHead(list, pi) && (
                               <button onClick={() => patchPoint(b, g, it.id, { notesOpen: !it.notesOpen })} title={it.notesOpen ? "Close" : "Open"} className="flex items-center text-neutral-900 hover:text-[#C1440E]">
                                 {it.notesOpen ? <ChevronDown size={11} strokeWidth={2.75} /> : <ChevronRight size={11} strokeWidth={2.75} />}
                               </button>
                             )}
-                            {isHead(points[g], pi) && (
+                            {isHead(list, pi) && (
                               <button onClick={() => togglePointClosed(b, g, it.id)} title={it.closed ? "Open" : "Close"} className="flex items-center text-neutral-900 hover:text-[#C1440E]">
                                 {it.closed ? <ChevronRight size={11} strokeWidth={2.75} /> : <ChevronDown size={11} strokeWidth={2.75} />}
                               </button>
@@ -1338,13 +1367,16 @@ export default function Planning() {
                         )}
                         </div>
                       ))}
-                      {dragP?.board === b && dragP.group === g && dropP?.board === b && dropP.group === g && dropP.index === points[g].length && (
+                      {dragP?.board === b && dropP?.board === b && dropP.group === g && list.length > 0 && dropP.index === list.length && (
                         <div className="h-[2px] w-full bg-[#C1440E]" />
                       )}
+                      </Fragment>
+                        );
+                      })}
 
                       {/* Both groups take new points straight from here, on the floor of the column. */}
                       <button
-                        onClick={() => addPoint(b, g)}
+                        onClick={() => addPoint(b, col)}
                         title="Add a point"
                         className="mt-auto flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
                       >
