@@ -468,7 +468,8 @@ export default function Assets() {
   // Any further properties, added as you go: a name, its date and a value in EUR.
   const moreProps = doc.moreProps || [];
   const editProp = (id, fields) => save({ ...doc, moreProps: moreProps.map((x) => (x.id === id ? { ...x, ...fields, updated: new Date().toISOString() } : x)) });
-  const reTotal = (owned ?? 0) + (num(flat.value) ?? 0) + moreProps.reduce((sum, x) => sum + (num(x.value) ?? 0), 0);
+  // The house and the flat can be deleted like any other line; once gone they stay gone.
+  const reTotal = (doc.houseGone ? 0 : owned ?? 0) + (doc.flatGone ? 0 : num(flat.value) ?? 0) + moreProps.reduce((sum, x) => sum + (num(x.value) ?? 0), 0);
   const houseOpen = !!doc.ui?.open?.house;
   const reRow = "flex h-[22px] items-stretch border-t border-black";
   const reCell = "flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums";
@@ -479,6 +480,8 @@ export default function Assets() {
         <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
       </div>
+      {!doc.houseGone && (
+      <>
       {/* The whole line opens and closes it; only the name itself is for typing. */}
       <div onClick={() => toggleOpen("house")} className={`${reRow} cursor-pointer select-none`}>
         <span className="flex min-w-0 flex-1 items-center gap-1 px-2">
@@ -491,6 +494,13 @@ export default function Assets() {
           />
           <button title={houseOpen ? "Close" : "Open"} className="ml-auto shrink-0 text-neutral-900 hover:text-[#9c7c33]">
             <ChevronDown size={12} className={`transition-transform ${houseOpen ? "rotate-180" : ""}`} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setConfirm({ name: house.name, run: () => save({ ...doc, houseGone: true }) }); }}
+            title="Delete"
+            className="shrink-0 text-neutral-900 hover:text-[#C1440E]"
+          >
+            <Trash2 size={11} />
           </button>
         </span>
         <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(house.updated)}</span>
@@ -516,17 +526,28 @@ export default function Assets() {
           ))}
         </>
       )}
+      </>
+      )}
+      {!doc.flatGone && (
       <div className={reRow}>
         <input
           value={flat.name}
           onChange={(e) => saveFlat({ name: e.target.value })}
           className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
         />
+        <button
+          onClick={() => setConfirm({ name: flat.name, run: () => save({ ...doc, flatGone: true }) })}
+          title="Delete"
+          className="mr-2 shrink-0 self-center text-neutral-900 hover:text-[#C1440E]"
+        >
+          <Trash2 size={11} />
+        </button>
         <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(flat.updated)}</span>
         <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
           <Amount cur="EUR" value={flat.value} onChange={(v) => saveFlat({ value: v })} />
         </span>
       </div>
+      )}
       {moreProps.map((x) => (
         <div key={x.id} className={reRow}>
           <input
@@ -918,7 +939,7 @@ export default function Assets() {
             <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">Delete {confirm.name || "this line"}?</p>
             <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
               <button
-                onClick={() => { removeRow(confirm.list, confirm.id, confirm.sub); setConfirm(null); }}
+                onClick={() => { if (confirm.run) confirm.run(); else removeRow(confirm.list, confirm.id, confirm.sub); setConfirm(null); }}
                 className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80"
                 style={{ backgroundColor: "#C1440E", borderColor: "#C1440E" }}
               >
