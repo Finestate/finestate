@@ -91,7 +91,7 @@ export const CALC_GROUPS = [
           { key: "Years", label: "Years", type: "num" },
           { key: "Return", label: "Return", type: "pct" },
         ],
-        defaults: { PresentValue: 900000, Payment: 0, Years: 4, Return: 12 },
+        defaults: { PresentValue: 205000, Payment: 0, Years: 30, Return: 12 },
         compute: (v) => {
           const r = v.Return / 100;
           const ti = v.PresentValue + v.Payment * v.Years;

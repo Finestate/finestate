@@ -25,6 +25,7 @@ import LegalDocuments from "./LegalDocuments.jsx";
 import Costs from "./Costs.jsx";
 import Bookmarks from "./Bookmarks.jsx";
 import Assets from "./Assets.jsx";
+import Calculations from "./Calculations.jsx";
 import HW from "./HW.jsx";
 import KnowledgeFeeds from "./KnowledgeFeeds.jsx";
 import ErrorBoundary from "./ErrorBoundary.jsx";
@@ -350,6 +351,8 @@ export default function App() {
             {route === "admin/planning" && <Planning />}
             {route === "bookmarks" && <Bookmarks />}
             {route === "assets/snapshot" && <Assets />}
+            {/* Estate: empty for now. */}
+            {route === "assets/estate" && <div />}
             {route === "admin/legal-documents" && <LegalDocuments />}
             {route === "costs/monthly" && <Costs />}
             {route === "hw" && <HW />}
@@ -357,6 +360,7 @@ export default function App() {
             {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
             {route === "admin/integrations" && <Integrations />}
             {route === "assets/investing" && <KnowledgeFeeds />}
+            {route === "investing/calculations" && <Calculations />}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}
           </ErrorBoundary>

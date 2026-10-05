@@ -29,13 +29,25 @@ export const NAV = [
   },
   // Cash flow is one page now; the route keeps its old id so access lists still match.
   { id: "costs/monthly", name: "Cash flow", icon: CreditCard },
-  // Assets is one page now; the route keeps its old id so access lists still match.
-  { id: "assets/snapshot", name: "Assets", icon: Wallet },
+  // Assets opens onto its pages; Overview keeps the old route id so access lists still match.
+  {
+    id: "assets",
+    name: "Assets",
+    icon: Wallet,
+    children: [
+      { id: "assets/snapshot", name: "Overview" },
+      { id: "assets/estate", name: "Estate" },
+    ],
+  },
   // Investing stands on its own with its own pages; Knowledge is the Intel board.
   {
     id: "investing",
     name: "Investing",
     icon: TrendingUp,
-    children: [{ id: "assets/investing", name: "Knowledge" }],
+    children: [
+      // The custom calculators from the planning sheet.
+      { id: "investing/calculations", name: "Calculations" },
+      { id: "assets/investing", name: "Knowledge" },
+    ],
   },
 ];
