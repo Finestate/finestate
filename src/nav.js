@@ -47,7 +47,8 @@ export const NAV = [
     children: [
       // The custom calculators from the planning sheet.
       { id: "investing/calculations", name: "Calculations" },
-      { id: "assets/investing", name: "Funnel" },
+      { id: "investing/funnel", name: "Funnel" },
+      { id: "assets/investing", name: "Knowledge" },
     ],
   },
 ];

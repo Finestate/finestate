@@ -26,7 +26,6 @@ import Costs from "./Costs.jsx";
 import Bookmarks from "./Bookmarks.jsx";
 import Assets from "./Assets.jsx";
 import Calculations from "./Calculations.jsx";
-import Funnel from "./Funnel.jsx";
 import HW from "./HW.jsx";
 import KnowledgeFeeds from "./KnowledgeFeeds.jsx";
 import ErrorBoundary from "./ErrorBoundary.jsx";
@@ -360,14 +359,9 @@ export default function App() {
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
             {route === "admin/integrations" && <Integrations />}
-            {/* Funnel: the radar and funnel on top, the news feeds under them. */}
-            {route === "assets/investing" && (
-              <>
-                <Funnel />
-                <div className="h-4" />
-                <KnowledgeFeeds />
-              </>
-            )}
+            {route === "assets/investing" && <KnowledgeFeeds />}
+            {/* Funnel: empty until we build it together. */}
+            {route === "investing/funnel" && <div />}
             {route === "investing/calculations" && <Calculations />}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}
