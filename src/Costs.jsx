@@ -595,7 +595,7 @@ export default function Costs({ seed }) {
               }${a.iban ? `: ${a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}` : ""}`;
             return (
               // The accounts that open under yours sit on the faint pink of Planning's day lines.
-              <div key={a.uid} className="flex h-[22px] items-stretch border-t border-black" style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
+              <div key={a.uid} className={`flex h-[22px] items-stretch border-t border-black ${sub ? "pt-px" : ""}`} style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
                 <span
                   onClick={toggle}
                   className={`flex flex-1 items-center gap-1 text-[11px] text-neutral-900 ${sub ? "pl-6 pr-2" : "px-2"} ${toggle ? "cursor-pointer select-none" : ""}`}
@@ -712,7 +712,7 @@ export default function Costs({ seed }) {
                     const col = "flex min-w-0 items-center border-l border-black px-2";
                     const box = `${cellTxt} w-full placeholder:text-neutral-400`;
                     return (
-                      <div key={l.id} className={`group ${sub}`} style={{ backgroundColor: "#FBEFEC" }}>
+                      <div key={l.id} className={`group ${sub} pt-px`} style={{ backgroundColor: "#FBEFEC" }}>
                         <div className="grid flex-1 grid-cols-4 pl-4">
                           <span className="flex min-w-0 items-center px-2">
                             <input value={l.name || ""} onChange={(e) => editLoan(l.id, "name", e.target.value)} placeholder="Loan name" className={box} />
@@ -868,7 +868,7 @@ export default function Costs({ seed }) {
                 </span>
               </div>
               {k.open && paymentRows(k).map((x) => (
-                <div key={x.id} className="group flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: "#FBEFEC" }}>
+                <div key={x.id} className="group flex h-[22px] items-stretch border-t border-black pt-px" style={{ backgroundColor: "#FBEFEC" }}>
                   <span className="flex flex-1 items-center gap-2 px-2">
                     {/* Pulled left by the icon's own inner margin, so it lines up with the A and S. */}
                     <span className="-ml-[1.5px] min-w-0 flex-1">

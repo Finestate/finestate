@@ -262,7 +262,7 @@ export default function Assets() {
       {[...rowsOf(list), ...(withBlank ? [{ id: blankId.current, name: "" }] : [])].map((r) => {
         const row = (x, sub) => (
           // The lines inside an account sit on the faint pink, as in Cash flow.
-          <div key={sub || x.id} className="flex h-[22px] items-stretch border-t border-black" style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
+          <div key={sub || x.id} className={`flex h-[22px] items-stretch border-t border-black ${sub ? "pt-px" : ""}`} style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
             <input
               value={x.name}
               onChange={(e) => editCash(list, r.id, { name: e.target.value, updated: new Date().toISOString() }, sub)}
@@ -421,7 +421,7 @@ export default function Assets() {
       </div>
       {houseOpen && (
         <>
-          <div className={reRow} style={{ backgroundColor: "#FBEFEC" }}>
+          <div className={`${reRow} pt-px`} style={{ backgroundColor: "#FBEFEC" }}>
             <span className="flex flex-1 items-center pl-6 pr-2 text-[11px] text-neutral-900">House value</span>
             <span className="w-28 shrink-0 border-l border-black" />
             <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
@@ -429,7 +429,7 @@ export default function Assets() {
             </span>
           </div>
           {loans.map((l) => (
-            <div key={l.id} className={reRow} style={{ backgroundColor: "#FBEFEC" }}>
+            <div key={l.id} className={`${reRow} pt-px`} style={{ backgroundColor: "#FBEFEC" }}>
               <span className="flex flex-1 items-center pl-6 pr-2 text-[11px] text-neutral-900">Mortgage{l.name ? `: ${l.name}` : ""}</span>
               <span className="w-28 shrink-0 border-l border-black" />
               <span className={`${reCell} text-[#1d4ed8]`} title="From the Debt line on the Cash flow page">
@@ -512,7 +512,7 @@ export default function Assets() {
       </div>
       {caOpen &&
         acct.subs.map((x) => (
-          <div key={x.id} className={caRow} style={{ backgroundColor: "#FBEFEC" }}>
+          <div key={x.id} className={`${caRow} pt-px`} style={{ backgroundColor: "#FBEFEC" }}>
             <input
               value={x.name}
               onChange={(e) => editPart(x.id, { name: e.target.value })}
