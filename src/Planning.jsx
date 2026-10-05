@@ -1266,17 +1266,17 @@ export default function Planning() {
                       onDrop={() => dropPoint(b)}
                       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropP(null); }}
                     >
-                      {(GROUP_LABELS[b] || [])[gi] && (
+                      {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master") && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
                       )}
-                      {/* A company board's Prios split in two: Hyper-prios on top, then the
+                      {/* A company board's Prios column holds two groups: Hyper-prios on top, then the
                           regular ones; points are dragged between them. */}
                       {(col === "core" && b !== "master" ? ["hyper", "core"] : [col]).map((g) => {
                         const list = points[g] || [];
                         return (
                       <Fragment key={g}>
                       {col === "core" && b !== "master" && (
-                        <p className="pl-2 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
+                        <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
                       )}
                       {/* An empty group still takes a dragged point. */}
                       {list.length === 0 && (
