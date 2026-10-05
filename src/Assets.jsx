@@ -494,6 +494,10 @@ export default function Assets() {
   const taxCad = taxed.reduce((sum, x) => sum + (cadOf(x) * (num(x.tax) ?? 0)) / 100, 0);
   const grossEur = acct.subs.reduce((sum, x) => sum + eurOf(x), 0);
   const grossCad = acct.subs.reduce((sum, x) => sum + cadOf(x), 0);
+  // Your part of each line, after that line's tax. Share % only applies where you type
+  // one; a line left empty counts in full.
+  const shareOf = (x) => num(x.share) ?? 100;
+  const mineEur = taxed.reduce((sum, x) => sum + eurOf(x) * (shareOf(x) / 100) * (1 - (num(x.tax) ?? 0) / 100), 0);
   const caOpen = !!doc.ui?.open?.canaccord;
   const caLatest = acct.subs.map((x) => x.updated).filter(Boolean).sort().pop();
   const caRow = "flex h-[22px] items-stretch border-t border-black";
@@ -502,6 +506,7 @@ export default function Assets() {
     <>
       <div className={caRow} style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>Account</span>
+        <span className={`flex w-20 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Share %</span>
         <span className={`flex w-20 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Tax %</span>
         <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>CAD</span>
@@ -522,6 +527,7 @@ export default function Assets() {
           </button>
         </span>
         <span className="w-20 shrink-0 border-l border-black" />
+        <span className="w-20 shrink-0 border-l border-black" />
         <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(caLatest)}</span>
         <span className={`${caFig} text-neutral-900`}>{grossCad ? `CAD ${money(grossCad)}` : ""}</span>
         <span className={`${caFig} text-neutral-900`}>{grossEur ? `EUR ${money(grossEur)}` : ""}</span>
@@ -534,6 +540,9 @@ export default function Assets() {
               onChange={(e) => editPart(x.id, { name: e.target.value })}
               className="min-w-0 flex-1 bg-transparent pl-6 pr-2 text-[11px] text-neutral-900 outline-none"
             />
+            <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
+              <Percent value={x.share} onChange={(v) => editPart(x.id, { share: v })} />
+            </span>
             <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
               <Percent value={x.tax} onChange={(v) => editPart(x.id, { tax: v })} />
             </span>
@@ -552,6 +561,9 @@ export default function Assets() {
           className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
         />
         <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
+          <Percent value={caHouse.share} onChange={(v) => editHouse({ share: v })} />
+        </span>
+        <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
           <Percent value={caHouse.tax} onChange={(v) => editHouse({ tax: v })} />
         </span>
         <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(caHouse.updated)}</span>
@@ -565,6 +577,7 @@ export default function Assets() {
       <div className={caRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] text-[#C1440E]">Estimated tax</span>
         <span className="w-20 shrink-0 border-l border-black" />
+        <span className="w-20 shrink-0 border-l border-black" />
         <span className="w-28 shrink-0 border-l border-black" />
         <span className={`${caFig} text-[#C1440E]`}>{taxCad ? `CAD -${money(taxCad)}` : ""}</span>
         <span className={`${caFig} text-[#C1440E]`}>{taxEur ? `EUR -${money(taxEur)}` : ""}</span>
@@ -572,6 +585,10 @@ export default function Assets() {
       <div className={caRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total after tax</span>
         <span className={`${caFig} font-bold text-neutral-900`}>{grossEur + eurOf(caHouse) ? `EUR ${money(grossEur + eurOf(caHouse) - taxEur)}` : ""}</span>
+      </div>
+      <div className={caRow}>
+        <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">My share after tax</span>
+        <span className={`${caFig} font-bold text-neutral-900`}>{mineEur ? `EUR ${money(mineEur)}` : ""}</span>
       </div>
     </>
   );
