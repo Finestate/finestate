@@ -1024,11 +1024,21 @@ export default function Planning() {
   // A company day line: just the letter codes of the ticked points, dash separated,
   // as in AB-SC-FI-CU. Nothing in brackets shows here; the picker below is unchanged
   // and anything typed in brackets stays saved.
-  const renderShortLine = (b, codes) => (
-    <div className="flex flex-wrap items-center text-[11px] font-semibold leading-[15px] text-neutral-900">
-      {codes.map(shortCode).filter(Boolean).join("-")}
-    </div>
-  );
+  // Hyper-prios sit in a thin frame, the dashes either side touching its edges.
+  const renderShortLine = (b, codes) => {
+    const hyper = new Set((boards[b].points.hyper || []).map((it) => it.code));
+    const items = codes.map((c) => ({ c, s: shortCode(c) })).filter((x) => x.s);
+    return (
+      <div className="flex flex-wrap items-center text-[11px] font-semibold leading-[15px] text-neutral-900">
+        {items.map((x, i) => (
+          <Fragment key={x.c}>
+            {i > 0 && "-"}
+            {hyper.has(x.c) ? <span className="border border-neutral-900 px-[2px] leading-[13px]">{x.s}</span> : x.s}
+          </Fragment>
+        ))}
+      </div>
+    );
+  };
 
   // Plain function, not a component: a nested component would remount on every
   // keystroke and throw the caret to the end of the field.
