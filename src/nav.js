@@ -36,7 +36,7 @@ export const NAV = [
     icon: Wallet,
     children: [
       { id: "assets/snapshot", name: "Overview" },
-      { id: "assets/estate", name: "Estate" },
+      { id: "assets/estate", name: "Estate management" },
     ],
   },
   // Investing stands on its own with its own pages; Knowledge is the Intel board.
