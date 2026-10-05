@@ -252,7 +252,9 @@ export default function HW() {
       </button>
     </>
   );
-  const listBlock = (key, withLink = false) => (
+  // `twoCols`: the space after the name split into two equal columns, the new one first
+  // and the details as before, far right (Medicines).
+  const listBlock = (key, withLink = false, twoCols = false) => (
     <>
       {listRows(key).map((m, idx) => {
         const oldLink = withLink && !m.link && isWebAddress(m.text);
@@ -293,7 +295,12 @@ export default function HW() {
                 )}
               </span>
             )}
-            <span className="flex min-w-0 flex-1 items-start border-l border-black px-2 py-[3px]">
+            {twoCols && (
+              <span className="flex min-w-0 flex-1 basis-0 items-start border-l border-black px-2 py-[3px]">
+                <GrowText value={m.col2 || ""} onChange={(t) => editItem(key, m.id, { col2: t })} rows={1} />
+              </span>
+            )}
+            <span className="flex min-w-0 flex-1 basis-0 items-start border-l border-black px-2 py-[3px]">
               <GrowText value={details} onChange={setDetails} rows={1} />
             </span>
             {/* The grip always sits just left of the bin. */}
@@ -349,6 +356,7 @@ export default function HW() {
       section(title);
       (lists[key] || []).forEach((m) => {
         out.push(`- ${m.name || ""}${m.link ? ` (${m.link})` : ""}`);
+        if (m.col2) indent(m.col2);
         if (m.text) indent(m.text);
       });
     };
@@ -447,7 +455,7 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Medicines</span>
         </div>
-        {notesLoaded && listBlock("medicines")}
+        {notesLoaded && listBlock("medicines", false, true)}
         {/* Supplements belong with medicines: its own bar, no grey band before it. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Supplements</span>
