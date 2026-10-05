@@ -765,6 +765,7 @@ export default function Assets() {
         <span className={`flex flex-1 items-center px-2 ${head}`}>Name</span>
         <span className={`flex w-24 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Ownership</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value</span>
+        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>My value</span>
         <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend owed</span>
       </div>
       {companiesList.map((x) => (
@@ -780,6 +781,10 @@ export default function Assets() {
           </span>
           <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
             <Amount cur="EUR" value={x.value} onChange={(v) => editCo(x.id, { value: v })} />
+          </span>
+          {/* Your part: the value times your ownership, worked out here, so in blue. */}
+          <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">
+            {num(x.value) != null && num(x.own) != null ? `EUR ${money((num(x.value) * num(x.own)) / 100)}` : ""}
           </span>
           <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
             <Amount cur="EUR" value={x.dividend} onChange={(v) => editCo(x.id, { dividend: v })} />
