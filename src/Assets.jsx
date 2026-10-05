@@ -12,9 +12,16 @@ const GAP_BG = "#8A8A8A"; // the grey band between sections
 const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
 
 // In the order they are worked through.
-const SECTIONS = ["Cash", "Stocks", "Real estate", "Parent estates", "Totals"];
+const SECTIONS = ["Cash", "Companies", "Stocks", "Real estate", "Parent estates", "Totals"];
 
 // The cash accounts to start with; balances are typed in by hand for now.
+// The companies to start with; more can be added.
+const START_COMPANIES = [
+  { id: "servefast", name: "Servefast GmbH" },
+  { id: "silx", name: "Silx FZ LLE" },
+  { id: "tlz", name: "Trade License Zone FZCO" },
+];
+
 // Germany starts with three lines; more can be added.
 const DE_START = [
   { id: "invest", name: "Investment account" },
@@ -127,7 +134,7 @@ export default function Assets() {
         const d = data?.data || {};
         // A line left completely empty is dropped.
         const used = (r) => r.subs || r.name?.trim() || r.aed || r.eur;
-        setDoc({ ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: (d.personal || []).filter(used), stocks: d.stocks || START_STOCKS, germany: d.germany || DE_START });
+        setDoc({ ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: (d.personal || []).filter(used), stocks: d.stocks || START_STOCKS, germany: d.germany || DE_START, companies: d.companies || START_COMPANIES });
       });
   }, []);
 
@@ -755,6 +762,40 @@ export default function Assets() {
     </>
   );
 
+  // Companies: each one's name, how much of it is owned, its value and any dividend owed.
+  const companiesList = doc.companies || START_COMPANIES;
+  const editCo = (id, fields) => save({ ...doc, companies: companiesList.map((x) => (x.id === id ? { ...x, ...fields } : x)) });
+  const companies = (
+    <>
+      <div className={caRow} style={{ backgroundColor: HEADER_BG }}>
+        <span className={`flex flex-1 items-center px-2 ${head}`}>Name</span>
+        <span className={`flex w-24 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Ownership</span>
+        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value</span>
+        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend owed</span>
+      </div>
+      {companiesList.map((x) => (
+        <div key={x.id} className={caRow}>
+          <input
+            value={x.name}
+            onChange={(e) => editCo(x.id, { name: e.target.value })}
+            className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
+          />
+          {binFor("companies", x.id, x.name)}
+          <span className="flex w-24 shrink-0 items-center border-l border-black px-2">
+            <Percent value={x.own} onChange={(v) => editCo(x.id, { own: v })} />
+          </span>
+          <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
+            <Amount cur="EUR" value={x.value} onChange={(v) => editCo(x.id, { value: v })} />
+          </span>
+          <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
+            <Amount cur="EUR" value={x.dividend} onChange={(v) => editCo(x.id, { dividend: v })} />
+          </span>
+        </div>
+      ))}
+      {addLine("companies", {})}
+    </>
+  );
+
   const cash = (
     <>
       {cashGroup("cash", "Company accounts", false)}
@@ -785,6 +826,7 @@ export default function Assets() {
             </div>
             {name === "Cash" && cash}
             {name === "Real estate" && realEstate}
+            {name === "Companies" && companies}
             {name === "Totals" && totals}
             {/* The parents' estates, one country after another, each under its own bar. */}
             {name === "Parent estates" && (
