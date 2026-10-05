@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { ChevronDown, Minus, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // What is owned, section by section. Built up step by step; the figures live in
@@ -95,6 +95,17 @@ function Percent({ value, onChange }) {
 export default function Assets() {
   const [doc, setDoc] = useState(null);
   const [err, setErr] = useState("");
+  // The size of the whole table, so all of it fits on screen: the left button makes it
+  // smaller a step at a time, the right one larger again, up to full size. Remembered
+  // in this browser only.
+  const [zoom, setZoom] = useState(() => {
+    try { const z = Number(localStorage.getItem("assets-zoom")); return z >= 40 && z <= 100 ? z : 100; } catch { return 100; }
+  });
+  const setZoomTo = (z) => {
+    const next = Math.max(40, Math.min(100, z));
+    setZoom(next);
+    try { localStorage.setItem("assets-zoom", String(next)); } catch {}
+  };
   const blankId = useRef(newId()); // the id the blank line will keep once typed in
   // Today's rates against the euro: rates.AED is how many dirhams one euro buys.
   const [rates, setRates] = useState(null);
@@ -753,7 +764,17 @@ export default function Assets() {
 
   return (
     // Narrow windows scroll the table sideways rather than squashing the columns.
-    <div className="w-full overflow-x-auto">
+    <div className="w-full">
+      <div className="mb-1 flex items-center justify-end gap-1 text-[11px] text-neutral-900">
+        <button onClick={() => setZoomTo(zoom - 10)} disabled={zoom <= 40} title="Smaller" className="flex h-[18px] w-[18px] items-center justify-center border border-black bg-white hover:bg-neutral-100 disabled:opacity-30">
+          <Minus size={11} strokeWidth={2.75} />
+        </button>
+        <span className="w-9 text-center tabular-nums">{zoom}%</span>
+        <button onClick={() => setZoomTo(zoom + 10)} disabled={zoom >= 100} title="Larger" className="flex h-[18px] w-[18px] items-center justify-center border border-black bg-white hover:bg-neutral-100 disabled:opacity-30">
+          <Plus size={11} strokeWidth={2.75} />
+        </button>
+      </div>
+    <div className="w-full overflow-x-auto" style={{ zoom: zoom / 100 }}>
       <div className="w-full min-w-[760px] overflow-hidden border border-black bg-white shadow-sm">
         {SECTIONS.map((name, i) => (
           <div key={name}>
@@ -783,6 +804,7 @@ export default function Assets() {
         ))}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
       </div>
+    </div>
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
 
       {/* The warning: a heavy red frame, the question in bold, a solid button to go ahead. */}
