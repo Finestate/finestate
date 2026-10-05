@@ -670,7 +670,7 @@ function BibleChat({ chat, onChange }) {
       {chat.length > 0 && (
         <button
           onClick={() => onChange([])}
-          className="absolute right-2 top-1 text-[11px] text-neutral-500 underline underline-offset-2 hover:text-[#C1440E]"
+          className="absolute right-2 top-1 text-[11px] text-[#C1440E] hover:opacity-70"
         >
           Clear
         </button>
