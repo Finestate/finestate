@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown, List, GripVertical, ChevronsLeft, ChevronsRight, Download } from "lucide-react";
+import { Plus, Trash2, ChevronDown, List, GripVertical, ChevronsLeft, ChevronsRight, Download, Pencil } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { backupStamp, downloadText, htmlToLines } from "./backup.js";
 
@@ -47,6 +47,7 @@ export default function HW() {
   const [nutrition, setNutrition] = useState({ meals: {} });
   const [listConfirm, setListConfirm] = useState(null); // { key, id } waiting on Delete or Cancel
   const [editingLink, setEditingLink] = useState(null); // the line whose web address is open for editing
+  const [linkDraft, setLinkDraft] = useState(""); // what is being typed there, saved on Enter
   // Moving lines by drag and drop, within their own section. A red line marks where the
   // dragged line will land.
   const [drag, setDrag] = useState(null); // { section, from }
@@ -273,15 +274,11 @@ export default function HW() {
           {marker(key, idx)}
           <div className="flex items-stretch border-t border-black">
             {/* With a link: the name, then a short (link) right after it. With an address
-                it opens the shop; a click in the space after it changes the address. Without
-                one, (link) is grey and a click on it lets you type one. */}
-            <span
-              onClick={() => { if (withLink && isWebAddress(link)) setEditingLink(m.id); }}
-              className={`flex w-1/4 min-w-[160px] shrink-0 items-start gap-1 px-2 py-[3px] ${withLink && isWebAddress(link) && editingLink !== m.id ? "cursor-text" : ""}`}
-            >
+                it opens the shop, and the pencil after it changes the address. Without one, a grey
+                (add link) opens the same short box. Enter or a click away saves; Esc cancels. */}
+            <span className="flex w-1/4 min-w-[160px] shrink-0 items-start gap-1 px-2 py-[3px]">
               <input
                 value={m.name || ""}
-                onClick={(e) => e.stopPropagation()}
                 onChange={(e) => editItem(key, m.id, { name: e.target.value })}
                 style={withLink ? { fieldSizing: "content" } : undefined}
                 className={`${withLink ? "min-w-[2ch] max-w-full" : "w-full"} bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none`}
@@ -289,21 +286,30 @@ export default function HW() {
               {withLink && m.id !== "blank" && (editingLink === m.id ? (
                 <input
                   autoFocus
-                  value={link}
+                  value={linkDraft}
                   placeholder="paste the link"
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={(e) => setLink(e.target.value)}
-                  onBlur={() => setEditingLink(null)}
-                  onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-                  className="w-[15ch] min-w-0 shrink bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
+                  onFocus={(e) => e.currentTarget.select()}
+                  onChange={(e) => setLinkDraft(e.target.value)}
+                  onBlur={(e) => { setLink(e.currentTarget.value.trim()); setEditingLink(null); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") e.currentTarget.blur();
+                    // Esc puts the old address back before leaving, so nothing changes.
+                    if (e.key === "Escape") { e.currentTarget.value = link; e.currentTarget.blur(); }
+                  }}
+                  className="w-[15ch] min-w-0 shrink border border-neutral-400 bg-white px-1 py-0 text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#0f766e]"
                 />
               ) : isWebAddress(link) ? (
-                <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} onClick={(e) => e.stopPropagation()} className="shrink-0 text-[11px] leading-[15px] text-[#0f766e] hover:text-[#0c5e57]">
-                  (link)
-                </a>
+                <>
+                  <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} className="shrink-0 text-[11px] leading-[15px] text-[#0f766e] hover:text-[#0c5e57]">
+                    (link)
+                  </a>
+                  <button onClick={() => { setLinkDraft(link); setEditingLink(m.id); }} title="Change the link" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
+                    <Pencil size={10} />
+                  </button>
+                </>
               ) : (
-                <button onClick={(e) => { e.stopPropagation(); setEditingLink(m.id); }} title="Add a link" className="shrink-0 text-[11px] leading-[15px] text-neutral-400 hover:text-neutral-700">
-                  (link)
+                <button onClick={() => { setLinkDraft(""); setEditingLink(m.id); }} title="Add a link" className="shrink-0 text-[11px] leading-[15px] text-neutral-400 hover:text-neutral-700">
+                  (add link)
                 </button>
               ))}
             </span>
