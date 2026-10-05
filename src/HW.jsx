@@ -670,7 +670,8 @@ function BibleChat({ chat, onChange }) {
       {chat.length > 0 && (
         <button
           onClick={() => onChange([])}
-          className="absolute right-2 top-1 text-[11px] text-[#C1440E] hover:opacity-70"
+          // A tiny frame tucked into the box's top right corner, sharing its border.
+          className="absolute -right-px -top-px border border-black bg-white px-1.5 text-[10px] leading-[14px] text-neutral-900 hover:text-[#C1440E]"
         >
           Clear
         </button>
