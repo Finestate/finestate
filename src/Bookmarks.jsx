@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, Download, GripVertical, Pencil, Trash2 } from "lucide-react";
+import { Bookmark, Download, GripVertical, Pencil, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { backupStamp, downloadText } from "./backup.js";
 
@@ -104,11 +104,15 @@ export default function Bookmarks() {
     let at = to.bi;
     if (from.si === to.si && from.gi === to.gi && from.bi < to.bi) at -= 1;
     sections[to.si].groups[to.gi].splice(at, 0, link);
-    save({ ...data, sections: sections.map((sec) => ({ ...sec, groups: sec.groups.filter((g) => g.length) })) });
+    // A box emptied by the move stays, ready for other links; its X removes it.
+    save({ ...data, sections });
   };
+  // A new, empty red box at the foot of a column, to drag links into.
+  const addBox = (si) => save({ ...data, sections: data.sections.map((s, i) => (i === si ? { ...s, groups: [...s.groups, []] } : s)) });
+  const removeBox = (si, gi) => save({ ...data, sections: data.sections.map((s, i) => (i === si ? { ...s, groups: s.groups.filter((_, j) => j !== gi) } : s)) });
   const removeLink = (si, gi, bi) => {
     const sections = data.sections.map((s, i) =>
-      i !== si ? s : { ...s, groups: s.groups.map((g, j) => (j !== gi ? g : g.filter((_, k) => k !== bi))).filter((g) => g.length) }
+      i !== si ? s : { ...s, groups: s.groups.map((g, j) => (j !== gi ? g : g.filter((_, k) => k !== bi))) }
     );
     save({ ...data, sections });
   };
@@ -292,8 +296,26 @@ export default function Bookmarks() {
                   );
                 })}
                 {drag && dropAt && dropAt.si === si && dropAt.gi === gi && dropAt.bi === g.length && <div className="h-[2px] w-full bg-[#C1440E]" />}
+                {/* An empty box says what it is for, and can be taken away. */}
+                {g.length === 0 && (
+                  <div
+                    onDragOver={(e) => { if (drag) { e.preventDefault(); setDropAt({ si, gi, bi: 0 }); } }}
+                    className="flex h-[19px] items-center justify-between text-[11px] text-neutral-400"
+                  >
+                    Drag links here
+                    <button onClick={() => removeBox(si, gi)} title="Remove this empty box" className="text-neutral-400 hover:text-[#C1440E]">
+                      <X size={11} />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
+            <button
+              onClick={() => addBox(si)}
+              className="mx-2 mb-2 flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+            >
+              <Plus size={11} strokeWidth={3} />New box
+            </button>
           </div>
         ))}
         </div>
