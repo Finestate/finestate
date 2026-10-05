@@ -48,7 +48,7 @@ export const NAV = [
       // The custom calculators from the planning sheet.
       { id: "investing/calculations", name: "Calculations" },
       // How much is planned to go into investments each month, quarter or year.
-      { id: "investing/contributions", name: "Contribution planning" },
+      { id: "investing/contributions", name: "Contributions" },
       { id: "investing/funnel", name: "Funnel" },
       { id: "assets/investing", name: "Knowledge" },
     ],
