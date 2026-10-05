@@ -659,9 +659,6 @@ export default function Assets() {
       {/* What the taxable parts would cost in tax, at their rates. */}
       <div className={caRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] text-[#C1440E]">Estimated tax</span>
-        <span className="w-20 shrink-0 border-l border-black" />
-        <span className="w-20 shrink-0 border-l border-black" />
-        <span className="w-28 shrink-0 border-l border-black" />
         <span className={`${caFig} text-[#C1440E]`}>{grossCad + cadOf(caHouse) ? `CAD ${taxCad ? "-" : ""}${money(taxCad)}` : ""}</span>
         <span className={`${caFig} text-[#C1440E]`}>{grossEur + eurOf(caHouse) ? `EUR ${taxEur ? "-" : ""}${money(taxEur)}` : ""}</span>
       </div>
@@ -716,9 +713,6 @@ export default function Assets() {
       {addLine("germany", {})}
       <div className={caRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] text-[#C1440E]">Estimated tax</span>
-        <span className="w-20 shrink-0 border-l border-black" />
-        <span className="w-20 shrink-0 border-l border-black" />
-        <span className="w-28 shrink-0 border-l border-black" />
         <span className={`${caFig} text-[#C1440E]`}>{deGross ? `EUR ${deTax ? "-" : ""}${money(deTax)}` : ""}</span>
       </div>
       <div className={caRow}>
