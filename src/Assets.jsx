@@ -69,6 +69,22 @@ function Amount({ value, onChange, cur, auto }) {
   );
 }
 
+// A typed percentage: plain while you type, then shown with its % sign.
+function Percent({ value, onChange }) {
+  const [typing, setTyping] = useState(false);
+  const n = num(value);
+  return (
+    <input
+      value={typing ? value ?? "" : n == null ? "" : `${n}%`}
+      onFocus={() => setTyping(true)}
+      onBlur={() => setTyping(false)}
+      onChange={(e) => onChange(e.target.value.replace(/%/g, ""))}
+      inputMode="decimal"
+      className="w-full bg-transparent text-right text-[11px] tabular-nums text-neutral-900 outline-none"
+    />
+  );
+}
+
 export default function Assets() {
   const [doc, setDoc] = useState(null);
   const [err, setErr] = useState("");
@@ -519,12 +535,7 @@ export default function Assets() {
               className="min-w-0 flex-1 bg-transparent pl-6 pr-2 text-[11px] text-neutral-900 outline-none"
             />
             <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
-              <input
-                value={x.tax ?? ""}
-                onChange={(e) => editPart(x.id, { tax: e.target.value })}
-                inputMode="decimal"
-                className="w-full bg-transparent text-right text-[11px] tabular-nums text-neutral-900 outline-none"
-              />
+              <Percent value={x.tax} onChange={(v) => editPart(x.id, { tax: v })} />
             </span>
             <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
             {["cad", "eur"].map((cur) => (
@@ -541,12 +552,7 @@ export default function Assets() {
           className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
         />
         <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
-          <input
-            value={caHouse.tax ?? ""}
-            onChange={(e) => editHouse({ tax: e.target.value })}
-            inputMode="decimal"
-            className="w-full bg-transparent text-right text-[11px] tabular-nums text-neutral-900 outline-none"
-          />
+          <Percent value={caHouse.tax} onChange={(v) => editHouse({ tax: v })} />
         </span>
         <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(caHouse.updated)}</span>
         {["cad", "eur"].map((cur) => (
