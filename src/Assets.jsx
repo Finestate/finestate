@@ -758,7 +758,7 @@ export default function Assets() {
 
   // Companies: each one's name, how much of it is owned, its value and any dividend owed.
   const companiesList = doc.companies || START_COMPANIES;
-  const editCo = (id, fields) => save({ ...doc, companies: companiesList.map((x) => (x.id === id ? { ...x, ...fields } : x)) });
+  const editCo = (id, fields) => save({ ...doc, companies: companiesList.map((x) => (x.id === id ? { ...x, ...fields, updated: new Date().toISOString() } : x)) });
   // Value and dividend owed are each typed in AED or EUR; the other follows at today's
   // rate, in blue. A value typed before the AED column existed counts as EUR.
   const pairOf = (x, k) => x[k] || (k === "val" && x.value ? { eur: x.value, from: "eur" } : k === "div" && x.dividend ? { eur: x.dividend, from: "eur" } : {});
@@ -776,6 +776,7 @@ export default function Assets() {
       <div className={caRow} style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>Name</span>
         <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Ownership</span>
+        <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
         <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value AED</span>
         <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value EUR</span>
         <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>My value EUR</span>
@@ -795,6 +796,7 @@ export default function Assets() {
           <span className="flex w-28 shrink-0 items-center border-l border-black px-2">
             <Percent value={x.own} onChange={(v) => editCo(x.id, { own: v })} />
           </span>
+          <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
           {pairCell(x, "val", "aed")}
           {pairCell(x, "val", "eur")}
           {/* Your part: the value times your ownership, worked out here, so in blue. */}
