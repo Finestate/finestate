@@ -593,6 +593,65 @@ export default function Assets() {
     </>
   );
 
+  // Germany: three lines, each in EUR, with the same Share % and Tax % as Canada and
+  // the same totals under them.
+  const DE_START = [
+    { id: "invest", name: "Investment account" },
+    { id: "gold", name: "Gold" },
+    { id: "savings", name: "Savings account" },
+  ];
+  const de = doc.germany || DE_START;
+  const editDe = (id, fields) => save({ ...doc, germany: de.map((x) => (x.id === id ? { ...x, ...fields, updated: new Date().toISOString() } : x)) });
+  const deEur = (x) => num(x.eur) ?? 0;
+  const deGross = de.reduce((sum, x) => sum + deEur(x), 0);
+  const deTax = de.reduce((sum, x) => sum + (deEur(x) * (num(x.tax) ?? 0)) / 100, 0);
+  const deMine = de.reduce((sum, x) => sum + deEur(x) * ((num(x.share) ?? 100) / 100) * (1 - (num(x.tax) ?? 0) / 100), 0);
+  const germany = (
+    <>
+      <div className={caRow} style={{ backgroundColor: HEADER_BG }}>
+        <span className={`flex flex-1 items-center px-2 ${head}`}>Account</span>
+        <span className={`flex w-20 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Share %</span>
+        <span className={`flex w-20 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Tax %</span>
+        <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Updated</span>
+        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
+      </div>
+      {de.map((x) => (
+        <div key={x.id} className={caRow}>
+          <input
+            value={x.name}
+            onChange={(e) => editDe(x.id, { name: e.target.value })}
+            className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
+          />
+          <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
+            <Percent value={x.share} onChange={(v) => editDe(x.id, { share: v })} />
+          </span>
+          <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
+            <Percent value={x.tax} onChange={(v) => editDe(x.id, { tax: v })} />
+          </span>
+          <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
+          <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
+            <Amount cur="EUR" value={x.eur} onChange={(v) => editDe(x.id, { eur: v })} />
+          </span>
+        </div>
+      ))}
+      <div className={caRow}>
+        <span className="flex flex-1 items-center px-2 text-[11px] text-[#C1440E]">Estimated tax</span>
+        <span className="w-20 shrink-0 border-l border-black" />
+        <span className="w-20 shrink-0 border-l border-black" />
+        <span className="w-28 shrink-0 border-l border-black" />
+        <span className={`${caFig} text-[#C1440E]`}>{deTax ? `EUR -${money(deTax)}` : ""}</span>
+      </div>
+      <div className={caRow}>
+        <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total after tax</span>
+        <span className={`${caFig} font-bold text-neutral-900`}>{deGross ? `EUR ${money(deGross - deTax)}` : ""}</span>
+      </div>
+      <div className={caRow}>
+        <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Share after tax</span>
+        <span className={`${caFig} font-bold text-neutral-900`}>{deMine ? `EUR ${money(deMine)}` : ""}</span>
+      </div>
+    </>
+  );
+
   const cash = (
     <>
       {cashGroup("cash", "Company accounts", false)}
@@ -623,6 +682,7 @@ export default function Assets() {
                 <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
                   <span className={head}>Germany</span>
                 </div>
+                {germany}
               </>
             )}
             {name === "Stocks" && cashGroup("stocks", "", false, "Account", [["ticker", "Ticker", "w-20"], ["shares", "Shares", "w-20"], ["price", "Price", "w-28"]], ["chf", "usd", "eur"], "w-32")}
