@@ -3,10 +3,10 @@
 
 // --- formatting helpers ---
 const m0 = (n) =>
-  Number.isFinite(n) ? "USD " + Math.round(n).toLocaleString("en-US") : "–";
+  Number.isFinite(n) ? Math.round(n).toLocaleString("en-US") : "–";
 const m2 = (n) =>
   Number.isFinite(n)
-    ? "USD " +
+    ? 
       n.toLocaleString("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
