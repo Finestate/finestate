@@ -362,6 +362,7 @@ export default function App() {
             {route === "assets/investing" && <KnowledgeFeeds />}
             {/* Funnel: empty until we build it together. */}
             {route === "investing/funnel" && <div />}
+            {route === "investing/contributions" && <div />}
             {route === "investing/calculations" && <Calculations />}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}
