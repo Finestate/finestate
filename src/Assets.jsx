@@ -766,7 +766,7 @@ export default function Assets() {
   const pairCell = (x, k, cur) => {
     const pr = pairOf(x, k);
     return (
-      <span key={k + cur} className="flex w-32 shrink-0 items-center border-l border-black px-2">
+      <span key={k + cur} className={`flex ${k === "div" ? "w-36" : "w-32"} shrink-0 items-center border-l border-black px-2`}>
         <Amount cur={cur.toUpperCase()} auto={!!pr.from && pr.from !== cur} value={shown(pr, cur)} onChange={(v) => setPair(x, k, cur, v)} />
       </span>
     );
@@ -779,8 +779,8 @@ export default function Assets() {
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value AED</span>
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value EUR</span>
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>My value EUR</span>
-        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend AED</span>
-        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend EUR</span>
+        <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend owed AED</span>
+        <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend owed EUR</span>
       </div>
       {companiesList.map((x) => {
         const valEur = num(shown(pairOf(x, "val"), "eur"));
