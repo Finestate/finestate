@@ -18,7 +18,12 @@ const select =
   "block h-[15px] cursor-pointer appearance-none border-0 bg-transparent p-0 text-[11px] leading-[15px] text-neutral-900 outline-none disabled:cursor-default disabled:opacity-40";
 
 // A plain dropdown with a small chevron right after its word, so it still reads as one.
+// Your own row cannot be changed, so it shows as plain words, not a faded dropdown.
 function Pick({ children, ...props }) {
+  if (props.disabled) {
+    const label = [].concat(children).find((o) => o?.props?.value === props.value)?.props?.children;
+    return <span title={props.title} className="min-w-0 truncate text-[11px] leading-[15px] text-neutral-900">{label}</span>;
+  }
   return (
     <span className="flex h-[15px] min-w-0 items-center gap-1">
       <select {...props} style={{ fieldSizing: "content" }} className={select}>{children}</select>
