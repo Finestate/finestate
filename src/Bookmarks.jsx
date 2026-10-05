@@ -206,7 +206,8 @@ export default function Bookmarks() {
             {s.groups.map((g, gi) => (
               <div
                 key={gi}
-                className={`flex flex-col gap-1 px-2 py-1.5 ${gi > 0 ? "border-t border-neutral-300" : ""}`}
+                // Each group of links sits in its own thin red frame, with a little space around it.
+                className="m-2 flex flex-col gap-1 border border-[#C1440E] p-1.5"
                 onDragOver={(e) => { if (drag) { e.preventDefault(); if (e.target === e.currentTarget) setDropAt({ si, gi, bi: g.length }); } }}
                 onDrop={(e) => { e.preventDefault(); moveLink(); }}
               >
