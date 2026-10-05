@@ -266,35 +266,41 @@ export default function HW() {
           <div key={m.id} {...dropProps(key, idx, (from, to) => saveList(key, moved(lists[key], from, to)))}>
           {marker(key, idx)}
           <div className="flex items-stretch border-t border-black">
-            <span className="flex w-1/4 min-w-[160px] shrink-0 items-start px-2 py-[3px]">
+            {/* With a link: the name, then a short (link) right after it. With an address
+                it opens the shop; a click in the space after it changes the address. Without
+                one, (link) is grey and a click on it lets you type one. */}
+            <span
+              onClick={() => { if (withLink && isWebAddress(link)) setEditingLink(m.id); }}
+              className={`flex ${withLink ? "min-w-0 flex-1 basis-0" : "w-1/4 min-w-[160px] shrink-0"} items-start gap-1 px-2 py-[3px] ${withLink && isWebAddress(link) && editingLink !== m.id ? "cursor-text" : ""}`}
+            >
               <input
                 value={m.name || ""}
+                onClick={(e) => e.stopPropagation()}
                 onChange={(e) => editItem(key, m.id, { name: e.target.value })}
-                className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
+                style={withLink ? { fieldSizing: "content" } : undefined}
+                className={`${withLink ? "min-w-[2ch] max-w-full" : "w-full"} bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none`}
               />
+              {withLink && m.id !== "blank" && (editingLink === m.id ? (
+                <input
+                  autoFocus
+                  value={link}
+                  placeholder="paste the link"
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => setLink(e.target.value)}
+                  onBlur={() => setEditingLink(null)}
+                  onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                  className="min-w-0 flex-1 bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
+                />
+              ) : isWebAddress(link) ? (
+                <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} onClick={(e) => e.stopPropagation()} className="shrink-0 text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
+                  (link)
+                </a>
+              ) : (
+                <button onClick={(e) => { e.stopPropagation(); setEditingLink(m.id); }} title="Add a link" className="shrink-0 text-[11px] leading-[15px] text-neutral-400 underline underline-offset-2 hover:text-neutral-700">
+                  (link)
+                </button>
+              ))}
             </span>
-            {/* The words open the shop; a click in the space beside them opens the address. */}
-            {withLink && (
-              <span
-                onClick={() => { if (isWebAddress(link)) setEditingLink(m.id); }}
-                className={`flex min-w-0 flex-1 basis-0 items-start justify-center border-l border-black px-2 py-[3px] ${isWebAddress(link) && editingLink !== m.id ? "cursor-text" : ""}`}
-              >
-                {isWebAddress(link) && editingLink !== m.id ? (
-                  <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} onClick={(e) => e.stopPropagation()} className="text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
-                    Link to buy
-                  </a>
-                ) : (
-                  <input
-                    autoFocus={editingLink === m.id}
-                    value={link}
-                    onChange={(e) => setLink(e.target.value)}
-                    onBlur={() => setEditingLink(null)}
-                    onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-                    className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
-                  />
-                )}
-              </span>
-            )}
             {twoCols && (
               <span className="flex min-w-0 flex-1 basis-0 items-start border-l border-black px-2 py-[3px]">
                 <GrowText value={m.col2 || ""} onChange={(t) => editItem(key, m.id, { col2: t })} rows={1} />
@@ -460,7 +466,7 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Supplements</span>
         </div>
-        {notesLoaded && listBlock("supplements", true)}
+        {notesLoaded && listBlock("supplements", true, true)}
         {/* Nutrition: no grey band before it. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Nutrition</span>
