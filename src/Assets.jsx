@@ -134,7 +134,26 @@ export default function Assets() {
         const d = data?.data || {};
         // A line left completely empty is dropped.
         const used = (r) => r.subs || r.name?.trim() || r.aed || r.eur;
-        setDoc({ ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: (d.personal || []).filter(used), stocks: d.stocks || START_STOCKS, germany: d.germany || DE_START, companies: d.companies || START_COMPANIES });
+        const next = { ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: (d.personal || []).filter(used), stocks: d.stocks || START_STOCKS, germany: d.germany || DE_START, companies: d.companies || START_COMPANIES };
+        // A line with a figure in it (0 counts) but no date yet, typed before its Updated
+        // column existed, takes today's date once, and is saved with it.
+        const now = new Date().toISOString();
+        let stamped = false;
+        const FIGS = ["aed", "eur", "chf", "usd", "cad", "value", "own", "tax", "share", "shares", "val", "div", "dividend"];
+        const has = (v) => v != null && v !== "" && !(typeof v === "object" && !Object.keys(v).length);
+        const stamp = (x) => {
+          if (!x || typeof x !== "object") return x;
+          const subs = Array.isArray(x.subs) ? x.subs.map(stamp) : x.subs;
+          const out = subs !== x.subs ? { ...x, subs } : x;
+          if (out.updated || !FIGS.some((k) => has(out[k]))) return out;
+          stamped = true;
+          return { ...out, updated: now };
+        };
+        for (const k of ["cash", "personal", "stocks", "germany", "companies", "moreProps", "caMore"]) if (Array.isArray(next[k])) next[k] = next[k].map(stamp);
+        for (const k of ["house", "flat", "caHouse"]) if (next[k]) next[k] = stamp(next[k]);
+        if (next.canaccord) next.canaccord = stamp(next.canaccord);
+        setDoc(next);
+        if (stamped) supabase.from("admin_docs").upsert({ id: DOC_ID, data: next, updated_at: now }).then(() => {});
       });
   }, []);
 
