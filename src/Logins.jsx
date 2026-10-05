@@ -15,14 +15,14 @@ const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] t
 const grid = "grid grid-cols-5 items-center gap-2 px-2";
 const col = "min-w-0";
 const select =
-  "w-full cursor-pointer appearance-none bg-transparent p-0 pr-4 text-[11px] leading-[15px] text-neutral-900 outline-none disabled:cursor-default disabled:opacity-40";
+  "block h-[15px] cursor-pointer appearance-none border-0 bg-transparent p-0 text-[11px] leading-[15px] text-neutral-900 outline-none disabled:cursor-default disabled:opacity-40";
 
-// A plain dropdown with a small chevron at its right, so it still reads as one.
+// A plain dropdown with a small chevron right after its word, so it still reads as one.
 function Pick({ children, ...props }) {
   return (
-    <span className="relative min-w-0">
-      <select {...props} className={select}>{children}</select>
-      <ChevronDown size={11} className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-neutral-900" />
+    <span className="flex h-[15px] min-w-0 items-center gap-1">
+      <select {...props} style={{ fieldSizing: "content" }} className={select}>{children}</select>
+      <ChevronDown size={11} className="pointer-events-none shrink-0 text-neutral-900" />
     </span>
   );
 }
@@ -122,7 +122,7 @@ export default function Logins({ myId }) {
                   const b = e.currentTarget.getBoundingClientRect();
                   setOpen({ id: u.id, left: b.left, top: b.bottom + 2, width: b.width });
                 }}
-                className="flex min-w-0 cursor-pointer items-center justify-between bg-transparent p-0 text-left text-[11px] leading-[15px] text-neutral-900 outline-none"
+                className="flex h-[15px] min-w-0 cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-left text-[11px] leading-[15px] text-neutral-900 outline-none"
               >
                 <span>{count === PAGES.length ? "All pages" : `${count} of ${PAGES.length}`}</span>
                 <ChevronDown size={11} />
