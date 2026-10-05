@@ -737,6 +737,13 @@ export default function Assets() {
   const totalCash = cashOwn + cashEstates;
   const totalProperty = reTotal + mine(caHouse);
   const totalGold = de.filter(isGold).reduce((sum, x) => sum + deMineOf(x), 0);
+  // Companies: your share of each valuation (value times ownership), and the dividends owed.
+  const coPair = (x, k, old) => x[k] || (x[old] ? { eur: x[old], from: "eur" } : {});
+  const coList = doc.companies || START_COMPANIES;
+  const totalValuations = coList.reduce((sum, x) => sum + ((num(shown(coPair(x, "val", "value"), "eur")) ?? 0) * (num(x.own) ?? 0)) / 100, 0);
+  const totalDividends = coList.reduce((sum, x) => sum + (num(shown(coPair(x, "div", "dividend"), "eur")) ?? 0), 0);
+  const totalCompanies = totalValuations + totalDividends;
+  const coOpen = !!doc.ui?.open?.coTotal;
   const totLine = (label, value, bold) => (
     <div className={caRow}>
       <span className={`flex flex-1 items-center px-2 text-[11px] text-neutral-900 ${bold ? "font-bold uppercase tracking-[0.06em]" : ""}`}>{label}</span>
@@ -752,7 +759,27 @@ export default function Assets() {
       {totLine("Cash – all accounts and trading accounts", totalCash)}
       {totLine("Property – all properties", totalProperty)}
       {totLine("Gold", totalGold)}
-      {totLine("Total", totalCash + totalProperty + totalGold, true)}
+      {/* Companies opens onto its two parts; its own line is their total. */}
+      <div onClick={() => toggleOpen("coTotal")} className={`${caRow} cursor-pointer select-none`}>
+        <span className="flex flex-1 items-center gap-1 px-2 text-[11px] text-neutral-900">
+          Companies
+          <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${coOpen ? "rotate-180" : ""}`} />
+        </span>
+        <span className={`${caFig} text-neutral-900`}>EUR {money(totalCompanies)}</span>
+      </div>
+      {coOpen && (
+        <>
+          <div className={`${caRow} pt-px`} style={{ backgroundColor: "#FBEFEC" }}>
+            <span className="flex flex-1 items-center pl-6 pr-2 text-[11px] text-neutral-900">Valuations (your share)</span>
+            <span className={`${caFig} text-neutral-900`}>EUR {money(totalValuations)}</span>
+          </div>
+          <div className={`${caRow} pt-px`} style={{ backgroundColor: "#FBEFEC" }}>
+            <span className="flex flex-1 items-center pl-6 pr-2 text-[11px] text-neutral-900">Dividends owed</span>
+            <span className={`${caFig} text-neutral-900`}>EUR {money(totalDividends)}</span>
+          </div>
+        </>
+      )}
+      {totLine("Total", totalCash + totalProperty + totalGold + totalCompanies, true)}
     </>
   );
 
