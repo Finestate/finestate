@@ -124,6 +124,27 @@ export const CALC_GROUPS = [
         },
       },
       {
+        id: "fv-monthly",
+        title: "Future Value – monthly additions & monthly compounding",
+        fields: [
+          { key: "PresentValue", label: "Present Value", type: "money" },
+          { key: "Payment", label: "Payment (per month)", type: "money" },
+          { key: "Years", label: "Years", type: "num" },
+          { key: "Return", label: "Return", type: "pct" },
+        ],
+        defaults: { PresentValue: 150000, Payment: 0, Years: 30, Return: 13 },
+        compute: (v) => {
+          const r = v.Return / 100 / 12;
+          const n = v.Years * 12;
+          const ti = v.PresentValue + v.Payment * n;
+          const fv = excelFV(r, n, v.Payment, v.PresentValue);
+          return [
+            { label: "Total Investment", value: m0(ti) },
+            { label: "Future Value", value: m0(fv) },
+          ];
+        },
+      },
+      {
         id: "cagr",
         title: "CAGR (Compound Annual Growth Rate)",
         fields: [

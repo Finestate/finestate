@@ -18,6 +18,8 @@ const ABOUT = {
     "Your starting amount grows by the return once a year, on the last day of the year. Any yearly payment goes in right after that growth, so it starts growing the year after. Total investment is everything you put in, without growth.",
   "fv-quarterly":
     "The yearly return is split into four and added at each quarter end (31 Mar, 30 Jun, 30 Sep, 31 Dec). Any quarterly payment goes in right after that growth. Growing four times a year earns a little more than once: 13% a year this way is about 13.65%.",
+  "fv-monthly":
+    "The yearly return is split into twelve and added at the end of each month. Any monthly payment goes in right after that growth. Growing every month earns a little more again: 13% a year this way is about 13.80%.",
   cagr:
     "The steady yearly growth rate that turns the beginning value into the ending value over the number of years, as if it had grown by the same percentage every year.",
   "cagr-period":
