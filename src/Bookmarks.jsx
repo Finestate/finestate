@@ -220,9 +220,9 @@ export default function Bookmarks() {
 
         {/* One column per Chrome folder, side by side, links listed down in Chrome's order. */}
         {!empty && (
-        <div className="grid items-start" style={{ gridTemplateColumns: `repeat(${data.sections.length}, minmax(0, 1fr))` }}>
+        <div className="grid items-stretch" style={{ gridTemplateColumns: `repeat(${data.sections.length}, minmax(0, 1fr))` }}>
         {data.sections.map((s, si) => (
-          <div key={si} className={si > 0 ? "border-l border-black" : ""}>
+          <div key={si} className={`flex flex-col ${si > 0 ? "border-l border-black" : ""}`}>
             {s.groups.map((g, gi) => (
               <div key={gi}>
               {dragBox && dropBox && dropBox.si === si && dropBox.gi === gi && <div className="mx-2 mt-2 h-[2px] bg-[#C1440E]" />}
@@ -351,7 +351,7 @@ export default function Bookmarks() {
               onDragOver={(e) => { if (dragBox) { e.preventDefault(); setDropBox({ si, gi: s.groups.length }); } }}
               onDrop={(e) => { e.preventDefault(); if (dragBox) moveBox(); }}
               onClick={() => addBox(si)}
-              className="mx-2 mb-2 flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+              className="mx-2 mb-2 mt-auto flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
             >
               <Plus size={11} strokeWidth={3} />New box
             </button>
