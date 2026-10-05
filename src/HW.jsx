@@ -295,14 +295,14 @@ export default function HW() {
                   onChange={(e) => setLink(e.target.value)}
                   onBlur={() => setEditingLink(null)}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-                  className="min-w-0 flex-1 bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
+                  className="w-[15ch] min-w-0 shrink bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
                 />
               ) : isWebAddress(link) ? (
-                <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} onClick={(e) => e.stopPropagation()} className="shrink-0 text-[11px] leading-[15px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
+                <a href={link.trim()} target="_blank" rel="noreferrer" title={link.trim()} onClick={(e) => e.stopPropagation()} className="shrink-0 text-[11px] leading-[15px] text-[#0f766e] hover:text-[#0c5e57]">
                   (link)
                 </a>
               ) : (
-                <button onClick={(e) => { e.stopPropagation(); setEditingLink(m.id); }} title="Add a link" className="shrink-0 text-[11px] leading-[15px] text-neutral-400 underline underline-offset-2 hover:text-neutral-700">
+                <button onClick={(e) => { e.stopPropagation(); setEditingLink(m.id); }} title="Add a link" className="shrink-0 text-[11px] leading-[15px] text-neutral-400 hover:text-neutral-700">
                   (link)
                 </button>
               ))}
