@@ -10,9 +10,22 @@ const BAR_BG = "#F2C46D"; // same ramp as the Costs table: darkest gold on the t
 const cell = "px-2 py-0 text-[11px] leading-[15px] text-neutral-900";
 const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
 // Five columns of equal width, so the table reads as a grid.
-const col = "min-w-0 flex-1 basis-0";
+// Five equal columns on one grid, headings and rows alike, so every value starts exactly
+// under its heading. The dropdowns carry no frame, so their words line up too.
+const grid = "grid grid-cols-5 items-center gap-2 px-2";
+const col = "min-w-0";
 const select =
-  "rounded border border-neutral-300 bg-white px-1.5 py-0 text-[11px] leading-[15px] text-neutral-900 outline-none focus:border-neutral-500 disabled:opacity-40";
+  "w-full cursor-pointer appearance-none bg-transparent p-0 pr-4 text-[11px] leading-[15px] text-neutral-900 outline-none disabled:cursor-default disabled:opacity-40";
+
+// A plain dropdown with a small chevron at its right, so it still reads as one.
+function Pick({ children, ...props }) {
+  return (
+    <span className="relative min-w-0">
+      <select {...props} className={select}>{children}</select>
+      <ChevronDown size={11} className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-neutral-900" />
+    </span>
+  );
+}
 
 export default function Logins({ myId }) {
   const [users, setUsers] = useState([]);
@@ -64,7 +77,7 @@ export default function Logins({ myId }) {
     // Narrow windows scroll the table sideways rather than squashing the columns.
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[640px] border border-black shadow-sm overflow-hidden bg-white">
-        <div className="flex h-[18px] items-center gap-2 border-b border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className={`${grid} h-[18px] border-b border-black`} style={{ backgroundColor: BAR_BG }}>
           <span className={`${col} ${head}`}>Name</span>
           <span className={`${col} ${head}`}>Email</span>
           <span className={`${col} ${head}`}>Role</span>
@@ -77,31 +90,29 @@ export default function Logins({ myId }) {
         {users.map((u, i) => {
           const count = PAGES.filter((p) => hasPage(u, p.id)).length;
           return (
-            <div key={u.id} className={`flex h-[21px] items-center gap-2 px-2 ${i === 0 ? "" : "border-t border-black"}`}>
+            <div key={u.id} className={`${grid} h-[21px] ${i === 0 ? "" : "border-t border-black"}`}>
               <span className={`${col} truncate text-[11px] leading-[15px] text-neutral-900`}>{u.full_name || "–"}</span>
               <span className={`${col} truncate text-[11px] leading-[15px] text-neutral-900`}>{u.email}</span>
 
-              <select
+              <Pick
                 value={u.role}
                 disabled={u.id === myId}
                 title={u.id === myId ? "You cannot change your own role" : "Set role"}
                 onChange={(e) => patch(u.id, { role: e.target.value })}
-                className={`${col} ${select}`}
               >
                 <option value="admin">Admin</option>
                 <option value="member">Member</option>
-              </select>
+              </Pick>
 
-              <select
+              <Pick
                 value={u.status}
                 disabled={u.id === myId}
                 onChange={(e) => patch(u.id, { status: e.target.value })}
-                className={`${col} ${select}`}
               >
                 <option value="active">Active</option>
                 <option value="blocked">Blocked</option>
                 <option value="pending">Pending</option>
-              </select>
+              </Pick>
 
               {/* A small list drops from here, not the whole row. */}
               <button
@@ -111,7 +122,7 @@ export default function Logins({ myId }) {
                   const b = e.currentTarget.getBoundingClientRect();
                   setOpen({ id: u.id, left: b.left, top: b.bottom + 2, width: b.width });
                 }}
-                className={`${col} ${select} flex items-center justify-between text-left`}
+                className="flex min-w-0 cursor-pointer items-center justify-between bg-transparent p-0 text-left text-[11px] leading-[15px] text-neutral-900 outline-none"
               >
                 <span>{count === PAGES.length ? "All pages" : `${count} of ${PAGES.length}`}</span>
                 <ChevronDown size={11} />
