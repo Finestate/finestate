@@ -38,7 +38,9 @@ const ABOUT = {
     "From what you paid: the price to sell at to reach your gain target, the date your holding period ends, and where you stand today at the current price.",
 };
 
-const CALCS = CALC_GROUPS.find((g) => g.group === "Custom Calculations")?.calcs || [];
+// Set aside for now: the stock holding scenario.
+const HIDDEN = ["holding-scenario"];
+const CALCS = (CALC_GROUPS.find((g) => g.group === "Custom Calculations")?.calcs || []).filter((c) => !HIDDEN.includes(c.id));
 
 // Typed numbers keep thousands commas as you go; dates use the calendar.
 const commas = (s) => {
