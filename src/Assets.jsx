@@ -587,7 +587,7 @@ export default function Assets() {
         <span className={`${caFig} font-bold text-neutral-900`}>{grossEur + eurOf(caHouse) ? `EUR ${money(grossEur + eurOf(caHouse) - taxEur)}` : ""}</span>
       </div>
       <div className={caRow}>
-        <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">My share after tax</span>
+        <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Share after tax</span>
         <span className={`${caFig} font-bold text-neutral-900`}>{mineEur ? `EUR ${money(mineEur)}` : ""}</span>
       </div>
     </>
