@@ -759,16 +759,32 @@ export default function Assets() {
   // Companies: each one's name, how much of it is owned, its value and any dividend owed.
   const companiesList = doc.companies || START_COMPANIES;
   const editCo = (id, fields) => save({ ...doc, companies: companiesList.map((x) => (x.id === id ? { ...x, ...fields } : x)) });
+  // Value and dividend owed are each typed in AED or EUR; the other follows at today's
+  // rate, in blue. A value typed before the AED column existed counts as EUR.
+  const pairOf = (x, k) => x[k] || (k === "val" && x.value ? { eur: x.value, from: "eur" } : k === "div" && x.dividend ? { eur: x.dividend, from: "eur" } : {});
+  const setPair = (x, k, cur, v) => editCo(x.id, { [k]: { [cur]: v, from: cur } });
+  const pairCell = (x, k, cur) => {
+    const pr = pairOf(x, k);
+    return (
+      <span key={k + cur} className="flex w-32 shrink-0 items-center border-l border-black px-2">
+        <Amount cur={cur.toUpperCase()} auto={!!pr.from && pr.from !== cur} value={shown(pr, cur)} onChange={(v) => setPair(x, k, cur, v)} />
+      </span>
+    );
+  };
   const companies = (
     <>
       <div className={caRow} style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>Name</span>
         <span className={`flex w-24 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Ownership</span>
-        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value</span>
-        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>My value</span>
-        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend owed</span>
+        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value AED</span>
+        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value EUR</span>
+        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>My value EUR</span>
+        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend AED</span>
+        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend EUR</span>
       </div>
-      {companiesList.map((x) => (
+      {companiesList.map((x) => {
+        const valEur = num(shown(pairOf(x, "val"), "eur"));
+        return (
         <div key={x.id} className={caRow}>
           <input
             value={x.name}
@@ -779,18 +795,17 @@ export default function Assets() {
           <span className="flex w-24 shrink-0 items-center border-l border-black px-2">
             <Percent value={x.own} onChange={(v) => editCo(x.id, { own: v })} />
           </span>
-          <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-            <Amount cur="EUR" value={x.value} onChange={(v) => editCo(x.id, { value: v })} />
-          </span>
+          {pairCell(x, "val", "aed")}
+          {pairCell(x, "val", "eur")}
           {/* Your part: the value times your ownership, worked out here, so in blue. */}
-          <span className="flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">
-            {num(x.value) != null && num(x.own) != null ? `EUR ${money((num(x.value) * num(x.own)) / 100)}` : ""}
+          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">
+            {valEur != null && num(x.own) != null ? `EUR ${money((valEur * num(x.own)) / 100)}` : ""}
           </span>
-          <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
-            <Amount cur="EUR" value={x.dividend} onChange={(v) => editCo(x.id, { dividend: v })} />
-          </span>
+          {pairCell(x, "div", "aed")}
+          {pairCell(x, "div", "eur")}
         </div>
-      ))}
+        );
+      })}
       {addLine("companies", {})}
     </>
   );
