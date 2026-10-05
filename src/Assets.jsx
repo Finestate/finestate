@@ -15,6 +15,13 @@ const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] t
 const SECTIONS = ["Cash", "Stocks", "Real estate", "Parent estates"];
 
 // The cash accounts to start with; balances are typed in by hand for now.
+// Germany starts with three lines; more can be added.
+const DE_START = [
+  { id: "invest", name: "Investment account" },
+  { id: "gold", name: "Gold" },
+  { id: "savings", name: "Savings account" },
+];
+
 // Stocks start with one account that opens onto its holdings, added as you go.
 const START_STOCKS = [{ id: "swissquote", name: "Swissquote (Silx FZ LLE)", subs: [] }];
 
@@ -109,7 +116,7 @@ export default function Assets() {
         const d = data?.data || {};
         // A line left completely empty is dropped.
         const used = (r) => r.subs || r.name?.trim() || r.aed || r.eur;
-        setDoc({ ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: (d.personal || []).filter(used), stocks: d.stocks || START_STOCKS });
+        setDoc({ ...d, cash: withParts(d.cash || START_CASH).filter(used), personal: (d.personal || []).filter(used), stocks: d.stocks || START_STOCKS, germany: d.germany || DE_START });
       });
   }, []);
 
@@ -185,6 +192,20 @@ export default function Assets() {
   // A balance is typed in one currency; the other follows at today's rate, and the
   // row is marked with the day it was typed. Any change to the row marks it too.
   const setBalance = (list, id, cur, v, sub) => editCash(list, id, { [cur]: v, from: cur, updated: new Date().toISOString() }, sub);
+  // A bin at the end of a name cell, asking first; and the green Add line under a list.
+  const binFor = (list, id, name) => (
+    <button onClick={() => setConfirm({ list, id, name })} title="Delete" className="mr-2 shrink-0 self-center text-neutral-900 hover:text-[#C1440E]">
+      <Trash2 size={11} />
+    </button>
+  );
+  const addLine = (list, fresh) => (
+    <button
+      onClick={() => save({ ...doc, [list]: [...(doc[list] || []), { id: newId(), name: "", ...fresh }] })}
+      className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+    >
+      <Plus size={11} strokeWidth={3} />Add
+    </button>
+  );
   const toggleOpen = (id) => save({ ...doc, ui: { ...(doc.ui || {}), open: { ...(doc.ui?.open || {}), [id]: !doc.ui?.open?.[id] } } });
   // Any currency to any other, through the euro: rates.X is how much X one euro buys.
   const rateOf = (cur) => (cur === "eur" ? 1 : rates?.[cur.toUpperCase()]);
@@ -407,7 +428,10 @@ export default function Assets() {
   // The first name it had, without the avenue, takes the fuller one.
   const flat = flat0.name === "Kennedy Court apartment – Varosha, Famagusta, Cyprus" ? { ...flat0, name: FLAT_NAME } : flat0;
   const saveFlat = (fields) => save({ ...doc, flat: { ...flat, ...fields, updated: new Date().toISOString() } });
-  const reTotal = (owned ?? 0) + (num(flat.value) ?? 0);
+  // Any further properties, added as you go: a name, its date and a value in EUR.
+  const moreProps = doc.moreProps || [];
+  const editProp = (id, fields) => save({ ...doc, moreProps: moreProps.map((x) => (x.id === id ? { ...x, ...fields, updated: new Date().toISOString() } : x)) });
+  const reTotal = (owned ?? 0) + (num(flat.value) ?? 0) + moreProps.reduce((sum, x) => sum + (num(x.value) ?? 0), 0);
   const houseOpen = !!doc.ui?.open?.house;
   const reRow = "flex h-[22px] items-stretch border-t border-black";
   const reCell = "flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums";
@@ -466,6 +490,21 @@ export default function Assets() {
           <Amount cur="EUR" value={flat.value} onChange={(v) => saveFlat({ value: v })} />
         </span>
       </div>
+      {moreProps.map((x) => (
+        <div key={x.id} className={reRow}>
+          <input
+            value={x.name}
+            onChange={(e) => editProp(x.id, { name: e.target.value })}
+            className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
+          />
+          {binFor("moreProps", x.id, x.name)}
+          <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
+          <span className="flex w-40 shrink-0 items-center border-l border-black px-2">
+            <Amount cur="EUR" value={x.value} onChange={(v) => editProp(x.id, { value: v })} />
+          </span>
+        </div>
+      ))}
+      {addLine("moreProps", { value: "" })}
       <div className={reRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
         <span className={`${reCell} font-bold text-neutral-900`}>EUR {money(reTotal)}</span>
@@ -489,11 +528,14 @@ export default function Assets() {
   // The family home, on its own line under the account, typed the same way.
   const caHouse = doc.caHouse || { name: "870 Farmleigh Road, West Vancouver, BC, Canada", tax: "0" };
   const editHouse = (fields) => save({ ...doc, caHouse: { ...caHouse, ...fields, updated: new Date().toISOString() } });
-  const taxed = [...acct.subs, caHouse];
+  // Further Canada lines, added as you go, typed like the house.
+  const caMore = doc.caMore || [];
+  const editCaMore = (id, fields) => save({ ...doc, caMore: caMore.map((x) => (x.id === id ? { ...x, ...fields, updated: new Date().toISOString() } : x)) });
+  const taxed = [...acct.subs, caHouse, ...caMore];
   const taxEur = taxed.reduce((sum, x) => sum + (eurOf(x) * (num(x.tax) ?? 0)) / 100, 0);
   const taxCad = taxed.reduce((sum, x) => sum + (cadOf(x) * (num(x.tax) ?? 0)) / 100, 0);
-  const grossEur = acct.subs.reduce((sum, x) => sum + eurOf(x), 0);
-  const grossCad = acct.subs.reduce((sum, x) => sum + cadOf(x), 0);
+  const grossEur = acct.subs.reduce((sum, x) => sum + eurOf(x), 0) + caMore.reduce((sum, x) => sum + eurOf(x), 0);
+  const grossCad = acct.subs.reduce((sum, x) => sum + cadOf(x), 0) + caMore.reduce((sum, x) => sum + cadOf(x), 0);
   // Your part of each line, after that line's tax. Share % only applies where you type
   // one; a line left empty counts in full.
   const shareOf = (x) => num(x.share) ?? 100;
@@ -573,6 +615,29 @@ export default function Assets() {
           </span>
         ))}
       </div>
+      {caMore.map((x) => (
+        <div key={x.id} className={caRow}>
+          <input
+            value={x.name}
+            onChange={(e) => editCaMore(x.id, { name: e.target.value })}
+            className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
+          />
+          {binFor("caMore", x.id, x.name)}
+          <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
+            <Percent value={x.share} onChange={(v) => editCaMore(x.id, { share: v })} />
+          </span>
+          <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
+            <Percent value={x.tax} onChange={(v) => editCaMore(x.id, { tax: v })} />
+          </span>
+          <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{dateOf(x.updated)}</span>
+          {["cad", "eur"].map((cur) => (
+            <span key={cur} className="flex w-40 shrink-0 items-center border-l border-black px-2">
+              <Amount cur={cur.toUpperCase()} auto={!!x.from && x.from !== cur} value={shown(x, cur)} onChange={(v) => editCaMore(x.id, { [cur]: v, from: cur })} />
+            </span>
+          ))}
+        </div>
+      ))}
+      {addLine("caMore", {})}
       {/* What the taxable parts would cost in tax, at their rates. */}
       <div className={caRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] text-[#C1440E]">Estimated tax</span>
@@ -595,11 +660,6 @@ export default function Assets() {
 
   // Germany: three lines, each in EUR, with the same Share % and Tax % as Canada and
   // the same totals under them.
-  const DE_START = [
-    { id: "invest", name: "Investment account" },
-    { id: "gold", name: "Gold" },
-    { id: "savings", name: "Savings account" },
-  ];
   const de = doc.germany || DE_START;
   const editDe = (id, fields) => save({ ...doc, germany: de.map((x) => (x.id === id ? { ...x, ...fields, updated: new Date().toISOString() } : x)) });
   const deEur = (x) => num(x.eur) ?? 0;
@@ -622,6 +682,7 @@ export default function Assets() {
             onChange={(e) => editDe(x.id, { name: e.target.value })}
             className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
           />
+          {binFor("germany", x.id, x.name)}
           <span className="flex w-20 shrink-0 items-center border-l border-black px-2">
             <Percent value={x.share} onChange={(v) => editDe(x.id, { share: v })} />
           </span>
@@ -634,6 +695,7 @@ export default function Assets() {
           </span>
         </div>
       ))}
+      {addLine("germany", {})}
       <div className={caRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] text-[#C1440E]">Estimated tax</span>
         <span className="w-20 shrink-0 border-l border-black" />
