@@ -12,7 +12,7 @@ const GAP_BG = "#8A8A8A"; // the grey band between sections
 const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
 
 // In the order they are worked through.
-const SECTIONS = ["Cash", "Stocks", "Real estate", "Canada"];
+const SECTIONS = ["Cash", "Stocks", "Real estate", "Parent estates"];
 
 // The cash accounts to start with; balances are typed in by hand for now.
 // Stocks start with one account that opens onto its holdings, added as you go.
@@ -613,7 +613,18 @@ export default function Assets() {
             </div>
             {name === "Cash" && cash}
             {name === "Real estate" && realEstate}
-            {name === "Canada" && canada}
+            {/* The parents' estates, one country after another, each under its own bar. */}
+            {name === "Parent estates" && (
+              <>
+                <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+                  <span className={head}>Canada</span>
+                </div>
+                {canada}
+                <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+                  <span className={head}>Germany</span>
+                </div>
+              </>
+            )}
             {name === "Stocks" && cashGroup("stocks", "", false, "Account", [["ticker", "Ticker", "w-20"], ["shares", "Shares", "w-20"], ["price", "Price", "w-28"]], ["chf", "usd", "eur"], "w-32")}
           </div>
         ))}
