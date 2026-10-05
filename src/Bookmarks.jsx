@@ -93,6 +93,22 @@ export default function Bookmarks() {
   // Moving a link by its grip: to any place in any column, a red line shows where.
   const [drag, setDrag] = useState(null); // { si, gi, bi }
   const [dropAt, setDropAt] = useState(null); // { si, gi, bi } – lands before that spot
+  // Moving a whole box by the grip on its frame: to any place in either column.
+  const [dragBox, setDragBox] = useState(null); // { si, gi }
+  const [dropBox, setDropBox] = useState(null); // { si, gi } – lands before that box
+  const moveBox = () => {
+    const from = dragBox;
+    const to = dropBox;
+    setDragBox(null);
+    setDropBox(null);
+    if (!from || !to) return;
+    const sections = data.sections.map((sec) => ({ ...sec, groups: sec.groups.slice() }));
+    const [box] = sections[from.si].groups.splice(from.gi, 1);
+    let at = to.gi;
+    if (from.si === to.si && from.gi < to.gi) at -= 1;
+    sections[to.si].groups.splice(at, 0, box);
+    save({ ...data, sections });
+  };
   const moveLink = () => {
     const from = drag;
     const to = dropAt;
@@ -208,13 +224,32 @@ export default function Bookmarks() {
         {data.sections.map((s, si) => (
           <div key={si} className={si > 0 ? "border-l border-black" : ""}>
             {s.groups.map((g, gi) => (
+              <div key={gi}>
+              {dragBox && dropBox && dropBox.si === si && dropBox.gi === gi && <div className="mx-2 mt-2 h-[2px] bg-[#C1440E]" />}
               <div
-                key={gi}
                 // Each group of links sits in its own thin red frame, with a little space around it.
-                className="m-2 flex flex-col gap-1 border border-[#C1440E] p-1.5"
-                onDragOver={(e) => { if (drag) { e.preventDefault(); if (e.target === e.currentTarget) setDropAt({ si, gi, bi: g.length }); } }}
-                onDrop={(e) => { e.preventDefault(); moveLink(); }}
+                className={`relative m-2 flex flex-col gap-1 border border-[#C1440E] p-1.5 ${dragBox && dragBox.si === si && dragBox.gi === gi ? "opacity-40" : ""}`}
+                onDragOver={(e) => {
+                  if (dragBox) {
+                    e.preventDefault();
+                    const box = e.currentTarget.getBoundingClientRect();
+                    setDropBox({ si, gi: e.clientY < box.top + box.height / 2 ? gi : gi + 1 });
+                    return;
+                  }
+                  if (drag) { e.preventDefault(); if (e.target === e.currentTarget) setDropAt({ si, gi, bi: g.length }); }
+                }}
+                onDrop={(e) => { e.preventDefault(); if (dragBox) moveBox(); else moveLink(); }}
               >
+                {/* The box's own grip sits on its top frame, at the right. */}
+                <span
+                  draggable
+                  onDragStart={(e) => { e.stopPropagation(); setDragBox({ si, gi }); }}
+                  onDragEnd={() => { setDragBox(null); setDropBox(null); }}
+                  title="Drag to move this box"
+                  className="absolute -top-[7px] right-2 flex cursor-grab items-center bg-white px-0.5 text-[#C1440E] active:cursor-grabbing"
+                >
+                  <GripVertical size={12} />
+                </span>
                 {g.map((b, bi) => {
                   const isEdit = editing && editing.si === si && editing.gi === gi && editing.bi === bi;
                   const marked = drag && dropAt && dropAt.si === si && dropAt.gi === gi;
@@ -309,8 +344,12 @@ export default function Bookmarks() {
                   </div>
                 )}
               </div>
+              </div>
             ))}
+            {dragBox && dropBox && dropBox.si === si && dropBox.gi === s.groups.length && <div className="mx-2 h-[2px] bg-[#C1440E]" />}
             <button
+              onDragOver={(e) => { if (dragBox) { e.preventDefault(); setDropBox({ si, gi: s.groups.length }); } }}
+              onDrop={(e) => { e.preventDefault(); if (dragBox) moveBox(); }}
               onClick={() => addBox(si)}
               className="mx-2 mb-2 flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
             >
