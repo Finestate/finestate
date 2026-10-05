@@ -714,6 +714,36 @@ export default function Assets() {
     </>
   );
 
+  // Totals: everything above in three lines, all in EUR. Your own accounts and property
+  // count in full; a parent estate line counts only your Share %, after its Tax %.
+  const eurNow = (x) => num(shown(x, "eur")) ?? 0;
+  const mine = (x) => eurNow(x) * ((num(x.share) ?? 100) / 100) * (1 - (num(x.tax) ?? 0) / 100);
+  const deMineOf = (x) => (num(x.eur) ?? 0) * ((num(x.share) ?? 100) / 100) * (1 - (num(x.tax) ?? 0) / 100);
+  const isGold = (x) => /gold/i.test(x.name || "");
+  const cashOwn = ["cash", "personal", "stocks"].reduce((sum, list) => sum + rowsOf(list).flatMap((r) => r.subs || [r]).reduce((t, x) => t + eurNow(x), 0), 0);
+  const cashEstates = [...acct.subs, ...caMore].reduce((sum, x) => sum + mine(x), 0) + de.filter((x) => !isGold(x)).reduce((sum, x) => sum + deMineOf(x), 0);
+  const totalCash = cashOwn + cashEstates;
+  const totalProperty = reTotal + mine(caHouse);
+  const totalGold = de.filter(isGold).reduce((sum, x) => sum + deMineOf(x), 0);
+  const totLine = (label, value, bold) => (
+    <div className={caRow}>
+      <span className={`flex flex-1 items-center px-2 text-[11px] text-neutral-900 ${bold ? "font-bold uppercase tracking-[0.06em]" : ""}`}>{label}</span>
+      <span className={`${caFig} text-neutral-900 ${bold ? "font-bold" : ""}`}>EUR {money(value)}</span>
+    </div>
+  );
+  const totals = (
+    <>
+      <div className={caRow} style={{ backgroundColor: HEADER_BG }}>
+        <span className={`flex flex-1 items-center px-2 ${head}`}>Asset</span>
+        <span className={`flex w-40 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>EUR</span>
+      </div>
+      {totLine("Cash – all accounts and trading accounts", totalCash)}
+      {totLine("Property – all properties", totalProperty)}
+      {totLine("Gold", totalGold)}
+      {totLine("Total", totalCash + totalProperty + totalGold, true)}
+    </>
+  );
+
   const cash = (
     <>
       {cashGroup("cash", "Company accounts", false)}
@@ -734,6 +764,7 @@ export default function Assets() {
             </div>
             {name === "Cash" && cash}
             {name === "Real estate" && realEstate}
+            {name === "Totals" && totals}
             {/* The parents' estates, one country after another, each under its own bar. */}
             {name === "Parent estates" && (
               <>
