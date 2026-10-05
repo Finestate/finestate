@@ -766,7 +766,7 @@ export default function Assets() {
   const pairCell = (x, k, cur) => {
     const pr = pairOf(x, k);
     return (
-      <span key={k + cur} className={`flex ${k === "div" ? "w-36" : "w-32"} shrink-0 items-center border-l border-black px-2`}>
+      <span key={k + cur} className={`flex w-36 shrink-0 items-center border-l border-black px-2`}>
         <Amount cur={cur.toUpperCase()} auto={!!pr.from && pr.from !== cur} value={shown(pr, cur)} onChange={(v) => setPair(x, k, cur, v)} />
       </span>
     );
@@ -775,10 +775,10 @@ export default function Assets() {
     <>
       <div className={caRow} style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>Name</span>
-        <span className={`flex w-24 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Ownership</span>
-        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value AED</span>
-        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value EUR</span>
-        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>My value EUR</span>
+        <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Ownership</span>
+        <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value AED</span>
+        <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Value EUR</span>
+        <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>My value EUR</span>
         <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend owed AED</span>
         <span className={`flex w-36 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Dividend owed EUR</span>
       </div>
@@ -792,13 +792,13 @@ export default function Assets() {
             className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-neutral-900 outline-none"
           />
           {binFor("companies", x.id, x.name)}
-          <span className="flex w-24 shrink-0 items-center border-l border-black px-2">
+          <span className="flex w-28 shrink-0 items-center border-l border-black px-2">
             <Percent value={x.own} onChange={(v) => editCo(x.id, { own: v })} />
           </span>
           {pairCell(x, "val", "aed")}
           {pairCell(x, "val", "eur")}
           {/* Your part: the value times your ownership, worked out here, so in blue. */}
-          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">
+          <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">
             {valEur != null && num(x.own) != null ? `EUR ${money((valEur * num(x.own)) / 100)}` : ""}
           </span>
           {pairCell(x, "div", "aed")}
