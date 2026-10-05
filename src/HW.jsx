@@ -271,7 +271,7 @@ export default function HW() {
                 one, (link) is grey and a click on it lets you type one. */}
             <span
               onClick={() => { if (withLink && isWebAddress(link)) setEditingLink(m.id); }}
-              className={`flex ${withLink ? "min-w-0 flex-1 basis-0" : "w-1/4 min-w-[160px] shrink-0"} items-start gap-1 px-2 py-[3px] ${withLink && isWebAddress(link) && editingLink !== m.id ? "cursor-text" : ""}`}
+              className={`flex w-1/4 min-w-[160px] shrink-0 items-start gap-1 px-2 py-[3px] ${withLink && isWebAddress(link) && editingLink !== m.id ? "cursor-text" : ""}`}
             >
               <input
                 value={m.name || ""}
@@ -466,7 +466,7 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Supplements</span>
         </div>
-        {notesLoaded && listBlock("supplements", true, true)}
+        {notesLoaded && listBlock("supplements", true)}
         {/* Nutrition: no grey band before it. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Nutrition</span>
