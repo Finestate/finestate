@@ -579,8 +579,8 @@ export default function Assets() {
         <span className="w-20 shrink-0 border-l border-black" />
         <span className="w-20 shrink-0 border-l border-black" />
         <span className="w-28 shrink-0 border-l border-black" />
-        <span className={`${caFig} text-[#C1440E]`}>{taxCad ? `CAD -${money(taxCad)}` : ""}</span>
-        <span className={`${caFig} text-[#C1440E]`}>{taxEur ? `EUR -${money(taxEur)}` : ""}</span>
+        <span className={`${caFig} text-[#C1440E]`}>{grossCad + cadOf(caHouse) ? `CAD ${taxCad ? "-" : ""}${money(taxCad)}` : ""}</span>
+        <span className={`${caFig} text-[#C1440E]`}>{grossEur + eurOf(caHouse) ? `EUR ${taxEur ? "-" : ""}${money(taxEur)}` : ""}</span>
       </div>
       <div className={caRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total after tax</span>
@@ -639,7 +639,7 @@ export default function Assets() {
         <span className="w-20 shrink-0 border-l border-black" />
         <span className="w-20 shrink-0 border-l border-black" />
         <span className="w-28 shrink-0 border-l border-black" />
-        <span className={`${caFig} text-[#C1440E]`}>{deTax ? `EUR -${money(deTax)}` : ""}</span>
+        <span className={`${caFig} text-[#C1440E]`}>{deGross ? `EUR ${deTax ? "-" : ""}${money(deTax)}` : ""}</span>
       </div>
       <div className={caRow}>
         <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total after tax</span>
