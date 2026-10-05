@@ -221,15 +221,21 @@ export default function HW() {
       </button>
     </>
   );
-  const lineBlock = (key) => (
+  // `split`: a second column of the same width beside the first (Fitness).
+  const lineBlock = (key, split = false) => (
     <>
       {listRows(key).map((m, idx) => (
         <div key={m.id} {...dropProps(key, idx, (from, to) => saveList(key, moved(lists[key], from, to)))}>
           {marker(key, idx)}
           <div className="flex items-stretch border-t border-black">
-            <span className="flex min-w-0 flex-1 items-start px-2 py-[3px]">
+            <span className="flex min-w-0 flex-1 basis-0 items-start px-2 py-[3px]">
               <GrowText value={m.text || ""} onChange={(t) => editItem(key, m.id, { text: t })} rows={1} />
             </span>
+            {split && (
+              <span className="flex min-w-0 flex-1 basis-0 items-start border-l border-black px-2 py-[3px]">
+                <GrowText value={m.col2 || ""} onChange={(t) => editItem(key, m.id, { col2: t })} rows={1} />
+              </span>
+            )}
             {/* The grip always sits just left of the bin. */}
             <span className="flex shrink-0 items-start gap-2 px-2 py-[5px]">
               {grip(key, idx, m.id !== "blank")}
@@ -368,7 +374,7 @@ export default function HW() {
     };
     const lines = (key, title) => {
       section(title);
-      (lists[key] || []).forEach((m) => out.push(`- ${m.text || ""}`));
+      (lists[key] || []).forEach((m) => out.push(`- ${m.text || ""}${m.col2 ? ` | ${m.col2}` : ""}`));
     };
     named("medicines", "Medicines");
     named("supplements", "Supplements");
@@ -534,7 +540,7 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Fitness</span>
         </div>
-        {notesLoaded && lineBlock("fitness")}
+        {notesLoaded && lineBlock("fitness", true)}
         {/* The grey band, then Monitoring: Focus, Planning and Situation side by side. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
