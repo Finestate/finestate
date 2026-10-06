@@ -156,10 +156,19 @@ export default function HW() {
     setNutrition(next);
     persist({ foundational: notes, ...lists, nutrition: next });
   };
-  // The days open in Nutrition: today to start. Each line opens and closes on its own,
+  // The days open in Nutrition. Each line opens and closes on its own,
   // and the chevron on the bar opens or closes them all at once.
   const todayKey = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
-  const [openDays, setOpenDays] = useState(() => [todayKey]);
+  // Nothing opens by itself: the days you leave open stay open after a refresh, the
+  // closed ones stay closed. Remembered in this browser.
+  const [openDays, setOpenDaysRaw] = useState(() => {
+    try { const v = JSON.parse(localStorage.getItem("hw-nutrition-open") || "[]"); return Array.isArray(v) ? v : []; } catch { return []; }
+  });
+  const setOpenDays = (next) => setOpenDaysRaw((prev) => {
+    const v = typeof next === "function" ? next(prev) : next;
+    try { localStorage.setItem("hw-nutrition-open", JSON.stringify(v)); } catch {}
+    return v;
+  });
   const ALL_NUTRITION = [...DAYS.map(([d]) => d), "considerations"];
   const allOpen = openDays.length === ALL_NUTRITION.length;
   const toggleDay = (day) => setOpenDays((list) => (list.includes(day) ? list.filter((d) => d !== day) : [...list, day]));
