@@ -846,6 +846,16 @@ export default function Planning() {
     savePoints(b, { ...boards[b].points, [g]: [...boards[b].points[g], p] });
     setEditing(p.id);
   };
+  // The + on a point puts a fresh one straight under it, at the same step in, ready to type.
+  const addPointAfter = (b, g, id) => {
+    const list = (boards[b].points[g] || []).slice();
+    const at = list.findIndex((x) => x.id === id);
+    const p = { id: newId(), code: "" };
+    if (Number.isFinite(list[at]?.level)) p.level = list[at].level; else if (list[at]?.sub) p.sub = true;
+    list.splice(at + 1, 0, p);
+    savePoints(b, { ...boards[b].points, [g]: list });
+    setEditing(p.id);
+  };
   const movePoint = (b, g, from, to) => {
     if (from == null || to == null || from === to) return;
     const arr = boards[b].points[g].slice();
@@ -1362,6 +1372,9 @@ export default function Planning() {
                             className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
                           {/* Both ways always there: each press is one step, up to four in. */}
+                          <button onClick={() => addPointAfter(b, g, it.id)} title="Add a point under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
+                            <Plus size={11} strokeWidth={3} />
+                          </button>
                           <button onClick={() => stepPoint(b, g, it.id, -1)} title="Step out" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
                             <ChevronsLeft size={11} />
                           </button>
@@ -1400,7 +1413,9 @@ export default function Planning() {
                         );
                       })}
 
-                      {/* Both groups take new points straight from here, on the floor of the column. */}
+                      {/* The add on the floor of the column shows only while it is empty; after that,
+                          each point's own + adds under it. */}
+                      {(points[col] || []).length === 0 && (
                       <button
                         onClick={() => addPoint(b, col)}
                         title="Add a point"
@@ -1408,6 +1423,7 @@ export default function Planning() {
                       >
                         <Plus size={12} />
                       </button>
+                      )}
                     </div>
                   </div>
                 ))}
