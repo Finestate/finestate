@@ -126,6 +126,11 @@ export default function HW() {
           labs: Array.isArray(d.labs) ? d.labs : [],
           insurance: Array.isArray(d.insurance) ? d.insurance : [],
           procedureTracking: Array.isArray(d.procedureTracking) ? d.procedureTracking : [],
+          // Fitness opens line by line, like Nutrition. The first time, the old lines move in
+          // under one line called Workouts, each keeping its two halves.
+          fitnessGroups: Array.isArray(d.fitnessGroups)
+            ? d.fitnessGroups
+            : [{ id: "fg-workouts", title: "Workouts", rows: (Array.isArray(d.fitness) ? d.fitness : []).map((r) => ({ id: r.id, a: r.text || "", b: r.col2 || "" })) }],
         });
         setNutrition({ ...(d.nutrition || {}), meals: d.nutrition?.meals || {} });
         setNotesLoaded(true);
@@ -158,6 +163,75 @@ export default function HW() {
   const ALL_NUTRITION = [...DAYS.map(([d]) => d), "considerations"];
   const allOpen = openDays.length === ALL_NUTRITION.length;
   const toggleDay = (day) => setOpenDays((list) => (list.includes(day) ? list.filter((d) => d !== day) : [...list, day]));
+  // Fitness: white lines that open, like the days in Nutrition, onto lines of two equal
+  // halves on the faint pink. Each part has its own bin, and Add lines for more.
+  const [fitOpen, setFitOpen] = useState([]);
+  const fitnessBlock = () => {
+    const groups = lists.fitnessGroups || [];
+    const saveGroups = (next) => saveList("fitnessGroups", next);
+    const editGroup = (gid, fn) => saveGroups(groups.map((g) => (g.id === gid ? fn(g) : g)));
+    const binBtn = (run) => (
+      <button onClick={(e) => { e.stopPropagation(); setListConfirm({ run }); }} title="Remove" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
+        <Trash2 size={11} />
+      </button>
+    );
+    return (
+      <>
+        {groups.map((g) => {
+          const open = fitOpen.includes(g.id);
+          return (
+            <div key={g.id}>
+              <div
+                onClick={() => setFitOpen((l) => (l.includes(g.id) ? l.filter((x) => x !== g.id) : [...l, g.id]))}
+                className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
+              >
+                <input
+                  value={g.title || ""}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => editGroup(g.id, (x) => ({ ...x, title: e.target.value }))}
+                  style={{ fieldSizing: "content" }}
+                  className="min-w-[4ch] bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
+                />
+                <span className="flex-1" />
+                <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${open ? "rotate-180" : ""}`} />
+                {binBtn(() => saveGroups(groups.filter((x) => x.id !== g.id)))}
+              </div>
+              {open && (
+                <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
+                  <div className="border border-neutral-400">
+                    {(g.rows || []).map((r, ri) => (
+                      <div key={r.id} className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
+                        {["a", "b"].map((k, ki) => (
+                          <div key={k} className={`min-w-0 flex-1 basis-0 px-1.5 py-[2px] ${ki ? "border-l border-neutral-400" : ""}`}>
+                            <GrowText value={r[k] || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, [k]: t } : y)) }))} rows={1} />
+                          </div>
+                        ))}
+                        <span className="flex shrink-0 items-start border-l border-neutral-400 px-1.5 py-[4px]">
+                          {binBtn(() => editGroup(g.id, (x) => ({ ...x, rows: x.rows.filter((y) => y.id !== r.id) })))}
+                        </span>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => editGroup(g.id, (x) => ({ ...x, rows: [...(x.rows || []), { id: newId(), a: "", b: "" }] }))}
+                      className={`flex h-[20px] w-full items-center gap-[2px] px-1.5 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${(g.rows || []).length ? "border-t border-neutral-400" : ""}`}
+                    >
+                      <Plus size={11} strokeWidth={3} />Add
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        <button
+          onClick={() => saveGroups([...groups, { id: newId(), title: "", rows: [] }])}
+          className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+        >
+          <Plus size={11} strokeWidth={3} />Add
+        </button>
+      </>
+    );
+  };
   const saveList = (key, next) => {
     const all = { ...lists, [key]: next };
     setLists(all);
@@ -391,7 +465,11 @@ export default function HW() {
     });
     out.push("", "Considerations");
     indent(nutrition.considerations);
-    lines("fitness", "Fitness");
+    section("Fitness");
+    (lists.fitnessGroups || []).forEach((g) => {
+      out.push("", g.title || "(untitled)");
+      (g.rows || []).forEach((r) => out.push(`- ${r.a || ""}${r.b ? ` | ${r.b}` : ""}`));
+    });
     section("Monitoring");
     (lists.monitoring || []).forEach((m) => out.push(`- Focus: ${m.focus || ""} | Planning: ${m.planning || ""} | Situation: ${m.situation || ""}`));
     named("diagnostics", "Diagnostics");
@@ -546,7 +624,7 @@ export default function HW() {
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Fitness</span>
         </div>
-        {notesLoaded && lineBlock("fitness", true)}
+        {notesLoaded && fitnessBlock()}
         {/* The grey band, then Monitoring: Focus, Planning and Situation side by side. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
@@ -593,7 +671,7 @@ export default function HW() {
             <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">Delete this?</p>
             <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
               <button
-                onClick={() => { saveList(listConfirm.key, lists[listConfirm.key].filter((x) => x.id !== listConfirm.id)); setListConfirm(null); }}
+                onClick={() => { if (listConfirm.run) listConfirm.run(); else saveList(listConfirm.key, lists[listConfirm.key].filter((x) => x.id !== listConfirm.id)); setListConfirm(null); }}
                 className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80"
                 style={{ backgroundColor: "#C1440E", borderColor: "#C1440E" }}
               >
