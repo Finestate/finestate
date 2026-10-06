@@ -607,13 +607,12 @@ export default function HW() {
                 </div>
                 {open && day !== "considerations" && (
                   <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
-                    {/* Two thin framed grids on the pink, a small gap between: the meals as they
-                        were, then a fresh set of four to work in, on a light amber. Meal on the left, what it is on
-                        the right. */}
-                    {[[mealOf, saveDayMeal], [(d, g, m) => nutrition.days2?.[d]?.[m] ?? "", saveDayMeal2]].map(([read, write], si) => (
+                    {/* A thin framed grid on the pink: Meal or Extra on the left, what it is on the
+                        right. (A second, amber set was tried and set aside; its text stays saved.) */}
+                    {[[mealOf, saveDayMeal]].map(([read, write], si) => (
                       <div key={si} className={`border border-neutral-400 ${si ? "mt-1.5 bg-[#FFEFC7]" : ""}`}>
-                        {/* The second set has an Extra after the second and the third meal. */}
-                        {(si ? ["Meal 1", "Meal 2", "Extra 2", "Meal 3", "Extra 3", "Meal 4"] : MEALS).map((meal, mi) => (
+                        {/* An Extra after the second and the third meal. */}
+                        {["Meal 1", "Meal 2", "Extra 2", "Meal 3", "Extra 3", "Meal 4"].map((meal, mi) => (
                           <div key={meal} className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
                             <span className="w-[44px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px] text-[11px] font-bold leading-[15px] text-neutral-900">{meal.startsWith("Extra") ? "Extra" : "Meal"}</span>
                             <div className="min-w-0 flex-1 px-1.5 py-[2px]">
