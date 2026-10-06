@@ -692,6 +692,8 @@ export default function HW() {
           <span className={head}>Insurance</span>
         </div>
         {notesLoaded && lineBlock("insurance")}
+        {/* The grey band closes the table, as it opens it. */}
+        <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
       </div>
 
       {err && <p className="pt-2 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
