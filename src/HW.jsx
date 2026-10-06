@@ -186,6 +186,15 @@ export default function HW() {
     const groups = lists.fitnessGroups || [];
     const saveGroups = (next) => saveList("fitnessGroups", next);
     const editGroup = (gid, fn) => saveGroups(groups.map((g) => (g.id === gid ? fn(g) : g)));
+    // A line's week: saved days, or the first time, Monday to Sunday filled from any
+    // earlier lines in order (both halves of a line kept together).
+    const WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const weekOf = (g) =>
+      g.week ||
+      WEEK.map((day, i) => {
+        const r = (g.rows || [])[i];
+        return { day, text: r ? [r.a, r.b].filter(Boolean).join(" | ") : "" };
+      });
     const binBtn = (run) => (
       <button onClick={(e) => { e.stopPropagation(); setListConfirm({ run }); }} title="Remove" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
         <Trash2 size={11} />
@@ -214,29 +223,24 @@ export default function HW() {
               </div>
               {open && (
                 <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
-                  {(g.rows || []).length > 0 && (
+                  {/* Seven fixed lines, Monday to Sunday: a narrow day column you can retype,
+                      then the workout. The first time, earlier lines fill the days in order. */}
                   <div className="border border-neutral-400">
-                    {(g.rows || []).map((r, ri) => (
-                      <div key={r.id} className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
-                        {["a", "b"].map((k, ki) => (
-                          <div key={k} className={`min-w-0 flex-1 basis-0 px-1.5 py-[2px] ${ki ? "border-l border-neutral-400" : ""}`}>
-                            <GrowText value={r[k] || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, [k]: t } : y)) }))} rows={1} />
-                          </div>
-                        ))}
-                        <span className="flex shrink-0 items-start border-l border-neutral-400 px-1.5 py-[4px]">
-                          {binBtn(() => editGroup(g.id, (x) => ({ ...x, rows: x.rows.filter((y) => y.id !== r.id) })))}
+                    {weekOf(g).map((w, wi) => (
+                      <div key={wi} className={`flex items-stretch ${wi ? "border-t border-neutral-400" : ""}`}>
+                        <span className="flex w-[72px] shrink-0 items-start border-r border-neutral-400 px-1.5 py-[2px]">
+                          <input
+                            value={w.day}
+                            onChange={(e) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, day: e.target.value } : y)) }))}
+                            className="w-full bg-transparent py-0 text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
+                          />
                         </span>
+                        <div className="min-w-0 flex-1 px-1.5 py-[2px]">
+                          <GrowText value={w.text} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, text: t } : y)) }))} rows={1} />
+                        </div>
                       </div>
                     ))}
                   </div>
-                  )}
-                  {/* Add sits under the frame, plain, not inside it. */}
-                  <button
-                    onClick={() => editGroup(g.id, (x) => ({ ...x, rows: [...(x.rows || []), { id: newId(), a: "", b: "" }] }))}
-                    className="mt-1 flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
-                  >
-                    <Plus size={11} strokeWidth={3} />Add
-                  </button>
                 </div>
               )}
             </div>
@@ -487,7 +491,8 @@ export default function HW() {
     section("Fitness");
     (lists.fitnessGroups || []).forEach((g) => {
       out.push("", g.title || "(untitled)");
-      (g.rows || []).forEach((r) => out.push(`- ${r.a || ""}${r.b ? ` | ${r.b}` : ""}`));
+      (g.week || []).forEach((w) => out.push(`- ${w.day}: ${w.text || ""}`));
+      if (!g.week) (g.rows || []).forEach((r) => out.push(`- ${r.a || ""}${r.b ? ` | ${r.b}` : ""}`));
     });
     section("Monitoring");
     (lists.monitoring || []).forEach((m) => out.push(`- Focus: ${m.focus || ""} | Planning: ${m.planning || ""} | Situation: ${m.situation || ""}`));
