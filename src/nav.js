@@ -45,6 +45,8 @@ export const NAV = [
     name: "Investing",
     icon: TrendingUp,
     children: [
+      // Portfolio heads the section.
+      { id: "investing/portfolio", name: "Portfolio" },
       // The custom calculators from the planning sheet.
       { id: "investing/calculations", name: "Calculations" },
       // How much is planned to go into investments each month, quarter or year.
