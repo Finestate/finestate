@@ -228,7 +228,7 @@ export default function HW() {
                   <div className="border border-neutral-400">
                     {weekOf(g).map((w, wi) => (
                       <div key={wi} className={`flex items-stretch ${wi ? "border-t border-neutral-400" : ""}`}>
-                        <span className="flex w-[72px] shrink-0 items-start border-r border-neutral-400 px-1.5 py-[2px]">
+                        <span className="flex min-w-0 flex-1 basis-0 items-start border-r border-neutral-400 px-1.5 py-[2px]">
                           <input
                             value={w.day}
                             onChange={(e) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, day: e.target.value } : y)) }))}
