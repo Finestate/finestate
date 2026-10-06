@@ -472,6 +472,15 @@ export default function Planning() {
     supabase.from("admin_docs").upsert({ id: TWOCOL_KEY, data: next, updated_at: new Date().toISOString() }).then(() => {});
   };
   const addColRow = (k, sub = false) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "", sub }] });
+  // The + on a line puts a fresh line straight under it, at the same step in.
+  const addColRowAfter = (k, id) => {
+    const list = cols[k].slice();
+    const at = list.findIndex((r) => r.id === id);
+    const row = { id: newId(), text: "" };
+    if (Number.isFinite(list[at]?.level)) row.level = list[at].level; else if (list[at]?.sub) row.sub = true;
+    list.splice(at + 1, 0, row);
+    saveCols({ ...cols, [k]: list });
+  };
   // Retyping a ticked line updates the Errandsprios brackets on every day line it is ticked on.
   const setColRow = (k, id, text) => {
     const next = { ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, text } : r)) };
@@ -1503,6 +1512,9 @@ export default function Planning() {
                     <span onClick={() => toggleColClosed(k, r.id)} title={r.closed ? "Open" : "Close"} className="h-[15px] min-w-[8px] flex-1 cursor-pointer" />
                   )}
                   {/* Both ways always there: each press is one step, up to four in. */}
+                  <button onClick={() => addColRowAfter(k, r.id)} title="Add a line under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
+                    <Plus size={11} strokeWidth={3} />
+                  </button>
                   <button onClick={() => stepColRow(k, r.id, -1)} title="Step out" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
                     <ChevronsLeft size={11} />
                   </button>
@@ -1528,7 +1540,9 @@ export default function Planning() {
               {dragC?.col === k && dropAt?.col === k && dropAt.index === cols[k].length && (
                 <div className="h-[2px] w-full bg-[#C1440E]" />
               )}
-              {/* One add on the floor of the column; indent is set on the line itself. */}
+              {/* The add on the floor of the column shows only while the list is empty; after
+                  that, each line's own + adds under it. */}
+              {cols[k].length === 0 && (
               <button
                 onClick={() => { addColRow(k, false); setFlash(k); setTimeout(() => setFlash((f) => (f === k ? null : f)), 400); }}
                 title="Add a line"
@@ -1541,6 +1555,7 @@ export default function Planning() {
               >
                 <Plus size={12} />
               </button>
+              )}
             </div>
           </div>
         ); })}
