@@ -235,9 +235,12 @@ export default function HW() {
                             className="w-full bg-transparent py-0 text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
                           />
                         </span>
-                        <div className="min-w-0 flex-1 px-1.5 py-[2px]">
-                          <GrowText value={w.text} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, text: t } : y)) }))} rows={1} />
-                        </div>
+                        {/* The workout space split into two equal halves. */}
+                        {["text", "text2"].map((k, ki) => (
+                          <div key={k} className={`min-w-0 flex-1 basis-0 px-1.5 py-[2px] ${ki ? "border-l border-neutral-400" : ""}`}>
+                            <GrowText value={w[k] || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, [k]: t } : y)) }))} rows={1} />
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
@@ -491,7 +494,7 @@ export default function HW() {
     section("Fitness");
     (lists.fitnessGroups || []).forEach((g) => {
       out.push("", g.title || "(untitled)");
-      (g.week || []).forEach((w) => out.push(`- ${w.day}: ${w.text || ""}`));
+      (g.week || []).forEach((w) => out.push(`- ${w.day}: ${w.text || ""}${w.text2 ? ` | ${w.text2}` : ""}`));
       if (!g.week) (g.rows || []).forEach((r) => out.push(`- ${r.a || ""}${r.b ? ` | ${r.b}` : ""}`));
     });
     section("Monitoring");
