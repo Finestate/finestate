@@ -608,10 +608,10 @@ export default function HW() {
                 {open && day !== "considerations" && (
                   <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
                     {/* Two thin framed grids on the pink, a small gap between: the meals as they
-                        were, then a fresh set of four to work in. Meal on the left, what it is on
+                        were, then a fresh set of four to work in, on a light amber. Meal on the left, what it is on
                         the right. */}
                     {[[mealOf, saveDayMeal], [(d, g, m) => nutrition.days2?.[d]?.[m] ?? "", saveDayMeal2]].map(([read, write], si) => (
-                      <div key={si} className={`border border-neutral-400 ${si ? "mt-1.5" : ""}`}>
+                      <div key={si} className={`border border-neutral-400 ${si ? "mt-1.5 bg-[#FFEFC7]" : ""}`}>
                         {MEALS.map((meal, mi) => (
                           <div key={meal} className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
                             <span className="w-[44px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px] text-[11px] font-bold leading-[15px] text-neutral-900">Meal</span>
