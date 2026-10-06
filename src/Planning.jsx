@@ -880,6 +880,14 @@ export default function Planning() {
       saveMeetings(b, next);
     }
   };
+  // The + on a meeting puts a fresh one straight under it, ready to type.
+  const addMeetingAfter = (b, id) => {
+    const list = boards[b].meetings.slice();
+    const m = { id: newId(), name: "", permanent: false };
+    list.splice(list.findIndex((x) => x.id === id) + 1, 0, m);
+    saveMeetings(b, list);
+    setEditing(m.id);
+  };
   const addMeeting = (b) => {
     const name = newMeeting.trim();
     if (!name) return;
@@ -1212,6 +1220,9 @@ export default function Planning() {
                         onBlur={() => setEditing(null)}
                         className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
                       />
+                      <button onClick={() => addMeetingAfter(b, m.id)} title="Add a meeting under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
+                        <Plus size={11} strokeWidth={3} />
+                      </button>
                       {/* Click to put it on the line above. A one off leaves this list,
                           a permanent one stays here. */}
                       <button
