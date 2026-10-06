@@ -228,15 +228,15 @@ export default function HW() {
                   <div className="border border-neutral-400">
                     {weekOf(g).map((w, wi) => (
                       <div key={wi} className={`flex items-stretch ${wi ? "border-t border-neutral-400" : ""}`}>
-                        <span className="flex min-w-0 flex-1 basis-0 items-start border-r border-neutral-400 px-1.5 py-[2px]">
+                        <span className="flex w-[72px] shrink-0 items-start border-r border-neutral-400 px-1.5 py-[2px]">
                           <input
                             value={w.day}
                             onChange={(e) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, day: e.target.value } : y)) }))}
                             className="w-full bg-transparent py-0 text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
                           />
                         </span>
-                        {/* The workout space split into two equal halves. */}
-                        {["text", "text2"].map((k, ki) => (
+                        {/* The workout space split into three equal columns. */}
+                        {["text", "text2", "text3"].map((k, ki) => (
                           <div key={k} className={`min-w-0 flex-1 basis-0 px-1.5 py-[2px] ${ki ? "border-l border-neutral-400" : ""}`}>
                             <GrowText value={w[k] || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, [k]: t } : y)) }))} rows={1} />
                           </div>
@@ -494,7 +494,7 @@ export default function HW() {
     section("Fitness");
     (lists.fitnessGroups || []).forEach((g) => {
       out.push("", g.title || "(untitled)");
-      (g.week || []).forEach((w) => out.push(`- ${w.day}: ${w.text || ""}${w.text2 ? ` | ${w.text2}` : ""}`));
+      (g.week || []).forEach((w) => out.push(`- ${w.day}: ${w.text || ""}${w.text2 ? ` | ${w.text2}` : ""}${w.text3 ? ` | ${w.text3}` : ""}`));
       if (!g.week) (g.rows || []).forEach((r) => out.push(`- ${r.a || ""}${r.b ? ` | ${r.b}` : ""}`));
     });
     section("Monitoring");
