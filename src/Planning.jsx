@@ -1304,6 +1304,12 @@ export default function Planning() {
                         )}
                         <div
                           onDoubleClick={() => setEditing(it.id)}
+                          // A group head opens and closes with a click anywhere on its line.
+                          onClick={(e) => {
+                            if (!isHead(list, pi) || editing === it.id) return;
+                            if (e.target.closest("button, input[type=checkbox], [draggable]")) return;
+                            togglePointClosed(b, g, it.id);
+                          }}
                           onDragOver={(e) => {
                             e.preventDefault();
                             const box = e.currentTarget.getBoundingClientRect();
@@ -1484,12 +1490,17 @@ export default function Planning() {
                       style={{ accentColor: "#C1440E", margin: 0 }}
                     />
                   </span>
+                  {/* On a group head the words stay editable, and the space after them opens
+                      and closes the group. */}
                   <WrapLine
                     key={r.id}
                     text={r.text}
                     onChange={(t) => setColRow(k, r.id, t)}
-                    className="min-w-0 flex-1 whitespace-pre-wrap break-words bg-transparent leading-[15px] outline-none"
+                    className={`min-w-0 ${isHead(cols[k], i) ? "max-w-full" : "flex-1"} whitespace-pre-wrap break-words bg-transparent leading-[15px] outline-none`}
                   />
+                  {isHead(cols[k], i) && (
+                    <span onClick={() => toggleColClosed(k, r.id)} title={r.closed ? "Open" : "Close"} className="h-[15px] min-w-[8px] flex-1 cursor-pointer" />
+                  )}
                   {/* Both ways always there: each press is one step, up to four in. */}
                   <button onClick={() => stepColRow(k, r.id, -1)} title="Step out" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
                     <ChevronsLeft size={11} />
