@@ -1033,7 +1033,7 @@ export default function Planning() {
     return (
       <div className="flex flex-wrap items-center text-[11px] font-semibold leading-[15px] text-neutral-900">
         {top.length > 0 && (
-          <span className="inline-flex h-[15px] items-center rounded-[3px] border border-[#C9A24A] bg-[#FFF3D6] px-[3px] leading-none">{top.join("-")}</span>
+          <span className="inline-flex h-[15px] items-center border border-[#C9A24A] bg-[#FFF3D6] px-[3px] leading-none">{top.join("-")}</span>
         )}
         {top.length > 0 && rest.length > 0 && "-"}
         {rest.join("-")}
