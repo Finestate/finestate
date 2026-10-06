@@ -1024,7 +1024,7 @@ export default function Planning() {
   // A company day line: just the letter codes of the ticked points, dash separated,
   // as in AB-SC-FI-CU. Nothing in brackets shows here; the picker below is unchanged
   // and anything typed in brackets stays saved.
-  // Hyper-prios read in a vivid magenta, extra bold; the dashes stay black.
+  // Hyper-prios sit in a small soft-gold box, same weight as the rest; the dashes stay outside it.
   const renderShortLine = (b, codes) => {
     const hyper = new Set((boards[b].points.hyper || []).map((it) => it.code));
     const items = codes.map((c) => ({ c, s: shortCode(c) })).filter((x) => x.s);
@@ -1033,7 +1033,7 @@ export default function Planning() {
         {items.map((x, i) => (
           <Fragment key={x.c}>
             {i > 0 && "-"}
-            {hyper.has(x.c) ? <span className="font-extrabold text-[#E0007A]">{x.s}</span> : x.s}
+            {hyper.has(x.c) ? <span className="inline-flex h-[15px] items-center rounded-[3px] border border-[#C9A24A] bg-[#FFF3D6] px-[3px] leading-none">{x.s}</span> : x.s}
           </Fragment>
         ))}
       </div>
