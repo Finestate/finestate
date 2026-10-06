@@ -198,6 +198,7 @@ export default function HW() {
               </div>
               {open && (
                 <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
+                  {(g.rows || []).length > 0 && (
                   <div className="border border-neutral-400">
                     {(g.rows || []).map((r, ri) => (
                       <div key={r.id} className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
@@ -211,13 +212,15 @@ export default function HW() {
                         </span>
                       </div>
                     ))}
-                    <button
-                      onClick={() => editGroup(g.id, (x) => ({ ...x, rows: [...(x.rows || []), { id: newId(), a: "", b: "" }] }))}
-                      className={`flex h-[20px] w-full items-center gap-[2px] px-1.5 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${(g.rows || []).length ? "border-t border-neutral-400" : ""}`}
-                    >
-                      <Plus size={11} strokeWidth={3} />Add
-                    </button>
                   </div>
+                  )}
+                  {/* Add sits under the frame, plain, not inside it. */}
+                  <button
+                    onClick={() => editGroup(g.id, (x) => ({ ...x, rows: [...(x.rows || []), { id: newId(), a: "", b: "" }] }))}
+                    className="mt-1 flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                  >
+                    <Plus size={11} strokeWidth={3} />Add
+                  </button>
                 </div>
               )}
             </div>
