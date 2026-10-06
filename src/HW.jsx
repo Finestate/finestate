@@ -150,6 +150,13 @@ export default function HW() {
   };
   // A day's meal: its own text once written, otherwise what its old group held.
   const mealOf = (day, group, meal) => nutrition.days?.[day]?.[meal] ?? nutrition.meals?.[meal]?.[group] ?? "";
+  // The second set of meals under each day, kept apart from the first.
+  const saveDayMeal2 = (day, meal, text) => {
+    const days2 = nutrition.days2 || {};
+    const next = { ...nutrition, days2: { ...days2, [day]: { ...(days2[day] || {}), [meal]: text } } };
+    setNutrition(next);
+    persist({ foundational: notes, ...lists, nutrition: next });
+  };
   const saveDayMeal = (day, meal, text) => {
     const days = nutrition.days || {};
     const next = { ...nutrition, days: { ...days, [day]: { ...(days[day] || {}), [meal]: text } } };
@@ -600,17 +607,21 @@ export default function HW() {
                 </div>
                 {open && day !== "considerations" && (
                   <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
-                    {/* A thin framed grid on the pink: Meal on the left, what it is on the right. */}
-                    <div className="border border-neutral-400">
-                      {MEALS.map((meal, mi) => (
-                        <div key={meal} className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
-                          <span className="w-[44px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px] text-[11px] font-bold leading-[15px] text-neutral-900">Meal</span>
-                          <div className="min-w-0 flex-1 px-1.5 py-[2px]">
-                            <GrowText value={mealOf(day, group, meal)} onChange={(t) => saveDayMeal(day, meal, t)} rows={1} spell />
+                    {/* Two thin framed grids on the pink, a small gap between: the meals as they
+                        were, then a fresh set of four to work in. Meal on the left, what it is on
+                        the right. */}
+                    {[[mealOf, saveDayMeal], [(d, g, m) => nutrition.days2?.[d]?.[m] ?? "", saveDayMeal2]].map(([read, write], si) => (
+                      <div key={si} className={`border border-neutral-400 ${si ? "mt-1.5" : ""}`}>
+                        {MEALS.map((meal, mi) => (
+                          <div key={meal} className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
+                            <span className="w-[44px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px] text-[11px] font-bold leading-[15px] text-neutral-900">Meal</span>
+                            <div className="min-w-0 flex-1 px-1.5 py-[2px]">
+                              <GrowText value={read(day, group, meal)} onChange={(t) => write(day, meal, t)} rows={1} spell />
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ))}
                   </div>
                 )}
                 {open && day === "considerations" && (
