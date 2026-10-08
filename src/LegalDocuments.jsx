@@ -266,20 +266,21 @@ export default function LegalDocuments() {
                     </button>
                   )}
                 </div>
-                <div className="flex h-[18px] items-center gap-2 border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
-                  <span className="flex min-w-0 flex-1 items-center gap-2">
-                    {COLS.map((c) => (
-                      <span key={c.key} style={{ width: c.w }} className={`shrink-0 ${head}`}>{c.label}</span>
+                {/* Thin black lines between the columns, the same as between the rows. */}
+                <div className="flex h-[18px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
+                  <span className="flex min-w-0 flex-1 items-stretch">
+                    {COLS.map((c, ci) => (
+                      <span key={c.key} style={{ flex: `${parseFloat(c.w)} 1 0` }} className={`flex min-w-0 items-center px-2 ${ci ? "border-l border-black" : ""} ${head}`}>{c.label}</span>
                     ))}
                   </span>
-                  <span className="flex w-8 shrink-0 items-center justify-end pr-1 text-neutral-900"><Trash2 size={12} /></span>
+                  <span className="flex w-8 shrink-0 items-center justify-center border-l border-black text-neutral-900"><Trash2 size={12} /></span>
                 </div>
               </div>
             ) : (
-              <div key={r.id} className={`flex h-[21px] items-center gap-2 px-2 ${rule}`}>
-                <span className="flex min-w-0 flex-1 items-center gap-2">
-                  {COLS.map((c) => (
-                    <span key={c.key} style={{ width: c.w }} className="shrink-0">
+              <div key={r.id} className={`flex h-[21px] items-stretch ${rule}`}>
+                <span className="flex min-w-0 flex-1 items-stretch">
+                  {COLS.map((c, ci) => (
+                    <span key={c.key} style={{ flex: `${parseFloat(c.w)} 1 0` }} className={`flex min-w-0 items-center px-2 ${ci ? "border-l border-black" : ""}`}>
                       {c.key === "issued" || c.key === "expiry" ? (
                         <DateCell value={r[c.key] || ""} onChange={(v) => update(i, c.key, v)} flagSoon={c.key === "expiry"} />
                       ) : c.key === "scan" ? (
@@ -386,7 +387,7 @@ export default function LegalDocuments() {
 
 function Bin({ i, remove }) {
   return (
-    <div className="flex w-8 shrink-0 items-center justify-end pr-1">
+    <div className="flex w-8 shrink-0 items-center justify-center border-l border-black">
       <button onClick={() => remove(i)} title="Delete" className="text-neutral-900 hover:text-[#C1440E]"><Trash2 size={12} /></button>
     </div>
   );
