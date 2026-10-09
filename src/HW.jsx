@@ -174,7 +174,7 @@ export default function HW() {
     Object.values(byKey)
       .filter((g) => g.length > 1)
       .forEach((g, gi) => {
-        const t = { letter: String.fromCharCode(65 + gi), color: COLORS[gi % COLORS.length], days: g.map(([, n]) => n) };
+        const t = { letter: "=", color: COLORS[gi % COLORS.length], days: g.map(([, n]) => n) };
         g.forEach(([day]) => { out[day] = t; });
       });
     return out;
@@ -633,11 +633,11 @@ export default function HW() {
                   className={`flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2 ${day === todayKey ? "bg-[#FBEFEC]" : ""}`}
                 >
                   <span className="text-[11px] leading-none text-neutral-900">{name}</span>
-                  {/* Days with exactly the same meals share a small circled letter. */}
+                  {/* Days with exactly the same meals share a small circled =. */}
                   {twin && (
                     <span
                       title={`Same meals as ${twin.days.filter((d) => d !== name).join(", ")}`}
-                      className="inline-flex h-[13px] w-[13px] items-center justify-center rounded-full border text-[8px] font-bold leading-none"
+                      className="inline-flex h-[13px] w-[13px] items-center justify-center rounded-full border text-[10px] font-bold leading-none"
                       style={{ borderColor: twin.color, color: twin.color }}
                     >
                       {twin.letter}
