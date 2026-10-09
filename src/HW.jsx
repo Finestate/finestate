@@ -257,8 +257,8 @@ export default function HW() {
                             className="w-full bg-transparent py-0 text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
                           />
                         </span>
-                        {/* The workout space split into three equal columns. */}
-                        {["text", "text2", "text3"].map((k, ki) => (
+                        {/* The workout space split into two equal columns. (A third column was tried; its text stays saved.) */}
+                        {["text", "text2"].map((k, ki) => (
                           <div key={k} className={`min-w-0 flex-1 basis-0 px-1.5 py-[2px] ${ki ? "border-l border-neutral-400" : ""}`}>
                             <GrowText value={w[k] || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, [k]: t } : y)) }))} rows={1} />
                           </div>
