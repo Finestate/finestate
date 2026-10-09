@@ -304,9 +304,19 @@ export default function HW() {
                             <GrowText value={w[k] || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, [k]: t } : y)) }))} rows={1} />
                           </div>
                         ))}
+                        <span className="flex shrink-0 items-start border-l border-neutral-400 px-1.5 py-[4px]">
+                          {binBtn(() => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).filter((_, yi) => yi !== wi) })))}
+                        </span>
                       </div>
                     ))}
                   </div>
+                  {/* Add sits under the frame, plain: a fresh row to fill in. */}
+                  <button
+                    onClick={() => editGroup(g.id, (x) => ({ ...x, week: [...weekOf(x), { day: "", mins: "", text: "", text2: "" }] }))}
+                    className="mt-1 flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                  >
+                    <Plus size={11} strokeWidth={3} />Add
+                  </button>
                   </>
                   )}
                 </div>
