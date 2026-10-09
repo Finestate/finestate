@@ -319,7 +319,7 @@ export default function HW() {
                           </div>
                         ))}
                         <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 py-[4px]">
-                          <button onClick={() => setRest(true)} title="Make this a break day" className="shrink-0 text-neutral-400 hover:text-neutral-900">
+                          <button onClick={() => setRest(true)} title="Make this a break day" className="shrink-0 text-neutral-900 hover:text-[#0f766e]">
                             <Pause size={11} strokeWidth={2.5} />
                           </button>
                           {binBtn(() => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).filter((_, yi) => yi !== wi) })))}
