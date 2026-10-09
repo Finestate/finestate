@@ -288,6 +288,16 @@ export default function HW() {
                             className="w-full bg-transparent py-0 text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
                           />
                         </span>
+                        {/* How long: a short dropdown, the same width as the day. */}
+                        <span className="flex w-[72px] shrink-0 items-start border-r border-neutral-400 px-1 py-[2px]">
+                          <select
+                            value={w.mins || ""}
+                            onChange={(e) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, mins: e.target.value } : y)) }))}
+                            className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
+                          >
+                            {["", "30M", "60M", "75M", "90M"].map((m) => <option key={m} value={m}>{m}</option>)}
+                          </select>
+                        </span>
                         {/* The workout space split into two equal columns. (A third column was tried; its text stays saved.) */}
                         {["text", "text2"].map((k, ki) => (
                           <div key={k} className={`min-w-0 flex-1 basis-0 px-1.5 py-[2px] ${ki ? "border-l border-neutral-400" : ""}`}>
@@ -549,7 +559,7 @@ export default function HW() {
     section("Fitness");
     (lists.fitnessGroups || []).forEach((g) => {
       out.push("", g.title || "(untitled)");
-      (g.week || []).forEach((w) => out.push(`- ${w.day}: ${w.text || ""}${w.text2 ? ` | ${w.text2}` : ""}${w.text3 ? ` | ${w.text3}` : ""}`));
+      (g.week || []).forEach((w) => out.push(`- ${w.day}${w.mins ? ` (${w.mins})` : ""}: ${w.text || ""}${w.text2 ? ` | ${w.text2}` : ""}${w.text3 ? ` | ${w.text3}` : ""}`));
       if (g.kind === "list") (g.rows || []).forEach((r) => out.push(`- ${r.text || ""}`));
       else if (!g.week) (g.rows || []).forEach((r) => out.push(`- ${r.a || ""}${r.b ? ` | ${r.b}` : ""}`));
     });
