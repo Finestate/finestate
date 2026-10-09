@@ -128,9 +128,14 @@ export default function HW() {
           procedureTracking: Array.isArray(d.procedureTracking) ? d.procedureTracking : [],
           // Fitness opens line by line, like Nutrition. The first time, the old lines move in
           // under one line called Workouts, each keeping its two halves.
-          fitnessGroups: Array.isArray(d.fitnessGroups)
-            ? d.fitnessGroups
-            : [{ id: "fg-workouts", title: "Workouts", rows: (Array.isArray(d.fitness) ? d.fitness : []).map((r) => ({ id: r.id, a: r.text || "", b: r.col2 || "" })) }],
+          fitnessGroups: (() => {
+            const base = Array.isArray(d.fitnessGroups)
+              ? d.fitnessGroups
+              : [{ id: "fg-workouts", title: "Workouts", rows: (Array.isArray(d.fitness) ? d.fitness : []).map((r) => ({ id: r.id, a: r.text || "", b: r.col2 || "" })) }];
+            // A Looks line, a plain list of its own, arrives once; delete it and it stays gone.
+            return d.fitnessLooksAdded ? base : [...base, { id: "fg-looks", title: "Looks", kind: "list", rows: [] }];
+          })(),
+          fitnessLooksAdded: true,
         });
         setNutrition({ ...(d.nutrition || {}), meals: d.nutrition?.meals || {} });
         setNotesLoaded(true);
@@ -245,6 +250,32 @@ export default function HW() {
               </div>
               {open && (
                 <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
+                  {g.kind === "list" ? (
+                    <>
+                      {/* A plain list: one line each, added and binned as you go. */}
+                      {(g.rows || []).length > 0 && (
+                        <div className="border border-neutral-400">
+                          {g.rows.map((r, ri) => (
+                            <div key={r.id} className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
+                              <div className="min-w-0 flex-1 px-1.5 py-[2px]">
+                                <GrowText value={r.text || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, text: t } : y)) }))} rows={1} />
+                              </div>
+                              <span className="flex shrink-0 items-start border-l border-neutral-400 px-1.5 py-[4px]">
+                                {binBtn(() => editGroup(g.id, (x) => ({ ...x, rows: x.rows.filter((y) => y.id !== r.id) })))}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => editGroup(g.id, (x) => ({ ...x, rows: [...(x.rows || []), { id: newId(), text: "" }] }))}
+                        className={`flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${(g.rows || []).length ? "mt-1" : ""}`}
+                      >
+                        <Plus size={11} strokeWidth={3} />Add
+                      </button>
+                    </>
+                  ) : (
+                  <>
                   {/* Seven fixed lines, Monday to Sunday: a narrow day column you can retype,
                       then the workout. The first time, earlier lines fill the days in order. */}
                   <div className="border border-neutral-400">
@@ -266,6 +297,8 @@ export default function HW() {
                       </div>
                     ))}
                   </div>
+                  </>
+                  )}
                 </div>
               )}
             </div>
@@ -517,7 +550,8 @@ export default function HW() {
     (lists.fitnessGroups || []).forEach((g) => {
       out.push("", g.title || "(untitled)");
       (g.week || []).forEach((w) => out.push(`- ${w.day}: ${w.text || ""}${w.text2 ? ` | ${w.text2}` : ""}${w.text3 ? ` | ${w.text3}` : ""}`));
-      if (!g.week) (g.rows || []).forEach((r) => out.push(`- ${r.a || ""}${r.b ? ` | ${r.b}` : ""}`));
+      if (g.kind === "list") (g.rows || []).forEach((r) => out.push(`- ${r.text || ""}`));
+      else if (!g.week) (g.rows || []).forEach((r) => out.push(`- ${r.a || ""}${r.b ? ` | ${r.b}` : ""}`));
     });
     section("Monitoring");
     (lists.monitoring || []).forEach((m) => out.push(`- Focus: ${m.focus || ""} | Planning: ${m.planning || ""} | Situation: ${m.situation || ""}`));
