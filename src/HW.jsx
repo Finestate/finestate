@@ -157,6 +157,28 @@ export default function HW() {
     setNutrition(next);
     persist({ foundational: notes, ...lists, nutrition: next });
   };
+  // Days whose six meal lines read exactly the same (spaces at the ends aside) form a
+  // group; each group gets a letter and colour, shown after the day name. Worked out
+  // afresh every time, so a change drops a day from its group straight away.
+  const DAY_LINES = ["Meal 1", "Meal 2", "Extra 2", "Meal 3", "Extra 3", "Meal 4"];
+  const twinOf = (() => {
+    const COLORS = ["#0f766e", "#9c7c33", "#C1440E", "#1d4ed8", "#7A0019", "#525252"];
+    const byKey = {};
+    DAYS.forEach(([day, name, group]) => {
+      const lines = DAY_LINES.map((m) => String(mealOf(day, group, m) || "").trim());
+      if (!lines.some(Boolean)) return;
+      const key = lines.join(" | ~ | ");
+      (byKey[key] = byKey[key] || []).push([day, name]);
+    });
+    const out = {};
+    Object.values(byKey)
+      .filter((g) => g.length > 1)
+      .forEach((g, gi) => {
+        const t = { letter: String.fromCharCode(65 + gi), color: COLORS[gi % COLORS.length], days: g.map(([, n]) => n) };
+        g.forEach(([day]) => { out[day] = t; });
+      });
+    return out;
+  })();
   const saveDayMeal = (day, meal, text) => {
     const days = nutrition.days || {};
     const next = { ...nutrition, days: { ...days, [day]: { ...(days[day] || {}), [meal]: text } } };
@@ -602,6 +624,7 @@ export default function HW() {
         {notesLoaded &&
           [...DAYS, ["considerations", "Considerations"]].map(([day, name, group]) => {
             const open = openDays.includes(day);
+            const twin = twinOf[day];
             return (
               <div key={day}>
                 <div
@@ -610,6 +633,16 @@ export default function HW() {
                   className={`flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2 ${day === todayKey ? "bg-[#FBEFEC]" : ""}`}
                 >
                   <span className="text-[11px] leading-none text-neutral-900">{name}</span>
+                  {/* Days with exactly the same meals share a small circled letter. */}
+                  {twin && (
+                    <span
+                      title={`Same meals as ${twin.days.filter((d) => d !== name).join(", ")}`}
+                      className="inline-flex h-[13px] w-[13px] items-center justify-center rounded-full border text-[8px] font-bold leading-none"
+                      style={{ borderColor: twin.color, color: twin.color }}
+                    >
+                      {twin.letter}
+                    </span>
+                  )}
                   <span className="flex-1" />
                   <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${open ? "rotate-180" : ""}`} />
                 </div>
