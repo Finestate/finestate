@@ -637,10 +637,13 @@ export default function HW() {
                   {twin && (
                     <span
                       title={`Same meals as ${twin.days.filter((d) => d !== name).join(", ")}`}
-                      className="inline-flex h-[13px] w-[13px] items-center justify-center rounded-full border text-[10px] font-bold leading-none"
-                      style={{ borderColor: twin.color, color: twin.color }}
+                      // A small filled circle with a crisp equals sign drawn from two white bars,
+                      // so it stays sharp at any size.
+                      className="inline-flex h-[12px] w-[12px] shrink-0 flex-col items-center justify-center gap-[2px] rounded-full"
+                      style={{ backgroundColor: twin.color }}
                     >
-                      {twin.letter}
+                      <span className="block h-px w-[6px] bg-white" />
+                      <span className="block h-px w-[6px] bg-white" />
                     </span>
                   )}
                   <span className="flex-1" />
