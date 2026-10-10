@@ -5,7 +5,3 @@
 .rich-line ol { list-style: decimal; padding-left: 1.25rem; }
 .rich-line blockquote { margin-left: 1.25rem; border: 0; padding: 0; }
 
-/* TEMPORARY: Errands prios and H+F order in red, as a reminder they still need
-   finishing. Delete this rule and the reminder-red class in Planning.jsx to undo. */
-.reminder-red p,
-.reminder-red [contenteditable] { color: #C1440E !important; }
