@@ -506,9 +506,10 @@ export default function Planning() {
     const shut = !groups.some((g) => anyShut(pts[g] || []));
     savePoints(b, { ...pts, ...Object.fromEntries(groups.map((g) => [g, setAllShut(pts[g] || [], shut)])) });
   };
-  // The small underlined link itself, shown only where a list has groups to fold.
+  // The small underlined link itself, shown only where a list has groups to fold. Its
+  // right edge lines up with the bins inside the boxes below (their padding and frame).
   const foldLink = (shutNow, onClick) => (
-    <button onClick={onClick} className="ml-auto text-[10px] font-normal normal-case tracking-normal text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
+    <button onClick={onClick} className="ml-auto pr-[7px] text-[10px] font-normal normal-case tracking-normal text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
       {shutNow ? "Expand all" : "Collapse all"}
     </button>
   );
