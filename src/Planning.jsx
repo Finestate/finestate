@@ -1156,8 +1156,7 @@ export default function Planning() {
           <Download size={12} strokeWidth={2.5} />
         </button>
       </div>
-      {/* The free lines come first under the Today bar, on the same pink as the day lines. */}
-      {renderTopLines()}
+      {/* The free lines under the Today bar are set aside for now; their text stays saved. */}
       {BOARDS.map(([b]) => (
         <div key={b}>{renderTodoLines(b, 0)}</div>
       ))}
