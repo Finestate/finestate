@@ -1,4 +1,4 @@
-import { Bookmark, CalendarDays, CreditCard, FileText, KeyRound, Leaf, Receipt, Shield, TrendingUp, Users, Wallet } from "lucide-react";
+import { Bookmark, CalendarDays, CreditCard, Euro, FileText, KeyRound, Leaf, Receipt, Shield, Users, Wallet } from "lucide-react";
 
 // Sidebar sections. A section with `children` is an accordion; without, a direct page.
 export const NAV = [
@@ -43,7 +43,7 @@ export const NAV = [
   {
     id: "investing",
     name: "Investing",
-    icon: TrendingUp,
+    icon: Euro,
     children: [
       // Portfolio heads the section.
       { id: "investing/portfolio", name: "Portfolio" },
