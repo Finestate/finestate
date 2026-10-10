@@ -1307,7 +1307,7 @@ export default function Planning() {
                 )}
                 {/* Finestate spells its points out in full; a company board shows only
                     the letter codes. */}
-                {MEETING_BOARDS.includes(b) || SINGLE_BOARDS.includes(b) ? (
+                {MEETING_BOARDS.includes(b) ? (
                   <>
                     <div className="order-2">{coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}</div>
                     <div className="order-3">{restCodes.length > 0 && renderCodeLine(b, restCodes, "#171717", idx)}</div>
