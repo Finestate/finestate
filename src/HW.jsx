@@ -704,7 +704,8 @@ export default function HW() {
                   // Today's line sits on the pink, so it stands out from the other days.
                   className={`flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2 ${day === todayKey ? "bg-[#FBEFEC]" : ""}`}
                 >
-                  <span className="text-[11px] leading-none text-neutral-900">{name}</span>
+                  {/* Days as three letters in a fixed width, so the = marks line up exactly. */}
+                  <span className={`text-[11px] leading-none text-neutral-900 ${day === "considerations" ? "" : "w-[24px] shrink-0"}`}>{day === "considerations" ? name : name.slice(0, 3)}</span>
                   {/* Days with exactly the same meals share a small circled =. */}
                   {twin && (
                     <span
