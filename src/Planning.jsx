@@ -1072,12 +1072,15 @@ export default function Planning() {
             style={{ backgroundColor: DAY_BG }}
             className={`flex h-[22px] items-center gap-1.5 border-t border-black px-2 ${dragTop === ti ? "opacity-40" : ""}`}
           >
+            {/* The words are for typing; the rest of the line, chevron included, opens
+                and closes the notes. */}
             <input
               value={t.text || ""}
               onChange={(e) => editTop(t.id, { text: e.target.value })}
-              className="min-w-0 flex-1 bg-transparent text-[11px] font-semibold leading-[15px] text-neutral-900 outline-none"
+              style={{ fieldSizing: "content" }}
+              className="min-w-[6ch] max-w-[70%] bg-transparent text-[11px] font-semibold leading-[15px] text-neutral-900 outline-none"
             />
-            <button onClick={() => editTop(t.id, { open: !t.open })} title={t.open ? "Close notes" : "Open notes"} className="flex shrink-0 items-center text-neutral-900 hover:text-[#9c7c33]">
+            <button onClick={() => editTop(t.id, { open: !t.open })} title={t.open ? "Close notes" : "Open notes"} className="flex h-full flex-1 items-center justify-end text-neutral-900 hover:text-[#9c7c33]">
               <ChevronDown size={12} className={`transition-transform ${t.open ? "rotate-180" : ""}`} />
             </button>
             <button onClick={() => addTopAfter(t.id)} title="Add a line under this one" className="flex shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
@@ -1096,11 +1099,34 @@ export default function Planning() {
               <Trash2 size={11} />
             </button>
           </div>
-          {t.open && (
-            <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: DAY_BG }}>
-              <BulletBox value={t.notes || ""} onChange={(v) => editTop(t.id, { notes: v })} />
-            </div>
-          )}
+          {t.open && (() => {
+            // The notes are single lines, each with its own bin; notes typed earlier as one
+            // box arrive split into lines.
+            const items = t.items || String(t.notes || "").split(/\r?\n/).filter((x) => x.trim()).map((text, k) => ({ id: `${t.id}-n${k}`, text }));
+            const setItems = (next) => editTop(t.id, { items: next });
+            return (
+              <div className="border-t border-black px-2 py-1" style={{ backgroundColor: DAY_BG }}>
+                {items.map((it, k) => (
+                  <div key={it.id} className={`flex h-[20px] items-center gap-1.5 pl-4 ${k ? "border-t border-neutral-300" : ""}`}>
+                    <input
+                      value={it.text}
+                      onChange={(e) => setItems(items.map((x) => (x.id === it.id ? { ...x, text: e.target.value } : x)))}
+                      className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
+                    />
+                    <button onClick={() => setItems(items.filter((x) => x.id !== it.id))} title="Remove this note" className="flex shrink-0 items-center text-neutral-900 hover:text-[#C1440E]">
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => setItems([...items, { id: newId(), text: "" }])}
+                  className="flex h-[18px] items-center gap-[2px] pl-4 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                >
+                  <Plus size={11} strokeWidth={3} />Add
+                </button>
+              </div>
+            );
+          })()}
         </div>
       ))}
       {dragTop != null && dropTop === topLines.length && <div className="h-[2px] bg-[#C1440E]" />}
