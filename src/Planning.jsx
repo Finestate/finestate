@@ -210,14 +210,18 @@ const BOARDS = [
   ["silx", "Silx"],
   ["says", "Says"],
   ["servefast", "Servefast"],
+  // Finestate's own board, at the foot: one column of points, nothing else.
+  ["fin", "Finestate"],
 ];
+// Boards whose dropdown is a single column of points: no labels, no notes.
+const SINGLE_BOARDS = ["fin"];
 // They were first called "Daily master" and so on; saved rows are renamed on load.
 const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep" };
 // Only Prep carries a bar now; the company boards hang underneath it unlabelled.
 const OLD_BARS = ["DAILY SILX", "DAILY SAYS", "DAILY SERVEFAST", "SILX", "SAYS", "SERVEFAST"];
 const DAILY_GROUP = "Daily";
 // What an empty day line shows, so the four boards still read apart at a glance.
-const BOARD_TAGS = { master: "Finestate", silx: "Silx", says: "Says", servefast: "Servefast" };
+const BOARD_TAGS = { master: "General", silx: "Silx", says: "Says", servefast: "Servefast", fin: "Finestate" };
 // A solid burgundy for the marks on a meeting, so they read clearly.
 const MEETING_ICON = "#7B1E3A";
 // The faintest wash of the table red, behind every pair of day lines.
@@ -236,6 +240,7 @@ const GROUP_LABELS = {
   silx: ["Prios", "Non-prios"],
   says: ["Prios", "Non-prios"],
   servefast: ["Prios", "Non-prios"],
+  fin: ["", ""],
 };
 // Points a board starts with, taken from the site it came from.
 const BOARD_SEEDS = {
@@ -1006,7 +1011,7 @@ export default function Planning() {
         out.push("", "Meetings");
         (board.meetings || []).forEach((m) => out.push(`- ${m.name}${m.permanent ? " (permanent)" : ""}`));
       }
-      (b === "master" ? ["core", "rest"] : ["hyper", "core", "rest"]).forEach((g) => {
+      (b === "master" ? ["core", "rest"] : SINGLE_BOARDS.includes(b) ? ["core"] : ["hyper", "core", "rest"]).forEach((g) => {
         const gi = g === "rest" ? 1 : 0;
         const label = g === "hyper" ? "Hyper-prios" : (GROUP_LABELS[b] || [])[gi] || (g === "core" ? "Core points" : "Other points");
         out.push("", label);
@@ -1270,7 +1275,7 @@ export default function Planning() {
                 )}
                 {/* Finestate spells its points out in full; a company board shows only
                     the letter codes. */}
-                {MEETING_BOARDS.includes(b) ? (
+                {MEETING_BOARDS.includes(b) || SINGLE_BOARDS.includes(b) ? (
                   <>
                     <div className="order-2">{coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}</div>
                     <div className="order-3">{restCodes.length > 0 && renderCodeLine(b, restCodes, "#171717", idx)}</div>
@@ -1300,7 +1305,7 @@ export default function Planning() {
               // non-prios and its department notes.
               // On trial for Finestate: its core points column is set aside, so meetings (left)
               // and the long list (right) share the top row in two equal halves.
-              <div className={`grid ${b === "master" ? "grid-cols-2" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
+              <div className={`grid ${SINGLE_BOARDS.includes(b) ? "grid-cols-1" : b === "master" ? "grid-cols-2" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
@@ -1412,7 +1417,7 @@ export default function Planning() {
                 </div>
                 )}
 
-                {["core", "rest"].filter((col) => !(b === "master" && col === "core")).map((col) => { const gi = col === "rest" ? 1 : 0; return (
+                {["core", "rest"].filter((col) => !(b === "master" && col === "core") && !(SINGLE_BOARDS.includes(b) && col === "rest")).map((col) => { const gi = col === "rest" ? 1 : 0; return (
                   <div key={col} className={`${col === "core" ? "order-2" : "order-3"} self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     <div
                       className="flex h-full flex-col gap-1"
@@ -1420,16 +1425,16 @@ export default function Planning() {
                       onDrop={() => dropPoint(b)}
                       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropP(null); }}
                     >
-                      {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master") && (
+                      {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master" && !SINGLE_BOARDS.includes(b)) && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
                       )}
                       {/* A company board's Prios column holds two groups: Hyper-prios on top, then the
                           regular ones; points are dragged between them. */}
-                      {(col === "core" && b !== "master" ? ["hyper", "core"] : [col]).map((g) => {
+                      {(col === "core" && b !== "master" && !SINGLE_BOARDS.includes(b) ? ["hyper", "core"] : [col]).map((g) => {
                         const list = points[g] || [];
                         return (
                       <Fragment key={g}>
-                      {col === "core" && b !== "master" && (
+                      {col === "core" && b !== "master" && !SINGLE_BOARDS.includes(b) && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
                       )}
                       {/* An empty group still takes a dragged point. */}
@@ -1554,7 +1559,7 @@ export default function Planning() {
                 {/* Master's personal lists sit at the very bottom of the open picker. */}
                 {MEETING_BOARDS.includes(b) && renderTwoCols(idx)}
                 {/* A company board closes with its department notes instead. */}
-                {!MEETING_BOARDS.includes(b) && (
+                {!MEETING_BOARDS.includes(b) && !SINGLE_BOARDS.includes(b) && (
                   <div className="order-3 flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
                     {/* The tools sit in their own strip across the top of the field. */}
                     <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
