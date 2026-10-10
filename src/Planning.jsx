@@ -221,7 +221,7 @@ const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep" };
 const OLD_BARS = ["DAILY SILX", "DAILY SAYS", "DAILY SERVEFAST", "SILX", "SAYS", "SERVEFAST"];
 const DAILY_GROUP = "Daily";
 // What an empty day line shows, so the four boards still read apart at a glance.
-const BOARD_TAGS = { master: "General", silx: "Silx", says: "Says", servefast: "Servefast", fin: "Finestate" };
+const BOARD_TAGS = { master: "Master", silx: "Silx", says: "Says", servefast: "Servefast", fin: "Finestate" };
 // A solid burgundy for the marks on a meeting, so they read clearly.
 const MEETING_ICON = "#7B1E3A";
 // The faintest wash of the table red, behind every pair of day lines.
