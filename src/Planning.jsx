@@ -1017,6 +1017,10 @@ export default function Planning() {
                 {c.slice(0, -1)}
                 {/* On the line it always reads in lower case, whatever was typed below. */}
                 <span className="whitespace-pre lowercase" style={{ color: "#B01E2F" }}>{fill}</span>
+                {/* The ticked errands always come first; anything typed follows after a dash. */}
+                {fill && (boards[b].lines[idx]?.extras?.[c] || "").trim() && !/^\s*-/.test(boards[b].lines[idx].extras[c]) && (
+                  <span style={{ color: "#B01E2F" }}>-</span>
+                )}
                 <span className="lowercase" onClick={(e) => e.stopPropagation()}>
                   <FillText key={`${b}-${idx}-${c}-extra`} text={boards[b].lines[idx]?.extras?.[c] || ""} onChange={(t) => setExtra(b, idx, c, t)} />
                 </span>
