@@ -28,8 +28,8 @@ const COSTS = [
 ];
 
 // A live figure: the last one is kept in this browser and shown at once; when it is over
-// an hour old a fresh one is read quietly behind it and swapped in.
-function useLiveCost(name, path) {
+// `maxAge` old (an hour unless given) a fresh one is read quietly behind it and swapped in.
+function useLiveCost(name, path, maxAge = 60 * 60 * 1000) {
   const month = new Date().toISOString().slice(0, 7);
   const store = `${name}-cost`;
   const saved = (() => {
@@ -39,7 +39,7 @@ function useLiveCost(name, path) {
   const [usd, setUsd] = useState(usable ? saved.usd : null);
   const [err, setErr] = useState("");
   useEffect(() => {
-    if (usable && Date.now() - saved.at < 60 * 60 * 1000) return;
+    if (usable && Date.now() - saved.at < maxAge) return;
     (async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -59,7 +59,8 @@ function useLiveCost(name, path) {
 
 export default function SiteRunningCosts() {
   const [anthropic, errA] = useLiveCost("anthropic", "/api/anthropic-cost");
-  const [vercel, errV] = useLiveCost("vercel", "/api/vercel-cost");
+  // Vercel bills by the day, so its figure is read once a day.
+  const [vercel, errV] = useLiveCost("vercel", "/api/vercel-cost", 24 * 60 * 60 * 1000);
   const live = { anthropic, vercel };
 
   const priceOf = (c) => (c.live ? (live[c.live] ?? 0) : parseFloat(c.price) || 0);

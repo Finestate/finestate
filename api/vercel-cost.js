@@ -29,29 +29,30 @@ export default async function handler(req, res) {
     const now = new Date();
     const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
     const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)).toISOString();
-    let usd = 0;
-    const per = [];
+    // All teams asked at once, so the answer comes back quickly.
     const notes = [];
-    for (const t of teams) {
-      const r = await api(`/v1/billing/charges?teamId=${encodeURIComponent(t.id)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, key);
-      const body = await r.text();
-      if (!r.ok) {
-        // A team whose plan has no billing feed (or no charges yet) counts as nothing.
-        let msg = "";
-        try { msg = JSON.parse(body)?.error?.message || ""; } catch {}
-        notes.push(`${t.name || t.slug}: ${msg || `answered ${r.status}`}`);
-        per.push({ team: t.name || t.slug, usd: 0 });
-        continue;
-      }
-      // One charge per line (JSONL); BilledCost is what is actually billed.
-      let sum = 0;
-      for (const line of body.split("\n")) {
-        if (!line.trim()) continue;
-        try { sum += Number(JSON.parse(line).BilledCost) || 0; } catch {}
-      }
-      usd += sum;
-      per.push({ team: t.name || t.slug, usd: sum });
-    }
+    const per = await Promise.all(
+      teams.map(async (t) => {
+        const r = await api(`/v1/billing/charges?teamId=${encodeURIComponent(t.id)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, key);
+        const body = await r.text();
+        if (!r.ok) {
+          // A team whose plan has no billing feed (or no charges yet) counts as nothing.
+          let msg = "";
+          try { msg = JSON.parse(body)?.error?.message || ""; } catch {}
+          notes.push(`${t.name || t.slug}: ${msg || `answered ${r.status}`}`);
+          return { team: t.name || t.slug, usd: 0 };
+        }
+        // One charge per line (JSONL); BilledCost is what is actually billed.
+        let sum = 0;
+        for (const line of body.split("
+")) {
+          if (!line.trim()) continue;
+          try { sum += Number(JSON.parse(line).BilledCost) || 0; } catch {}
+        }
+        return { team: t.name || t.slug, usd: sum };
+      })
+    );
+    const usd = per.reduce((s, p) => s + p.usd, 0);
     res.setHeader("Cache-Control", "private, max-age=300");
     res.status(200).json({ usd, per, notes, from, at: now.toISOString() });
   } catch (e) {
