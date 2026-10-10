@@ -807,6 +807,14 @@ export default function Planning() {
     const fills = { ...(line.fills || {}) };
     const extras = { ...(line.extras || {}) };
     if (has) { delete fills[code]; delete extras[code]; }
+    // Ticking the errands point on Master fills its brackets at once with the errand
+    // lines already ticked for that day, rather than waiting for the next tick.
+    if (!has && b === "master" && /errands/i.test(code) && /\(\s*\)$/.test(code)) {
+      fills[code] = TWOCOLS
+        .flatMap(([k]) => (cols[k] || []).filter((r) => isPicked(r, idx)).map((r) => String(r.text || "").trim()))
+        .filter(Boolean)
+        .join("-");
+    }
     patchLine(b, idx, { codes: has ? line.codes.filter((c) => c !== code) : [...line.codes, code], fills, extras });
   };
 
