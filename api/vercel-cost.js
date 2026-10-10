@@ -44,8 +44,7 @@ export default async function handler(req, res) {
         }
         // One charge per line (JSONL); BilledCost is what is actually billed.
         let sum = 0;
-        for (const line of body.split("
-")) {
+        for (const line of body.split(/\r?\n/)) {
           if (!line.trim()) continue;
           try { sum += Number(JSON.parse(line).BilledCost) || 0; } catch {}
         }
