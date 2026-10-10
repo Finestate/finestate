@@ -1272,7 +1272,9 @@ export default function Planning() {
               // No background of its own, so an open picker keeps the board's colour.
               // Master: core, meetings, the long list. A company board: prios,
               // non-prios and its department notes.
-              <div className="grid grid-cols-3 items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5">
+              // On trial for Finestate: its core points column is set aside, so meetings (left)
+              // and the long list (right) share the top row in two equal halves.
+              <div className={`grid ${b === "master" ? "grid-cols-2" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
@@ -1384,7 +1386,7 @@ export default function Planning() {
                 </div>
                 )}
 
-                {["core", "rest"].map((col, gi) => (
+                {["core", "rest"].filter((col) => !(b === "master" && col === "core")).map((col) => { const gi = col === "rest" ? 1 : 0; return (
                   <div key={col} className={`${col === "core" ? "order-2" : "order-3"} self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     <div
                       className="flex h-full flex-col gap-1"
@@ -1522,7 +1524,7 @@ export default function Planning() {
                       )}
                     </div>
                   </div>
-                ))}
+                ); })}
                 {/* Master's personal lists sit at the very bottom of the open picker. */}
                 {MEETING_BOARDS.includes(b) && renderTwoCols(idx)}
                 {/* A company board closes with its department notes instead. */}
@@ -1563,7 +1565,7 @@ export default function Planning() {
   // sitting at the foot of Master's open day line.
   const renderTwoCols = (lineIdx) => (
     <>
-      <div className="order-4 col-span-3 grid grid-cols-3 items-start gap-1.5">
+      <div className="order-4 col-span-full grid grid-cols-3 items-start gap-1.5">
         {TWOCOLS.map(([k, label]) => { const hidden = hiddenRows(cols[k]); return (
           // TEMPORARY: reminder-red turns all text in these two columns red, as a note
           // that they still need finishing. Remove the class to put them back.
