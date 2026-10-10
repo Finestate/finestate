@@ -1034,7 +1034,7 @@ export default function Planning() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  // Lines right at the top of Daily: each one a full-width line to type anything into,
+  // Lines right under the Today bar: each one a full-width line to type anything into,
   // with its own dropdown of notes underneath. Added with the + on a line, binned,
   // and dragged into any order by the grip. Saved with the personal lists in Supabase.
   const [dragTop, setDragTop] = useState(null); // index of the line being dragged
@@ -1069,7 +1069,8 @@ export default function Planning() {
               const box = e.currentTarget.getBoundingClientRect();
               setDropTop(e.clientY < box.top + box.height / 2 ? ti : ti + 1);
             }}
-            className={`flex h-[22px] items-center gap-1.5 px-2 ${ti ? "border-t border-black" : ""} ${dragTop === ti ? "opacity-40" : ""}`}
+            style={{ backgroundColor: DAY_BG }}
+            className={`flex h-[22px] items-center gap-1.5 border-t border-black px-2 ${dragTop === ti ? "opacity-40" : ""}`}
           >
             <input
               value={t.text || ""}
@@ -1107,7 +1108,8 @@ export default function Planning() {
       {topLines.length === 0 && (
         <button
           onClick={() => saveTop([{ id: newId(), text: "" }])}
-          className="flex h-[22px] w-full items-center gap-[2px] px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+          style={{ backgroundColor: DAY_BG }}
+          className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
         >
           <Plus size={11} strokeWidth={3} />Add
         </button>
@@ -1123,6 +1125,8 @@ export default function Planning() {
           <Download size={12} strokeWidth={2.5} />
         </button>
       </div>
+      {/* The free lines come first under the Today bar, on the same pink as the day lines. */}
+      {renderTopLines()}
       {BOARDS.map(([b]) => (
         <div key={b}>{renderTodoLines(b, 0)}</div>
       ))}
@@ -1834,7 +1838,7 @@ export default function Planning() {
             const sectionEnd =
               (i === rows.length - 1 || rows[i + 1].type !== "text") && !isTodoHeader(headingFor(i) || {});
             // The Daily bar itself is not shown; Today, which hangs under it, opens the table.
-            if (isDailyGroup(r)) return <div key={r.id}>{i === 0 && renderTopLines()}{renderToday(false)}</div>;
+            if (isDailyGroup(r)) return <div key={r.id}>{renderToday(i === 0)}</div>;
             return (
               <div key={r.id}>
                 <div
