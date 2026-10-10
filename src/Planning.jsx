@@ -210,10 +210,10 @@ const BOARDS = [
   ["silx", "Silx"],
   ["says", "Says"],
   ["servefast", "Servefast"],
-  // Finestate's own board, at the foot: one column of points, nothing else.
+  // Finestate's own board, at the foot: Prios and Non-prios, nothing else.
   ["fin", "Finestate"],
 ];
-// Boards whose dropdown is a single column of points: no labels, no notes.
+// Boards whose dropdown is just Prios and Non-prios side by side: no hyper-prios, no notes.
 const SINGLE_BOARDS = ["fin"];
 // They were first called "Daily master" and so on; saved rows are renamed on load.
 const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep" };
@@ -240,7 +240,7 @@ const GROUP_LABELS = {
   silx: ["Prios", "Non-prios"],
   says: ["Prios", "Non-prios"],
   servefast: ["Prios", "Non-prios"],
-  fin: ["", ""],
+  fin: ["Prios", "Non-prios"],
 };
 // Points a board starts with, taken from the site it came from.
 const BOARD_SEEDS = {
@@ -1011,7 +1011,7 @@ export default function Planning() {
         out.push("", "Meetings");
         (board.meetings || []).forEach((m) => out.push(`- ${m.name}${m.permanent ? " (permanent)" : ""}`));
       }
-      (b === "master" ? ["core", "rest"] : SINGLE_BOARDS.includes(b) ? ["core"] : ["hyper", "core", "rest"]).forEach((g) => {
+      (b === "master" ? ["core", "rest"] : SINGLE_BOARDS.includes(b) ? ["core", "rest"] : ["hyper", "core", "rest"]).forEach((g) => {
         const gi = g === "rest" ? 1 : 0;
         const label = g === "hyper" ? "Hyper-prios" : (GROUP_LABELS[b] || [])[gi] || (g === "core" ? "Core points" : "Other points");
         out.push("", label);
@@ -1304,7 +1304,7 @@ export default function Planning() {
               // non-prios and its department notes.
               // On trial for Finestate: its core points column is set aside, so meetings (left)
               // and the long list (right) share the top row in two equal halves.
-              <div className={`grid ${SINGLE_BOARDS.includes(b) ? "grid-cols-1" : b === "master" ? "grid-cols-2" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
+              <div className={`grid ${SINGLE_BOARDS.includes(b) || b === "master" ? "grid-cols-2" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
@@ -1416,7 +1416,7 @@ export default function Planning() {
                 </div>
                 )}
 
-                {["core", "rest"].filter((col) => !(b === "master" && col === "core") && !(SINGLE_BOARDS.includes(b) && col === "rest")).map((col) => { const gi = col === "rest" ? 1 : 0; return (
+                {["core", "rest"].filter((col) => !(b === "master" && col === "core")).map((col) => { const gi = col === "rest" ? 1 : 0; return (
                   <div key={col} className={`${col === "core" ? "order-2" : "order-3"} self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     <div
                       className="flex h-full flex-col gap-1"
