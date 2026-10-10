@@ -215,6 +215,11 @@ const BOARDS = [
 ];
 // Boards whose dropdown is Prios, Non-prios and notes: no hyper-prios.
 const SINGLE_BOARDS = ["fin"];
+// Boards whose first column is Hyper-prios only, no Regular prios.
+const HYPER_ONLY = ["servefast", "fin"];
+// Which point groups a dropdown column holds, top to bottom.
+const colGroups = (b, col) =>
+  col === "rest" ? ["rest"] : b === "master" ? ["core"] : HYPER_ONLY.includes(b) ? ["hyper"] : ["hyper", "core"];
 // They were first called "Daily master" and so on; saved rows are renamed on load.
 const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep" };
 // Only Prep carries a bar now; the company boards hang underneath it unlabelled.
@@ -764,6 +769,16 @@ export default function Planning() {
   };
   const saveMeetings = (b, next) => patchBoard(b, { meetings: next });
   const savePoints = (b, next) => patchBoard(b, { points: next });
+  // Servefast and HEIE keep no Regular prios: any still there join the Hyper-prios, once
+  // Planning has its saved copy.
+  useEffect(() => {
+    if (!cloudReady.current) return;
+    HYPER_ONLY.forEach((b) => {
+      const pts = boards[b]?.points;
+      if (pts?.core?.length) savePoints(b, { ...pts, hyper: [...(pts.hyper || []), ...pts.core], core: [] });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boards]);
   const saveNotes = (b, text) => patchBoard(b, { notes: text });
   // The notes ribbon: the browser's own commands, on whatever is selected there.
   // "scratch" is Master's free column, which is kept with the personal order lists.
@@ -1029,7 +1044,7 @@ export default function Planning() {
         out.push("", "Meetings");
         (board.meetings || []).forEach((m) => out.push(`- ${m.name}${m.permanent ? " (permanent)" : ""}`));
       }
-      (b === "master" ? ["core", "rest"] : SINGLE_BOARDS.includes(b) ? ["core", "rest"] : ["hyper", "core", "rest"]).forEach((g) => {
+      (b === "master" ? ["core", "rest"] : HYPER_ONLY.includes(b) ? ["hyper", "rest"] : ["hyper", "core", "rest"]).forEach((g) => {
         const gi = g === "rest" ? 1 : 0;
         const label = g === "hyper" ? "Hyper-prios" : (GROUP_LABELS[b] || [])[gi] || (g === "core" ? "Core points" : "Other points");
         out.push("", label);
@@ -1443,21 +1458,21 @@ export default function Planning() {
                       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropP(null); }}
                     >
                       {(() => {
-                        const groups = col === "core" && b !== "master" && !SINGLE_BOARDS.includes(b) ? ["hyper", "core"] : [col];
+                        const groups = colGroups(b, col);
                         const lists = groups.map((g) => points[g] || []);
                         if (!lists.some(hasHeads)) return null;
                         return <div className="flex h-[13px] items-center">{foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}</div>;
                       })()}
-                      {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master" && !SINGLE_BOARDS.includes(b)) && (
+                      {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master") && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
                       )}
                       {/* A company board's Prios column holds two groups: Hyper-prios on top, then the
                           regular ones; points are dragged between them. */}
-                      {(col === "core" && b !== "master" && !SINGLE_BOARDS.includes(b) ? ["hyper", "core"] : [col]).map((g) => {
+                      {colGroups(b, col).map((g) => {
                         const list = points[g] || [];
                         return (
                       <Fragment key={g}>
-                      {col === "core" && b !== "master" && !SINGLE_BOARDS.includes(b) && (
+                      {col === "core" && b !== "master" && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
                       )}
                       {/* An empty group still takes a dragged point. */}
@@ -1567,9 +1582,9 @@ export default function Planning() {
 
                       {/* The add on the floor of the column shows only while it is empty; after that,
                           each point's own + adds under it. */}
-                      {(points[col] || []).length === 0 && (
+                      {colGroups(b, col).every((g) => (points[g] || []).length === 0) && (
                       <button
-                        onClick={() => addPoint(b, col)}
+                        onClick={() => addPoint(b, colGroups(b, col).slice(-1)[0])}
                         title="Add a point"
                         className="mt-auto flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
                       >
