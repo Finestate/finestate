@@ -495,6 +495,23 @@ export default function Planning() {
     if (lines.length) syncErrands(next, lines);
   };
   const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
+  // Expand all / Collapse all for a list: if any group in it is shut, open them all;
+  // otherwise shut every group head.
+  const anyShut = (list) => list.some((r, i) => isHead(list, i) && r.closed);
+  const hasHeads = (list) => list.some((_, i) => isHead(list, i));
+  const setAllShut = (list, shut) => list.map((r, i) => (isHead(list, i) ? { ...r, closed: shut } : r));
+  const foldAllCol = (k) => saveCols({ ...cols, [k]: setAllShut(cols[k], !anyShut(cols[k])) });
+  const foldAllPoints = (b, groups) => {
+    const pts = boards[b].points;
+    const shut = !groups.some((g) => anyShut(pts[g] || []));
+    savePoints(b, { ...pts, ...Object.fromEntries(groups.map((g) => [g, setAllShut(pts[g] || [], shut)])) });
+  };
+  // The small underlined link itself, shown only where a list has groups to fold.
+  const foldLink = (shutNow, onClick) => (
+    <button onClick={onClick} className="ml-auto text-[10px] font-normal normal-case tracking-normal text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]">
+      {shutNow ? "Expand all" : "Collapse all"}
+    </button>
+  );
   const toggleColClosed = (k, id) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, closed: !r.closed } : r)) });
   const stepColRow = (k, id, d) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? stepLevel(r, d) : r)) });
   // Ticked lines write themselves into the Errandsprios brackets on today's line,
@@ -1424,6 +1441,12 @@ export default function Planning() {
                       onDrop={() => dropPoint(b)}
                       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropP(null); }}
                     >
+                      {(() => {
+                        const groups = col === "core" && b !== "master" && !SINGLE_BOARDS.includes(b) ? ["hyper", "core"] : [col];
+                        const lists = groups.map((g) => points[g] || []);
+                        if (!lists.some(hasHeads)) return null;
+                        return <div className="flex h-[13px] items-center">{foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}</div>;
+                      })()}
                       {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master" && !SINGLE_BOARDS.includes(b)) && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
                       )}
@@ -1598,7 +1621,10 @@ export default function Planning() {
       <div className="order-4 col-span-full grid grid-cols-3 items-start gap-1.5">
         {TWOCOLS.map(([k, label]) => { const hidden = hiddenRows(cols[k]); return (
           <div key={k} className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
-            <p className="mb-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
+            <p className="mb-1 flex items-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
+              {label}
+              {hasHeads(cols[k]) && foldLink(anyShut(cols[k]), () => foldAllCol(k))}
+            </p>
             <div
               className="flex flex-1 flex-col gap-1"
               onDragOver={(e) => e.preventDefault()}
