@@ -1349,14 +1349,14 @@ export default function Planning() {
               // non-prios and its department notes.
               // On trial for Finestate: its core points column is set aside, so meetings (left)
               // and the long list (right) share the top row in two equal halves.
-              <div className={`grid ${b === "master" ? "grid-cols-2" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
+              <div className={`grid ${b === "master" ? "grid-cols-5" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => { if (drag?.from === "pool") dropPoolMeeting(b); else returnToPool(b); }}
                   onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropM(null); }}
                   // Meetings come first, on the left; the core codes sit in the middle.
-                  className="order-1 flex flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
+                  className="order-1 flex min-w-0 flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
                 >
                   {meetings.map((m, mi) => (
                     <div key={m.id}>
@@ -1462,7 +1462,7 @@ export default function Planning() {
                 )}
 
                 {["core", "rest"].filter((col) => !(b === "master" && col === "core")).map((col) => { const gi = col === "rest" ? 1 : 0; return (
-                  <div key={col} className={`${col === "core" ? "order-2" : "order-3"} self-stretch border-[3px] border-[#C1440E] p-1.5`}>
+                  <div key={col} className={`${col === "core" ? "order-2" : "order-3"} min-w-0 self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     <div
                       className="flex h-full flex-col gap-1"
                       onDragOver={(e) => e.preventDefault()}
@@ -1636,9 +1636,10 @@ export default function Planning() {
   // sitting at the foot of Master's open day line.
   const renderTwoCols = (lineIdx) => (
     <>
-      <div className="order-4 col-span-full grid grid-cols-3 items-start gap-1.5">
+      {/* On trial: the three lists sit in the same row as meetings and the long list, five across. */}
+      <div className="contents">
         {TWOCOLS.map(([k, label]) => { const hidden = hiddenRows(cols[k]); return (
-          <div key={k} className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+          <div key={k} className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 flex items-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
               {label}
               {hasHeads(cols[k]) && foldLink(anyShut(cols[k]), () => foldAllCol(k))}
@@ -1746,7 +1747,7 @@ export default function Planning() {
           </div>
         ); })}
         {/* Third column: a free field, no lines and no tick boxes, just text. */}
-        <div className="flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+        <div className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
           <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "bold")} title="Bold the highlighted words" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]">
               <span className="text-[13px] font-black leading-none tracking-tight">B</span>
