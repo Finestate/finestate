@@ -454,7 +454,7 @@ export default function Planning() {
   const [todoAnchor, setTodoAnchor] = useState(() => { try { return localStorage.getItem(TODO_ANCHOR_KEY) || null; } catch { return null; } });
   // Errands prios and H+F order: plain lists, each line typed, moved or binned.
   // These hold door codes and names, so they live in Supabase, never in this public repo.
-  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [], temp: "" });
+  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [], temp: "", toplines: [] });
   useEffect(() => {
     supabase
       .from("admin_docs")
@@ -464,7 +464,7 @@ export default function Planning() {
       .then(({ data }) => {
         const d = data?.data;
         // A column added later starts empty rather than undefined.
-        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [], temp: d.temp || "" });
+        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [], temp: d.temp || "", toplines: Array.isArray(d.toplines) ? d.toplines : [{ id: newId(), text: "" }] });
       });
   }, []);
   const saveCols = (next) => {
@@ -1033,6 +1033,87 @@ export default function Planning() {
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+
+  // Lines right at the top of Daily: each one a full-width line to type anything into,
+  // with its own dropdown of notes underneath. Added with the + on a line, binned,
+  // and dragged into any order by the grip. Saved with the personal lists in Supabase.
+  const [dragTop, setDragTop] = useState(null); // index of the line being dragged
+  const [dropTop, setDropTop] = useState(null); // where it would land: before this index
+  const topLines = cols.toplines || [];
+  const saveTop = (next) => saveCols({ ...cols, toplines: next });
+  const editTop = (id, fields) => saveTop(topLines.map((x) => (x.id === id ? { ...x, ...fields } : x)));
+  const addTopAfter = (id) => {
+    const list = topLines.slice();
+    list.splice(list.findIndex((x) => x.id === id) + 1, 0, { id: newId(), text: "" });
+    saveTop(list);
+  };
+  const dropTopLine = () => {
+    if (dragTop != null && dropTop != null && dragTop !== dropTop && dragTop + 1 !== dropTop) {
+      const list = topLines.slice();
+      const [moved] = list.splice(dragTop, 1);
+      list.splice(dropTop > dragTop ? dropTop - 1 : dropTop, 0, moved);
+      saveTop(list);
+    }
+    setDragTop(null);
+    setDropTop(null);
+  };
+  const renderTopLines = () => (
+    <div onDragOver={(e) => e.preventDefault()} onDrop={dropTopLine}>
+      {topLines.map((t, ti) => (
+        <div key={t.id}>
+          {dragTop != null && dropTop === ti && <div className="h-[2px] bg-[#C1440E]" />}
+          <div
+            onDragOver={(e) => {
+              if (dragTop == null) return;
+              e.preventDefault();
+              const box = e.currentTarget.getBoundingClientRect();
+              setDropTop(e.clientY < box.top + box.height / 2 ? ti : ti + 1);
+            }}
+            className={`flex h-[22px] items-center gap-1.5 px-2 ${ti ? "border-t border-black" : ""} ${dragTop === ti ? "opacity-40" : ""}`}
+          >
+            <input
+              value={t.text || ""}
+              onChange={(e) => editTop(t.id, { text: e.target.value })}
+              className="min-w-0 flex-1 bg-transparent text-[11px] font-semibold leading-[15px] text-neutral-900 outline-none"
+            />
+            <button onClick={() => editTop(t.id, { open: !t.open })} title={t.open ? "Close notes" : "Open notes"} className="flex shrink-0 items-center text-neutral-900 hover:text-[#9c7c33]">
+              <ChevronDown size={12} className={`transition-transform ${t.open ? "rotate-180" : ""}`} />
+            </button>
+            <button onClick={() => addTopAfter(t.id)} title="Add a line under this one" className="flex shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
+              <Plus size={11} strokeWidth={3} />
+            </button>
+            <span
+              draggable
+              onDragStart={() => setDragTop(ti)}
+              onDragEnd={() => { setDragTop(null); setDropTop(null); }}
+              title="Drag to move"
+              className="flex shrink-0 cursor-grab items-center text-neutral-400 active:cursor-grabbing"
+            >
+              <GripVertical size={11} />
+            </span>
+            <button onClick={() => ask(() => saveTop(topLines.filter((x) => x.id !== t.id)))} title="Remove this line" className="flex shrink-0 items-center text-neutral-900 hover:text-[#C1440E]">
+              <Trash2 size={11} />
+            </button>
+          </div>
+          {t.open && (
+            <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: DAY_BG }}>
+              <BulletBox value={t.notes || ""} onChange={(v) => editTop(t.id, { notes: v })} />
+            </div>
+          )}
+        </div>
+      ))}
+      {dragTop != null && dropTop === topLines.length && <div className="h-[2px] bg-[#C1440E]" />}
+      {/* With every line binned, one Add brings the first back. */}
+      {topLines.length === 0 && (
+        <button
+          onClick={() => saveTop([{ id: newId(), text: "" }])}
+          className="flex h-[22px] w-full items-center gap-[2px] px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+        >
+          <Plus size={11} strokeWidth={3} />Add
+        </button>
+      )}
+    </div>
+  );
 
   const renderToday = (first = false) => (
     <>
@@ -1753,7 +1834,7 @@ export default function Planning() {
             const sectionEnd =
               (i === rows.length - 1 || rows[i + 1].type !== "text") && !isTodoHeader(headingFor(i) || {});
             // The Daily bar itself is not shown; Today, which hangs under it, opens the table.
-            if (isDailyGroup(r)) return <div key={r.id}>{renderToday(i === 0)}</div>;
+            if (isDailyGroup(r)) return <div key={r.id}>{i === 0 && renderTopLines()}{renderToday(false)}</div>;
             return (
               <div key={r.id}>
                 <div
