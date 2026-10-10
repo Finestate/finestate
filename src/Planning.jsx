@@ -1521,11 +1521,6 @@ export default function Planning() {
                         >
                           {/* A group head opens and closes at a click; other points keep the space. */}
                           <span className="flex h-[15px] w-[11px] shrink-0 items-center">
-                            {hasNotes(it) && !isHead(list, pi) && (
-                              <button onClick={() => patchPoint(b, g, it.id, { notesOpen: !it.notesOpen })} title={it.notesOpen ? "Close" : "Open"} className="flex items-center text-neutral-900 hover:text-[#C1440E]">
-                                {it.notesOpen ? <ChevronDown size={11} strokeWidth={2.75} /> : <ChevronRight size={11} strokeWidth={2.75} />}
-                              </button>
-                            )}
                             {isHead(list, pi) && (
                               <button onClick={() => togglePointClosed(b, g, it.id)} title={it.closed ? "Open" : "Close"} className="flex items-center text-neutral-900 hover:text-[#C1440E]">
                                 {it.closed ? <ChevronRight size={11} strokeWidth={2.75} /> : <ChevronDown size={11} strokeWidth={2.75} />}
@@ -1578,11 +1573,6 @@ export default function Planning() {
                             <Trash2 size={11} />
                           </button>
                         </div>
-                        {hasNotes(it) && it.notesOpen && (
-                          <div className="mt-1" style={levelOf(it) ? { marginLeft: `${20 * levelOf(it)}px` } : undefined}>
-                            <BulletBox value={it.notes || ""} onChange={(t) => patchPoint(b, g, it.id, { notes: t })} />
-                          </div>
-                        )}
                         </div>
                       ))}
                       {dragP?.board === b && dropP?.board === b && dropP.group === g && list.length > 0 && dropP.index === list.length && (
