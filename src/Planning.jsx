@@ -210,10 +210,10 @@ const BOARDS = [
   ["silx", "Silx"],
   ["says", "Says"],
   ["servefast", "Servefast"],
-  // Finestate's own board, at the foot: Prios and Non-prios, nothing else.
+  // HEIE's own board, at the foot: Prios, Non-prios and a notes field.
   ["fin", "HEIE"],
 ];
-// Boards whose dropdown is just Prios and Non-prios side by side: no hyper-prios, no notes.
+// Boards whose dropdown is Prios, Non-prios and notes: no hyper-prios.
 const SINGLE_BOARDS = ["fin"];
 // They were first called "Daily master" and so on; saved rows are renamed on load.
 const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep" };
@@ -1322,7 +1322,7 @@ export default function Planning() {
               // non-prios and its department notes.
               // On trial for Finestate: its core points column is set aside, so meetings (left)
               // and the long list (right) share the top row in two equal halves.
-              <div className={`grid ${SINGLE_BOARDS.includes(b) || b === "master" ? "grid-cols-2" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
+              <div className={`grid ${b === "master" ? "grid-cols-2" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
@@ -1582,7 +1582,7 @@ export default function Planning() {
                 {/* Master's personal lists sit at the very bottom of the open picker. */}
                 {MEETING_BOARDS.includes(b) && renderTwoCols(idx)}
                 {/* A company board closes with its department notes instead. */}
-                {!MEETING_BOARDS.includes(b) && !SINGLE_BOARDS.includes(b) && (
+                {!MEETING_BOARDS.includes(b) && (
                   <div className="order-3 flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
                     {/* The tools sit in their own strip across the top of the field. */}
                     <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
