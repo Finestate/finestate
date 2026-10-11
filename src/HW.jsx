@@ -176,12 +176,16 @@ export default function HW() {
       (byKey[key] = byKey[key] || []).push([day, name]);
     });
     const out = {};
-    Object.values(byKey)
-      .filter((g) => g.length > 1)
-      .forEach((g, gi) => {
-        const t = { letter: "=", color: COLORS[gi % COLORS.length], days: g.map(([, n]) => n) };
-        g.forEach(([day]) => { out[day] = t; });
-      });
+    // Matching days share a colour and the = sign; a day that matches no other still
+    // gets a colour of its own (orange first), as a plain circle.
+    const SOLO = ["#E07B00", "#7c3aed", "#db2777", "#0891b2", "#65a30d", "#525252"];
+    let gi = 0;
+    let si = 0;
+    Object.values(byKey).forEach((g) => {
+      const single = g.length === 1;
+      const t = { single, color: single ? SOLO[si++ % SOLO.length] : COLORS[gi++ % COLORS.length], days: g.map(([, n]) => n) };
+      g.forEach(([day]) => { out[day] = t; });
+    });
     return out;
   })();
   const saveDayMeal = (day, meal, text) => {
@@ -709,14 +713,14 @@ export default function HW() {
                   {/* Days with exactly the same meals share a small circled =. */}
                   {twin && (
                     <span
-                      title={`Same meals as ${twin.days.filter((d) => d !== name).join(", ")}`}
+                      title={twin.single ? "No other day has the same meals" : `Same meals as ${twin.days.filter((d) => d !== name).join(", ")}`}
                       // A small filled circle with a crisp equals sign drawn from two white bars,
                       // so it stays sharp at any size.
                       className="inline-flex h-[12px] w-[12px] shrink-0 flex-col items-center justify-center gap-[2px] rounded-full"
                       style={{ backgroundColor: twin.color }}
                     >
-                      <span className="block h-px w-[6px] bg-white" />
-                      <span className="block h-px w-[6px] bg-white" />
+                      {!twin.single && <span className="block h-px w-[6px] bg-white" />}
+                      {!twin.single && <span className="block h-px w-[6px] bg-white" />}
                     </span>
                   )}
                   <span className="flex-1" />
