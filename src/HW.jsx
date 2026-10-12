@@ -166,12 +166,22 @@ export default function HW() {
   // group; each group gets a letter and colour, shown after the day name. Worked out
   // afresh every time, so a change drops a day from its group straight away.
   const DAY_LINES = ["Meal 1", "Meal 2", "Extra 2", "Meal 3", "Extra 3", "Meal 4"];
+  // Each day's own lines: saved, or the usual six to start (Meal, Meal, Extra, Meal,
+  // Extra, Meal). A line's text is kept under its key, so binning a line leaves the
+  // others untouched.
+  const rowsOfDay = (day) =>
+    nutrition.dayRows?.[day] || DAY_LINES.map((k) => ({ id: k, key: k, label: k.startsWith("Extra") ? "Extra" : "Meal" }));
+  const saveDayRows = (day, rows) => {
+    const next = { ...nutrition, dayRows: { ...(nutrition.dayRows || {}), [day]: rows } };
+    setNutrition(next);
+    persist({ foundational: notes, ...lists, nutrition: next });
+  };
   const twinOf = (() => {
     const COLORS = ["#0f766e", "#9c7c33", "#C1440E", "#1d4ed8", "#7A0019", "#525252"];
     const byKey = {};
     DAYS.forEach(([day, name, group]) => {
-      const lines = DAY_LINES.map((m) => String(mealOf(day, group, m) || "").trim());
-      if (!lines.some(Boolean)) return;
+      const lines = rowsOfDay(day).map((r) => `${String(r.label || "").trim()}: ${String(mealOf(day, group, r.key) || "").trim()}`);
+      if (!rowsOfDay(day).some((r) => String(mealOf(day, group, r.key) || "").trim())) return;
       const key = lines.join(" | ~ | ");
       (byKey[key] = byKey[key] || []).push([day, name]);
     });
@@ -584,7 +594,7 @@ export default function HW() {
     section("Nutrition");
     DAYS.forEach(([day, name, group]) => {
       out.push("", name);
-      MEALS.forEach((meal) => out.push(`- Meal: ${mealOf(day, group, meal)}`));
+      rowsOfDay(day).forEach((r) => out.push(`- ${r.label}: ${mealOf(day, group, r.key)}`));
     });
     out.push("", "Considerations");
     indent(nutrition.considerations);
@@ -730,19 +740,35 @@ export default function HW() {
                   <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: "#FBEFEC" }}>
                     {/* A thin framed grid on the pink: Meal or Extra on the left, what it is on the
                         right. (A second, amber set was tried and set aside; its text stays saved.) */}
-                    {[[mealOf, saveDayMeal]].map(([read, write], si) => (
-                      <div key={si} className={`border border-neutral-400 ${si ? "mt-1.5 bg-[#FFEFC7]" : ""}`}>
-                        {/* An Extra after the second and the third meal. */}
-                        {["Meal 1", "Meal 2", "Extra 2", "Meal 3", "Extra 3", "Meal 4"].map((meal, mi) => (
-                          <div key={meal} className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
-                            <span className="w-[44px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px] text-[11px] font-bold leading-[15px] text-neutral-900">{meal.startsWith("Extra") ? "Extra" : "Meal"}</span>
-                            <div className="min-w-0 flex-1 px-1.5 py-[2px]">
-                              <GrowText value={read(day, group, meal)} onChange={(t) => write(day, meal, t)} rows={1} spell />
-                            </div>
+                    {/* The day's lines: each a label (Meal, Extra, or anything you type) and what
+                        it is; lines can be added under the frame and binned. */}
+                    <div className="border border-neutral-400">
+                      {rowsOfDay(day).map((r, mi) => (
+                        <div key={r.id} className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
+                          <span className="flex w-[44px] shrink-0 items-start border-r border-neutral-400 px-1.5 py-[2px]">
+                            <input
+                              value={r.label}
+                              onChange={(e) => saveDayRows(day, rowsOfDay(day).map((x) => (x.id === r.id ? { ...x, label: e.target.value } : x)))}
+                              className="w-full bg-transparent py-0 text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
+                            />
+                          </span>
+                          <div className="min-w-0 flex-1 px-1.5 py-[2px]">
+                            <GrowText value={mealOf(day, group, r.key)} onChange={(t) => saveDayMeal(day, r.key, t)} rows={1} spell />
                           </div>
-                        ))}
-                      </div>
-                    ))}
+                          <span className="flex shrink-0 items-start border-l border-neutral-400 px-1.5 py-[4px]">
+                            <button onClick={() => setListConfirm({ run: () => saveDayRows(day, rowsOfDay(day).filter((x) => x.id !== r.id)) })} title="Remove" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
+                              <Trash2 size={11} />
+                            </button>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => { const key = newId(); saveDayRows(day, [...rowsOfDay(day), { id: key, label: "Meal", key }]); }}
+                      className="mt-1 flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                    >
+                      <Plus size={11} strokeWidth={3} />Add
+                    </button>
                   </div>
                 )}
                 {open && day === "considerations" && (
