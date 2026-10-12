@@ -744,7 +744,9 @@ export default function HW() {
                         it is; lines can be added under the frame and binned. */}
                     <div className="border border-neutral-400">
                       {rowsOfDay(day).map((r, mi) => (
-                        <div key={r.id} className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
+                        <div key={r.id} {...dropProps(`nut-${day}`, mi, (from, to) => saveDayRows(day, moved(rowsOfDay(day), from, to)))}>
+                        {marker(`nut-${day}`, mi)}
+                        <div className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
                           <span className="flex w-[44px] shrink-0 items-start border-r border-neutral-400 px-1.5 py-[2px]">
                             <input
                               value={r.label}
@@ -755,13 +757,17 @@ export default function HW() {
                           <div className="min-w-0 flex-1 px-1.5 py-[2px]">
                             <GrowText value={mealOf(day, group, r.key)} onChange={(t) => saveDayMeal(day, r.key, t)} rows={1} spell />
                           </div>
-                          <span className="flex shrink-0 items-start border-l border-neutral-400 px-1.5 py-[4px]">
+                          {/* The grip sits just left of the bin. */}
+                          <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 py-[4px]">
+                            {grip(`nut-${day}`, mi, true)}
                             <button onClick={() => setListConfirm({ run: () => saveDayRows(day, rowsOfDay(day).filter((x) => x.id !== r.id)) })} title="Remove" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
                               <Trash2 size={11} />
                             </button>
                           </span>
                         </div>
+                        </div>
                       ))}
+                      {marker(`nut-${day}`, rowsOfDay(day).length)}
                     </div>
                     <button
                       onClick={() => { const key = newId(); saveDayRows(day, [...rowsOfDay(day), { id: key, label: "Meal", key }]); }}
