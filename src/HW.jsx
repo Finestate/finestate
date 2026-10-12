@@ -749,7 +749,7 @@ export default function HW() {
                             <input
                               value={r.label}
                               onChange={(e) => saveDayRows(day, rowsOfDay(day).map((x) => (x.id === r.id ? { ...x, label: e.target.value } : x)))}
-                              className="w-full bg-transparent py-0 text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
+                              className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
                             />
                           </span>
                           <div className="min-w-0 flex-1 px-1.5 py-[2px]">
