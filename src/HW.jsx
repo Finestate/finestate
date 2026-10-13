@@ -338,13 +338,6 @@ export default function HW() {
                     {weekOf(g).map((w, wi) => {
                       return (
                       <div key={wi} className={`flex items-stretch ${wi ? "border-t border-neutral-400" : ""}`}>
-                        <span className="flex w-[72px] shrink-0 items-start border-r border-neutral-400 px-1.5 py-[2px]">
-                          <input
-                            value={w.day}
-                            onChange={(e) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, day: e.target.value } : y)) }))}
-                            className="w-full bg-transparent py-0 text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
-                          />
-                        </span>
                         {/* How long: a short dropdown, the same width as the day. */}
                         <span className="flex w-[72px] shrink-0 items-start border-r border-neutral-400 px-1 py-[2px]">
                           <select
