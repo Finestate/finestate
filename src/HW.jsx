@@ -290,15 +290,18 @@ export default function HW() {
                     </>
                   ) : (
                   <>
-                  {/* A line of its own at the top that opens too: the body areas to train,
+                  {/* Seven fixed lines, Monday to Sunday: a narrow day column you can retype,
+                      then the workout. The first time, earlier lines fill the days in order. */}
+                  <div className="border border-neutral-400">
+                  {/* The first line of the table opens too: the body areas to train, one column,
                       a list to add to, rename and bin. */}
                   {(() => {
                     const BODY = ["Chest", "Back – upper (lats, traps, rhomboids)", "Back – lower", "Shoulders", "Biceps", "Triceps", "Forearms and grip", "Core – abs", "Core – obliques", "Glutes", "Quads", "Hamstrings", "Calves", "Hips and adductors", "Neck", "Cardio and conditioning", "Mobility and stretching"];
                     const bp = g.body || { title: "Body areas", items: BODY.map((t, k) => ({ id: `b${k}`, text: t })) };
                     const setBp = (fields) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), ...fields } }));
                     return (
-                      <div className="mb-1.5 border border-neutral-400 bg-white">
-                        <div onClick={() => setBp({ open: !bp.open })} className="flex h-[20px] cursor-pointer select-none items-center gap-1.5 px-1.5">
+                      <div>
+                        <div onClick={() => setBp({ open: !bp.open })} className="flex min-h-[19px] cursor-pointer select-none items-center gap-1.5 px-1.5 py-[2px]">
                           <input
                             value={bp.title}
                             onClick={(e) => e.stopPropagation()}
@@ -310,9 +313,9 @@ export default function HW() {
                           <ChevronDown size={12} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${bp.open ? "rotate-180" : ""}`} />
                         </div>
                         {bp.open && (
-                          <div className="border-t border-neutral-400 px-1.5 py-1">
+                          <div>
                             {bp.items.map((it, k) => (
-                              <div key={it.id} className={`flex h-[19px] items-center gap-1.5 pl-3 ${k ? "border-t border-neutral-200" : ""}`}>
+                              <div key={it.id} className="flex h-[19px] items-center gap-1.5 border-t border-neutral-400 pl-5 pr-1.5">
                                 <input
                                   value={it.text}
                                   onChange={(e) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)) })}
@@ -323,7 +326,7 @@ export default function HW() {
                             ))}
                             <button
                               onClick={() => setBp({ items: [...bp.items, { id: newId(), text: "" }] })}
-                              className="mt-0.5 flex items-center gap-[2px] pl-3 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                              className="flex h-[19px] w-full items-center gap-[2px] border-t border-neutral-400 pl-5 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
                             >
                               <Plus size={11} strokeWidth={3} />Add
                             </button>
@@ -332,12 +335,9 @@ export default function HW() {
                       </div>
                     );
                   })()}
-                  {/* Seven fixed lines, Monday to Sunday: a narrow day column you can retype,
-                      then the workout. The first time, earlier lines fill the days in order. */}
-                  <div className="border border-neutral-400">
                     {weekOf(g).map((w, wi) => {
                       return (
-                      <div key={wi} className={`flex items-stretch ${wi ? "border-t border-neutral-400" : ""}`}>
+                      <div key={wi} className="flex items-stretch border-t border-neutral-400">
                         {/* How long: a short dropdown, the same width as the day. */}
                         <span className="flex w-[72px] shrink-0 items-start border-r border-neutral-400 px-1 py-[2px]">
                           <select
