@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown, List, GripVertical, ChevronsLeft, ChevronsRight, Download, Pencil, Pause } from "lucide-react";
+import { Plus, Trash2, ChevronDown, List, GripVertical, ChevronsLeft, ChevronsRight, Download, Pencil } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { backupStamp, downloadText, htmlToLines } from "./backup.js";
 
@@ -336,19 +336,6 @@ export default function HW() {
                       then the workout. The first time, earlier lines fill the days in order. */}
                   <div className="border border-neutral-400">
                     {weekOf(g).map((w, wi) => {
-                      const setRest = (on) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, rest: on } : y)) }));
-                      // A break day folds into a thin line saying BREAK; its pause button brings
-                      // it back, with everything typed on it still there.
-                      if (w.rest) return (
-                        <div key={wi} className={`flex h-[16px] items-center gap-2 bg-[#F4F4F4] px-1.5 ${wi ? "border-t border-neutral-400" : ""}`}>
-                          <span className="w-[60px] shrink-0 text-[10px] font-bold leading-none text-neutral-500">{w.day}</span>
-                          <span className="flex-1 text-center text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-neutral-500">Break</span>
-                          <button onClick={() => setRest(false)} title="Back to a workout day" className="shrink-0 text-[#0f766e] hover:text-[#0c5e57]">
-                            <Pause size={10} strokeWidth={2.75} />
-                          </button>
-                          {binBtn(() => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).filter((_, yi) => yi !== wi) })))}
-                        </div>
-                      );
                       return (
                       <div key={wi} className={`flex items-stretch ${wi ? "border-t border-neutral-400" : ""}`}>
                         <span className="flex w-[72px] shrink-0 items-start border-r border-neutral-400 px-1.5 py-[2px]">
@@ -375,9 +362,6 @@ export default function HW() {
                           </div>
                         ))}
                         <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 py-[4px]">
-                          <button onClick={() => setRest(true)} title="Make this a break day" className="shrink-0 text-neutral-900 hover:text-[#0f766e]">
-                            <Pause size={11} strokeWidth={2.5} />
-                          </button>
                           {binBtn(() => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).filter((_, yi) => yi !== wi) })))}
                         </span>
                       </div>
