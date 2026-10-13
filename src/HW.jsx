@@ -315,7 +315,16 @@ export default function HW() {
                         {bp.open && (
                           <div>
                             {bp.items.map((it, k) => (
-                              <div key={it.id} className="flex h-[19px] items-center gap-1.5 border-t border-neutral-400 pl-5 pr-1.5">
+                              <div key={it.id} className="flex h-[19px] items-center gap-1.5 border-t border-neutral-400 pl-1.5 pr-1.5">
+                                {/* The tick box sits right under the start of the title above; the words
+                                    stay where they were. */}
+                                <input
+                                  type="checkbox"
+                                  checked={!!it.on}
+                                  onChange={() => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, on: !y.on } : y)) })}
+                                  className="-mr-[3px] block h-[11px] w-[11px] shrink-0 cursor-pointer"
+                                  style={{ accentColor: "#9c7c33", margin: 0 }}
+                                />
                                 <input
                                   value={it.text}
                                   onChange={(e) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)) })}
