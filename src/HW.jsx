@@ -290,6 +290,48 @@ export default function HW() {
                     </>
                   ) : (
                   <>
+                  {/* A line of its own at the top that opens too: the body areas to train,
+                      a list to add to, rename and bin. */}
+                  {(() => {
+                    const BODY = ["Chest", "Back – upper (lats, traps, rhomboids)", "Back – lower", "Shoulders", "Biceps", "Triceps", "Forearms and grip", "Core – abs", "Core – obliques", "Glutes", "Quads", "Hamstrings", "Calves", "Hips and adductors", "Neck", "Cardio and conditioning", "Mobility and stretching"];
+                    const bp = g.body || { title: "Body areas", items: BODY.map((t, k) => ({ id: `b${k}`, text: t })) };
+                    const setBp = (fields) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), ...fields } }));
+                    return (
+                      <div className="mb-1.5 border border-neutral-400 bg-white">
+                        <div onClick={() => setBp({ open: !bp.open })} className="flex h-[20px] cursor-pointer select-none items-center gap-1.5 px-1.5">
+                          <input
+                            value={bp.title}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => setBp({ title: e.target.value })}
+                            style={{ fieldSizing: "content" }}
+                            className="min-w-[4ch] bg-transparent text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
+                          />
+                          <span className="text-[11px] text-neutral-500">({bp.items.length})</span>
+                          <ChevronDown size={12} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${bp.open ? "rotate-180" : ""}`} />
+                        </div>
+                        {bp.open && (
+                          <div className="border-t border-neutral-400 px-1.5 py-1">
+                            {bp.items.map((it, k) => (
+                              <div key={it.id} className={`flex h-[19px] items-center gap-1.5 pl-3 ${k ? "border-t border-neutral-200" : ""}`}>
+                                <input
+                                  value={it.text}
+                                  onChange={(e) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)) })}
+                                  className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
+                                />
+                                {binBtn(() => setBp({ items: bp.items.filter((y) => y.id !== it.id) }))}
+                              </div>
+                            ))}
+                            <button
+                              onClick={() => setBp({ items: [...bp.items, { id: newId(), text: "" }] })}
+                              className="mt-0.5 flex items-center gap-[2px] pl-3 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                            >
+                              <Plus size={11} strokeWidth={3} />Add
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {/* Seven fixed lines, Monday to Sunday: a narrow day column you can retype,
                       then the workout. The first time, earlier lines fill the days in order. */}
                   <div className="border border-neutral-400">
