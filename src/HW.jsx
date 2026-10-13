@@ -368,8 +368,8 @@ export default function HW() {
                             {["", "30M", "60M", "75M", "90M"].map((m) => <option key={m} value={m}>{m}</option>)}
                           </select>
                         </span>
-                        {/* The workout itself, one column. (Second and third columns were tried; their text stays saved.) */}
-                        {["text"].map((k, ki) => (
+                        {/* The workout itself, in two equal columns. (A third was tried; its text stays saved.) */}
+                        {["text", "text2"].map((k, ki) => (
                           <div key={k} className={`min-w-0 flex-1 basis-0 px-1.5 py-[2px] ${ki ? "border-l border-neutral-400" : ""}`}>
                             <GrowText value={w[k] || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, [k]: t } : y)) }))} rows={1} />
                           </div>
