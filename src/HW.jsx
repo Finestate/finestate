@@ -322,8 +322,8 @@ export default function HW() {
                                   type="checkbox"
                                   checked={!!it.on}
                                   onChange={() => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, on: !y.on } : y)) })}
-                                  className="-mr-[3px] block h-[11px] w-[11px] shrink-0 cursor-pointer"
-                                  style={{ accentColor: "#9c7c33", margin: 0 }}
+                                  className="block h-[11px] w-[11px] shrink-0 cursor-pointer"
+                                  style={{ accentColor: "#9c7c33", margin: "0 -3px 0 0" }}
                                 />
                                 <input
                                   value={it.text}
