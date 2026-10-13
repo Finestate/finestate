@@ -1517,7 +1517,7 @@ export default function Planning() {
                           onDrop={(e) => { e.stopPropagation(); dropPoint(b); }}
                           // A stepped in point is the same box, shifted from the left, a step at a time.
                           style={levelOf(it) ? { marginLeft: `${20 * levelOf(it)}px` } : undefined}
-                          className={`flex items-center gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
+                          className={`flex items-center gap-1 rounded border border-neutral-300 bg-white py-0.5 pl-1 pr-1.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
                         >
                           {/* A group head opens and closes at a click; other points keep the space. */}
                           <span className="flex h-[15px] w-[11px] shrink-0 items-center">
@@ -1666,7 +1666,7 @@ export default function Planning() {
                   onDrop={(e) => { e.stopPropagation(); dropColRow(k); }}
                   // A sub line is the same row, stepped in from the left, a step at a time.
                   style={levelOf(r) ? { marginLeft: `${20 * levelOf(r)}px` } : undefined}
-                  className={`flex items-start gap-1.5 rounded border border-neutral-300 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
+                  className={`flex items-start gap-1 rounded border border-neutral-300 bg-white py-0.5 pl-1 pr-1.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
                 >
                   {/* A group head opens and closes at a click; other lines keep the space. */}
                   <span className="flex h-[15px] w-[11px] shrink-0 items-center">
