@@ -747,13 +747,10 @@ export default function HW() {
                         <div key={r.id} {...dropProps(`nut-${day}`, mi, (from, to) => saveDayRows(day, moved(rowsOfDay(day), from, to)))}>
                         {marker(`nut-${day}`, mi)}
                         <div className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
-                          <span className="flex w-[44px] shrink-0 items-start border-r border-neutral-400 px-1.5 py-[2px]">
-                            <input
-                              value={r.label}
-                              onChange={(e) => saveDayRows(day, rowsOfDay(day).map((x) => (x.id === r.id ? { ...x, label: e.target.value } : x)))}
-                              className="w-full bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
-                            />
-                          </span>
+                          {/* A wider label that wraps, so a longer name grows the line rather than hiding. */}
+                          <div className="w-[100px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px]">
+                            <GrowText value={r.label || ""} onChange={(t) => saveDayRows(day, rowsOfDay(day).map((x) => (x.id === r.id ? { ...x, label: t } : x)))} rows={1} />
+                          </div>
                           <div className="min-w-0 flex-1 px-1.5 py-[2px]">
                             <GrowText value={mealOf(day, group, r.key)} onChange={(t) => saveDayMeal(day, r.key, t)} rows={1} spell />
                           </div>
@@ -770,7 +767,7 @@ export default function HW() {
                       {marker(`nut-${day}`, rowsOfDay(day).length)}
                     </div>
                     <button
-                      onClick={() => { const key = newId(); saveDayRows(day, [...rowsOfDay(day), { id: key, label: "Meal", key }]); }}
+                      onClick={() => { const key = newId(); saveDayRows(day, [...rowsOfDay(day), { id: key, label: "", key }]); }}
                       className="mt-1 flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
                     >
                       <Plus size={11} strokeWidth={3} />Add
