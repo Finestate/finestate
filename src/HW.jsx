@@ -804,7 +804,7 @@ export default function HW() {
                   </div>
                 )}
                 {open && day === "considerations" && (
-                  <div className="flex items-start gap-2 border-t border-black px-2 py-1" style={{ backgroundColor: "#FBEFEC" }}>
+                  <div className="flex items-start gap-2 border-t border-black px-2 py-1 [&_textarea]:text-[#C1440E]" style={{ backgroundColor: "#F4D3CA" }}>
                     <div className="min-w-0 flex-1">
                       <GrowText value={nutrition.considerations || ""} onChange={(t) => saveConsiderations(t)} rows={2} bullets boxRef={considerationsBox} spell />
                     </div>
