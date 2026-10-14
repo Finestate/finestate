@@ -301,7 +301,7 @@ export default function HW() {
                   {/* Seven fixed lines, Monday to Sunday: a narrow day column you can retype,
                       then the workout. The first time, earlier lines fill the days in order. */}
                   <div className="border border-neutral-400">
-                  {/* The first line of the table opens too: the body areas to train, one column,
+                  {/* The first line of the table: the body areas to train, always shown, one column,
                       a list to add to, rename and bin. */}
                   {(() => {
                     const BODY = ["Chest", "Back – upper (lats, traps, rhomboids)", "Back – lower", "Shoulders", "Biceps", "Triceps", "Forearms and grip", "Core – abs", "Core – obliques", "Glutes", "Quads", "Hamstrings", "Calves", "Hips and adductors", "Neck", "Cardio and conditioning", "Mobility and stretching"];
@@ -309,7 +309,7 @@ export default function HW() {
                     const setBp = (fields) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), ...fields } }));
                     return (
                       <div>
-                        <div onClick={() => setBp({ open: !bp.open })} className="flex min-h-[19px] cursor-pointer select-none items-center gap-1.5 px-1.5 py-[2px]">
+                        <div className="flex min-h-[19px] items-center gap-1.5 px-1.5 py-[2px]">
                           <input
                             value={bp.title}
                             onClick={(e) => e.stopPropagation()}
@@ -317,10 +317,8 @@ export default function HW() {
                             style={{ fieldSizing: "content" }}
                             className="min-w-[4ch] bg-transparent text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
                           />
-                          <span className="text-[11px] text-neutral-500">({bp.items.length})</span>
-                          <ChevronDown size={12} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${bp.open ? "rotate-180" : ""}`} />
                         </div>
-                        {bp.open && (
+                        {(
                           <div>
                             {bp.items.map((it, k) => (
                               <div key={it.id} className="flex h-[19px] items-center gap-1.5 border-t border-neutral-400 pl-1.5 pr-1.5">
