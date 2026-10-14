@@ -774,7 +774,8 @@ export default function HW() {
                       {rowsOfDay(day).map((r, mi) => (
                         <div key={r.id} {...dropProps(`nut-${day}`, mi, (from, to) => saveDayRows(day, moved(rowsOfDay(day), from, to)))}>
                         {marker(`nut-${day}`, mi)}
-                        <div className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""}`}>
+                        {/* A line labelled "In consideration" stands out: red text on a slightly deeper pink. */}
+                        <div className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""} ${/^\s*in consideration/i.test(r.label || "") ? "bg-[#F4D3CA] [&_textarea]:text-[#C1440E]" : ""}`}>
                           {/* A wider label that wraps, so a longer name grows the line rather than hiding. */}
                           <div className="w-[100px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px]">
                             <GrowText value={r.label || ""} onChange={(t) => saveDayRows(day, rowsOfDay(day).map((x) => (x.id === r.id ? { ...x, label: t } : x)))} rows={1} />
