@@ -341,7 +341,7 @@ export default function HW() {
                             ))}
                             <button
                               onClick={() => setBp({ items: [...bp.items, { id: newId(), text: "" }] })}
-                              className="flex h-[19px] w-full items-center gap-[2px] border-t border-neutral-400 pl-1.5 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                              className="flex h-[19px] w-full items-center gap-[2px] border-t border-neutral-400 pl-1.5 pt-px text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
                             >
                               <Plus size={11} strokeWidth={3} />Add
                             </button>
