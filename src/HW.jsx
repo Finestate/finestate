@@ -309,7 +309,7 @@ export default function HW() {
                     const setBp = (fields) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), ...fields } }));
                     // How many workout lines mention each area: its words found anywhere in a
                     // line, capitals aside. Shown after the area as (2).
-                    const lines = weekOf(g).map((w) => `${w.text || ""} ${w.text2 || ""}`.toLowerCase());
+                    const lines = weekOf(g).map((w) => String(w.text || "").toLowerCase());
                     const countOf = (t) => {
                       const k = String(t || "").trim().toLowerCase();
                       return k ? lines.filter((l) => l.includes(k)).length : 0;
