@@ -301,52 +301,40 @@ export default function HW() {
                   {/* Seven fixed lines, Monday to Sunday: a narrow day column you can retype,
                       then the workout. The first time, earlier lines fill the days in order. */}
                   <div className="border border-neutral-400">
-                  {/* The first line of the table: the body areas to train, always shown, one column,
-                      a list to add to, rename and bin. */}
+                  {/* At the top of the table, always shown: the body areas to train, one column,
+                      each followed by how many workout lines name it. */}
                   {(() => {
                     const BODY = ["Chest", "Back – upper (lats, traps, rhomboids)", "Back – lower", "Shoulders", "Biceps", "Triceps", "Forearms and grip", "Core – abs", "Core – obliques", "Glutes", "Quads", "Hamstrings", "Calves", "Hips and adductors", "Neck", "Cardio and conditioning", "Mobility and stretching"];
                     const bp = g.body || { title: "Body areas", items: BODY.map((t, k) => ({ id: `b${k}`, text: t })) };
                     const setBp = (fields) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), ...fields } }));
+                    // How many workout lines mention each area: its words found anywhere in a
+                    // line, capitals aside. Shown after the area as (2).
+                    const lines = weekOf(g).map((w) => `${w.text || ""} ${w.text2 || ""}`.toLowerCase());
+                    const countOf = (t) => {
+                      const k = String(t || "").trim().toLowerCase();
+                      return k ? lines.filter((l) => l.includes(k)).length : 0;
+                    };
                     return (
                       <div>
-                        <div className="flex min-h-[19px] items-center gap-1.5 px-1.5 py-[2px]">
-                          <input
-                            value={bp.title}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={(e) => setBp({ title: e.target.value })}
-                            style={{ fieldSizing: "content" }}
-                            className="min-w-[4ch] bg-transparent text-[11px] font-bold leading-[15px] text-neutral-900 outline-none"
-                          />
-                        </div>
-                        {(
-                          <div>
-                            {bp.items.map((it, k) => (
-                              <div key={it.id} className="flex h-[19px] items-center gap-1.5 border-t border-neutral-400 pl-1.5 pr-1.5">
-                                {/* The tick box sits right under the start of the title above; the words
-                                    stay where they were. */}
-                                <input
-                                  type="checkbox"
-                                  checked={!!it.on}
-                                  onChange={() => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, on: !y.on } : y)) })}
-                                  className="block h-[11px] w-[11px] shrink-0 cursor-pointer"
-                                  style={{ accentColor: "#9c7c33", margin: "0 -3px 0 0" }}
-                                />
-                                <input
-                                  value={it.text}
-                                  onChange={(e) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)) })}
-                                  className="min-w-0 flex-1 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
-                                />
-                                {binBtn(() => setBp({ items: bp.items.filter((y) => y.id !== it.id) }))}
-                              </div>
-                            ))}
-                            <button
-                              onClick={() => setBp({ items: [...bp.items, { id: newId(), text: "" }] })}
-                              className="flex h-[19px] w-full items-center gap-[2px] border-t border-neutral-400 pl-1.5 pt-px text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
-                            >
-                              <Plus size={11} strokeWidth={3} />Add
-                            </button>
+                        {bp.items.map((it, k) => (
+                          <div key={it.id} className={`flex h-[19px] items-center gap-1 pl-1.5 pr-1.5 ${k ? "border-t border-neutral-400" : ""}`}>
+                            <input
+                              value={it.text}
+                              onChange={(e) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)) })}
+                              style={{ fieldSizing: "content" }}
+                              className="min-w-[4ch] max-w-[80%] bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
+                            />
+                            {countOf(it.text) > 0 && <span className="text-[11px] font-semibold leading-[15px] text-[#0f766e]">({countOf(it.text)})</span>}
+                            <span className="flex-1" />
+                            {binBtn(() => setBp({ items: bp.items.filter((y) => y.id !== it.id) }))}
                           </div>
-                        )}
+                        ))}
+                        <button
+                          onClick={() => setBp({ items: [...bp.items, { id: newId(), text: "" }] })}
+                          className={`flex h-[19px] w-full items-center gap-[2px] pl-1.5 pt-px text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${bp.items.length ? "border-t border-neutral-400" : ""}`}
+                        >
+                          <Plus size={11} strokeWidth={3} />Add
+                        </button>
                       </div>
                     );
                   })()}
