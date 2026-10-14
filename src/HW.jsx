@@ -222,7 +222,15 @@ export default function HW() {
   const toggleDay = (day) => setOpenDays((list) => (list.includes(day) ? list.filter((d) => d !== day) : [...list, day]));
   // Fitness: white lines that open, like the days in Nutrition, onto lines of two equal
   // halves on the faint pink. Each part has its own bin, and Add lines for more.
-  const [fitOpen, setFitOpen] = useState([]);
+  // Which Fitness+Look lines are open stays as you left it after a refresh (this browser).
+  const [fitOpen, setFitOpenRaw] = useState(() => {
+    try { const v = JSON.parse(localStorage.getItem("hw-fitness-open") || "[]"); return Array.isArray(v) ? v : []; } catch { return []; }
+  });
+  const setFitOpen = (next) => setFitOpenRaw((prev) => {
+    const v = typeof next === "function" ? next(prev) : next;
+    try { localStorage.setItem("hw-fitness-open", JSON.stringify(v)); } catch {}
+    return v;
+  });
   const fitnessBlock = () => {
     const groups = lists.fitnessGroups || [];
     const saveGroups = (next) => saveList("fitnessGroups", next);
