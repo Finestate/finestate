@@ -333,7 +333,7 @@ export default function HW() {
                               style={{ fieldSizing: "content" }}
                               className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] leading-[15px] text-neutral-900 outline-none"
                             />
-                            {countOf(it.text) > 0 && <span className="shrink-0 text-[11px] font-semibold leading-[15px] text-[#0f766e]">({countOf(it.text)})</span>}
+                            {String(it.text || "").trim() && <span className="shrink-0 text-[11px] font-semibold leading-[15px] text-[#0f766e]">({countOf(it.text)})</span>}
                             <span className="absolute right-0.5 top-1/2 hidden -translate-y-1/2 group-hover:flex">{binBtn(() => setBp({ items: bp.items.filter((y) => y.id !== it.id) }))}</span>
                           </div>
                         ))}
