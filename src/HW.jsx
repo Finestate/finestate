@@ -320,26 +320,25 @@ export default function HW() {
                       const k = String(t || "").trim().toLowerCase();
                       return k ? lines.filter((l) => l.includes(k)).length : 0;
                     };
+                    // All the areas in one line, side by side in equal cells with a thin line
+                    // between each; a long name wraps inside its cell. The + at the end adds one.
                     return (
-                      <div>
+                      <div className="flex items-stretch">
                         {bp.items.map((it, k) => (
-                          <div key={it.id} className={`flex h-[19px] items-center gap-1 pl-1.5 pr-1.5 ${k ? "border-t border-neutral-400" : ""}`}>
-                            <input
-                              value={it.text}
-                              onChange={(e) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)) })}
-                              style={{ fieldSizing: "content" }}
-                              className="min-w-[4ch] max-w-[80%] bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
-                            />
-                            {countOf(it.text) > 0 && <span className="text-[11px] font-semibold leading-[15px] text-[#0f766e]">({countOf(it.text)})</span>}
-                            <span className="flex-1" />
-                            {binBtn(() => setBp({ items: bp.items.filter((y) => y.id !== it.id) }))}
+                          <div key={it.id} className={`group flex min-w-0 flex-1 basis-0 items-start gap-0.5 px-1 py-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
+                            <div className="min-w-0 flex-1">
+                              <GrowText value={it.text} onChange={(t) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: t } : y)) })} rows={1} />
+                            </div>
+                            {countOf(it.text) > 0 && <span className="shrink-0 text-[11px] font-semibold leading-[15px] text-[#0f766e]">({countOf(it.text)})</span>}
+                            <span className="hidden shrink-0 pt-[2px] group-hover:flex">{binBtn(() => setBp({ items: bp.items.filter((y) => y.id !== it.id) }))}</span>
                           </div>
                         ))}
                         <button
                           onClick={() => setBp({ items: [...bp.items, { id: newId(), text: "" }] })}
-                          className={`flex h-[19px] w-full items-center gap-[2px] pl-1.5 pt-px text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${bp.items.length ? "border-t border-neutral-400" : ""}`}
+                          title="Add a body area"
+                          className={`flex shrink-0 items-center px-1.5 text-[#0f766e] hover:text-[#0c5e57] ${bp.items.length ? "border-l border-neutral-400" : ""}`}
                         >
-                          <Plus size={11} strokeWidth={3} />Add
+                          <Plus size={11} strokeWidth={3} />
                         </button>
                       </div>
                     );
