@@ -278,15 +278,21 @@ export default function HW() {
                       {(g.rows || []).length > 0 && (
                         <div className="border border-neutral-400">
                           {g.rows.map((r, ri) => (
-                            <div key={r.id} className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
+                            <div key={r.id} {...dropProps(`list-${g.id}`, ri, (from, to) => editGroup(g.id, (x) => ({ ...x, rows: moved(x.rows, from, to) })))}>
+                            {marker(`list-${g.id}`, ri)}
+                            <div className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
                               <div className="min-w-0 flex-1 px-1.5 py-[2px]">
                                 <GrowText value={r.text || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, text: t } : y)) }))} rows={1} />
                               </div>
-                              <span className="flex shrink-0 items-start border-l border-neutral-400 px-1.5 py-[4px]">
+                              {/* The grip sits just left of the bin. */}
+                              <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 py-[4px]">
+                                {grip(`list-${g.id}`, ri, true)}
                                 {binBtn(() => editGroup(g.id, (x) => ({ ...x, rows: x.rows.filter((y) => y.id !== r.id) })))}
                               </span>
                             </div>
+                            </div>
                           ))}
+                          {marker(`list-${g.id}`, g.rows.length)}
                         </div>
                       )}
                       <button
