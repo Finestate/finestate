@@ -323,14 +323,18 @@ export default function HW() {
                     // All the areas in one line, side by side in equal cells with a thin line
                     // between each; a long name wraps inside its cell. The + at the end adds one.
                     return (
-                      <div className="flex items-stretch">
+                      <div className="flex items-stretch" style={{ backgroundColor: "#F4D3CA" }}>
                         {bp.items.map((it, k) => (
-                          <div key={it.id} className={`group flex min-w-0 flex-1 basis-0 items-start gap-0.5 px-1 py-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
-                            <div className="min-w-0 flex-1">
-                              <GrowText value={it.text} onChange={(t) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: t } : y)) })} rows={1} />
-                            </div>
+                          <div key={it.id} className={`group relative flex min-h-[19px] min-w-0 flex-1 basis-0 items-center justify-center gap-0.5 px-1 py-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
+                            {/* Name and count centred in the cell; the bin shows on hover, at the right. */}
+                            <input
+                              value={it.text}
+                              onChange={(e) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)) })}
+                              style={{ fieldSizing: "content" }}
+                              className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] leading-[15px] text-neutral-900 outline-none"
+                            />
                             {countOf(it.text) > 0 && <span className="shrink-0 text-[11px] font-semibold leading-[15px] text-[#0f766e]">({countOf(it.text)})</span>}
-                            <span className="hidden shrink-0 pt-[2px] group-hover:flex">{binBtn(() => setBp({ items: bp.items.filter((y) => y.id !== it.id) }))}</span>
+                            <span className="absolute right-0.5 top-1/2 hidden -translate-y-1/2 group-hover:flex">{binBtn(() => setBp({ items: bp.items.filter((y) => y.id !== it.id) }))}</span>
                           </div>
                         ))}
                         <button
