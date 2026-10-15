@@ -931,11 +931,17 @@ function BibleChat({ chat, onChange }) {
     setError("");
     try {
       const { data } = await supabase.auth.getSession();
-      const r = await fetch("/api/chat", {
+      // A dropped connection is tried once more by itself before giving up.
+      const send = () => fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${data?.session?.access_token || ""}` },
         body: JSON.stringify({ messages: asked }),
       });
+      let r;
+      try { r = await send(); } catch {
+        await new Promise((ok) => setTimeout(ok, 1500));
+        try { r = await send(); } catch { throw new Error("The connection dropped before Claude answered. Please ask again."); }
+      }
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || "Claude could not answer.");
       onChange([...asked, { role: "assistant", content: j.reply }]);
