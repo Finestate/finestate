@@ -469,6 +469,14 @@ const stepLevel = (x, d) => {
   const level = Math.max(0, Math.min(MAX_LEVEL, levelOf(x) + d));
   return { ...x, level, sub: level > 0 };
 };
+// Deleting a line only ever deletes that line: whatever was stepped in under it steps
+// out by one, so it stands on its own rather than joining the group above.
+const removeOnly = (list, id) => {
+  const at = list.findIndex((r) => r.id === id);
+  if (at < 0) return list;
+  const end = blockEnd(list, at);
+  return [...list.slice(0, at), ...list.slice(at + 1, end).map((r) => stepLevel(r, -1)), ...list.slice(end)];
+};
 
 export default function Planning() {
   const [title, setTitle] = useState(() => { try { return localStorage.getItem(TITLE_KEY) || "Planning"; } catch { return "Planning"; } });
@@ -535,7 +543,7 @@ export default function Planning() {
     const lines = boards.master.lines.map((_, i) => i).filter((i) => isPicked(row, i));
     if (lines.length) syncErrands(next, lines);
   };
-  const removeColRow = (k, id) => saveCols({ ...cols, [k]: cols[k].filter((r) => r.id !== id) });
+  const removeColRow = (k, id) => saveCols({ ...cols, [k]: removeOnly(cols[k], id) });
   // Expand all / Collapse all for a list: if any group in it is shut, open them all;
   // otherwise shut every group head.
   const anyShut = (list) => list.some((r, i) => isHead(list, i) && r.closed);
@@ -908,7 +916,7 @@ export default function Planning() {
   const removePoint = (b, g, id) => {
     const pts = boards[b].points;
     const gone = pts[g].find((p) => p.id === id)?.code;
-    savePoints(b, { ...pts, [g]: pts[g].filter((p) => p.id !== id) });
+    savePoints(b, { ...pts, [g]: removeOnly(pts[g], id) });
     if (gone) saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.filter((c) => c !== gone) })));
   };
   // A point with stepped-in points under it opens and closes like a little dropdown.
