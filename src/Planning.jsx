@@ -405,6 +405,22 @@ function AutoTextarea({ value, onChange, ...props }) {
 // out (`sub`), so an indented one from before reads as one step.
 const MAX_LEVEL = 4;
 const levelOf = (x) => (Number.isFinite(x?.level) ? x.level : x?.sub ? 1 : 0);
+// A line and everything stepped in under it travel together, so a group head never
+// leaves its group behind. `to` is the gap it is dropped into, counted before the move.
+const blockEnd = (list, from) => {
+  const lv = levelOf(list[from]);
+  let end = from + 1;
+  while (end < list.length && levelOf(list[end]) > lv) end++;
+  return end;
+};
+const moveBlock = (list, from, to) => {
+  const end = blockEnd(list, from);
+  if (to >= from && to <= end) return list; // dropped onto itself
+  const block = list.slice(from, end);
+  const rest = [...list.slice(0, from), ...list.slice(end)];
+  rest.splice(to > from ? to - block.length : to, 0, ...block);
+  return rest;
+};
 // A line with stepped-in lines right under it heads a group: it can be closed and
 // opened, and closing it hides everything under it until the next line at its level.
 const isHead = (list, i) => i + 1 < list.length && levelOf(list[i + 1]) > levelOf(list[i]);
@@ -573,12 +589,10 @@ export default function Planning() {
     syncErrands(next, lineIdx);
   };
   // Drag and drop moves a line to where it was dropped, not by a step.
+  // `to` is the gap it lands in, before the move; a group head brings its group along.
   const moveColRow = (k, from, to) => {
-    if (from == null || to == null || from === to) return;
-    const next = cols[k].slice();
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-    saveCols({ ...cols, [k]: next });
+    if (from == null || to == null) return;
+    saveCols({ ...cols, [k]: moveBlock(cols[k], from, to) });
   };
   const [dragC, setDragC] = useState(null); // personal order line being dragged inside its column
   const [dropAt, setDropAt] = useState(null); // where that line would land: { col, index }
@@ -586,8 +600,7 @@ export default function Planning() {
   // Drop the dragged line where the marker sits, counting the gap it leaves behind.
   const dropColRow = (k) => {
     if (dragC?.col === k && dropAt?.col === k) {
-      const to = dropAt.index > dragC.index ? dropAt.index - 1 : dropAt.index;
-      moveColRow(k, dragC.index, to);
+      moveColRow(k, dragC.index, dropAt.index);
     }
     setDragC(null);
     setDropAt(null);
@@ -602,13 +615,16 @@ export default function Planning() {
   const dropPoint = (b) => {
     if (dragP?.board === b && dropP?.board === b) {
       if (dragP.group === dropP.group) {
-        movePoint(b, dropP.group, dragP.index, dropP.index > dragP.index ? dropP.index - 1 : dropP.index);
+        movePoint(b, dropP.group, dragP.index, dropP.index);
       } else {
+        // Into the other group of the column: the line goes with everything under it.
         const pts = boards[b].points;
-        const from = (pts[dragP.group] || []).slice();
-        const [moved] = from.splice(dragP.index, 1);
+        const src = pts[dragP.group] || [];
+        const end = blockEnd(src, dragP.index);
+        const block = src.slice(dragP.index, end);
+        const from = [...src.slice(0, dragP.index), ...src.slice(end)];
         const to = (pts[dropP.group] || []).slice();
-        to.splice(dropP.index, 0, moved);
+        to.splice(dropP.index, 0, ...block);
         savePoints(b, { ...pts, [dragP.group]: from, [dropP.group]: to });
       }
     }
@@ -917,12 +933,10 @@ export default function Planning() {
     savePoints(b, { ...boards[b].points, [g]: list });
     setEditing(p.id);
   };
+  // `to` is the gap it lands in, before the move; a group head brings its group along.
   const movePoint = (b, g, from, to) => {
-    if (from == null || to == null || from === to) return;
-    const arr = boards[b].points[g].slice();
-    const [moved] = arr.splice(from, 1);
-    arr.splice(to, 0, moved);
-    savePoints(b, { ...boards[b].points, [g]: arr });
+    if (from == null || to == null) return;
+    savePoints(b, { ...boards[b].points, [g]: moveBlock(boards[b].points[g], from, to) });
   };
 
   // Renaming reaches the picker copy and every line that already carries it.
