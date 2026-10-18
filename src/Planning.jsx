@@ -215,6 +215,9 @@ const BOARDS = [
 ];
 // Boards whose dropdown is Prios, Non-prios and notes: no hyper-prios.
 const SINGLE_BOARDS = ["fin"];
+// Ticked errands used to write themselves into the Errandsprios brackets; the brackets
+// are typed by hand now. Set to true to bring the old behaviour back.
+const ERRANDS_AUTOFILL = false;
 // Boards whose first column is Hyper-prios only, no Regular prios.
 const HYPER_ONLY = ["servefast", "fin"];
 // Which point groups a dropdown column holds, top to bottom.
@@ -524,6 +527,9 @@ export default function Planning() {
   // joined by a dash with no spaces, in the red the brackets already use.
   // `lineIdx` is one day line, or a list of them to update together.
   const syncErrands = (next, lineIdx = 0) => {
+    // Switched off: the errands brackets are now typed by hand only, so ticking an
+    // errand no longer writes into them. (Kept so it can be switched back on.)
+    if (!ERRANDS_AUTOFILL) return;
     const which = Array.isArray(lineIdx) ? lineIdx : [lineIdx];
     const master = boards.master;
     // Whatever the point is called now, it is the one about errands with brackets.
@@ -809,7 +815,7 @@ export default function Planning() {
     if (has) { delete fills[code]; delete extras[code]; }
     // Ticking the errands point on Master fills its brackets at once with the errand
     // lines already ticked for that day, rather than waiting for the next tick.
-    if (!has && b === "master" && /errands/i.test(code) && /\(\s*\)$/.test(code)) {
+    if (ERRANDS_AUTOFILL && !has && b === "master" && /errands/i.test(code) && /\(\s*\)$/.test(code)) {
       fills[code] = TWOCOLS
         .flatMap(([k]) => (cols[k] || []).filter((r) => isPicked(r, idx)).map((r) => String(r.text || "").trim()))
         .filter(Boolean)
@@ -1682,7 +1688,7 @@ export default function Planning() {
                       type="checkbox"
                       checked={isPicked(r, lineIdx)}
                       onChange={() => toggleColPick(k, r.id, lineIdx)}
-                      title="Send to Errandsprios"
+                      title="Tick"
                       className="block h-[11px] w-[11px] cursor-pointer"
                       style={{ accentColor: "#C1440E", margin: 0 }}
                     />
