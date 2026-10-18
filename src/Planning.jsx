@@ -642,7 +642,8 @@ export default function Planning() {
   const [confirm, setConfirm] = useState(null); // delete waiting on Yes or Cancel
   // Headings folded shut, remembered across refreshes and visits.
   const [collapsed, setCollapsed] = useState(() => { try { const p = JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "null"); return Array.isArray(p) ? p : []; } catch { return []; } });
-  const ask = (run) => setConfirm({ run });
+  // `question` names what is about to go, where it helps avoid a slip.
+  const ask = (run, question) => setConfirm({ run, question });
 
 
   // Everything on this page is mirrored into Supabase under one row, so it belongs to
@@ -1330,7 +1331,7 @@ export default function Planning() {
                         </button>
                         <GripVertical size={10} className="shrink-0 cursor-grab" style={{ color: MEETING_ICON }} />
                         <button
-                          onClick={(e) => { e.stopPropagation(); ask(() => dropMeeting(b, idx, m.id)); }}
+                          onClick={(e) => { e.stopPropagation(); ask(() => dropMeeting(b, idx, m.id), `Delete the meeting ${m.name || ""} from this day?`); }}
                           title="Remove"
                           style={{ color: MEETING_ICON }}
                           className="flex shrink-0 items-center self-center leading-none transition-opacity hover:opacity-70"
@@ -1981,8 +1982,8 @@ export default function Planning() {
       {/* Every bin on this page asks first. */}
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setConfirm(null)}>
-          <div className="w-full max-w-sm border-[3px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">Delete this?</p>
+          <div className="w-full max-w-sm border-[5px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">{confirm.question || "Delete this?"}</p>
             <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
               <button
                 onClick={() => { confirm.run(); setConfirm(null); }}
