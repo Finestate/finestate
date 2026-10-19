@@ -1035,7 +1035,7 @@ export default function Planning() {
         const trim = hasNotes({ code: c }) && c.match(/^(.*\()([^)]+)\)$/);
         const trimmed = boards[b].lines[idx]?.fills?.[c] ?? (trim ? trim[2] : "");
         return (
-          <span key={c} className="inline-flex items-center gap-1.5">
+          <span key={c} className={fillable ? "min-w-0 max-w-full" : "inline-flex items-center gap-1.5"}>
             {trim ? (
               <span className="inline-flex items-center">
                 {trim[1]}
@@ -1048,13 +1048,15 @@ export default function Planning() {
               // The ticks below fill the brackets. A double click puts the caret at the
               // very end, after them, to type anything else; a single click still just
               // opens the picker.
+              // Plain flowing text, so a long bracket wraps like a sentence straight after
+              // the opening bracket instead of being squeezed onto lines of its own.
               <span
-                className="inline-flex items-center"
+                className="break-all"
                 onDoubleClick={(e) => { e.stopPropagation(); focusEnd(e.currentTarget.querySelector("[contenteditable]")); }}
               >
                 {c.slice(0, -1)}
                 {/* On the line it always reads in lower case, whatever was typed below. */}
-                <span className="whitespace-pre lowercase" style={{ color: "#B01E2F" }}>{fill}</span>
+                <span className="lowercase" style={{ color: "#B01E2F" }}>{fill}</span>
                 {/* The ticked errands always come first; anything typed follows after a dash. */}
                 {fill && (boards[b].lines[idx]?.extras?.[c] || "").trim() && !/^\s*-/.test(boards[b].lines[idx].extras[c]) && (
                   <span style={{ color: "#B01E2F" }}>-</span>
@@ -1067,7 +1069,7 @@ export default function Planning() {
             ) : (
               c
             )}
-            {i < list.length - 1 && <span className="inline-block h-[5px] w-[5px] shrink-0" style={{ backgroundColor: colour }} />}
+            {i < list.length - 1 && <span className={`inline-block h-[5px] w-[5px] shrink-0 ${fillable ? "ml-1.5 align-middle" : ""}`} style={{ backgroundColor: colour }} />}
           </span>
         );
       })}
