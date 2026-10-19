@@ -28,7 +28,11 @@ const SECTORS = [
   "Real Estate",
   "Utilities",
 ];
-const START = { sectors: SECTORS.map((name, i) => ({ id: `s${i}`, name, industries: [] })) };
+// The ones followed, A to Z; others can be added back with Add sector.
+const FOLLOWED = ["Energy", "Health Care", "Information Technology"];
+const START = { trimmed: true, sectors: SECTORS.map((name, i) => ({ id: `s${i}`, name, industries: [] })).filter((x) => FOLLOWED.includes(x.name)) };
+// A list saved before the trim keeps only the followed sectors (and anything typed in them).
+const trimmed = (d) => (d.trimmed ? d : { ...d, trimmed: true, sectors: d.sectors.filter((x) => FOLLOWED.includes(x.name)) });
 
 export default function Funnel() {
   const [doc, setDoc] = useState(null);
@@ -40,7 +44,7 @@ export default function Funnel() {
       .select("data")
       .eq("id", DOC_ID)
       .maybeSingle()
-      .then(({ data }) => setDoc(Array.isArray(data?.data?.sectors) ? data.data : START));
+      .then(({ data }) => setDoc(Array.isArray(data?.data?.sectors) ? trimmed(data.data) : START));
   }, []);
 
   const save = (next) => {
@@ -71,6 +75,13 @@ export default function Funnel() {
               />
               {s.industries.length > 0 && <span className="text-[11px] text-neutral-500">({s.industries.length})</span>}
               <ChevronDown size={12} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${s.open ? "rotate-180" : ""}`} />
+              <button
+                onClick={(e) => { e.stopPropagation(); setConfirm({ name: s.name, run: () => save({ ...doc, sectors: doc.sectors.filter((x) => x.id !== s.id) }) }); }}
+                title="Delete"
+                className="shrink-0 text-neutral-900 hover:text-[#C1440E]"
+              >
+                <Trash2 size={11} />
+              </button>
             </div>
             {s.open && (
               <div className="border-t border-black px-2 py-1.5" style={{ backgroundColor: PINK }}>
@@ -105,6 +116,12 @@ export default function Funnel() {
             )}
           </div>
         ))}
+        <button
+          onClick={() => save({ ...doc, sectors: [...doc.sectors, { id: newId(), name: "", industries: [] }] })}
+          className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+        >
+          <Plus size={11} strokeWidth={3} />Add sector
+        </button>
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
       </div>
 
