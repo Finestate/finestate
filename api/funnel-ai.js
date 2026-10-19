@@ -4,7 +4,7 @@ import { requireAdmin, readBody } from "./_bank.js";
 // The top of the Funnel: Claude writes, and on request updates, a short summary of where
 // the big industry trends stand today, searching the web so it is current. Admin only.
 // The page sends the summary it holds now and what to update; the new summary comes back.
-export const config = { maxDuration: 300 };
+export const config = { maxDuration: 60 };
 
 const MODEL = "claude-opus-5-5";
 const SYSTEM =
@@ -35,9 +35,9 @@ export default async function handler(req, res) {
       response = await client.messages.create({
         model: MODEL,
         max_tokens: 6000,
-        output_config: { effort: "medium" },
+        output_config: { effort: "low" },
         system: SYSTEM,
-        tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 6 }],
+        tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 3 }],
         messages,
       });
       if (response.stop_reason !== "pause_turn") break;
