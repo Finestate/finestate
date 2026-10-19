@@ -26,7 +26,6 @@ import Costs from "./Costs.jsx";
 import Bookmarks from "./Bookmarks.jsx";
 import Assets from "./Assets.jsx";
 import Calculations from "./Calculations.jsx";
-import Funnel from "./Funnel.jsx";
 import HW from "./HW.jsx";
 import KnowledgeFeeds from "./KnowledgeFeeds.jsx";
 import ErrorBoundary from "./ErrorBoundary.jsx";
@@ -362,7 +361,7 @@ export default function App() {
             {route === "admin/integrations" && <Integrations />}
             {route === "assets/investing" && <KnowledgeFeeds />}
             {/* Funnel: empty until we build it together. */}
-            {route === "investing/funnel" && <Funnel />}
+            {route === "investing/funnel" && <div />}
             {route === "investing/contributions" && <div />}
             {route === "investing/portfolio" && <div />}
             {route === "investing/calculations" && <Calculations />}
