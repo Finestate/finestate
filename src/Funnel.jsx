@@ -12,6 +12,15 @@ const SUB_BG = "#FFE4B3";
 const GAP_BG = "#8A8A8A";
 const PINK = "#FBEFEC";
 const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
+// The plan for the Funnel, kept on the page so it is not forgotten while it is built.
+const PLAN = [
+  ["Stage 1 – Macro map", "Where the big money is being spent now, with stats and sources, why, a plain explanation, and the industries each area pulls in."],
+  ["Stage 2 – Industries", "A closer look at each industry, following the money down the chain: who actually captures the spending (for example chips and power before software)."],
+  ["Stage 3 – Top ETFs", "The leading ETFs per industry, used as a filter as well as a list: weak 3 to 5 year performance is a warning sign, and the top holdings give the stage 4 shortlist."],
+  ["Stage 4 – Companies", "Individual companies to watch and why, each with a short scorecard: growth, profit margins, debt and price."],
+  ["Monthly check", "Review from the top once a month; if a stage 1 area cools, everything under it gets flagged."],
+];
+
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const dateOf = (iso) => {
   if (!iso) return "";
@@ -72,6 +81,18 @@ export default function Funnel() {
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[640px] overflow-hidden border border-black bg-white shadow-sm">
         <div className="h-[10px]" style={{ backgroundColor: GAP_BG }} />
+        {/* The plan, opened and closed from its bar, remembered like everything else. */}
+        <div onClick={() => save({ ...doc, planOpen: !doc.planOpen })} className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={head}>Plan</span>
+          <ChevronDown size={14} strokeWidth={2.75} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${doc.planOpen ? "rotate-180" : ""}`} />
+        </div>
+        {doc.planOpen && PLAN.map(([t, d]) => (
+          <div key={t} className="flex gap-2 border-t border-black px-2 py-[3px] text-[11px] leading-[15px] text-neutral-900" style={{ backgroundColor: PINK }}>
+            <span className="w-[140px] shrink-0 font-bold">{t}</span>
+            <span>{d}</span>
+          </div>
+        ))}
+        <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
         {/* The bar opens and closes the map, and stays as you left it. */}
         <div onClick={() => save({ ...doc, open: !doc.open })} className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Macro map</span>
