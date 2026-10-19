@@ -1415,10 +1415,11 @@ export default function Planning() {
                       <input
                         ref={(el) => { if (el && editing === m.id && document.activeElement !== el) el.focus(); }}
                         value={m.name}
-                        readOnly={editing !== m.id}
+                        // A single click is enough to type here; the grip is for dragging.
+                        onFocus={() => setEditing(m.id)}
                         onChange={(e) => renameMeeting(b, m.id, e.target.value)}
                         onBlur={() => setEditing(null)}
-                        className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === m.id ? "" : "pointer-events-none"}`}
+                        className="min-w-0 flex-1 bg-transparent leading-[15px] outline-none"
                       />
                       <button onClick={() => addMeetingAfter(b, m.id)} title="Add a meeting under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
                         <Plus size={11} strokeWidth={3} />
