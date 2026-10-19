@@ -58,9 +58,9 @@ function useLiveCost(name, path, maxAge = 60 * 60 * 1000) {
 }
 
 export default function SiteRunningCosts() {
-  const [anthropic, errA] = useLiveCost("anthropic", "/api/anthropic-cost");
+  const [anthropic, errA] = useLiveCost("anthropic", "/api/cost?service=anthropic");
   // Vercel bills by the day, so its figure is read once a day.
-  const [vercel, errV] = useLiveCost("vercel", "/api/vercel-cost", 24 * 60 * 60 * 1000);
+  const [vercel, errV] = useLiveCost("vercel", "/api/cost?service=vercel", 24 * 60 * 60 * 1000);
   const live = { anthropic, vercel };
 
   const priceOf = (c) => (c.live ? (live[c.live] ?? 0) : parseFloat(c.price) || 0);
