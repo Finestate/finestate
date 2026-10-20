@@ -1244,9 +1244,9 @@ export default function Planning() {
         <button
           onClick={() => setShowFull(!showFull)}
           title={showFull ? "Showing the brackets on Silx, Says, Servefast and HEIE – click for just the letters" : "Showing just the letters – click to show the brackets too"}
-          className={`relative inline-flex h-[12px] w-[22px] shrink-0 items-center rounded-full border border-neutral-900 transition-colors ${showFull ? "bg-[#0f766e]" : "bg-white"}`}
+          // Just a small round button: filled when the brackets show, hollow when not.
+          className={`h-[10px] w-[10px] shrink-0 rounded-full border-[1.5px] border-neutral-900 ${showFull ? "bg-neutral-900" : "bg-transparent"}`}
         >
-          <span className={`absolute h-[8px] w-[8px] rounded-full transition-all ${showFull ? "left-[11px] bg-white" : "left-[1px] bg-neutral-900"}`} />
         </button>
         <button onClick={downloadBackup} title="Download a backup of the dropdowns" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
           <Download size={12} strokeWidth={2.5} />
