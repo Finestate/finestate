@@ -1245,7 +1245,7 @@ export default function Planning() {
           onClick={() => setShowFull(!showFull)}
           title={showFull ? "Showing the brackets on Silx, Says, Servefast and HEIE – click for just the letters" : "Showing just the letters – click to show the brackets too"}
           // Just a small round button: filled when the brackets show, hollow when not.
-          className={`h-[10px] w-[10px] shrink-0 rounded-full border-[1.5px] border-[#0f766e] transition-colors ${showFull ? "bg-[#0f766e]" : "bg-white"}`}
+          className={`h-[10px] w-[10px] shrink-0 rounded-full border-[1.5px] border-[#1d4ed8] transition-colors ${showFull ? "bg-[#1d4ed8]" : "bg-white"}`}
         >
         </button>
         <button onClick={downloadBackup} title="Download a backup of the dropdowns" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
