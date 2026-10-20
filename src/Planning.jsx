@@ -1233,10 +1233,21 @@ export default function Planning() {
     </div>
   );
 
+  // A small switch beside TODAY: on, the company day lines show each code with its
+  // brackets, as in the dropdown; off, just the short letters. Remembered in this browser.
+  const [showFull, setShowFullRaw] = useState(() => { try { return localStorage.getItem("daily-show-full") === "1"; } catch { return false; } });
+  const setShowFull = (v) => { setShowFullRaw(v); try { localStorage.setItem("daily-show-full", v ? "1" : "0"); } catch {} };
   const renderToday = (first = false) => (
     <>
-      <div className={`flex h-[18px] items-center px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
+      <div className={`flex h-[18px] items-center gap-2 px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
         <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
+        <button
+          onClick={() => setShowFull(!showFull)}
+          title={showFull ? "Showing the brackets on Silx, Says, Servefast and HEIE – click for just the letters" : "Showing just the letters – click to show the brackets too"}
+          className={`relative inline-flex h-[12px] w-[22px] shrink-0 items-center rounded-full border border-neutral-900 transition-colors ${showFull ? "bg-[#0f766e]" : "bg-white"}`}
+        >
+          <span className={`absolute h-[8px] w-[8px] rounded-full transition-all ${showFull ? "left-[11px] bg-white" : "left-[1px] bg-neutral-900"}`} />
+        </button>
         <button onClick={downloadBackup} title="Download a backup of the dropdowns" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
           <Download size={12} strokeWidth={2.5} />
         </button>
@@ -1254,7 +1265,7 @@ export default function Planning() {
   // The hyper-prios lead, together in one small soft-gold box, same weight as the rest.
   const renderShortLine = (b, codes) => {
     const hyper = new Set((boards[b].points.hyper || []).map((it) => it.code));
-    const items = codes.map((c) => ({ c, s: shortCode(c) })).filter((x) => x.s);
+    const items = codes.map((c) => ({ c, s: showFull ? String(c).trim() : shortCode(c) })).filter((x) => x.s);
     const top = items.filter((x) => hyper.has(x.c)).map((x) => x.s);
     const rest = items.filter((x) => !hyper.has(x.c)).map((x) => x.s);
     return (
