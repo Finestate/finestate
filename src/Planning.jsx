@@ -220,6 +220,8 @@ const SINGLE_BOARDS = ["fin"];
 const ERRANDS_AUTOFILL = true;
 // Only the lines under a "Reminder" group head (in Errands prios or H+F order) feed the
 // brackets: the ticked ones, joined by a dash, no spaces. Everything else is typed by hand.
+// The errands brackets always start with "seebelow", then any ticked Reminder lines.
+const bracketText = (lists, lineIdx) => ["seebelow", reminderText(lists, lineIdx)].filter(Boolean).join("-");
 const reminderText = (lists, lineIdx) =>
   TWOCOLS.flatMap(([k]) => {
     const list = lists[k] || [];
@@ -576,7 +578,7 @@ export default function Planning() {
       .map((p) => String(p.code).trim())
       .find((c) => /errands/i.test(c) && /\(\s*\)$/.test(c));
     if (!code) return;
-    const textFor = (li) => reminderText(next, li);
+    const textFor = (li) => bracketText(next, li);
     // It lands on the day line whose picker is open, not always today's.
     saveLines("master", master.lines.map((l, i) => {
       if (!which.includes(i)) return l;
@@ -853,7 +855,7 @@ export default function Planning() {
     // Ticking the errands point on Master fills its brackets at once with the errand
     // lines already ticked for that day, rather than waiting for the next tick.
     if (ERRANDS_AUTOFILL && !has && b === "master" && /errands/i.test(code) && /\(\s*\)$/.test(code)) {
-      fills[code] = reminderText(cols, idx);
+      fills[code] = bracketText(cols, idx);
     }
     patchLine(b, idx, { codes: has ? line.codes.filter((c) => c !== code) : [...line.codes, code], fills, extras });
   };
