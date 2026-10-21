@@ -996,7 +996,7 @@ export default function Costs({ seed }) {
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setConfirm(null)}>
           <div className="w-full max-w-sm border-[5px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">{confirm.question || "Delete this?"}</p>
+            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900 [overflow-wrap:anywhere]">{confirm.question || "Delete this?"}</p>
             <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
               <button
                 onClick={() => { confirm.run(); setConfirm(null); }}

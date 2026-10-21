@@ -936,7 +936,7 @@ export default function Assets() {
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setConfirm(null)}>
           <div className="w-full max-w-sm border-[5px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900">Delete {confirm.name || "this line"}?</p>
+            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900 [overflow-wrap:anywhere]">Delete {confirm.name || "this line"}?</p>
             <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
               <button
                 onClick={() => { if (confirm.run) confirm.run(); else removeRow(confirm.list, confirm.id, confirm.sub); setConfirm(null); }}
