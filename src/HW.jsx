@@ -973,7 +973,8 @@ function BibleChat({ chat, onChange }) {
         </button>
       )}
       {chat.map((m, i) => (
-        <p key={i} className={`mb-1.5 whitespace-pre-wrap text-[11px] leading-[15px] text-neutral-900 ${m.role === "user" ? "pr-12 font-bold" : ""}`}>
+        // Your questions in bold black; Claude's answers in a strong deep blue, a touch heavier, so they read easily.
+        <p key={i} className={`mb-1.5 whitespace-pre-wrap text-[11px] leading-[16px] ${m.role === "user" ? "pr-12 font-bold text-neutral-900" : "font-medium text-[#1e3a8a]"}`}>
           {m.content}
         </p>
       ))}
