@@ -1022,8 +1022,8 @@ function RichNotes({ html, onChange }) {
   return (
     <>
       <div className="-mx-2 mb-1.5 flex items-center gap-1 border-b border-[#C1440E] px-2 pb-1">
-        <button onMouseDown={keep} onClick={() => run("bold")} title="Bold the highlighted words" className={btn}>
-          <span className="text-[13px] font-black leading-none tracking-tight">B</span>
+        <button onMouseDown={keep} onClick={() => run("bold")} title="Bold the highlighted words" className="-m-1 flex h-6 w-6 items-center justify-center rounded text-neutral-900 hover:bg-black/5">
+          <span className="flex h-3 w-3 items-center justify-center text-[13px] font-black leading-none">B</span>
         </button>
         <button onMouseDown={keep} onClick={red} title="Turn the highlighted words red" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
           <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_RED }} />

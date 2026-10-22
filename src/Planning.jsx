@@ -1655,8 +1655,8 @@ export default function Planning() {
                     {/* The tools sit in their own strip across the top of the field. */}
                     <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
                       {/* The same ribbon as the table rows, acting on these notes. */}
-                      <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "bold")} title="Bold the highlighted words" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]">
-                        <span className="text-[13px] font-black leading-none tracking-tight">B</span>
+                      <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "bold")} title="Bold the highlighted words" className="-m-1 flex h-6 w-6 items-center justify-center rounded text-neutral-900 hover:bg-black/5">
+                        <span className="flex h-3 w-3 items-center justify-center text-[13px] font-black leading-none">B</span>
                       </button>
                       <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed(b)} title="Turn the highlighted words red" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
                         <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_RED }} />
@@ -1803,8 +1803,8 @@ export default function Planning() {
         {/* Third column: a free field, no lines and no tick boxes, just text. */}
         <div className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
           <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
-            <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "bold")} title="Bold the highlighted words" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]">
-              <span className="text-[13px] font-black leading-none tracking-tight">B</span>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "bold")} title="Bold the highlighted words" className="-m-1 flex h-6 w-6 items-center justify-center rounded text-neutral-900 hover:bg-black/5">
+              <span className="flex h-3 w-3 items-center justify-center text-[13px] font-black leading-none">B</span>
             </button>
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed("scratch")} title="Turn the highlighted words red" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
               <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_RED }} />
@@ -1866,9 +1866,9 @@ export default function Planning() {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => applyCmd(target, "bold")}
           title="Bold the highlighted words"
-          className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}
+          className="-m-1 flex h-6 w-6 items-center justify-center rounded text-neutral-900 hover:bg-black/5"
         >
-          <span className="text-[14px] font-black leading-none tracking-tight">B</span>
+          <span className="flex h-3 w-3 items-center justify-center text-[13px] font-black leading-none">B</span>
         </button>
         <button
           onMouseDown={(e) => e.preventDefault()}
