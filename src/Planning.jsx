@@ -238,7 +238,7 @@ const reminderText = (lists, lineIdx) =>
     .filter(Boolean)
     .join("-");
 // Boards whose first column is Hyper-prios only, no Regular prios.
-const HYPER_ONLY = ["servefast", "fin"];
+const HYPER_ONLY = ["silx", "says", "servefast", "fin"];
 // Which point groups a dropdown column holds, top to bottom.
 const colGroups = (b, col) =>
   col === "rest" ? ["rest"] : b === "master" ? ["core"] : HYPER_ONLY.includes(b) ? ["hyper"] : ["hyper", "core"];
