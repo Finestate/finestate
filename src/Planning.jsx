@@ -779,16 +779,15 @@ export default function Planning() {
     document.execCommand(cmd);
     updateHtml(i, el.innerHTML);
   };
-  // Red for the highlighted words; pressed again on red text it goes back to black.
+  // Two colour buttons: one turns the highlighted words red, the other black.
   const INK_RED = "#B01E2F";
-  const applyRed = (i) => {
+  const INK_BLACK = "#171717";
+  const applyRed = (i, color = INK_RED) => {
     const r = rows[i];
     const el = r && lineRefs.current[r.id];
     if (!el) return;
     el.focus();
-    const now = String(document.queryCommandValue("foreColor") || "").replace(/\s/g, "");
-    const isRed = now === "rgb(176,30,47)" || now.toLowerCase() === INK_RED.toLowerCase();
-    document.execCommand("foreColor", false, isRed ? "#171717" : INK_RED);
+    document.execCommand("foreColor", false, color);
     updateHtml(i, el.innerHTML);
   };
   const bump = (i, d) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, indent: Math.max(0, Math.min(6, (r.indent || 0) + d)) } : r)));
@@ -835,13 +834,11 @@ export default function Planning() {
     document.execCommand(cmd);
     keepNotes(b, el.innerHTML);
   };
-  const noteRed = (b) => {
+  const noteRed = (b, color = INK_RED) => {
     const el = noteRefs.current[b];
     if (!el) return;
     el.focus();
-    const now = String(document.queryCommandValue("foreColor") || "").replace(/\s/g, "");
-    const isRed = now === "rgb(176,30,47)" || now.toLowerCase() === INK_RED.toLowerCase();
-    document.execCommand("foreColor", false, isRed ? "#171717" : INK_RED);
+    document.execCommand("foreColor", false, color);
     keepNotes(b, el.innerHTML);
   };
   const patchLine = (b, idx, fields) => saveLines(b, boards[b].lines.map((l, i) => (i === idx ? { ...l, ...fields } : l)));
@@ -1659,10 +1656,13 @@ export default function Planning() {
                     <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
                       {/* The same ribbon as the table rows, acting on these notes. */}
                       <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "bold")} title="Bold the highlighted words" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]">
-                        <span className="translate-y-[1px] text-[13px] font-black leading-none tracking-tight">B</span>
+                        <span className="text-[13px] font-black leading-none tracking-tight">B</span>
                       </button>
-                      <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed(b)} title="Red: click to turn the highlighted words red, click again to turn them back to black" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
+                      <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed(b)} title="Turn the highlighted words red" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
                         <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_RED }} />
+                      </button>
+                      <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed(b, INK_BLACK)} title="Turn the highlighted words black" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
+                        <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_BLACK }} />
                       </button>
                       <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "insertUnorderedList")} title="Bullet the selected lines" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><List size={14} strokeWidth={2.75} /></button>
                       <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "outdent")} title="Decrease indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsLeft size={14} strokeWidth={2.75} /></button>
@@ -1804,10 +1804,13 @@ export default function Planning() {
         <div className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
           <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "bold")} title="Bold the highlighted words" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]">
-              <span className="translate-y-[1px] text-[13px] font-black leading-none tracking-tight">B</span>
+              <span className="text-[13px] font-black leading-none tracking-tight">B</span>
             </button>
-            <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed("scratch")} title="Red: click to turn the highlighted words red, click again to turn them back to black" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed("scratch")} title="Turn the highlighted words red" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
               <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_RED }} />
+            </button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed("scratch", INK_BLACK)} title="Turn the highlighted words black" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
+              <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_BLACK }} />
             </button>
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "insertUnorderedList")} title="Bullet the selected lines" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><List size={14} strokeWidth={2.75} /></button>
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "outdent")} title="Decrease indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsLeft size={14} strokeWidth={2.75} /></button>
@@ -1865,16 +1868,23 @@ export default function Planning() {
           title="Bold the highlighted words"
           className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}
         >
-          <span className="translate-y-[1px] text-[14px] font-black leading-none tracking-tight">B</span>
+          <span className="text-[14px] font-black leading-none tracking-tight">B</span>
         </button>
         <button
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => applyRed(target)}
-          title="Red: click to turn the highlighted words red, click again to turn them back to black"
+          title="Turn the highlighted words red"
           className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5"
         >
-          {/* Always red: click to turn the highlighted words red, again to turn them back to black. */}
           <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_RED }} />
+        </button>
+        <button
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => applyRed(target, INK_BLACK)}
+          title="Turn the highlighted words black"
+          className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5"
+        >
+          <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_BLACK }} />
         </button>
         <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "insertUnorderedList")} title="Bullet the selected lines" className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}><List size={15} strokeWidth={2.75} /></button>
         <button onMouseDown={(e) => e.preventDefault()} onClick={() => applyCmd(target, "outdent")} title="Decrease indent" className={`flex h-4 w-4 items-center justify-center ${!r ? off : on}`}><ChevronsLeft size={15} strokeWidth={2.75} /></button>

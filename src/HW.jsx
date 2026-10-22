@@ -1014,21 +1014,22 @@ function RichNotes({ html, onChange }) {
     document.execCommand(cmd, false, arg);
     onChange(el.innerHTML);
   };
-  const red = () => {
-    const now = String(document.queryCommandValue("foreColor") || "").replace(/\s/g, "");
-    const isRed = now === "rgb(176,30,47)" || now.toLowerCase() === INK_RED.toLowerCase();
-    run("foreColor", isRed ? "#171717" : INK_RED);
-  };
+  // Two colour buttons: one turns the highlighted words red, the other black.
+  const red = () => run("foreColor", INK_RED);
+  const black = () => run("foreColor", "#171717");
   const btn = "flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]";
   const keep = (e) => e.preventDefault();
   return (
     <>
       <div className="-mx-2 mb-1.5 flex items-center gap-1 border-b border-[#C1440E] px-2 pb-1">
         <button onMouseDown={keep} onClick={() => run("bold")} title="Bold the highlighted words" className={btn}>
-          <span className="translate-y-[1px] text-[13px] font-black leading-none tracking-tight">B</span>
+          <span className="text-[13px] font-black leading-none tracking-tight">B</span>
         </button>
-        <button onMouseDown={keep} onClick={red} title="Red: click to turn the highlighted words red, click again to turn them back to black" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
+        <button onMouseDown={keep} onClick={red} title="Turn the highlighted words red" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
           <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_RED }} />
+        </button>
+        <button onMouseDown={keep} onClick={black} title="Turn the highlighted words black" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
+          <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: "#171717" }} />
         </button>
         <button onMouseDown={keep} onClick={() => run("insertUnorderedList")} title="Bullet the selected lines" className={btn}><List size={14} strokeWidth={2.75} /></button>
         <button onMouseDown={keep} onClick={() => run("outdent")} title="Decrease indent" className={btn}><ChevronsLeft size={14} strokeWidth={2.75} /></button>
