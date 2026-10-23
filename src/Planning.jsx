@@ -1371,8 +1371,8 @@ export default function Planning() {
                     the letter codes. */}
                 {MEETING_BOARDS.includes(b) ? (
                   <>
-                    <div className="order-2">{coreCodes.length > 0 && renderCodeLine(b, coreCodes, "#171717", idx)}</div>
-                    <div className="order-3">{restCodes.length > 0 && renderCodeLine(b, restCodes, "#171717", idx)}</div>
+                    {/* All the ticked points run on as one line of text, so the next one starts right after the last square. */}
+                    <div className="order-2">{coreCodes.length + restCodes.length > 0 && renderCodeLine(b, [...coreCodes, ...restCodes], "#171717", idx)}</div>
                   </>
                 ) : (
                   (coreCodes.length > 0 || restCodes.length > 0) &&
