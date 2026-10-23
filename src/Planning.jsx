@@ -1024,7 +1024,8 @@ export default function Planning() {
     patchLine(b, idx, { extras: { ...(line.extras || {}), [code]: text } });
   };
   const renderCodeLine = (b, list, colour, idx) => (
-    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 text-[11px] font-semibold leading-[15px]" style={{ color: colour }}>
+    // Plain flowing text: each point runs straight on after the square before it, like a sentence.
+    <div className="text-[11px] font-semibold leading-[15px]" style={{ color: colour }}>
       {list.map((c, i) => {
         const fillable = /\(\)$/.test(c);
         const fill = boards[b].lines[idx]?.fills?.[c] || "";
@@ -1034,7 +1035,7 @@ export default function Planning() {
         const trim = hasNotes({ code: c }) && c.match(/^(.*\()([^)]+)\)$/);
         const trimmed = boards[b].lines[idx]?.fills?.[c] ?? (trim ? trim[2] : "");
         return (
-          <span key={c} className={fillable ? "min-w-0 max-w-full" : "inline-flex items-center gap-1.5"}>
+          <span key={c}>
             {trim ? (
               <span className="inline-flex items-center">
                 {trim[1]}
@@ -1068,7 +1069,7 @@ export default function Planning() {
             ) : (
               c
             )}
-            {i < list.length - 1 && <span className={`inline-block h-[5px] w-[5px] shrink-0 ${fillable ? "ml-1.5 align-middle" : ""}`} style={{ backgroundColor: colour }} />}
+            {i < list.length - 1 && <span className="mx-1.5 inline-block h-[5px] w-[5px] align-middle" style={{ backgroundColor: colour }} />}
           </span>
         );
       })}
