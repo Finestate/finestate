@@ -778,13 +778,13 @@ export default function HW() {
                         <div key={r.id} {...dropProps(`nut-${day}`, mi, (from, to) => saveDayRows(day, moved(rowsOfDay(day), from, to)))}>
                         {marker(`nut-${day}`, mi)}
                         {/* A line labelled "In consideration" stands out: red text on a slightly deeper pink. */}
-                        <div className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""} ${/^\s*in consideration/i.test(r.label || "") ? "bg-[#F4D3CA] [&_textarea]:text-[#C1440E]" : ""}`}>
+                        <div className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""} ${/^\s*in consideration/i.test(r.label || "") ? "bg-[#F4D3CA] [&_textarea]:text-[#C1440E] [&_.red-base]:text-[#C1440E]" : ""}`}>
                           {/* A wider label that wraps, so a longer name grows the line rather than hiding. */}
                           <div className="w-[100px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px]">
                             <GrowText value={r.label || ""} onChange={(t) => saveDayRows(day, rowsOfDay(day).map((x) => (x.id === r.id ? { ...x, label: t } : x)))} rows={1} />
                           </div>
                           <div className="min-w-0 flex-1 px-1.5 py-[2px]">
-                            <GrowText value={mealOf(day, group, r.key)} onChange={(t) => saveDayMeal(day, r.key, t)} rows={1} spell />
+                            <RedWords value={mealOf(day, group, r.key)} onChange={(t) => saveDayMeal(day, r.key, t)} />
                           </div>
                           {/* The grip sits just left of the bin. */}
                           <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 py-[4px]">
@@ -1051,6 +1051,39 @@ function RichNotes({ html, onChange }) {
 // `bullets`: a line started with "- " becomes a bullet, Enter starts the next one, and
 // Enter on an empty bullet ends the list.
 // `spell`: the browser underlines misspelt words (on everywhere in the new table).
+// Words that always show in red wherever they appear in a Nutrition line.
+const RED_WORDS = ["and Al Natura bread"];
+// A text box whose chosen words read in red. The words are drawn underneath in colour and
+// the box sits on top with clear letters, so typing stays exactly as in any other box.
+function RedWords({ value, onChange }) {
+  const text = String(value || "");
+  const parts = [];
+  const re = new RegExp(RED_WORDS.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "gi");
+  let last = 0;
+  for (const m of text.matchAll(re)) {
+    if (m.index > last) parts.push([text.slice(last, m.index), false]);
+    parts.push([m[0], true]);
+    last = m.index + m[0].length;
+  }
+  parts.push([text.slice(last), false]);
+  const font = "text-[11px] leading-[15px] whitespace-pre-wrap break-words";
+  return (
+    <div className="relative">
+      <div aria-hidden className={`red-base ${font} text-neutral-900`}>
+        {parts.map(([t, red], k) => (red ? <span key={k} className="text-[#C1440E]">{t}</span> : <span key={k}>{t}</span>))}
+        {/* Keeps the last line its full height, even when it ends in a line break. */}
+        {"​"}
+      </div>
+      <textarea
+        value={text}
+        onChange={(e) => onChange(e.target.value)}
+        spellCheck
+        className={`absolute inset-0 block h-full w-full resize-none overflow-hidden bg-transparent p-0 !text-transparent caret-neutral-900 outline-none ${font}`}
+      />
+    </div>
+  );
+}
+
 function GrowText({ value, onChange, rows = 2, autoFocus = false, bullets = false, boxRef = null, spell = true }) {
   const ref = useRef(null);
   if (boxRef) boxRef.current = ref.current;
