@@ -1339,7 +1339,7 @@ export default function Planning() {
                         ) : (
                           <span className="mr-[3px] leading-[15px]">
                             {m.name}
-                            {/* The Lsop meeting takes brackets on the day line, to type anything into in red. */}
+                            {/* The Lshop meeting takes brackets on the day line, to type anything into in red. */}
                             {/^\s*lsop/i.test(m.name) && (
                               <>
                                 {" ("}
