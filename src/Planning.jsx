@@ -507,6 +507,7 @@ export default function Planning() {
   // What is being dragged: a box from the picker, or a name already on a line.
   const [drag, setDrag] = useState(null);
   const [editing, setEditing] = useState(null); // meeting being typed in, so dragging steps aside
+  const [inFill, setInFill] = useState(null); // a meeting whose brackets the pointer is over, so dragging steps aside
   const [todoAnchor, setTodoAnchor] = useState(() => { try { return localStorage.getItem(TODO_ANCHOR_KEY) || null; } catch { return null; } });
   // Errands prios and H+F order: plain lists, each line typed, moved or binned.
   // These hold door codes and names, so they live in Supabase, never in this public repo.
@@ -1326,7 +1327,7 @@ export default function Planning() {
                     {line.meetings.map((m, mi) => (
                       <span
                         key={m.id}
-                        draggable={editing !== m.id}
+                        draggable={editing !== m.id && inFill !== m.id}
                         onDoubleClick={(e) => { e.stopPropagation(); setEditing(m.id); }}
                         onDragStart={(e) => { e.stopPropagation(); setDrag({ from: "line", board: b, lineIdx: idx, index: mi, id: m.id }); }}
                         onDragEnd={() => setDrag(null)}
@@ -1353,17 +1354,30 @@ export default function Planning() {
                         ) : (
                           <span className="mr-[3px] leading-[15px]">
                             {m.name}
-                            {/* The Lshopgroom meeting takes brackets on the day line, to type anything into in red.
-                                Known by its mark, not its name, so renaming it keeps them. */}
-                            {(m.brackets || boards[b].meetings.some((x) => x.id === m.id && x.brackets)) && (
-                              <>
-                                {" ("}
-                                <span onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
-                                  <FillText key={`${b}-${idx}-${m.id}-fill`} text={line.fills?.[`meet-${m.id}`] || ""} onChange={(t) => setFill(b, idx, `meet-${m.id}`, t)} />
-                                </span>
-                                )
-                              </>
-                            )}
+                          </span>
+                        )}
+                        {/* The Lshopgroom meeting takes brackets on the day line, to type anything into in red.
+                            Known by its mark, not its name, so renaming it keeps them. */}
+                        {(m.brackets || boards[b].meetings.some((x) => x.id === m.id && x.brackets)) && (
+                          // The whole bracket, with a little room inside even when empty, is one easy
+                          // target: a click anywhere on it puts the caret at the end, ready to type.
+                          <span
+                            onMouseEnter={() => setInFill(m.id)}
+                            onMouseLeave={() => setInFill(null)}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!e.target.isContentEditable) focusEnd(e.currentTarget.querySelector("[contenteditable]"));
+                            }}
+                            onDoubleClick={(e) => e.stopPropagation()}
+                            title="Click to type"
+                            className="mr-[3px] cursor-text"
+                          >
+                            (
+                            <span className="inline-block min-w-[3ch]">
+                              <FillText key={`${b}-${idx}-${m.id}-fill`} text={line.fills?.[`meet-${m.id}`] || ""} onChange={(t) => setFill(b, idx, `meet-${m.id}`, t)} />
+                            </span>
+                            )
                           </span>
                         )}
                         {/* The marks on a meeting share one burgundy. */}
