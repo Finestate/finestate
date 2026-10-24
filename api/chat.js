@@ -37,6 +37,19 @@ function capWords(text) {
   return lastSentence >= 0 ? kept : kept.replace(/[,;:]$/, "") + "…";
 }
 
+// Every answer is one single paragraph: bullets, numbers, headings and bold marks are
+// taken off, and all line breaks run together into one flowing line.
+function oneParagraph(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^\s*(?:[-*•–]|\d+[.)]|#+)\s+/, "").trim())
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\*\*|__/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 // Only the latest part of a long conversation is sent, to keep each answer quick.
 const HISTORY = 30;
 
@@ -83,7 +96,7 @@ export default async function handler(req, res) {
       .map((b) => b.text)
       .join("\n")
       .trim();
-    res.status(200).json({ reply: capWords(reply) || "No answer came back." });
+    res.status(200).json({ reply: capWords(oneParagraph(reply)) || "No answer came back." });
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) { res.status(429).json({ error: "Claude is busy right now. Try again in a moment." }); return; }
     if (e instanceof Anthropic.APIError) { res.status(502).json({ error: `Claude could not answer (${e.status}).` }); return; }
