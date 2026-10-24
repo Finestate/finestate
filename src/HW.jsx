@@ -290,6 +290,12 @@ export default function HW() {
                                 {binBtn(() => editGroup(g.id, (x) => ({ ...x, rows: x.rows.filter((y) => y.id !== r.id) })))}
                               </span>
                             </div>
+                            {/* Under the Clothes line, always shown: a chat with Claude for fashion tips and links. */}
+                            {/^\s*clothes/i.test(r.text || "") && (
+                              <div className="border-t border-neutral-400 px-1.5 pb-1.5">
+                                <BibleChat topic="fashion" chat={r.chat || []} onChange={(chat) => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, chat } : y)) }))} />
+                              </div>
+                            )}
                             </div>
                           ))}
                           {marker(`list-${g.id}`, g.rows.length)}
@@ -923,9 +929,10 @@ const siteName = (v) => {
   try { return new URL(String(v).trim()).hostname.replace(/^www\./, ""); } catch { return String(v); }
 };
 
-// A conversation with Claude for Bible questions, under the G entry. Every question and
-// answer is saved with the entry in Supabase, so it is all there next time.
-function BibleChat({ chat, onChange }) {
+// A conversation with Claude for Bible questions, under the G entry, and for fashion tips,
+// under the Clothes line in Looks. Every question and answer is saved with its entry in
+// Supabase, so it is all there next time.
+function BibleChat({ chat, onChange, topic = "bible" }) {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -943,7 +950,7 @@ function BibleChat({ chat, onChange }) {
       const send = () => fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${data?.session?.access_token || ""}` },
-        body: JSON.stringify({ messages: asked }),
+        body: JSON.stringify({ messages: asked, topic }),
       });
       let r;
       try { r = await send(); } catch {
@@ -975,7 +982,7 @@ function BibleChat({ chat, onChange }) {
       {chat.map((m, i) => (
         // Your questions in bold black; Claude's answers in a strong deep blue, a touch heavier, so they read easily.
         <p key={i} className={`mb-1.5 whitespace-pre-wrap text-[11px] leading-[16px] ${m.role === "user" ? "pr-12 font-bold text-neutral-900" : "font-medium text-[#1e3a8a]"}`}>
-          {m.content}
+          {m.role === "user" ? m.content : linkify(m.content)}
         </p>
       ))}
       {busy && <p className="mb-1.5 text-[11px] italic text-neutral-500">Claude is thinking…</p>}
@@ -990,6 +997,18 @@ function BibleChat({ chat, onChange }) {
     </div>
   );
 }
+
+// Web addresses in an answer become underlined links that open in a new tab.
+const linkify = (t) =>
+  String(t || "").split(/(https?:\/\/[^\s)\]]+)/g).map((part, k) =>
+    /^https?:\/\//.test(part) ? (
+      <a key={k} href={part.replace(/[.,;:]+$/, "")} target="_blank" rel="noreferrer" className="break-all underline">
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  );
 
 // Notes written before formatting arrived were plain text; they show the same, line by line.
 const plainToHtml = (t) =>
