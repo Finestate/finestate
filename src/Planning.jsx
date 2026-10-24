@@ -1340,7 +1340,7 @@ export default function Planning() {
                           <span className="mr-[3px] leading-[15px]">
                             {m.name}
                             {/* The Lshop meeting takes brackets on the day line, to type anything into in red. */}
-                            {/^\s*lsop/i.test(m.name) && (
+                            {/^\s*lshop/i.test(m.name) && (
                               <>
                                 {" ("}
                                 <span onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
