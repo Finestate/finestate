@@ -8,11 +8,34 @@ export const config = { maxDuration: 60 };
 
 const MODEL = "claude-opus-5-5";
 const SYSTEM =
-  "You are a thoughtful Bible study companion for one person's private notes. Answer questions about scripture with careful analysis: quote and cite book, chapter and verse; note where translations differ and why; give the historical, cultural and literary context; and set out the main ways the passage has been read across Christian traditions, saying plainly which parts are the text itself and which are interpretation. Be warm and direct, write every answer as one single paragraph, with no headings, lists or line breaks, and keep answers to what was asked. Never write more than 100 words in an answer (fewer is fine): pick the most important points rather than covering everything, and if more would help, offer to go deeper.";
+  "You are a thoughtful Bible study companion for one person's private notes. Answer questions about scripture with careful analysis: quote and cite book, chapter and verse; note where translations differ and why; give the historical, cultural and literary context; and set out the main ways the passage has been read across Christian traditions, saying plainly which parts are the text itself and which are interpretation. Be warm and direct, write every answer as one single paragraph, with no headings, lists or line breaks, and keep answers to what was asked. Never write more than 70 words in an answer (fewer is fine): pick the most important points rather than covering everything, and if more would help, offer to go deeper.";
 
 // Fashion answers search the web, so they can give real links.
 const FASHION =
-  "You are a personal style adviser for one man's private notes. Give practical, specific fashion advice: what to wear, fits, colours, fabrics, combinations, brands and where to buy. When asked for links or tips, search the web and give the best few real links, each written out in full as a plain web address (https://...) right after what it is. Be direct, write each answer as one single paragraph with no headings, lists or markdown, and keep it under 120 words, not counting the links.";
+  "You are a personal style adviser for one man's private notes. Give practical, specific fashion advice: what to wear, fits, colours, fabrics, combinations, brands and where to buy. When asked for links or tips, search the web and give the best few real links, each written out in full as a plain web address (https://...) right after what it is. Be direct, write each answer as one single paragraph with no headings, lists or markdown, and never write more than 70 words, not counting the links.";
+
+// A hard limit on every answer: never more than 80 words, web addresses not counted. A longer
+// answer is cut back to its last full sentence inside the limit, or at the 80th word.
+const MAX_WORDS = 80;
+function capWords(text) {
+  const tokens = String(text || "").split(/(\s+)/);
+  let words = 0;
+  let cut = -1;
+  let lastSentence = -1;
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    if (!t.trim() || /^https?:\/\//.test(t)) continue;
+    words++;
+    if (words > MAX_WORDS) { cut = i; break; }
+    if (/[.!?]["')\]]?$/.test(t)) lastSentence = i;
+  }
+  if (cut < 0) return String(text || "").trim();
+  // Any web addresses straight after the last kept sentence stay with it.
+  let end = lastSentence >= 0 ? lastSentence : cut - 1;
+  while (end + 2 < tokens.length && /^https?:\/\//.test(tokens[end + 2])) end += 2;
+  const kept = tokens.slice(0, end + 1).join("").trim();
+  return lastSentence >= 0 ? kept : kept.replace(/[,;:]$/, "") + "…";
+}
 
 // Only the latest part of a long conversation is sent, to keep each answer quick.
 const HISTORY = 30;
@@ -60,7 +83,7 @@ export default async function handler(req, res) {
       .map((b) => b.text)
       .join("\n")
       .trim();
-    res.status(200).json({ reply: reply || "No answer came back." });
+    res.status(200).json({ reply: capWords(reply) || "No answer came back." });
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) { res.status(429).json({ error: "Claude is busy right now. Try again in a moment." }); return; }
     if (e instanceof Anthropic.APIError) { res.status(502).json({ error: `Claude could not answer (${e.status}).` }); return; }
