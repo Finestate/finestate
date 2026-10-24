@@ -1371,10 +1371,11 @@ export default function Planning() {
                             }}
                             onDoubleClick={(e) => e.stopPropagation()}
                             title="Click to type"
-                            className="mr-[3px] cursor-text"
+                            className="group/fill mr-[3px] cursor-text"
                           >
                             (
-                            <span className="inline-block min-w-[3ch]">
+                            {/* Shut tight while empty; a little room opens only while typing in it. */}
+                            <span className="inline-block group-focus-within/fill:min-w-[3ch]">
                               <FillText key={`${b}-${idx}-${m.id}-fill`} text={line.fills?.[`meet-${m.id}`] || ""} onChange={(t) => setFill(b, idx, `meet-${m.id}`, t)} />
                             </span>
                             )
