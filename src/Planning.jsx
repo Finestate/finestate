@@ -823,6 +823,20 @@ export default function Planning() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boards]);
+  // The Lshopgroom meeting is marked once as taking brackets on the day line. The mark
+  // stays with the meeting itself, so renaming it later keeps the brackets.
+  useEffect(() => {
+    if (!cloudReady.current) return;
+    const mark = (m) => (/^\s*lshop/i.test(m.name || "") && !m.brackets ? { ...m, brackets: true } : m);
+    Object.keys(boards).forEach((b) => {
+      const bd = boards[b];
+      const meetings = bd?.meetings || [];
+      const lines = bd?.lines || [];
+      const due = meetings.some((m) => mark(m) !== m) || lines.some((l) => (l.meetings || []).some((m) => mark(m) !== m));
+      if (due) patchBoard(b, { meetings: meetings.map(mark), lines: lines.map((l) => ({ ...l, meetings: (l.meetings || []).map(mark) })) });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boards]);
   const saveNotes = (b, text) => patchBoard(b, { notes: text });
   // The notes ribbon: the browser's own commands, on whatever is selected there.
   // "scratch" is Master's free column, which is kept with the personal order lists.
@@ -1339,8 +1353,9 @@ export default function Planning() {
                         ) : (
                           <span className="mr-[3px] leading-[15px]">
                             {m.name}
-                            {/* The Lshop meeting takes brackets on the day line, to type anything into in red. */}
-                            {/^\s*lshop/i.test(m.name) && (
+                            {/* The Lshopgroom meeting takes brackets on the day line, to type anything into in red.
+                                Known by its mark, not its name, so renaming it keeps them. */}
+                            {(m.brackets || boards[b].meetings.some((x) => x.id === m.id && x.brackets)) && (
                               <>
                                 {" ("}
                                 <span onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
