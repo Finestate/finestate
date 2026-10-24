@@ -397,17 +397,18 @@ const withDailySections = (rawList) => {
   return out;
 };
 
-// A box as tall as its words: it grows a line when the text wraps, also when the window
-// narrows. boxRef hands the box itself to whoever needs to focus it.
-function AutoTextarea({ value, onChange, boxRef, ...props }) {
-  const ref = useRef(null);
-  const fit = () => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } };
-  useEffect(fit, [value]);
-  useEffect(() => {
-    window.addEventListener("resize", fit);
-    return () => window.removeEventListener("resize", fit);
-  }, []);
-  return <textarea ref={(el) => { ref.current = el; if (boxRef) boxRef(el); }} value={value} onChange={onChange} rows={1} {...props} />;
+// A box as tall as its words. A hidden copy of the text sits in the same spot and sets
+// the height, so it always grows a line when the words wrap, whatever the width.
+// boxRef hands the box itself to whoever needs to focus it.
+function AutoTextarea({ value, boxRef, className = "", ...props }) {
+  return (
+    <span className="grid min-w-0 flex-1">
+      <span aria-hidden className="invisible col-start-1 row-start-1 whitespace-pre-wrap break-all leading-[15px]">
+        {String(value || "") + "​"}
+      </span>
+      <textarea ref={boxRef} value={value} rows={1} {...props} className={`col-start-1 row-start-1 h-full w-full resize-none overflow-hidden p-0 ${className}`} />
+    </span>
+  );
 }
 
 // How far a checklist point or list line is stepped in. Older saves only knew in or
@@ -1646,7 +1647,7 @@ export default function Planning() {
                             onChange={(e) => renamePoint(b, g, it.id, e.target.value.replace(/\r?\n/g, ""))}
                             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
                             onBlur={() => setEditing(null)}
-                            className={`block min-w-0 flex-1 resize-none overflow-hidden whitespace-pre-wrap break-all bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
+                            className={`whitespace-pre-wrap break-all bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
                           {/* Both ways always there: each press is one step, up to four in. */}
                           <button onClick={() => addPointAfter(b, g, it.id)} title="Add a point under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
