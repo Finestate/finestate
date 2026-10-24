@@ -1646,7 +1646,7 @@ export default function Planning() {
                             onChange={(e) => renamePoint(b, g, it.id, e.target.value.replace(/\r?\n/g, ""))}
                             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
                             onBlur={() => setEditing(null)}
-                            className={`block min-w-0 flex-1 resize-none overflow-hidden whitespace-pre-wrap break-words bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
+                            className={`block min-w-0 flex-1 resize-none overflow-hidden whitespace-pre-wrap break-all bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
                           {/* Both ways always there: each press is one step, up to four in. */}
                           <button onClick={() => addPointAfter(b, g, it.id)} title="Add a point under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
