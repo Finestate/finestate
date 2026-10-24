@@ -970,15 +970,14 @@ function BibleChat({ chat, onChange, topic = "bible" }) {
     // One white box holds it all: the conversation, then the line to type on. Enter sends,
     // the line empties at once, and the answer appears in the box when it is ready.
     <div className="relative mt-2 border border-black bg-white px-2 py-1">
-      {chat.length > 0 && (
-        <button
-          onClick={() => onChange([])}
-          // A tiny frame tucked into the box's top right corner, sharing its border.
-          className="absolute -right-px -top-px border border-black bg-white px-1.5 text-[10px] leading-[14px] text-neutral-900 hover:text-[#C1440E]"
-        >
-          Clear
-        </button>
-      )}
+      {/* Always there, so both chat boxes look the same, empty or not. */}
+      <button
+        onClick={() => onChange([])}
+        // A tiny frame tucked into the box's top right corner, sharing its border.
+        className="absolute -right-px -top-px border border-black bg-white px-1.5 text-[10px] leading-[14px] text-neutral-900 hover:text-[#C1440E]"
+      >
+        Clear
+      </button>
       {chat.map((m, i) => (
         // Your questions in bold black; Claude's answers in a strong deep blue, a touch heavier, so they read easily.
         <p key={i} className={`mb-1.5 whitespace-pre-wrap text-[11px] leading-[16px] ${m.role === "user" ? "pr-12 font-bold text-neutral-900" : "font-medium text-[#1e3a8a]"}`}>
@@ -992,7 +991,7 @@ function BibleChat({ chat, onChange, topic = "bible" }) {
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } }}
         rows={2}
-        className="block w-full resize-none bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none"
+        className={`block w-full resize-none bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none ${chat.length ? "" : "pr-12"}`}
       />
     </div>
   );
