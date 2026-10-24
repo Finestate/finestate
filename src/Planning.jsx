@@ -1337,7 +1337,19 @@ export default function Planning() {
                             className="bg-transparent text-[11px] leading-[15px] outline-none"
                           />
                         ) : (
-                          <span className="mr-[3px] leading-[15px]">{m.name}</span>
+                          <span className="mr-[3px] leading-[15px]">
+                            {m.name}
+                            {/* The Lsop meeting takes brackets on the day line, to type anything into in red. */}
+                            {/^\s*lsop/i.test(m.name) && (
+                              <>
+                                {" ("}
+                                <span onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                                  <FillText key={`${b}-${idx}-${m.id}-fill`} text={line.fills?.[`meet-${m.id}`] || ""} onChange={(t) => setFill(b, idx, `meet-${m.id}`, t)} />
+                                </span>
+                                )
+                              </>
+                            )}
+                          </span>
                         )}
                         {/* The marks on a meeting share one burgundy. */}
                         <Calendar size={10} className="shrink-0" style={{ color: MEETING_ICON }} />
