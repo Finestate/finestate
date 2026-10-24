@@ -397,10 +397,17 @@ const withDailySections = (rawList) => {
   return out;
 };
 
-function AutoTextarea({ value, onChange, ...props }) {
+// A box as tall as its words: it grows a line when the text wraps, also when the window
+// narrows. boxRef hands the box itself to whoever needs to focus it.
+function AutoTextarea({ value, onChange, boxRef, ...props }) {
   const ref = useRef(null);
-  useEffect(() => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }, [value]);
-  return <textarea ref={ref} value={value} onChange={onChange} rows={1} {...props} />;
+  const fit = () => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } };
+  useEffect(fit, [value]);
+  useEffect(() => {
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
+  return <textarea ref={(el) => { ref.current = el; if (boxRef) boxRef(el); }} value={value} onChange={onChange} rows={1} {...props} />;
 }
 
 // How far a checklist point or list line is stepped in. Older saves only knew in or
@@ -1611,7 +1618,7 @@ export default function Planning() {
                           onDrop={(e) => { e.stopPropagation(); dropPoint(b); }}
                           // A stepped in point is the same box, shifted from the left, a step at a time.
                           style={levelOf(it) ? { marginLeft: `${20 * levelOf(it)}px` } : undefined}
-                          className={`flex items-center gap-1 rounded border border-neutral-300 bg-white py-0.5 pl-1 pr-1.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
+                          className={`flex items-start gap-1 rounded border border-neutral-300 bg-white py-0.5 pl-1 pr-1.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
                         >
                           {/* A group head opens and closes at a click; other points keep the space. */}
                           <span className="flex h-[15px] w-[11px] shrink-0 items-center">
@@ -1631,13 +1638,15 @@ export default function Planning() {
                               style={{ accentColor: GOLD, margin: 0 }}
                             />
                           </span>
-                          <input
-                            ref={(el) => { if (el && editing === it.id && document.activeElement !== el) el.focus(); }}
+                          {/* A long point runs on to the next line instead of being cut off. */}
+                          <AutoTextarea
+                            boxRef={(el) => { if (el && editing === it.id && document.activeElement !== el) el.focus(); }}
                             value={it.code}
                             readOnly={editing !== it.id}
-                            onChange={(e) => renamePoint(b, g, it.id, e.target.value)}
+                            onChange={(e) => renamePoint(b, g, it.id, e.target.value.replace(/\r?\n/g, ""))}
+                            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
                             onBlur={() => setEditing(null)}
-                            className={`min-w-0 flex-1 bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
+                            className={`block min-w-0 flex-1 resize-none overflow-hidden whitespace-pre-wrap break-words bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
                           />
                           {/* Both ways always there: each press is one step, up to four in. */}
                           <button onClick={() => addPointAfter(b, g, it.id)} title="Add a point under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
