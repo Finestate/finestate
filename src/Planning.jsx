@@ -1336,7 +1336,12 @@ export default function Planning() {
                       <span
                         key={m.id}
                         draggable={editing !== m.id && inFill !== m.id}
-                        onDoubleClick={(e) => { e.stopPropagation(); setEditing(m.id); }}
+                        // A one-off is renamed here with a double click. A permanent one is
+                        // renamed only in the dropdown list; on the line just its brackets take typing.
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          if (!(m.permanent || boards[b].meetings.some((x) => x.id === m.id && x.permanent))) setEditing(m.id);
+                        }}
                         onDragStart={(e) => { e.stopPropagation(); setDrag({ from: "line", board: b, lineIdx: idx, index: mi, id: m.id }); }}
                         onDragEnd={() => setDrag(null)}
                         onDragOver={(e) => e.preventDefault()}
