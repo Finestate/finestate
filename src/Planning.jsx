@@ -626,6 +626,7 @@ export default function Planning() {
   };
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
   const [dropP, setDropP] = useState(null); // where that point would land: { board, group, index }
+  const [dropL, setDropL] = useState(null); // where a meeting dragged along a day line would land: { board, lineIdx, index }
   const [dropM, setDropM] = useState(null); // where a picker meeting would land: { board, index }
   // Both use the same rule as the personal order lines: land on the marker, counting
   // the gap the dragged box leaves behind.
@@ -1343,16 +1344,32 @@ export default function Planning() {
                           if (!(m.permanent || boards[b].meetings.some((x) => x.id === m.id && x.permanent))) setEditing(m.id);
                         }}
                         onDragStart={(e) => { e.stopPropagation(); setDrag({ from: "line", board: b, lineIdx: idx, index: mi, id: m.id }); }}
-                        onDragEnd={() => setDrag(null)}
-                        onDragOver={(e) => e.preventDefault()}
+                        onDragEnd={() => { setDrag(null); setDropL(null); }}
+                        // Over the left half it lands before this meeting, over the right half after it.
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          if (drag?.from !== "line" || drag.board !== b || drag.lineIdx !== idx) return;
+                          const box = e.currentTarget.getBoundingClientRect();
+                          const at = e.clientX < box.left + box.width / 2 ? mi : mi + 1;
+                          if (dropL?.board !== b || dropL.lineIdx !== idx || dropL.index !== at) setDropL({ board: b, lineIdx: idx, index: at });
+                        }}
                         onDrop={(e) => {
                           e.stopPropagation();
-                          if (drag?.from === "line" && drag.board === b && drag.lineIdx === idx) moveInLine(b, idx, drag.index, mi);
-                          else dropOnLine(b, idx);
+                          if (drag?.from === "line" && drag.board === b && drag.lineIdx === idx) {
+                            const at = dropL?.board === b && dropL.lineIdx === idx ? dropL.index : mi;
+                            moveInLine(b, idx, drag.index, at > drag.index ? at - 1 : at);
+                          } else dropOnLine(b, idx);
                           setDrag(null);
+                          setDropL(null);
                         }}
-                        className={`inline-flex cursor-grab items-center gap-0 text-[11px] font-semibold leading-[15px] text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
+                        className={`relative inline-flex cursor-grab items-center gap-0 text-[11px] font-semibold leading-[15px] text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
                       >
+                        {/* A red upright line shows exactly where the meeting will land. */}
+                        {drag?.from === "line" && drag.board === b && drag.lineIdx === idx && dropL?.board === b && dropL.lineIdx === idx &&
+                          dropL.index !== drag.index && dropL.index !== drag.index + 1 && (dropL.index === mi || dropL.index === mi + 1) &&
+                          (dropL.index === mi || mi === line.meetings.length - 1) && (
+                          <span className={`pointer-events-none absolute -bottom-px -top-px w-[2px] bg-[#C1440E] ${dropL.index === mi ? "-left-[5px]" : "-right-[5px]"}`} />
+                        )}
                         {/* Plain text until double clicked, so the bin sits right after the words. */}
                         {editing === m.id ? (
                           <input
