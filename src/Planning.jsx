@@ -1473,16 +1473,18 @@ export default function Planning() {
                         setDropM({ board: b, index: e.clientY < box.top + box.height / 2 ? mi : mi + 1 });
                       }}
                       onDrop={(e) => { e.stopPropagation(); dropPoolMeeting(b); }}
-                      className={`flex w-full items-center gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.board === b && drag.index === mi ? "opacity-40" : ""}`}
+                      className={`flex w-full items-start gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.board === b && drag.index === mi ? "opacity-40" : ""}`}
                     >
-                      <input
-                        ref={(el) => { if (el && editing === m.id && document.activeElement !== el) el.focus(); }}
+                      {/* A long name runs on to the next line instead of being cut off. */}
+                      <AutoTextarea
+                        boxRef={(el) => { if (el && editing === m.id && document.activeElement !== el) el.focus(); }}
                         value={m.name}
                         // A single click is enough to type here; the grip is for dragging.
                         onFocus={() => setEditing(m.id)}
-                        onChange={(e) => renameMeeting(b, m.id, e.target.value)}
+                        onChange={(e) => renameMeeting(b, m.id, e.target.value.replace(/\r?\n/g, ""))}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
                         onBlur={() => setEditing(null)}
-                        className="min-w-0 flex-1 bg-transparent leading-[15px] outline-none"
+                        className="whitespace-pre-wrap break-all bg-transparent leading-[15px] outline-none"
                       />
                       <button onClick={() => addMeetingAfter(b, m.id)} title="Add a meeting under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
                         <Plus size={11} strokeWidth={3} />
