@@ -1466,7 +1466,7 @@ export default function Planning() {
                       <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />
                     )}
                     <div
-                      onDoubleClick={() => setEditing(m.id)}
+                      onDoubleClick={() => setEditing(`pool-${m.id}`)}
                       onDragOver={(e) => {
                         e.preventDefault();
                         const box = e.currentTarget.getBoundingClientRect();
@@ -1477,10 +1477,12 @@ export default function Planning() {
                     >
                       {/* A long name runs on to the next line instead of being cut off. */}
                       <AutoTextarea
-                        boxRef={(el) => { if (el && editing === m.id && document.activeElement !== el) el.focus(); }}
+                        // Typing here is kept apart from the same meeting on a day line, so that
+                        // copy never takes the cursor away mid word.
+                        boxRef={(el) => { if (el && editing === `pool-${m.id}` && document.activeElement !== el) el.focus(); }}
                         value={m.name}
                         // A single click is enough to type here; the grip is for dragging.
-                        onFocus={() => setEditing(m.id)}
+                        onFocus={() => setEditing(`pool-${m.id}`)}
                         onChange={(e) => renameMeeting(b, m.id, e.target.value.replace(/\r?\n/g, ""))}
                         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
                         onBlur={() => setEditing(null)}
