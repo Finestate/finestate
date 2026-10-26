@@ -303,9 +303,9 @@ export default function HW() {
                       )}
                       <button
                         onClick={() => editGroup(g.id, (x) => ({ ...x, rows: [...(x.rows || []), { id: newId(), text: "" }] }))}
-                        className={`flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${(g.rows || []).length ? "mt-1" : ""}`}
+                        className={`flex items-center pl-[7px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${(g.rows || []).length ? "mt-1" : ""}`}
                       >
-                        <Plus size={11} strokeWidth={3} />Add
+                        Add
                       </button>
                     </>
                   ) : (
@@ -382,9 +382,9 @@ export default function HW() {
                   {/* Add sits under the frame, plain: a fresh row to fill in. */}
                   <button
                     onClick={() => editGroup(g.id, (x) => ({ ...x, week: [...weekOf(x), { day: "", mins: "", text: "", text2: "" }] }))}
-                    className="mt-1 flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                    className="mt-1 flex items-center pl-[5px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
                   >
-                    <Plus size={11} strokeWidth={3} />Add
+                    Add
                   </button>
                   </>
                   )}
@@ -395,9 +395,9 @@ export default function HW() {
         })}
         <button
           onClick={() => saveGroups([...groups, { id: newId(), title: "", rows: [] }])}
-          className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+          className="flex h-[22px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
         >
-          <Plus size={11} strokeWidth={3} />Add
+          Add
         </button>
       </>
     );
@@ -460,9 +460,9 @@ export default function HW() {
       ))}
       <button
         onClick={() => saveList(key, [...lists[key], { id: newId(), name: "", text: "" }])}
-        className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+        className="flex h-[22px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
       >
-        <Plus size={11} strokeWidth={3} />Add
+        Add
       </button>
     </>
   );
@@ -497,9 +497,9 @@ export default function HW() {
       ))}
       <button
         onClick={() => saveList(key, [...lists[key], { id: newId(), name: "", text: "" }])}
-        className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+        className="flex h-[22px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
       >
-        <Plus size={11} strokeWidth={3} />Add
+        Add
       </button>
     </>
   );
@@ -582,9 +582,9 @@ export default function HW() {
       })}
       <button
         onClick={() => saveList(key, [...lists[key], { id: newId(), name: "", text: "", ...(withLink ? { link: "" } : {}) }])}
-        className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+        className="flex h-[22px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
       >
-        <Plus size={11} strokeWidth={3} />Add
+        Add
       </button>
     </>
   );
@@ -714,9 +714,9 @@ export default function HW() {
           ))}
         <button
           onClick={() => saveNotes([...notes, { id: newId(), title: "", text: "", open: false }])}
-          className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+          className="flex h-[22px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
         >
-          <Plus size={11} strokeWidth={3} />Add
+          Add
         </button>
         {/* The grey band between sections, then the next section. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
@@ -806,9 +806,9 @@ export default function HW() {
                     </div>
                     <button
                       onClick={() => { const key = newId(); saveDayRows(day, [...rowsOfDay(day), { id: key, label: "", key }]); }}
-                      className="mt-1 flex items-center gap-[2px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                      className="mt-1 flex items-center pl-[7px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
                     >
-                      <Plus size={11} strokeWidth={3} />Add
+                      Add
                     </button>
                   </div>
                 )}
