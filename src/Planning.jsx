@@ -1093,7 +1093,8 @@ export default function Planning() {
             ) : (
               c
             )}
-            {i < list.length - 1 && <span className="mx-1.5 inline-block h-[5px] w-[5px] align-middle" style={{ backgroundColor: colour }} />}
+            {/* Raised so its centre sits exactly halfway up the capitals: measured, 8px above the line foot either way. */}
+            {i < list.length - 1 && <span className="mx-1.5 inline-block h-[5px] w-[5px]" style={{ backgroundColor: colour, verticalAlign: "1.5px" }} />}
           </span>
         );
       })}
