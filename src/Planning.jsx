@@ -833,11 +833,11 @@ export default function Planning() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boards]);
-  // The Lshopgroom meeting is marked once as taking brackets on the day line. The mark
+  // The Lshopgroom and SISYSFMeets meetings are marked once as taking brackets on the day line. The mark
   // stays with the meeting itself, so renaming it later keeps the brackets.
   useEffect(() => {
     if (!cloudReady.current) return;
-    const mark = (m) => (/^\s*lshop/i.test(m.name || "") && !m.brackets ? { ...m, brackets: true } : m);
+    const mark = (m) => (/^\s*(lshop|sisysf)/i.test(m.name || "") && !m.brackets ? { ...m, brackets: true } : m);
     Object.keys(boards).forEach((b) => {
       const bd = boards[b];
       const meetings = bd?.meetings || [];
