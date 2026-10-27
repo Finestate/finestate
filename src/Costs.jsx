@@ -700,6 +700,13 @@ export default function Costs({ seed }) {
                   />
                   <ChevronDown size={12} className={`ml-auto shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
                 </span>
+                {/* The same debt in dollars at today's rate, worked out by the page, so in blue. */}
+                <span
+                  title={live?.rates?.USD ? `1 EUR = ${live.rates.USD.toFixed(4)} USD, today's rate` : undefined}
+                  className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]"
+                >
+                  {live?.rates?.USD ? `USD ${money(total * live.rates.USD)}` : "USD …"}
+                </span>
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#C1440E]">
                   EUR {money(total)}
                 </span>
