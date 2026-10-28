@@ -833,7 +833,7 @@ export default function Planning() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boards]);
-  // The Lshopgroom and SISYSFMeets meetings are marked once as taking brackets on the day line. The mark
+  // The Lshopgroom, SISYSFMeets and Palmapharmatreatments meetings are marked once as taking brackets on the day line. The mark
   // stays with the meeting itself, so renaming it later keeps the brackets.
   useEffect(() => {
     if (!cloudReady.current) return;
