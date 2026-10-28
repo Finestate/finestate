@@ -837,7 +837,7 @@ export default function Planning() {
   // stays with the meeting itself, so renaming it later keeps the brackets.
   useEffect(() => {
     if (!cloudReady.current) return;
-    const mark = (m) => (/^\s*(lshop|sisysf)/i.test(m.name || "") && !m.brackets ? { ...m, brackets: true } : m);
+    const mark = (m) => (/^\s*(lshop|sisysf|palma)/i.test(m.name || "") && !m.brackets ? { ...m, brackets: true } : m);
     Object.keys(boards).forEach((b) => {
       const bd = boards[b];
       const meetings = bd?.meetings || [];
