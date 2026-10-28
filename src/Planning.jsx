@@ -888,7 +888,9 @@ export default function Planning() {
       patchLine(b, idx, { meetings: line.meetings.filter((x) => x.id !== m.id) });
       return;
     }
-    patchLine(b, idx, { meetings: [...line.meetings, m] });
+    // Its brackets always start empty: words typed on an earlier day never come back with it.
+    const { [`meet-${m.id}`]: _old, ...fills } = line.fills || {};
+    patchLine(b, idx, { meetings: [...line.meetings, m], fills });
     if (!m.permanent) {
       // Remember where it sat, so putting it back lands it in the same place.
       homeSpot.current[m.id] = boards[b].meetings.findIndex((x) => x.id === m.id);
