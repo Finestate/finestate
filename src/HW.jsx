@@ -323,7 +323,7 @@ export default function HW() {
                     const setBp = (fields) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), ...fields } }));
                     // How many workout lines mention each area: its words found anywhere in a
                     // line, capitals aside. Shown after the area as (2).
-                    const lines = weekOf(g).map((w) => String(w.text || "").toLowerCase());
+                    const lines = weekOf(g).flatMap((w) => [String(w.text || "").toLowerCase(), String(w.textR || "").toLowerCase()]);
                     const countOf = (t) => {
                       const k = String(t || "").trim().toLowerCase();
                       return k ? lines.filter((l) => l.includes(k)).length : 0;
@@ -358,20 +358,23 @@ export default function HW() {
                     {weekOf(g).map((w, wi) => {
                       return (
                       <div key={wi} className="flex items-stretch border-t border-neutral-400">
-                        {/* How long: a short dropdown, the same width as the day. */}
-                        <span className="flex w-[72px] shrink-0 items-start border-r border-neutral-400 px-1 py-[2px]">
-                          <select
-                            value={w.mins || ""}
-                            onChange={(e) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, mins: e.target.value } : y)) }))}
-                            className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
-                          >
-                            {["", "30M", "60M", "75M", "90M"].map((m) => <option key={m} value={m}>{m}</option>)}
-                          </select>
-                        </span>
-                        {/* The workout itself, one column. (Second and third columns were tried; their text stays saved.) */}
-                        {["text"].map((k, ki) => (
-                          <div key={k} className={`min-w-0 flex-1 basis-0 px-1.5 py-[2px] ${ki ? "border-l border-neutral-400" : ""}`}>
-                            <GrowText value={w[k] || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, [k]: t } : y)) }))} rows={1} />
+                        {/* Two equal halves, each a minutes dropdown and the workout: the left as
+                            it always was, the right its own pair. */}
+                        {[["mins", "text"], ["minsR", "textR"]].map(([mk, tk], hi) => (
+                          <div key={mk} className={`flex min-w-0 flex-1 basis-0 items-stretch ${hi ? "border-l border-neutral-400" : ""}`}>
+                            {/* How long: a short dropdown. */}
+                            <span className="flex w-[72px] shrink-0 items-start border-r border-neutral-400 px-1 py-[2px]">
+                              <select
+                                value={w[mk] || ""}
+                                onChange={(e) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, [mk]: e.target.value } : y)) }))}
+                                className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-[15px] text-neutral-900 outline-none"
+                              >
+                                {["", "30M", "60M", "75M", "90M"].map((m) => <option key={m} value={m}>{m}</option>)}
+                              </select>
+                            </span>
+                            <div className="min-w-0 flex-1 px-1.5 py-[2px]">
+                              <GrowText value={w[tk] || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, [tk]: t } : y)) }))} rows={1} />
+                            </div>
                           </div>
                         ))}
                         <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 py-[4px]">
@@ -383,7 +386,7 @@ export default function HW() {
                   </div>
                   {/* Add sits under the frame, plain: a fresh row to fill in. */}
                   <button
-                    onClick={() => editGroup(g.id, (x) => ({ ...x, week: [...weekOf(x), { day: "", mins: "", text: "", text2: "" }] }))}
+                    onClick={() => editGroup(g.id, (x) => ({ ...x, week: [...weekOf(x), { day: "", mins: "", text: "", minsR: "", textR: "" }] }))}
                     className="mt-1 flex items-center pl-[5px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
                   >
                     Add
@@ -640,7 +643,7 @@ export default function HW() {
     section("Fitness");
     (lists.fitnessGroups || []).forEach((g) => {
       out.push("", g.title || "(untitled)");
-      (g.week || []).forEach((w) => out.push(`- ${w.day}${w.mins ? ` (${w.mins})` : ""}: ${w.text || ""}${w.text2 ? ` | ${w.text2}` : ""}${w.text3 ? ` | ${w.text3}` : ""}`));
+      (g.week || []).forEach((w) => out.push(`- ${w.day}${w.mins ? ` (${w.mins})` : ""}: ${w.text || ""}${w.text2 ? ` | ${w.text2}` : ""}${w.text3 ? ` | ${w.text3}` : ""}${w.minsR || w.textR ? ` || ${w.minsR ? `(${w.minsR}) ` : ""}${w.textR || ""}` : ""}`));
       if (g.kind === "list") (g.rows || []).forEach((r) => out.push(`- ${r.text || ""}`));
       else if (!g.week) (g.rows || []).forEach((r) => out.push(`- ${r.a || ""}${r.b ? ` | ${r.b}` : ""}`));
     });
