@@ -180,8 +180,8 @@ export default function HW() {
     const COLORS = ["#0f766e", "#9c7c33", "#C1440E", "#1d4ed8", "#7A0019", "#525252"];
     const byKey = {};
     DAYS.forEach(([day, name, group]) => {
-      const lines = rowsOfDay(day).map((r) => `${String(r.label || "").trim()}: ${String(mealOf(day, group, r.key) || "").trim()}`);
-      if (!rowsOfDay(day).some((r) => String(mealOf(day, group, r.key) || "").trim())) return;
+      const lines = rowsOfDay(day).map((r) => `${String(r.label || "").trim()}: ${mealWords(mealOf(day, group, r.key)).trim()}`);
+      if (!rowsOfDay(day).some((r) => mealWords(mealOf(day, group, r.key)).trim())) return;
       const key = lines.join(" | ~ | ");
       (byKey[key] = byKey[key] || []).push([day, name]);
     });
@@ -198,6 +198,8 @@ export default function HW() {
     });
     return out;
   })();
+  // Each meal line's typing box, so its red square knows which words are highlighted.
+  const mealBoxes = useRef({});
   const saveDayMeal = (day, meal, text) => {
     const days = nutrition.days || {};
     const next = { ...nutrition, days: { ...days, [day]: { ...(days[day] || {}), [meal]: text } } };
@@ -631,7 +633,7 @@ export default function HW() {
     section("Nutrition");
     DAYS.forEach(([day, name, group]) => {
       out.push("", name);
-      rowsOfDay(day).forEach((r) => out.push(`- ${r.label}: ${mealOf(day, group, r.key)}`));
+      rowsOfDay(day).forEach((r) => out.push(`- ${r.label}: ${mealWords(mealOf(day, group, r.key))}`));
     });
     out.push("", "Considerations");
     indent(nutrition.considerations);
@@ -784,16 +786,25 @@ export default function HW() {
                         <div key={r.id} {...dropProps(`nut-${day}`, mi, (from, to) => saveDayRows(day, moved(rowsOfDay(day), from, to)))}>
                         {marker(`nut-${day}`, mi)}
                         {/* A line labelled "In consideration" stands out: red text on a slightly deeper pink. */}
-                        <div className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""} ${/^\s*in consideration/i.test(r.label || "") ? "bg-[#F4D3CA] [&_textarea]:text-[#C1440E] [&_.red-base]:text-[#C1440E]" : ""}`}>
+                        <div className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""} ${/^\s*in consideration/i.test(r.label || "") ? "bg-[#F4D3CA] [&_textarea]:text-[#C1440E] [&_.meal-box]:text-[#C1440E]" : ""}`}>
                           {/* A wider label that wraps, so a longer name grows the line rather than hiding. */}
                           <div className="w-[100px] shrink-0 border-r border-neutral-400 px-1.5 py-[2px]">
                             <GrowText value={r.label || ""} onChange={(t) => saveDayRows(day, rowsOfDay(day).map((x) => (x.id === r.id ? { ...x, label: t } : x)))} rows={1} />
                           </div>
                           <div className="min-w-0 flex-1 px-1.5 py-[2px]">
-                            <RedWords value={mealOf(day, group, r.key)} onChange={(t) => saveDayMeal(day, r.key, t)} />
+                            <MealText boxRef={(el) => { mealBoxes.current[`${day}-${r.key}`] = el; }} value={mealOf(day, group, r.key)} onChange={(t) => saveDayMeal(day, r.key, t)} />
                           </div>
-                          {/* The grip sits just left of the bin. */}
+                          {/* The red square, then the grip, then the bin. */}
                           <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 py-[4px]">
+                            {/* Highlight words in this line, then press: they turn red, or back to black if red. */}
+                            <button
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => toggleRed(mealBoxes.current[`${day}-${r.key}`], (html) => saveDayMeal(day, r.key, html))}
+                              title="Turn the highlighted words red, or back to black"
+                              className="flex h-[11px] w-[11px] shrink-0 items-center justify-center"
+                            >
+                              <span className="block h-[9px] w-[9px] rounded-[1px] hover:opacity-70" style={{ backgroundColor: INK_RED }} />
+                            </button>
                             {grip(`nut-${day}`, mi, true)}
                             <button onClick={() => setListConfirm({ run: () => saveDayRows(day, rowsOfDay(day).filter((x) => x.id !== r.id)) })} title="Remove" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
                               <Trash2 size={11} />
@@ -1069,36 +1080,60 @@ function RichNotes({ html, onChange }) {
 // `bullets`: a line started with "- " becomes a bullet, Enter starts the next one, and
 // Enter on an empty bullet ends the list.
 // `spell`: the browser underlines misspelt words (on everywhere in the new table).
-// Words that always show in red wherever they appear in a Nutrition line.
+// Words that always show in red in a Nutrition line written before colours could be set.
 const RED_WORDS = ["and Al Natura bread"];
-// A text box whose chosen words read in red. The words are drawn underneath in colour and
-// the box sits on top with clear letters, so typing stays exactly as in any other box.
-function RedWords({ value, onChange }) {
-  const text = String(value || "");
-  const parts = [];
+const escapeHtml = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+// A meal line is kept as formatted text. One saved before that was plain words: it reads
+// the same, with the red words above already red, and can be changed from there.
+const mealHtml = (v) => {
+  const t = String(v || "");
+  if (/<[a-z/][^>]*>/i.test(t)) return t;
   const re = new RegExp(RED_WORDS.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "gi");
+  let out = "";
   let last = 0;
-  for (const m of text.matchAll(re)) {
-    if (m.index > last) parts.push([text.slice(last, m.index), false]);
-    parts.push([m[0], true]);
+  for (const m of t.matchAll(re)) {
+    out += escapeHtml(t.slice(last, m.index)) + `<span style="color: ${INK_RED};">${escapeHtml(m[0])}</span>`;
     last = m.index + m[0].length;
   }
-  parts.push([text.slice(last), false]);
-  const font = "text-[11px] leading-[15px] whitespace-pre-wrap break-words";
+  return (out + escapeHtml(t.slice(last))).replace(/\r?\n/g, "<br>");
+};
+// The words of a meal line alone, colours aside, for comparing days and the backup.
+const mealWords = (v) => {
+  const t = String(v || "");
+  return /<[a-z/][^>]*>/i.test(t) ? htmlToLines(t) : t;
+};
+// Highlighted words in a box turn red, or back to black if they are red already.
+const toggleRed = (el, save) => {
+  const sel = window.getSelection();
+  if (!el || !sel || !sel.rangeCount || sel.isCollapsed || !el.contains(sel.anchorNode)) return;
+  document.execCommand("styleWithCSS", false, true);
+  const now = String(document.queryCommandValue("foreColor") || "").replace(/\s/g, "");
+  const isRed = now === "rgb(176,30,47)" || now === "rgb(193,68,14)";
+  document.execCommand("foreColor", false, isRed ? "#171717" : INK_RED);
+  save(el.innerHTML);
+};
+// A meal line you type in like any other, whose words can be coloured. It never rewrites
+// itself while the caret is in it, so typing never jumps.
+function MealText({ value, onChange, boxRef }) {
+  const ref = useRef(null);
+  const html = mealHtml(value);
+  useEffect(() => {
+    const el = ref.current;
+    if (el && document.activeElement !== el && el.innerHTML !== html) el.innerHTML = html;
+  }, [html]);
   return (
-    <div className="relative">
-      <div aria-hidden className={`red-base ${font} text-neutral-900`}>
-        {parts.map(([t, red], k) => (red ? <span key={k} className="text-[#C1440E]">{t}</span> : <span key={k}>{t}</span>))}
-        {/* Keeps the last line its full height, even when it ends in a line break. */}
-        {"​"}
-      </div>
-      <textarea
-        value={text}
-        onChange={(e) => onChange(e.target.value)}
-        spellCheck
-        className={`absolute inset-0 block h-full w-full resize-none overflow-hidden bg-transparent p-0 !text-transparent caret-neutral-900 outline-none ${font}`}
-      />
-    </div>
+    <div
+      ref={(el) => { ref.current = el; boxRef?.(el); }}
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck
+      onInput={(e) => onChange(e.currentTarget.innerHTML)}
+      // Pasted words come in plain, without another page's fonts and colours.
+      onPaste={(e) => { e.preventDefault(); document.execCommand("insertText", false, e.clipboardData.getData("text/plain")); }}
+      // Enter starts a new line inside the same box, as before.
+      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); document.execCommand("insertLineBreak"); } }}
+      className="meal-box min-h-[15px] whitespace-pre-wrap break-words text-[11px] leading-[15px] text-neutral-900 outline-none"
+    />
   );
 }
 
