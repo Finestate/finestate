@@ -1752,7 +1752,12 @@ export default function Planning() {
                             <Plus size={11} strokeWidth={3} />
                           </button>
                           {g === "hyper" && HYPER_ONLY.includes(b) && (
-                            <button onClick={() => addSub(b, g, it)} title="Add a sub list line under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
+                            // The first press sets the sub list up; after that it only opens and closes it.
+                            <button
+                              onClick={() => ((it.subs || []).length ? savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === it.id ? { ...p, subsClosed: !p.subsClosed } : p)) }) : addSub(b, g, it))}
+                              title={(it.subs || []).length ? (it.subsClosed ? "Open the sub list" : "Close the sub list") : "Set up a sub list under this one"}
+                              className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]"
+                            >
                               <ListPlus size={11} strokeWidth={2.75} />
                             </button>
                           )}
@@ -1781,7 +1786,7 @@ export default function Planning() {
                           </button>
                         </div>
                         {/* The sub list: stepped in one further, no tick box, just its plus, grip and bin. */}
-                        {(it.subs || []).length > 0 && (
+                        {(it.subs || []).length > 0 && !it.subsClosed && (
                           <div className="mt-1 flex flex-col gap-1" style={{ marginLeft: `${20 * (levelOf(it) + 1)}px` }}>
                             {it.subs.map((x, si) => (
                               <div key={x.id}>
