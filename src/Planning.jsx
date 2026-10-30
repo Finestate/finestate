@@ -1341,11 +1341,11 @@ export default function Planning() {
         <Fragment key={x.c}>
           {k > 0 && "-"}
           {subsOf(it).length ? (
-            // A name with a sub list is red, and a click opens or closes the list under the line.
+            // A name with a sub list is purple, and a click opens or closes the list under the line.
             <span
               onClick={(e) => { e.stopPropagation(); toggleSubOpen(key); }}
               title={subOpen.includes(key) ? "Close the sub list" : "Open the sub list"}
-              className="cursor-pointer text-[#B01E2F]"
+              className="cursor-pointer text-[#7E22CE]"
             >
               {x.s}
             </span>
@@ -1530,7 +1530,7 @@ export default function Planning() {
             {/* Open sub lists: the point's name, then its lines stepped in beneath. */}
             {!MEETING_BOARDS.includes(b) && allPoints(b).filter((it) => line.codes.includes(it.code) && subsOf(it).length && subOpen.includes(`${b}-${idx}-${it.id}`)).map((it) => (
               <div key={it.id} className="border-t border-neutral-300 px-2 py-[3px] text-[11px] leading-[15px]">
-                <p className="break-words font-semibold text-[#B01E2F]">{String(it.code).trim()}</p>
+                <p className="break-words font-semibold text-[#7E22CE]">{String(it.code).trim()}</p>
                 {subsOf(it).map((x) => (
                   <p key={x.id} className="whitespace-pre-wrap break-words pl-5 text-neutral-900">{x.text}</p>
                 ))}
