@@ -574,6 +574,7 @@ export default function Planning() {
     </button>
   );
   const toggleColClosed = (k, id) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, closed: !r.closed } : r)) });
+  const toggleColRed = (k, id) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? { ...r, red: !r.red } : r)) });
   const stepColRow = (k, id, d) => saveCols({ ...cols, [k]: cols[k].map((r) => (r.id === id ? stepLevel(r, d) : r)) });
   // Ticked lines write themselves into the Errandsprios brackets on today's line,
   // joined by a dash with no spaces, in the red the brackets already use.
@@ -960,6 +961,8 @@ export default function Planning() {
   // The SC point carries its own little dropdown of bullet notes.
   const patchPoint = (b, g, id, fields) =>
     savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? { ...p, ...fields } : p)) });
+  const togglePointRed = (b, g, id) =>
+    savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? { ...p, red: !p.red } : p)) });
   const stepPoint = (b, g, id, d) =>
     savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? stepLevel(p, d) : p)) });
   const addPoint = (b, g) => {
@@ -1658,7 +1661,7 @@ export default function Planning() {
                           onDrop={(e) => { e.stopPropagation(); dropPoint(b); }}
                           // A stepped in point is the same box, shifted from the left, a step at a time.
                           style={levelOf(it) ? { marginLeft: `${20 * levelOf(it)}px` } : undefined}
-                          className={`flex items-start gap-1 rounded border border-neutral-300 bg-white py-0.5 pl-1 pr-1.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
+                          className={`flex items-start gap-1 rounded border border-neutral-300 bg-white py-0.5 pl-1 pr-1.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${it.red ? "!border-[#B01E2F] !text-[#B01E2F] [&_*]:!text-[#B01E2F]" : ""} ${dragP?.group === g && dragP.board === b && dragP.index === pi ? "opacity-40" : ""}`}
                         >
                           {/* A group head opens and closes at a click; other points keep the space. */}
                           <span className="flex h-[15px] w-[11px] shrink-0 items-center">
@@ -1675,7 +1678,7 @@ export default function Planning() {
                               checked={line.codes.includes(it.code)}
                               onChange={() => toggleTodo(b, idx, it.code)}
                               className="block h-3 w-3 cursor-pointer"
-                              style={{ accentColor: GOLD, margin: 0 }}
+                              style={{ accentColor: it.red ? "#B01E2F" : GOLD, margin: 0 }}
                             />
                           </span>
                           {/* A long point runs on to the next line instead of being cut off. */}
@@ -1698,6 +1701,12 @@ export default function Planning() {
                           <button onClick={() => stepPoint(b, g, it.id, 1)} title="Step in" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
                             <ChevronsRight size={11} />
                           </button>
+                          {b === "master" && (
+                            <button onClick={() => togglePointRed(b, g, it.id)} title="Turn this row red, or back to black" className="flex h-[15px] shrink-0 items-center hover:opacity-70">
+                              {/* The red square: the whole row goes red, words and buttons, and back at the next press. */}
+                              <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: "#B01E2F" }} />
+                            </button>
+                          )}
                           {/* The box holds a text field, so dragging starts from the handle. */}
                           <span
                             draggable
@@ -1812,7 +1821,7 @@ export default function Planning() {
                   onDrop={(e) => { e.stopPropagation(); dropColRow(k); }}
                   // A sub line is the same row, stepped in from the left, a step at a time.
                   style={levelOf(r) ? { marginLeft: `${20 * levelOf(r)}px` } : undefined}
-                  className={`flex items-start gap-1 rounded border border-neutral-300 bg-white py-0.5 pl-1 pr-1.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
+                  className={`flex items-start gap-1 rounded border border-neutral-300 bg-white py-0.5 pl-1 pr-1.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${r.red ? "!border-[#B01E2F] !text-[#B01E2F] [&_*]:!text-[#B01E2F]" : ""} ${dragC?.col === k && dragC.index === i ? "opacity-40" : ""}`}
                 >
                   {/* A group head opens and closes at a click; other lines keep the space. */}
                   <span className="flex h-[15px] w-[11px] shrink-0 items-center">
@@ -1830,7 +1839,7 @@ export default function Planning() {
                       onChange={() => toggleColPick(k, r.id, lineIdx)}
                       title="Tick"
                       className="block h-[11px] w-[11px] cursor-pointer"
-                      style={{ accentColor: "#C1440E", margin: 0 }}
+                      style={{ accentColor: r.red ? "#B01E2F" : "#C1440E", margin: 0 }}
                     />
                   </span>
                   {/* On a group head the words stay editable, and the space after them opens
@@ -1853,6 +1862,10 @@ export default function Planning() {
                   </button>
                   <button onClick={() => stepColRow(k, r.id, 1)} title="Step in" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
                     <ChevronsRight size={11} />
+                  </button>
+                  {/* The red square: the whole row goes red, words and buttons, and back at the next press. */}
+                  <button onClick={() => toggleColRed(k, r.id)} title="Turn this row red, or back to black" className="flex h-[15px] shrink-0 items-center hover:opacity-70">
+                    <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: "#B01E2F" }} />
                   </button>
                   {/* The line is typed in, so dragging starts from the handle only. */}
                   <span
