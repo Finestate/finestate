@@ -1527,12 +1527,11 @@ export default function Planning() {
               )}
             </div>
 
-            {/* Open sub lists: the point's name, then its lines stepped in beneath. */}
+            {/* Open sub lists: just the point's lines, in purple, straight under the day line. */}
             {!MEETING_BOARDS.includes(b) && allPoints(b).filter((it) => line.codes.includes(it.code) && subsOf(it).length && subOpen.includes(`${b}-${idx}-${it.id}`)).map((it) => (
-              <div key={it.id} className="border-t border-neutral-300 px-2 py-[3px] text-[11px] leading-[15px]">
-                <p className="break-words font-semibold text-[#7E22CE]">{String(it.code).trim()}</p>
+              <div key={it.id} className="px-2 py-[3px] text-[11px] leading-[15px]">
                 {subsOf(it).map((x) => (
-                  <p key={x.id} className="whitespace-pre-wrap break-words pl-5 text-neutral-900">{x.text}</p>
+                  <p key={x.id} className="whitespace-pre-wrap break-words pl-5 text-[#7E22CE]">{x.text}</p>
                 ))}
               </div>
             ))}
