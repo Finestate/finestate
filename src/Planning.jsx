@@ -1,5 +1,5 @@
 import { Fragment, useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
@@ -400,10 +400,10 @@ const withDailySections = (rawList) => {
 // A box as tall as its words. A hidden copy of the text sits in the same spot and sets
 // the height, so it always grows a line when the words wrap, whatever the width.
 // boxRef hands the box itself to whoever needs to focus it.
-function AutoTextarea({ value, boxRef, className = "", ...props }) {
+function AutoTextarea({ value, boxRef, className = "", wrap = "break-all", ...props }) {
   return (
     <span className="grid min-w-0 flex-1">
-      <span aria-hidden className="invisible col-start-1 row-start-1 whitespace-pre-wrap break-all leading-[15px]">
+      <span aria-hidden className={`invisible col-start-1 row-start-1 whitespace-pre-wrap ${wrap} leading-[15px]`}>
         {String(value || "") + "​"}
       </span>
       <textarea ref={boxRef} value={value} rows={1} {...props} className={`col-start-1 row-start-1 h-full w-full resize-none overflow-hidden p-0 ${className}`} />
@@ -627,6 +627,8 @@ export default function Planning() {
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
   const [dropP, setDropP] = useState(null); // where that point would land: { board, group, index }
   const [dropL, setDropL] = useState(null); // where a meeting dragged along a day line would land: { board, lineIdx, index }
+  const [dragS, setDragS] = useState(null); // a sub list line being dragged: { id of its point, index }
+  const [dropS, setDropS] = useState(null); // where it would land
   const [dropM, setDropM] = useState(null); // where a picker meeting would land: { board, index }
   // Both use the same rule as the personal order lines: land on the marker, counting
   // the gap the dragged box leaves behind.
@@ -948,10 +950,27 @@ export default function Planning() {
       saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.map((c) => (c === old ? code : c)) })));
     }
   };
+  // A point's sub list: plain lines under it, no tick boxes. They show on the day line
+  // when the point is ticked and its red name is clicked.
+  const saveSubs = (b, g, id, subs) =>
+    savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? { ...p, subs } : p)) });
+  const addSub = (b, g, it, afterId = null) => {
+    const subs = (it.subs || []).slice();
+    const at = afterId ? subs.findIndex((x) => x.id === afterId) + 1 : subs.length;
+    const row = { id: newId(), text: "" };
+    subs.splice(at, 0, row);
+    saveSubs(b, g, it.id, subs);
+    setEditing(row.id);
+  };
   const removePoint = (b, g, id) => {
     const pts = boards[b].points;
-    const gone = pts[g].find((p) => p.id === id)?.code;
-    savePoints(b, { ...pts, [g]: removeOnly(pts[g], id) });
+    const point = pts[g].find((p) => p.id === id);
+    const gone = point?.code;
+    // Only the row clicked goes: its sub lines stay behind as ordinary points in its place.
+    const at = pts[g].findIndex((p) => p.id === id);
+    const left = removeOnly(pts[g], id);
+    const freed = (point?.subs || []).map((x) => ({ id: x.id, code: x.text, level: levelOf(point) }));
+    savePoints(b, { ...pts, [g]: [...left.slice(0, at), ...freed, ...left.slice(at)] });
     if (gone) saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.filter((c) => c !== gone) })));
   };
   // A point with stepped-in points under it opens and closes like a little dropdown.
@@ -1140,6 +1159,7 @@ export default function Planning() {
         (board.points?.[g] || []).forEach((it) => {
           out.push(`${pad(it)}- ${it.code}`);
           if (it.notes) it.notes.split("\n").forEach((l) => out.push(`${pad(it)}    ${l}`));
+          (it.subs || []).forEach((x) => out.push(`${pad(it)}    - ${x.text || ""}`));
         });
       });
       if (!MEETING_BOARDS.includes(b) && board.notes) out.push("", "Notes", htmlToLines(board.notes));
@@ -1300,18 +1320,48 @@ export default function Planning() {
   // as in AB-SC-FI-CU. Nothing in brackets shows here; the picker below is unchanged
   // and anything typed in brackets stays saved.
   // The hyper-prios lead, together in one small soft-gold box, same weight as the rest.
-  const renderShortLine = (b, codes) => {
+  // Which sub lists are open on the day lines. Remembered in this browser.
+  const [subOpen, setSubOpenRaw] = useState(() => {
+    try { const v = JSON.parse(localStorage.getItem("daily-sub-open") || "[]"); return Array.isArray(v) ? v : []; } catch { return []; }
+  });
+  const toggleSubOpen = (key) => {
+    const next = subOpen.includes(key) ? subOpen.filter((k) => k !== key) : [...subOpen, key];
+    setSubOpenRaw(next);
+    try { localStorage.setItem("daily-sub-open", JSON.stringify(next)); } catch {}
+  };
+  const subsOf = (it) => (it?.subs || []).filter((x) => String(x.text || "").trim());
+  const allPoints = (b) => { const pts = boards[b].points; return [...(pts.hyper || []), ...(pts.core || []), ...(pts.rest || [])]; };
+  const renderShortLine = (b, codes, idx) => {
     const hyper = new Set((boards[b].points.hyper || []).map((it) => it.code));
     const items = codes.map((c) => ({ c, s: showFull ? String(c).trim() : shortCode(c) })).filter((x) => x.s);
-    const top = items.filter((x) => hyper.has(x.c)).map((x) => x.s);
-    const rest = items.filter((x) => !hyper.has(x.c)).map((x) => x.s);
+    const word = (x, k) => {
+      const it = allPoints(b).find((p) => p.code === x.c);
+      const key = `${b}-${idx}-${it?.id}`;
+      return (
+        <Fragment key={x.c}>
+          {k > 0 && "-"}
+          {subsOf(it).length ? (
+            // A name with a sub list is red, and a click opens or closes the list under the line.
+            <span
+              onClick={(e) => { e.stopPropagation(); toggleSubOpen(key); }}
+              title={subOpen.includes(key) ? "Close the sub list" : "Open the sub list"}
+              className="cursor-pointer text-[#B01E2F]"
+            >
+              {x.s}
+            </span>
+          ) : x.s}
+        </Fragment>
+      );
+    };
+    const top = items.filter((x) => hyper.has(x.c));
+    const rest = items.filter((x) => !hyper.has(x.c));
     return (
       <div className="flex flex-wrap items-center text-[11px] font-semibold leading-[15px] text-neutral-900">
         {top.length > 0 && (
-          <span className="inline-flex h-[15px] items-center border border-[#C9A24A] bg-[#FFF3D6] px-[3px] leading-none">{top.join("-")}</span>
+          <span className="inline-flex h-[15px] items-center border border-[#C9A24A] bg-[#FFF3D6] px-[3px] leading-none">{top.map(word)}</span>
         )}
         {top.length > 0 && rest.length > 0 && "-"}
-        {rest.join("-")}
+        {rest.map(word)}
       </div>
     );
   };
@@ -1462,7 +1512,7 @@ export default function Planning() {
                   </>
                 ) : (
                   (coreCodes.length > 0 || restCodes.length > 0) &&
-                    renderShortLine(b, [...coreCodes, ...restCodes])
+                    renderShortLine(b, [...coreCodes, ...restCodes], idx)
                 )}
               </div>
 
@@ -1477,6 +1527,15 @@ export default function Planning() {
               )}
             </div>
 
+            {/* Open sub lists: the point's name, then its lines stepped in beneath. */}
+            {!MEETING_BOARDS.includes(b) && allPoints(b).filter((it) => line.codes.includes(it.code) && subsOf(it).length && subOpen.includes(`${b}-${idx}-${it.id}`)).map((it) => (
+              <div key={it.id} className="border-t border-neutral-300 px-2 py-[3px] text-[11px] leading-[15px]">
+                <p className="break-words font-semibold text-[#B01E2F]">{String(it.code).trim()}</p>
+                {subsOf(it).map((x) => (
+                  <p key={x.id} className="whitespace-pre-wrap break-words pl-5 text-neutral-900">{x.text}</p>
+                ))}
+              </div>
+            ))}
             {open && (
               // Master carries a meetings column as well; the company boards are just
               // their two point columns.
@@ -1692,6 +1751,11 @@ export default function Planning() {
                           <button onClick={() => addPointAfter(b, g, it.id)} title="Add a point under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
                             <Plus size={11} strokeWidth={3} />
                           </button>
+                          {g === "hyper" && HYPER_ONLY.includes(b) && (
+                            <button onClick={() => addSub(b, g, it)} title="Add a sub list line under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
+                              <ListPlus size={11} strokeWidth={2.75} />
+                            </button>
+                          )}
                           <button onClick={() => stepPoint(b, g, it.id, -1)} title="Step out" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
                             <ChevronsLeft size={11} />
                           </button>
@@ -1716,6 +1780,64 @@ export default function Planning() {
                             <Trash2 size={11} />
                           </button>
                         </div>
+                        {/* The sub list: stepped in one further, no tick box, just its plus, grip and bin. */}
+                        {(it.subs || []).length > 0 && (
+                          <div className="mt-1 flex flex-col gap-1" style={{ marginLeft: `${20 * (levelOf(it) + 1)}px` }}>
+                            {it.subs.map((x, si) => (
+                              <div key={x.id}>
+                                {dragS?.id === it.id && dropS?.id === it.id && dropS.index === si && <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />}
+                                <div
+                                  onDragOver={(e) => {
+                                    if (dragS?.id !== it.id) return;
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const box = e.currentTarget.getBoundingClientRect();
+                                    setDropS({ id: it.id, index: e.clientY < box.top + box.height / 2 ? si : si + 1 });
+                                  }}
+                                  onDrop={(e) => {
+                                    if (dragS?.id !== it.id) return;
+                                    e.stopPropagation();
+                                    const to = dropS?.index ?? si;
+                                    const next = it.subs.slice();
+                                    const [row] = next.splice(dragS.index, 1);
+                                    next.splice(to > dragS.index ? to - 1 : to, 0, row);
+                                    saveSubs(b, g, it.id, next);
+                                    setDragS(null);
+                                    setDropS(null);
+                                  }}
+                                  className={`flex items-start gap-1 rounded border border-neutral-300 bg-white py-0.5 pl-1.5 pr-1.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragS?.id === it.id && dragS.index === si ? "opacity-40" : ""}`}
+                                >
+                                  <AutoTextarea
+                                    boxRef={(el) => { if (el && editing === x.id && document.activeElement !== el) el.focus(); }}
+                                    value={x.text || ""}
+                                    wrap="break-words"
+                                    onFocus={() => setEditing(x.id)}
+                                    onBlur={() => setEditing(null)}
+                                    onChange={(e) => saveSubs(b, g, it.id, it.subs.map((y) => (y.id === x.id ? { ...y, text: e.target.value.replace(/\r?\n/g, "") } : y)))}
+                                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
+                                    className="whitespace-pre-wrap break-words bg-transparent leading-[15px] outline-none"
+                                  />
+                                  <button onClick={() => addSub(b, g, it, x.id)} title="Add a line under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
+                                    <Plus size={11} strokeWidth={3} />
+                                  </button>
+                                  <span
+                                    draggable
+                                    onDragStart={(e) => { e.stopPropagation(); setDragS({ id: it.id, index: si }); }}
+                                    onDragEnd={() => { setDragS(null); setDropS(null); }}
+                                    title="Drag to move"
+                                    className="flex h-[15px] shrink-0 cursor-grab items-center text-neutral-400 active:cursor-grabbing"
+                                  >
+                                    <GripVertical size={11} />
+                                  </span>
+                                  <button onClick={() => ask(() => saveSubs(b, g, it.id, it.subs.filter((y) => y.id !== x.id)))} title="Remove this line" className="flex h-[15px] shrink-0 items-center text-neutral-900 hover:text-[#C1440E]">
+                                    <Trash2 size={11} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                            {dragS?.id === it.id && dropS?.id === it.id && dropS.index === it.subs.length && <div className="h-[2px] w-full bg-[#C1440E]" />}
+                          </div>
+                        )}
                         </div>
                       ))}
                       {dragP?.board === b && dropP?.board === b && dropP.group === g && list.length > 0 && dropP.index === list.length && (
