@@ -842,8 +842,18 @@ export default function Planning() {
       const bd = boards[b];
       const meetings = bd?.meetings || [];
       const lines = bd?.lines || [];
-      const due = meetings.some((m) => mark(m) !== m) || lines.some((l) => (l.meetings || []).some((m) => mark(m) !== m));
-      if (due) patchBoard(b, { meetings: meetings.map(mark), lines: lines.map((l) => ({ ...l, meetings: (l.meetings || []).map(mark) })) });
+      // Bracket words belong to a meeting only while it is on that line: once it leaves,
+      // they are wiped, so they can never come back with it later.
+      const stale = (l) => Object.keys(l.fills || {}).filter((k) => k.startsWith("meet-") && !(l.meetings || []).some((m) => `meet-${m.id}` === k));
+      const tidy = (l) => {
+        const gone = stale(l);
+        if (!gone.length) return l.fills;
+        const fills = { ...l.fills };
+        gone.forEach((k) => delete fills[k]);
+        return fills;
+      };
+      const due = meetings.some((m) => mark(m) !== m) || lines.some((l) => (l.meetings || []).some((m) => mark(m) !== m) || stale(l).length);
+      if (due) patchBoard(b, { meetings: meetings.map(mark), lines: lines.map((l) => ({ ...l, meetings: (l.meetings || []).map(mark), fills: tidy(l) })) });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boards]);
