@@ -1428,12 +1428,15 @@ export default function Planning() {
     return (
       // All one run of text, so the full names wrap like a sentence; the gold box follows onto each line it reaches.
       // Wider line spacing so two wrapped lines of box never touch; the negative margin keeps a single line as slim as ever.
-      <div className="-my-[2px] break-words text-[11px] font-semibold leading-[19px] text-neutral-900">
+      // The box hangs out 4px to the left (its border and padding), so its words start on the same
+      // edge as every plain line. Words after it wrap back to that edge too, not under the box.
+      <div className={`-my-[2px] break-words text-[11px] font-semibold leading-[19px] text-neutral-900 ${top.length > 0 ? "-ml-1" : ""}`}>
         {top.length > 0 && (
           <span className="border border-[#C9A24A] bg-[#FFF3D6] px-[3px] [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
         )}
-        {top.length > 0 && rest.length > 0 && "-"}
-        {rest.map(word)}
+        {top.length > 0 && rest.length > 0 ? (
+          <span className="-ml-1 pl-1 [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">-{rest.map(word)}</span>
+        ) : rest.map(word)}
       </div>
     );
   };
@@ -1600,11 +1603,11 @@ export default function Planning() {
             </div>
 
             {/* Open sub lists: just the point's lines, in purple, snug under the day line with no
-                gaps. The left edge matches the words inside the gold box: its border and padding are 4px. */}
+                gaps, on the same left edge as the words above. */}
             {(() => {
               const lists = MEETING_BOARDS.includes(b) ? [] : allPoints(b).filter((it) => line.codes.includes(it.code) && subsOf(it).length && subOpen.includes(`${b}-${idx}-${it.id}`));
               return lists.length > 0 && (
-                <div className="-mt-[2px] pb-[3px] pl-3 pr-2 text-[11px] leading-[15px]">
+                <div className="-mt-[2px] px-2 pb-[3px] text-[11px] leading-[15px]">
                   {lists.flatMap((it) => subsOf(it)).map((x) => (
                     <p key={x.id} className="whitespace-pre-wrap break-words text-[#9D00FF]">{x.text}</p>
                   ))}
