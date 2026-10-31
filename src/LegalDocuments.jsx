@@ -298,7 +298,7 @@ export default function LegalDocuments() {
         )}
 
         <div className="flex h-[21px] items-center gap-4 border-t border-black bg-neutral-50 px-2">
-          <button onClick={() => add("row")} className="flex items-center gap-1 text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-500 hover:text-neutral-800"><Plus size={12} /> Add row</button>
+          <button onClick={() => add("row")} className="text-[11px] font-bold uppercase leading-none tracking-wide text-[#0f766e] hover:text-[#0c5e57]">Add row</button>
         </div>
       </div>
 
