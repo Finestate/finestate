@@ -1125,6 +1125,9 @@ const pastedMealHtml = (source) => {
   const walk = (node, red) => {
     node.childNodes.forEach((n) => {
       if (n.nodeType === 3) {
+        // Windows wraps copied words in line breaks of its own: those are not words, and in
+        // this box they would show as an indent.
+        if (!/\S/.test(n.textContent) && /[\r\n]/.test(n.textContent)) return;
         const t = n.textContent.replace(/\r?\n/g, " ");
         if (t) out += `<span style="color: ${red ? INK_RED : "#171717"};">${escapeHtml(t)}</span>`;
       } else if (n.nodeType === 1 && !SKIP.includes(n.tagName)) {
@@ -1136,7 +1139,7 @@ const pastedMealHtml = (source) => {
     });
   };
   walk(doc.body, false);
-  return out;
+  return out.replace(/^(<br>)+|(<br>)+$/g, "");
 };
 // A colour as a meal line reads it: both of the page's reds are red, the text colour is black.
 const inkOf = (c) => {
