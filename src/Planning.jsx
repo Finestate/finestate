@@ -1426,7 +1426,8 @@ export default function Planning() {
     const rest = items.filter((x) => !hyper.has(x.c));
     return (
       // All one run of text, so the full names wrap like a sentence; the gold box follows onto each line it reaches.
-      <div className="break-words text-[11px] font-semibold leading-[15px] text-neutral-900">
+      // Wider line spacing so two wrapped lines of box never touch; the negative margin keeps a single line as slim as ever.
+      <div className="-my-[2px] break-words text-[11px] font-semibold leading-[19px] text-neutral-900">
         {top.length > 0 && (
           <span className="border border-[#C9A24A] bg-[#FFF3D6] px-[3px] [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
         )}
