@@ -110,20 +110,29 @@ const escapeHtml = (s) =>
 
 // A row of rich text. Uncontrolled on purpose: React never rewrites the markup while
 // you type, so the caret stays put and part-line bold survives.
-function RichLine({ html, onInput, onFocus, onEnter, innerRef, className }) {
+// `plainBack`: no words carry a background of their own. Text pasted from elsewhere brings
+// one, and what is typed beside it picks it up, showing as white around the words.
+const clearBacks = (el) => {
+  el.querySelectorAll('[style*="background"]').forEach((x) => {
+    x.style.background = "";
+    if (!x.getAttribute("style")) x.removeAttribute("style");
+  });
+};
+function RichLine({ html, onInput, onFocus, onEnter, innerRef, className, plainBack = false }) {
   const ref = useRef(null);
   // Follows text that arrives after the first render, such as a load from storage,
   // but never rewrites itself while the caret is in it.
   useEffect(() => {
     const el = ref.current;
     if (el && document.activeElement !== el && el.innerHTML !== (html || "")) el.innerHTML = html || "";
-  }, [html]);
+    if (el && plainBack) clearBacks(el);
+  }, [html, plainBack]);
   return (
     <div
       ref={(el) => { ref.current = el; if (innerRef) innerRef(el); }}
       contentEditable
       suppressContentEditableWarning
-      onInput={(e) => onInput(e.currentTarget.innerHTML)}
+      onInput={(e) => { if (plainBack) clearBacks(e.currentTarget); onInput(e.currentTarget.innerHTML); }}
       onFocus={onFocus}
       className={className}
     />
@@ -2144,6 +2153,7 @@ export default function Planning() {
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "indent")} title="Increase indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsRight size={14} strokeWidth={2.75} /></button>
           </div>
           <RichLine
+            plainBack
             html={cols.scratch || ""}
             innerRef={(el) => { noteRefs.current.scratch = el; }}
             onInput={(html) => saveCols({ ...cols, scratch: html })}
