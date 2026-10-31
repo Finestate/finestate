@@ -162,7 +162,7 @@ export default function HW() {
     setNutrition(next);
     persist({ foundational: notes, ...lists, nutrition: next });
   };
-  // Days whose six meal lines read exactly the same, colours too (spaces at the ends aside), form a
+  // Days whose meal lines look exactly the same, colours and starting spaces too, form a
   // group; each group gets a letter and colour, shown after the day name. Worked out
   // afresh every time, so a change drops a day from its group straight away.
   const DAY_LINES = ["Meal 1", "Meal 2", "Extra 2", "Meal 3", "Extra 3", "Meal 4"];
@@ -180,7 +180,7 @@ export default function HW() {
     const COLORS = ["#0f766e", "#9c7c33", "#C1440E", "#1d4ed8", "#7A0019", "#525252"];
     const byKey = {};
     DAYS.forEach(([day, name, group]) => {
-      const lines = rowsOfDay(day).map((r) => `${String(r.label || "").trim()}: ${mealMatchKey(mealOf(day, group, r.key))}`);
+      const lines = rowsOfDay(day).map((r) => `${String(r.label || "").trimEnd()}: ${mealMatchKey(mealOf(day, group, r.key))}`);
       if (!rowsOfDay(day).some((r) => mealWords(mealOf(day, group, r.key)).trim())) return;
       const key = lines.join(" | ~ | ");
       (byKey[key] = byKey[key] || []).push([day, name]);
@@ -1152,7 +1152,8 @@ const inkOf = (c) => {
 // What a meal line says and how it is coloured, for comparing days: the same words in
 // different colours do not match. The colour of a space never shows, so it does not count.
 const mealMatchKey = (v) => {
-  const doc = new DOMParser().parseFromString(mealHtml(v), "text/html");
+  // Opened with <body> so a starting space is kept: the reader drops one before the body.
+  const doc = new DOMParser().parseFromString(`<body>${mealHtml(v)}`, "text/html");
   let out = "";
   let last = "black";
   const walk = (node, ink) => {
@@ -1171,7 +1172,8 @@ const mealMatchKey = (v) => {
     });
   };
   walk(doc.body, "black");
-  return out.trim();
+  // A space at the start shows, so it counts. Anything after the last word never shows.
+  return out.replace(/ /g, " ").trimEnd();
 };
 // A meal line you type in like any other, whose words can be coloured. It never rewrites
 // itself while the caret is in it, so typing never jumps.
