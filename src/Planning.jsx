@@ -606,11 +606,89 @@ export default function Planning() {
   const [flash, setFlash] = useState(null); // column whose add button just fired
   // Drop the dragged line where the marker sits, counting the gap it leaves behind.
   const dropColRow = (k) => {
-    if (dragC?.col === k && dropAt?.col === k) {
-      moveColRow(k, dragC.index, dropAt.index);
+    if (dropAt?.col === k) {
+      if (dragC?.col === k) moveColRow(k, dragC.index, dropAt.index);
+      else if (dragC) moveAcross(dragC.col, dragC.index, k, dropAt.index);
+      else if (dragP?.board === "master") moveAcross(dragP.group, dragP.index, k, dropAt.index);
     }
+    endRowDrag();
+  };
+  const endRowDrag = () => {
     setDragC(null);
     setDropAt(null);
+    setDragP(null);
+    setDropP(null);
+  };
+  // Finestate's middle three columns swap lines: the long list, Errands prios and H+F order.
+  // A line brings everything stepped in under it, and keeps its ticks on each day line.
+  const moveAcross = async (from, index, to, at) => {
+    if (!cloudReady.current || from === to) return;
+    const master = boards.master;
+    const pts = master.points;
+    const fromPoints = from === "rest";
+    const toPoints = to === "rest";
+    const src = fromPoints ? pts.rest : cols[from];
+    const end = blockEnd(src, index);
+    const block = src.slice(index, end);
+    // The errands point holds the brackets the ticks write into, so it stays in the long list.
+    const isBrackets = (c) => /errands/i.test(c) && /\(\s*\)$/.test(c);
+    if (fromPoints && block.some((p) => isBrackets(String(p.code).trim()))) return;
+    const moved = block.map((r) => {
+      if (fromPoints) {
+        const { code, ...rest } = r;
+        const pick = {};
+        master.lines.forEach((l, i) => { if (l.codes.includes(code)) pick[i] = true; });
+        return { ...rest, text: code, pick };
+      }
+      if (toPoints) {
+        const { text, pick, picked, ...rest } = r;
+        return { ...rest, code: String(text || "").replace(/\r?\n/g, " ") };
+      }
+      return r;
+    });
+    const left = [...src.slice(0, index), ...src.slice(end)];
+    const dest = (toPoints ? pts.rest : cols[to]).slice();
+    dest.splice(at, 0, ...moved);
+    const nextCols = { ...cols };
+    if (!fromPoints) nextCols[from] = left;
+    if (!toPoints) nextCols[to] = dest;
+    if (fromPoints || toPoints) {
+      const nextPts = { ...pts, rest: toPoints ? dest : left };
+      const bracket = ERRANDS_AUTOFILL ? [...nextPts.core, ...nextPts.rest].map((p) => String(p.code).trim()).find(isBrackets) : null;
+      const lines = master.lines.map((l, i) => {
+        let codes = l.codes;
+        const fills = { ...(l.fills || {}) };
+        const extras = { ...(l.extras || {}) };
+        if (fromPoints) {
+          block.forEach((p) => {
+            if (!codes.includes(p.code)) return;
+            codes = codes.filter((c) => c !== p.code);
+            delete fills[p.code];
+            delete extras[p.code];
+          });
+        } else {
+          block.forEach((r, ri) => {
+            if (isPicked(r, i) && moved[ri].code && !codes.includes(moved[ri].code)) codes = [...codes, moved[ri].code];
+          });
+        }
+        // A ticked line going in or out of the two lists changes what the brackets say.
+        if (bracket && (fromPoints ? moved : block).some((r) => isPicked(r, i))) {
+          if (fromPoints && !codes.includes(bracket)) codes = [...codes, bracket];
+          if (codes.includes(bracket)) fills[bracket] = bracketText(nextCols, i);
+        }
+        return { ...l, codes, fills, extras };
+      });
+      if (fromPoints) {
+        // It only leaves the long list once its new home has it saved.
+        const { error } = await supabase.from("admin_docs").upsert({ id: TWOCOL_KEY, data: nextCols, updated_at: new Date().toISOString() });
+        if (error) { setPlanErr(`Not moved: ${error.message}`); return; }
+        setCols(nextCols);
+        patchBoard("master", { points: nextPts, lines });
+        return;
+      }
+      patchBoard("master", { points: nextPts, lines });
+    }
+    saveCols(nextCols);
   };
   const [dragP, setDragP] = useState(null); // point box being dragged inside its group
   const [dropP, setDropP] = useState(null); // where that point would land: { board, group, index }
@@ -622,8 +700,12 @@ export default function Planning() {
   // the gap the dragged box leaves behind.
   // A point can also be dragged into the other group of its column, as from Regular
   // prios up into Hyper-prios.
+  const pointDragging = (b) => dragP?.board === b || (b === "master" && !!dragC);
+  const rowDragging = !!dragC || dragP?.board === "master";
   const dropPoint = (b) => {
-    if (dragP?.board === b && dropP?.board === b) {
+    if (dragC && b === "master" && dropP?.board === b) {
+      moveAcross(dragC.col, dragC.index, dropP.group, dropP.index);
+    } else if (dragP?.board === b && dropP?.board === b) {
       if (dragP.group === dropP.group) {
         movePoint(b, dropP.group, dragP.index, dropP.index);
       } else {
@@ -638,8 +720,7 @@ export default function Planning() {
         savePoints(b, { ...pts, [dragP.group]: from, [dropP.group]: to });
       }
     }
-    setDragP(null);
-    setDropP(null);
+    endRowDrag();
   };
   const dropPoolMeeting = (b) => {
     if (drag?.from === "pool" && drag.board === b && dropM?.board === b) {
@@ -1652,7 +1733,13 @@ export default function Planning() {
                   <div key={col} className={`${col === "core" ? "order-2" : "order-3"} min-w-0 self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     <div
                       className="flex h-full flex-col gap-1"
-                      onDragOver={(e) => e.preventDefault()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        // Below the last line, a line from another column lands at the foot.
+                        if (b === "master" && rowDragging && (!points.rest.length || (e.target === e.currentTarget && e.clientY >= e.currentTarget.lastElementChild.getBoundingClientRect().bottom))) {
+                          setDropP({ board: b, group: "rest", index: points.rest.length });
+                        }
+                      }}
                       onDrop={() => dropPoint(b)}
                       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropP(null); }}
                     >
@@ -1679,13 +1766,13 @@ export default function Planning() {
                         <div
                           onDragOver={(e) => { e.preventDefault(); setDropP({ board: b, group: g, index: 0 }); }}
                           onDrop={(e) => { e.stopPropagation(); dropPoint(b); }}
-                          className={`h-[19px] rounded border border-dashed ${dragP?.board === b && dropP?.board === b && dropP.group === g ? "border-[#C1440E]" : "border-neutral-300"}`}
+                          className={`h-[19px] rounded border border-dashed ${pointDragging(b) && dropP?.board === b && dropP.group === g ? "border-[#C1440E]" : "border-neutral-300"}`}
                         />
                       )}
                       {list.map((it, pi) => hiddenRows(list).has(it.id) ? null : (
                         <div key={it.id}>
                         {/* A red marker shows exactly where the point will land. */}
-                        {dragP?.board === b && dropP?.board === b && dropP.group === g && dropP.index === pi && (
+                        {pointDragging(b) && dropP?.board === b && dropP.group === g && dropP.index === pi && (
                           <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />
                         )}
                         <div
@@ -1758,7 +1845,7 @@ export default function Planning() {
                           <span
                             draggable
                             onDragStart={() => setDragP({ board: b, group: g, index: pi })}
-                            onDragEnd={() => { setDragP(null); setDropP(null); }}
+                            onDragEnd={endRowDrag}
                             title="Drag to move"
                             className="flex h-[15px] shrink-0 cursor-grab items-center text-neutral-400 active:cursor-grabbing"
                           >
@@ -1832,7 +1919,7 @@ export default function Planning() {
                         )}
                         </div>
                       ))}
-                      {dragP?.board === b && dropP?.board === b && dropP.group === g && list.length > 0 && dropP.index === list.length && (
+                      {pointDragging(b) && dropP?.board === b && dropP.group === g && list.length > 0 && dropP.index === list.length && (
                         <div className="h-[2px] w-full bg-[#C1440E]" />
                       )}
                       </Fragment>
@@ -1906,14 +1993,20 @@ export default function Planning() {
             </p>
             <div
               className="flex flex-1 flex-col gap-1"
-              onDragOver={(e) => e.preventDefault()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                // Empty, or below the last line, a line lands at the foot.
+                if (rowDragging && (!cols[k].length || (e.target === e.currentTarget && e.clientY >= e.currentTarget.lastElementChild.getBoundingClientRect().bottom))) {
+                  setDropAt({ col: k, index: cols[k].length });
+                }
+              }}
               onDrop={() => dropColRow(k)}
               onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropAt(null); }}
             >
               {cols[k].map((r, i) => hidden.has(r.id) ? null : (
                 <div key={r.id}>
                 {/* A red marker shows exactly where the line will land. */}
-                {dragC?.col === k && dropAt?.col === k && dropAt.index === i && (
+                {rowDragging && dropAt?.col === k && dropAt.index === i && (
                   <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />
                 )}
                 <div
@@ -1972,7 +2065,7 @@ export default function Planning() {
                   <span
                     draggable
                     onDragStart={() => setDragC({ col: k, index: i })}
-                    onDragEnd={() => { setDragC(null); setDropAt(null); }}
+                    onDragEnd={endRowDrag}
                     title="Drag to move"
                     className="flex h-[15px] shrink-0 cursor-grab items-center text-neutral-400 active:cursor-grabbing"
                   >
@@ -1984,7 +2077,7 @@ export default function Planning() {
                 </div>
                 </div>
               ))}
-              {dragC?.col === k && dropAt?.col === k && dropAt.index === cols[k].length && (
+              {rowDragging && dropAt?.col === k && dropAt.index === cols[k].length && (
                 <div className="h-[2px] w-full bg-[#C1440E]" />
               )}
               {/* The add on the floor of the column shows only while the list is empty; after
