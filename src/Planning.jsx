@@ -1414,7 +1414,7 @@ export default function Planning() {
             <span
               onClick={(e) => { e.stopPropagation(); toggleSubOpen(key); }}
               title={subOpen.includes(key) ? "Close the sub list" : "Open the sub list"}
-              className="cursor-pointer text-[#7E22CE]"
+              className="cursor-pointer text-[#9D00FF]"
             >
               {x.s}
             </span>
@@ -1600,7 +1600,7 @@ export default function Planning() {
             {!MEETING_BOARDS.includes(b) && allPoints(b).filter((it) => line.codes.includes(it.code) && subsOf(it).length && subOpen.includes(`${b}-${idx}-${it.id}`)).map((it) => (
               <div key={it.id} className="px-2 py-[3px] text-[11px] leading-[15px]">
                 {subsOf(it).map((x) => (
-                  <p key={x.id} className="whitespace-pre-wrap break-words text-[#7E22CE]">{x.text}</p>
+                  <p key={x.id} className="whitespace-pre-wrap break-words text-[#9D00FF]">{x.text}</p>
                 ))}
               </div>
             ))}
