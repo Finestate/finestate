@@ -215,30 +215,14 @@ const BOARDS = [
 ];
 // Boards whose dropdown is Prios, Non-prios and notes: no hyper-prios.
 const SINGLE_BOARDS = ["fin"];
-// Ticked errands write themselves into the Errandsprios brackets, but only those
-// under the Reminder group (see reminderText). Set to false to switch it off entirely.
+// Ticked lines write themselves into the Errandsprios brackets. Set to false to switch it off entirely.
 const ERRANDS_AUTOFILL = true;
-// Only the lines under a "Reminder" group head (in Errands prios or H+F order) feed the
-// brackets: the ticked ones, joined by a dash, no spaces. Everything else is typed by hand.
-// The errands brackets always start with "seebelow", then any ticked Reminder lines.
-const bracketText = (lists, lineIdx) => ["seebelow", reminderText(lists, lineIdx)].filter(Boolean).join("-");
-const underReminder = (list) => {
-  const ids = new Set();
-  let at = null; // the Reminder head's step, while inside its group
-  list.forEach((r) => {
-    const lv = levelOf(r);
-    if (at != null && lv <= at) at = null;
-    if (at != null) ids.add(r.id);
-    if (at == null && /^\s*reminders?\b/i.test(r.text || "")) at = lv;
-  });
-  return ids;
-};
-const reminderText = (lists, lineIdx) =>
-  TWOCOLS.flatMap(([k]) => {
-    const list = lists[k] || [];
-    const ids = underReminder(list);
-    return list.filter((r) => ids.has(r.id) && isPicked(r, lineIdx)).map((r) => String(r.text || "").trim());
-  })
+// Every ticked line in Errands prios or H+F order feeds the brackets, joined by a dash, no
+// spaces. Unticking takes it back out; the line itself stays in its list.
+// The errands brackets always start with "seebelow", then the ticked lines.
+const bracketText = (lists, lineIdx) => ["seebelow", tickedText(lists, lineIdx)].filter(Boolean).join("-");
+const tickedText = (lists, lineIdx) =>
+  TWOCOLS.flatMap(([k]) => (lists[k] || []).filter((r) => isPicked(r, lineIdx)).map((r) => String(r.text || "").trim()))
     .filter(Boolean)
     .join("-");
 // Boards whose first column is Hyper-prios only, no Regular prios.
@@ -1914,7 +1898,7 @@ export default function Planning() {
     <>
       {/* On trial: the three lists sit in the same row as meetings and the long list, five across. */}
       <div className="contents">
-        {TWOCOLS.map(([k, label]) => { const hidden = hiddenRows(cols[k]); const boxed = underReminder(cols[k]); return (
+        {TWOCOLS.map(([k, label]) => { const hidden = hiddenRows(cols[k]); return (
           <div key={k} className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 flex items-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
               {label}
@@ -1952,9 +1936,7 @@ export default function Planning() {
                       </button>
                     )}
                   </span>
-                  {/* Only lines under a Reminder head carry a box: a tick sends them to the brackets.
-                      Boxed to the exact line height, so it sits dead centre on the first line. */}
-                  {boxed.has(r.id) && (
+                  {/* Boxed to the exact line height, so it sits dead centre on the first line. */}
                   <span className="flex h-[15px] shrink-0 items-center">
                     <input
                       type="checkbox"
@@ -1965,7 +1947,6 @@ export default function Planning() {
                       style={{ accentColor: "#C1440E", margin: 0 }}
                     />
                   </span>
-                  )}
                   {/* On a group head the words stay editable, and the space after them opens
                       and closes the group. */}
                   <WrapLine
