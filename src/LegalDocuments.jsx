@@ -14,7 +14,7 @@ const COLS = [
   { key: "number", label: "Number", w: "17%" },
   { key: "issued", label: "Issue date", w: "17%" },
   { key: "expiry", label: "Expiry date", w: "17%" },
-  { key: "scan", label: "Links to document", w: "17%" },
+  { key: "scan", label: "Link(s) to document", w: "17%" },
 ];
 
 const GOLD = "#9c7c33";
@@ -121,7 +121,7 @@ export function DateCell({ value, onChange, flagSoon, placeholder, wholeCell = f
   );
 }
 
-// Anything that looks like an address shows as a link reading "Link to document".
+// Anything that looks like an address shows as a link. Anything else, such as NA, is plain words.
 const isUrl = (v) => /^(https?:\/\/|www\.)/i.test(String(v || "").trim());
 
 const toHref = (v) => (/^www\./i.test(String(v).trim()) ? `https://${String(v).trim()}` : String(v).trim());
@@ -220,7 +220,7 @@ export default function LegalDocuments() {
   // Links are written as a list; the old single address is cleared once it has moved in.
   const setLinks = (i, next) => save(items.map((r, idx) => (idx === i ? { ...r, links: next, scan: "" } : r)));
   const addLink = () => {
-    if (!newLinkUrl.trim()) return;
+    if (!newLinkName.trim() && !newLinkUrl.trim()) return;
     setLinks(linksFor, [...linksOf(items[linksFor]), { id: newId(), name: newLinkName.trim(), url: newLinkUrl.trim() }]);
     setNewLinkName("");
     setNewLinkUrl("");
@@ -235,7 +235,7 @@ export default function LegalDocuments() {
       if (r.number) out.push(`    Number: ${r.number}`);
       if (r.issued) out.push(`    Issued: ${r.issued}`);
       if (r.expiry) out.push(`    Expires: ${r.expiry}`);
-      linksOf(r).forEach((l) => out.push(`    Link: ${l.name ? `${l.name} – ` : ""}${l.url}`));
+      linksOf(r).forEach((l) => out.push(`    Link: ${[l.name, l.url].filter(Boolean).join(" – ")}`));
     });
     downloadText("Legal documents", out);
   };
@@ -345,7 +345,12 @@ export default function LegalDocuments() {
                   ))}
                   <tr className="bg-neutral-50">
                     <td className={lc}>
-                      <input value={newLinkName} onChange={(e) => setNewLinkName(e.target.value)} className={li} />
+                      <input
+                        value={newLinkName}
+                        onChange={(e) => setNewLinkName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") addLink(); if (e.key === "Escape") setLinksFor(null); }}
+                        className={li}
+                      />
                     </td>
                     <td className={lc}>
                       <input
