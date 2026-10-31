@@ -1885,7 +1885,7 @@ export default function Planning() {
                                     setDragS(null);
                                     setDropS(null);
                                   }}
-                                  className={`flex items-start gap-1 rounded border border-neutral-300 bg-white py-0.5 pl-1.5 pr-1.5 text-[11px] font-semibold text-neutral-700 hover:border-neutral-400 hover:text-neutral-900 ${dragS?.id === it.id && dragS.index === si ? "opacity-40" : ""}`}
+                                  className={`flex items-start gap-1 rounded border border-[#9D00FF] bg-white py-0.5 pl-1.5 pr-1.5 text-[11px] font-semibold text-[#9D00FF] ${dragS?.id === it.id && dragS.index === si ? "opacity-40" : ""}`}
                                 >
                                   <AutoTextarea
                                     boxRef={(el) => { if (el && editing === x.id && document.activeElement !== el) el.focus(); }}
@@ -1897,7 +1897,7 @@ export default function Planning() {
                                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
                                     className="whitespace-pre-wrap break-words bg-transparent leading-[15px] text-[#9D00FF] outline-none"
                                   />
-                                  <button onClick={() => addSub(b, g, it, x.id)} title="Add a line under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
+                                  <button onClick={() => addSub(b, g, it, x.id)} title="Add a line under this one" className="flex h-[15px] shrink-0 items-center text-[#9D00FF] hover:opacity-70">
                                     <Plus size={11} strokeWidth={3} />
                                   </button>
                                   <span
@@ -1905,11 +1905,11 @@ export default function Planning() {
                                     onDragStart={(e) => { e.stopPropagation(); setDragS({ id: it.id, index: si }); }}
                                     onDragEnd={() => { setDragS(null); setDropS(null); }}
                                     title="Drag to move"
-                                    className="flex h-[15px] shrink-0 cursor-grab items-center text-neutral-400 active:cursor-grabbing"
+                                    className="flex h-[15px] shrink-0 cursor-grab items-center text-[#9D00FF] active:cursor-grabbing"
                                   >
                                     <GripVertical size={11} />
                                   </span>
-                                  <button onClick={() => ask(() => saveSubs(b, g, it.id, it.subs.filter((y) => y.id !== x.id)))} title="Remove this line" className="flex h-[15px] shrink-0 items-center text-neutral-900 hover:text-[#C1440E]">
+                                  <button onClick={() => ask(() => saveSubs(b, g, it.id, it.subs.filter((y) => y.id !== x.id)))} title="Remove this line" className="flex h-[15px] shrink-0 items-center text-[#9D00FF] hover:opacity-70">
                                     <Trash2 size={11} />
                                   </button>
                                 </div>
