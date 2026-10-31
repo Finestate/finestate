@@ -1115,6 +1115,38 @@ const toggleRed = (el, save) => {
   document.execCommand("foreColor", false, isRed ? "#171717" : INK_RED);
   save(el.innerHTML);
 };
+// Pasted words keep their red and black, and nothing else from where they came: no fonts,
+// sizes or other colours, and only the words themselves are ever put in the box.
+const pastedMealHtml = (source) => {
+  const doc = new DOMParser().parseFromString(source, "text/html");
+  const isRed = (c) => ["rgb(176,30,47)", "rgb(193,68,14)"].includes(String(c).replace(/\s/g, ""));
+  const SKIP = ["HEAD", "META", "SCRIPT", "STYLE", "TITLE"];
+  const BLOCK = ["DIV", "LI", "P", "TR"];
+  let out = "";
+  const walk = (node, red) => {
+    node.childNodes.forEach((n) => {
+      if (n.nodeType === 3) {
+        const t = n.textContent.replace(/\r?\n/g, " ");
+        if (t) out += `<span style="color: ${red ? INK_RED : "#171717"};">${escapeHtml(t)}</span>`;
+      } else if (n.nodeType === 1 && !SKIP.includes(n.tagName)) {
+        if (n.tagName === "BR") { out += "<br>"; return; }
+        const own = n.style?.color || n.getAttribute("color");
+        walk(n, own ? isRed(toRgb(own)) : red);
+        if (BLOCK.includes(n.tagName) && n.nextSibling) out += "<br>";
+      }
+    });
+  };
+  walk(doc.body, false);
+  return out;
+};
+const toRgb = (c) => {
+  const probe = document.createElement("span");
+  probe.style.color = c;
+  document.body.appendChild(probe);
+  const rgb = getComputedStyle(probe).color;
+  probe.remove();
+  return rgb;
+};
 // A meal line you type in like any other, whose words can be coloured. It never rewrites
 // itself while the caret is in it, so typing never jumps.
 function MealText({ value, onChange, boxRef }) {
@@ -1131,8 +1163,13 @@ function MealText({ value, onChange, boxRef }) {
       suppressContentEditableWarning
       spellCheck
       onInput={(e) => onChange(e.currentTarget.innerHTML)}
-      // Pasted words come in plain, without another page's fonts and colours.
-      onPaste={(e) => { e.preventDefault(); document.execCommand("insertText", false, e.clipboardData.getData("text/plain")); }}
+      // Pasted words keep their red and black, without another page's fonts or other colours.
+      onPaste={(e) => {
+        e.preventDefault();
+        const source = e.clipboardData.getData("text/html");
+        if (source) document.execCommand("insertHTML", false, pastedMealHtml(source));
+        else document.execCommand("insertText", false, e.clipboardData.getData("text/plain"));
+      }}
       // Enter starts a new line inside the same box, as before.
       onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); document.execCommand("insertLineBreak"); } }}
       className="meal-box min-h-[15px] whitespace-pre-wrap break-words text-[11px] leading-[15px] text-neutral-900 outline-none"
