@@ -1895,7 +1895,7 @@ export default function Planning() {
                                     onBlur={() => setEditing(null)}
                                     onChange={(e) => saveSubs(b, g, it.id, it.subs.map((y) => (y.id === x.id ? { ...y, text: e.target.value.replace(/\r?\n/g, "") } : y)))}
                                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
-                                    className="whitespace-pre-wrap break-words bg-transparent leading-[15px] outline-none"
+                                    className="whitespace-pre-wrap break-words bg-transparent leading-[15px] text-[#9D00FF] outline-none"
                                   />
                                   <button onClick={() => addSub(b, g, it, x.id)} title="Add a line under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
                                     <Plus size={11} strokeWidth={3} />
