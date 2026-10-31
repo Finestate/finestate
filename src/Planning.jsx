@@ -1399,10 +1399,18 @@ export default function Planning() {
   // The hyper-prios lead, together in one small soft-gold box, same weight as the rest.
   // Which sub lists are open on the day lines. Remembered in this browser.
   const [subOpen, setSubOpenRaw] = useState(() => {
-    try { const v = JSON.parse(localStorage.getItem("daily-sub-open") || "[]"); return Array.isArray(v) ? v : []; } catch { return []; }
+    try {
+      const v = JSON.parse(localStorage.getItem("daily-sub-open") || "[]");
+      if (!Array.isArray(v)) return [];
+      // Older saves could hold several on one day line: the last one opened stays.
+      const byLine = new Map(v.map((k) => [k.slice(0, k.lastIndexOf("-") + 1), k]));
+      return [...byLine.values()];
+    } catch { return []; }
   });
   const toggleSubOpen = (key) => {
-    const next = subOpen.includes(key) ? subOpen.filter((k) => k !== key) : [...subOpen, key];
+    // Only one list shows on a day line: opening one shuts whichever was open there.
+    const others = subOpen.filter((k) => !k.startsWith(key.slice(0, key.lastIndexOf("-") + 1)));
+    const next = subOpen.includes(key) ? others : [...others, key];
     setSubOpenRaw(next);
     try { localStorage.setItem("daily-sub-open", JSON.stringify(next)); } catch {}
   };
