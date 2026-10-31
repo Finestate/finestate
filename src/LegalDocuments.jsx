@@ -324,7 +324,8 @@ export default function LegalDocuments() {
                   <tr className="bg-neutral-100 text-left text-[10px] font-bold uppercase tracking-wide text-neutral-700">
                     <th className={`${lc} font-bold`}>Name</th>
                     <th className={`${lc} font-bold`}>Link</th>
-                    <th className={lc} />
+                    {/* Only a heading, like the bin over the main table: the bins in the rows do the work. */}
+                    <th className={`${lc} text-neutral-900`}><Trash2 size={12} className="mx-auto" /></th>
                   </tr>
                 </thead>
                 <tbody>
