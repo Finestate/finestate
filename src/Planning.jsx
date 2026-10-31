@@ -1830,7 +1830,8 @@ export default function Planning() {
                             <button
                               onClick={() => ((it.subs || []).length ? savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === it.id ? { ...p, subsClosed: !p.subsClosed } : p)) }) : addSub(b, g, it))}
                               title={(it.subs || []).length ? (it.subsClosed ? "Open the sub list" : "Close the sub list") : "Set up a sub list under this one"}
-                              className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]"
+                              // Green until a list exists, then the same purple as its name on the day line.
+                              className={`flex h-[15px] shrink-0 items-center ${(it.subs || []).length ? "text-[#9D00FF] hover:opacity-70" : "text-[#0f766e] hover:text-[#0c5e57]"}`}
                             >
                               <ListPlus size={11} strokeWidth={2.75} />
                             </button>
