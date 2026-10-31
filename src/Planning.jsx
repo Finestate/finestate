@@ -1149,9 +1149,12 @@ export default function Planning() {
   };
   const renderCodeLine = (b, list, colour, idx) => (
     // Plain flowing text: each point runs straight on after the square before it, like a sentence.
-    // The same roomy spacing as the company lines, so wrapped lines never crowd.
-    <div className="-my-[2px] text-[11px] font-semibold leading-[19px]" style={{ color: colour }}>
+    // Each square is held to the word before it, so a wrapped line always starts on a word, flush left.
+    <div className="text-[11px] font-semibold leading-[16px]" style={{ color: colour }}>
       {list.map((c, i) => {
+        // Raised so its centre sits exactly halfway up the capitals: measured, 8px above the line foot either way.
+        const square = i < list.length - 1 && <span className="mx-1.5 inline-block h-[5px] w-[5px]" style={{ backgroundColor: colour, verticalAlign: "1.5px" }} />;
+        const lastGap = String(c).lastIndexOf(" ") + 1;
         const fillable = /\(\)$/.test(c);
         const fill = boards[b].lines[idx]?.fills?.[c] || "";
         // SC carries its letters in brackets. On the line they show in red and can be
@@ -1162,12 +1165,15 @@ export default function Planning() {
         return (
           <span key={c}>
             {trim ? (
-              <span className="inline-flex items-center">
-                {trim[1]}
-                <span onClick={(e) => e.stopPropagation()}>
-                  <FillText key={`${b}-${idx}-${c}-trim`} text={trimmed} onChange={(t) => setFill(b, idx, c, t)} />
+              <span className="whitespace-nowrap">
+                <span className="inline-flex items-center">
+                  {trim[1]}
+                  <span onClick={(e) => e.stopPropagation()}>
+                    <FillText key={`${b}-${idx}-${c}-trim`} text={trimmed} onChange={(t) => setFill(b, idx, c, t)} />
+                  </span>
+                  )
                 </span>
-                )
+                {square}
               </span>
             ) : fillable ? (
               // The ticks below fill the brackets. A double click puts the caret at the
@@ -1189,13 +1195,14 @@ export default function Planning() {
                 <span className="lowercase" onClick={(e) => e.stopPropagation()}>
                   <FillText key={`${b}-${idx}-${c}-extra`} text={boards[b].lines[idx]?.extras?.[c] || ""} onChange={(t) => setExtra(b, idx, c, t)} />
                 </span>
-                )
+                <span className="whitespace-nowrap">){square}</span>
               </span>
             ) : (
-              c
+              <>
+                {String(c).slice(0, lastGap)}
+                <span className="whitespace-nowrap">{String(c).slice(lastGap)}{square}</span>
+              </>
             )}
-            {/* Raised so its centre sits exactly halfway up the capitals: measured, 8px above the line foot either way. */}
-            {i < list.length - 1 && <span className="mx-1.5 inline-block h-[5px] w-[5px]" style={{ backgroundColor: colour, verticalAlign: "1.5px" }} />}
           </span>
         );
       })}
@@ -1428,15 +1435,14 @@ export default function Planning() {
     return (
       // All one run of text, so the full names wrap like a sentence; the gold box follows onto each line it reaches.
       // Wider line spacing so two wrapped lines of box never touch; the negative margin keeps a single line as slim as ever.
-      // The box hangs out 4px to the left (its border and padding), so its words start on the same
-      // edge as every plain line. Words after it wrap back to that edge too, not under the box.
-      <div className={`-my-[2px] break-words text-[11px] font-semibold leading-[19px] text-neutral-900 ${top.length > 0 ? "-ml-1" : ""}`}>
+      // The box hangs out 4px to the left (its border and padding) on every line it reaches, so its
+      // words start on the same edge as every plain line.
+      <div className="-my-[2px] break-words text-[11px] font-semibold leading-[19px] text-neutral-900">
         {top.length > 0 && (
-          <span className="border border-[#C9A24A] bg-[#FFF3D6] px-[3px] [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
+          <span className="-ml-1 border border-[#C9A24A] bg-[#FFF3D6] px-[3px] [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
         )}
-        {top.length > 0 && rest.length > 0 ? (
-          <span className="-ml-1 pl-1 [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">-{rest.map(word)}</span>
-        ) : rest.map(word)}
+        {top.length > 0 && rest.length > 0 && "-"}
+        {rest.map(word)}
       </div>
     );
   };
@@ -1470,7 +1476,7 @@ export default function Planning() {
               {/* Meetings lead, the core codes sit under them, then the long list. */}
               <div className="flex flex-1 flex-col gap-0 px-2 py-[3px]">
                 {line.meetings.length > 0 && (
-                  <div className="order-1 flex flex-wrap items-center gap-x-2 gap-y-[4px] leading-[15px]">
+                  <div className="order-1 flex flex-wrap items-center gap-x-2 gap-y-0 leading-[16px]">
                     {line.meetings.map((m, mi) => (
                       <span
                         key={m.id}
@@ -1500,7 +1506,7 @@ export default function Planning() {
                           setDrag(null);
                           setDropL(null);
                         }}
-                        className={`relative inline-flex cursor-grab items-center gap-0 text-[11px] font-semibold leading-[15px] text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
+                        className={`relative inline-flex cursor-grab items-center gap-0 text-[11px] font-semibold leading-[16px] text-neutral-900 active:cursor-grabbing ${drag?.from === "line" && drag.lineIdx === idx && drag.index === mi ? "opacity-40" : ""}`}
                       >
                         {/* A red upright line shows exactly where the meeting will land. */}
                         {drag?.from === "line" && drag.board === b && drag.lineIdx === idx && dropL?.board === b && dropL.lineIdx === idx &&
