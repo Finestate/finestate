@@ -90,6 +90,9 @@ const SECTION_TYPES = [["Header", "header"], ["Row", "text"]];
 
 let _idc = 0;
 const newId = () => "p" + Date.now().toString(36) + "-" + (_idc++);
+// An open sub list is saved as board-line-pointId. The point's id holds a dash of its own,
+// so the board and the line are the first two parts.
+const subLineOf = (key) => key.split("-").slice(0, 2).join("-");
 
 // Each visual line needs its own block element, otherwise the browser cannot
 // bullet or indent one line at a time.
@@ -1403,13 +1406,13 @@ export default function Planning() {
       const v = JSON.parse(localStorage.getItem("daily-sub-open") || "[]");
       if (!Array.isArray(v)) return [];
       // Older saves could hold several on one day line: the last one opened stays.
-      const byLine = new Map(v.map((k) => [k.slice(0, k.lastIndexOf("-") + 1), k]));
+      const byLine = new Map(v.map((k) => [subLineOf(k), k]));
       return [...byLine.values()];
     } catch { return []; }
   });
   const toggleSubOpen = (key) => {
     // Only one list shows on a day line: opening one shuts whichever was open there.
-    const others = subOpen.filter((k) => !k.startsWith(key.slice(0, key.lastIndexOf("-") + 1)));
+    const others = subOpen.filter((k) => subLineOf(k) !== subLineOf(key));
     const next = subOpen.includes(key) ? others : [...others, key];
     setSubOpenRaw(next);
     try { localStorage.setItem("daily-sub-open", JSON.stringify(next)); } catch {}
