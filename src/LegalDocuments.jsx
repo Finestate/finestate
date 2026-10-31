@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Plus, Trash2, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SquarePen, X, Download } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { backupStamp, downloadText } from "./backup.js";
@@ -239,8 +239,14 @@ export default function LegalDocuments() {
     });
     downloadText("Legal documents", out);
   };
-  const add = (kind) =>
-    save([...items, kind === "section" ? { id: newId(), kind: "section", label: "" } : { id: newId(), kind: "row", item: "", number: "", issued: "", expiry: "", scan: "" }]);
+  // A new row goes in at `at`: the end of the section whose Add row was pressed.
+  const addRow = (at) =>
+    save([...items.slice(0, at), { id: newId(), kind: "row", item: "", number: "", issued: "", expiry: "", scan: "" }, ...items.slice(at)]);
+  const addBar = (at) => (
+    <div className="flex h-[21px] items-center border-t border-black bg-neutral-50 px-2">
+      <button onClick={() => addRow(at)} className="text-[11px] font-bold uppercase leading-[15px] text-[#0f766e] hover:text-[#0c5e57]">Add row</button>
+    </div>
+  );
 
   return (
     // Narrow windows scroll the table sideways rather than squashing the columns.
@@ -254,9 +260,12 @@ export default function LegalDocuments() {
             // Exactly one line between any two bands: every band draws its own top
             // rule, the outer frame closes the table, so nothing ever doubles up.
             const rule = pos === 0 ? "" : "border-t border-black";
-            return r.kind === "section" ? (
+            // Every section closes with its own Add row, where the next section starts.
+            const after = order[pos + 1];
+            const foot = after == null ? addBar(items.length) : items[after].kind === "section" ? addBar(after) : null;
+            return <Fragment key={r.id}>{r.kind === "section" ? (
               // Each section carries its own column headings underneath it.
-              <div key={r.id}>
+              <div>
                 {/* Section bars carry no bin – a section only goes when I remove it. */}
                 <div className={`flex h-[18px] items-center px-2 ${rule}`} style={{ backgroundColor: BAR_BG }}>
                   <input value={r.label || ""} onChange={(e) => update(i, "label", e.target.value)} className={`block w-full bg-transparent py-0 ${head} outline-none`} />
@@ -277,7 +286,7 @@ export default function LegalDocuments() {
                 </div>
               </div>
             ) : (
-              <div key={r.id} className={`flex h-[21px] items-stretch ${rule}`}>
+              <div className={`flex h-[21px] items-stretch ${rule}`}>
                 <span className="flex min-w-0 flex-1 items-stretch">
                   {COLS.map((c, ci) => (
                     <span key={c.key} style={{ flex: `${parseFloat(c.w)} 1 0` }} className={`flex min-w-0 items-center px-2 ${ci ? "border-l border-black" : ""}`}>
@@ -293,13 +302,10 @@ export default function LegalDocuments() {
                 </span>
                 <Bin i={i} remove={remove} />
               </div>
-            );
+            )}{foot}</Fragment>;
           })
         )}
-
-        <div className="flex h-[21px] items-center gap-4 border-t border-black bg-neutral-50 px-2">
-          <button onClick={() => add("row")} className="text-[11px] font-bold uppercase leading-none tracking-wide text-[#0f766e] hover:text-[#0c5e57]">Add row</button>
-        </div>
+        {loaded && !order.length && addBar(0)}
       </div>
 
       {linksFor != null && items[linksFor] && (() => {
