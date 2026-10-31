@@ -1425,9 +1425,10 @@ export default function Planning() {
     const top = items.filter((x) => hyper.has(x.c));
     const rest = items.filter((x) => !hyper.has(x.c));
     return (
-      <div className="flex flex-wrap items-center text-[11px] font-semibold leading-[15px] text-neutral-900">
+      // All one run of text, so the full names wrap like a sentence; the gold box follows onto each line it reaches.
+      <div className="break-words text-[11px] font-semibold leading-[15px] text-neutral-900">
         {top.length > 0 && (
-          <span className="inline-flex h-[15px] items-center border border-[#C9A24A] bg-[#FFF3D6] px-[3px] leading-none">{top.map(word)}</span>
+          <span className="border border-[#C9A24A] bg-[#FFF3D6] px-[3px] [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
         )}
         {top.length > 0 && rest.length > 0 && "-"}
         {rest.map(word)}
