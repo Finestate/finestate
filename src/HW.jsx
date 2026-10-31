@@ -162,7 +162,7 @@ export default function HW() {
     setNutrition(next);
     persist({ foundational: notes, ...lists, nutrition: next });
   };
-  // Days whose six meal lines read exactly the same (spaces at the ends aside) form a
+  // Days whose six meal lines read exactly the same, colours too (spaces at the ends aside), form a
   // group; each group gets a letter and colour, shown after the day name. Worked out
   // afresh every time, so a change drops a day from its group straight away.
   const DAY_LINES = ["Meal 1", "Meal 2", "Extra 2", "Meal 3", "Extra 3", "Meal 4"];
@@ -180,7 +180,7 @@ export default function HW() {
     const COLORS = ["#0f766e", "#9c7c33", "#C1440E", "#1d4ed8", "#7A0019", "#525252"];
     const byKey = {};
     DAYS.forEach(([day, name, group]) => {
-      const lines = rowsOfDay(day).map((r) => `${String(r.label || "").trim()}: ${mealWords(mealOf(day, group, r.key)).trim()}`);
+      const lines = rowsOfDay(day).map((r) => `${String(r.label || "").trim()}: ${mealMatchKey(mealOf(day, group, r.key))}`);
       if (!rowsOfDay(day).some((r) => mealWords(mealOf(day, group, r.key)).trim())) return;
       const key = lines.join(" | ~ | ");
       (byKey[key] = byKey[key] || []).push([day, name]);
@@ -1100,7 +1100,7 @@ const mealHtml = (v) => {
   }
   return (out + escapeHtml(t.slice(last))).replace(/\r?\n/g, "<br>");
 };
-// The words of a meal line alone, colours aside, for comparing days and the backup.
+// The words of a meal line alone, colours aside, for the backup and spotting an empty day.
 const mealWords = (v) => {
   const t = String(v || "");
   return /<[a-z/][^>]*>/i.test(t) ? htmlToLines(t) : t;
@@ -1119,7 +1119,6 @@ const toggleRed = (el, save) => {
 // sizes or other colours, and only the words themselves are ever put in the box.
 const pastedMealHtml = (source) => {
   const doc = new DOMParser().parseFromString(source, "text/html");
-  const isRed = (c) => ["rgb(176,30,47)", "rgb(193,68,14)"].includes(String(c).replace(/\s/g, ""));
   const SKIP = ["HEAD", "META", "SCRIPT", "STYLE", "TITLE"];
   const BLOCK = ["DIV", "LI", "P", "TR"];
   let out = "";
@@ -1131,7 +1130,7 @@ const pastedMealHtml = (source) => {
       } else if (n.nodeType === 1 && !SKIP.includes(n.tagName)) {
         if (n.tagName === "BR") { out += "<br>"; return; }
         const own = n.style?.color || n.getAttribute("color");
-        walk(n, own ? isRed(toRgb(own)) : red);
+        walk(n, own ? inkOf(own) === "red" : red);
         if (BLOCK.includes(n.tagName) && n.nextSibling) out += "<br>";
       }
     });
@@ -1139,13 +1138,37 @@ const pastedMealHtml = (source) => {
   walk(doc.body, false);
   return out;
 };
-const toRgb = (c) => {
+// A colour as a meal line reads it: both of the page's reds are red, the text colour is black.
+const inkOf = (c) => {
   const probe = document.createElement("span");
   probe.style.color = c;
-  document.body.appendChild(probe);
-  const rgb = getComputedStyle(probe).color;
-  probe.remove();
-  return rgb;
+  const rgb = probe.style.color.replace(/\s/g, "");
+  if (rgb === "rgb(176,30,47)" || rgb === "rgb(193,68,14)") return "red";
+  return !rgb || rgb === "rgb(23,23,23)" ? "black" : rgb;
+};
+// What a meal line says and how it is coloured, for comparing days: the same words in
+// different colours do not match. The colour of a space never shows, so it does not count.
+const mealMatchKey = (v) => {
+  const doc = new DOMParser().parseFromString(mealHtml(v), "text/html");
+  let out = "";
+  let last = "black";
+  const walk = (node, ink) => {
+    node.childNodes.forEach((n) => {
+      if (n.nodeType === 3) {
+        for (const ch of n.textContent) {
+          if (/\S/.test(ch) && ink !== last) { out += `\u0001${ink}\u0001`; last = ink; }
+          out += ch;
+        }
+      } else if (n.nodeType === 1) {
+        if (n.tagName === "BR") { out += "\n"; return; }
+        const own = n.style?.color || n.getAttribute("color");
+        walk(n, own ? inkOf(own) : ink);
+        if (/^(DIV|LI|P)$/.test(n.tagName)) out += "\n";
+      }
+    });
+  };
+  walk(doc.body, "black");
+  return out.trim();
 };
 // A meal line you type in like any other, whose words can be coloured. It never rewrites
 // itself while the caret is in it, so typing never jumps.
