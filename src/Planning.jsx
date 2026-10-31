@@ -1149,7 +1149,8 @@ export default function Planning() {
   };
   const renderCodeLine = (b, list, colour, idx) => (
     // Plain flowing text: each point runs straight on after the square before it, like a sentence.
-    <div className="text-[11px] font-semibold leading-[15px]" style={{ color: colour }}>
+    // The same roomy spacing as the company lines, so wrapped lines never crowd.
+    <div className="-my-[2px] text-[11px] font-semibold leading-[19px]" style={{ color: colour }}>
       {list.map((c, i) => {
         const fillable = /\(\)$/.test(c);
         const fill = boards[b].lines[idx]?.fills?.[c] || "";
@@ -1466,7 +1467,7 @@ export default function Planning() {
               {/* Meetings lead, the core codes sit under them, then the long list. */}
               <div className="flex flex-1 flex-col gap-0 px-2 py-[3px]">
                 {line.meetings.length > 0 && (
-                  <div className="order-1 flex flex-wrap items-center gap-x-2 gap-y-0 leading-[15px]">
+                  <div className="order-1 flex flex-wrap items-center gap-x-2 gap-y-[4px] leading-[15px]">
                     {line.meetings.map((m, mi) => (
                       <span
                         key={m.id}
@@ -1600,7 +1601,7 @@ export default function Planning() {
 
             {/* Open sub lists: just the point's lines, in purple, straight under the day line. */}
             {!MEETING_BOARDS.includes(b) && allPoints(b).filter((it) => line.codes.includes(it.code) && subsOf(it).length && subOpen.includes(`${b}-${idx}-${it.id}`)).map((it) => (
-              <div key={it.id} className="px-2 py-[3px] text-[11px] leading-[15px]">
+              <div key={it.id} className="px-2 py-[3px] text-[11px] leading-[19px]">
                 {subsOf(it).map((x) => (
                   <p key={x.id} className="whitespace-pre-wrap break-words text-[#9D00FF]">{x.text}</p>
                 ))}
