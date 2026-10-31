@@ -222,18 +222,22 @@ const ERRANDS_AUTOFILL = true;
 // brackets: the ticked ones, joined by a dash, no spaces. Everything else is typed by hand.
 // The errands brackets always start with "seebelow", then any ticked Reminder lines.
 const bracketText = (lists, lineIdx) => ["seebelow", reminderText(lists, lineIdx)].filter(Boolean).join("-");
+const underReminder = (list) => {
+  const ids = new Set();
+  let at = null; // the Reminder head's step, while inside its group
+  list.forEach((r) => {
+    const lv = levelOf(r);
+    if (at != null && lv <= at) at = null;
+    if (at != null) ids.add(r.id);
+    if (at == null && /^\s*reminders?\b/i.test(r.text || "")) at = lv;
+  });
+  return ids;
+};
 const reminderText = (lists, lineIdx) =>
   TWOCOLS.flatMap(([k]) => {
     const list = lists[k] || [];
-    const out = [];
-    let at = null; // the Reminder head's step, while inside its group
-    list.forEach((r) => {
-      const lv = levelOf(r);
-      if (at != null && lv <= at) at = null;
-      if (at != null && isPicked(r, lineIdx)) out.push(String(r.text || "").trim());
-      if (at == null && /^\s*reminders?\b/i.test(r.text || "")) at = lv;
-    });
-    return out;
+    const ids = underReminder(list);
+    return list.filter((r) => ids.has(r.id) && isPicked(r, lineIdx)).map((r) => String(r.text || "").trim());
   })
     .filter(Boolean)
     .join("-");
@@ -1910,7 +1914,7 @@ export default function Planning() {
     <>
       {/* On trial: the three lists sit in the same row as meetings and the long list, five across. */}
       <div className="contents">
-        {TWOCOLS.map(([k, label]) => { const hidden = hiddenRows(cols[k]); return (
+        {TWOCOLS.map(([k, label]) => { const hidden = hiddenRows(cols[k]); const boxed = underReminder(cols[k]); return (
           <div key={k} className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
             <p className="mb-1 flex items-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
               {label}
@@ -1948,7 +1952,9 @@ export default function Planning() {
                       </button>
                     )}
                   </span>
-                  {/* Boxed to the exact line height, so it sits dead centre on the first line. */}
+                  {/* Only lines under a Reminder head carry a box: a tick sends them to the brackets.
+                      Boxed to the exact line height, so it sits dead centre on the first line. */}
+                  {boxed.has(r.id) && (
                   <span className="flex h-[15px] shrink-0 items-center">
                     <input
                       type="checkbox"
@@ -1959,6 +1965,7 @@ export default function Planning() {
                       style={{ accentColor: "#C1440E", margin: 0 }}
                     />
                   </span>
+                  )}
                   {/* On a group head the words stay editable, and the space after them opens
                       and closes the group. */}
                   <WrapLine
