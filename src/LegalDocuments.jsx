@@ -23,7 +23,7 @@ const pad = (n) => String(n).padStart(2, "0");
 
 // Dates are kept as plain text like "08 FEB 2034", so entries such as NA or
 // "No expiry" survive untouched. The calendar only writes that same format.
-function parseDate(s) {
+export function parseDate(s) {
   const m = String(s || "").trim().match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);
   if (!m) return null;
   const mon = MONTHS.indexOf(m[2].toUpperCase());

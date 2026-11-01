@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Plus, Trash2, ChevronDown, RefreshCw, Check, Download } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { backupStamp, downloadText, dumpLines } from "./backup.js";
-import { DateCell } from "./LegalDocuments.jsx";
+import { DateCell, parseDate } from "./LegalDocuments.jsx";
 
 // Cash flow page, rebuilt from the FC tab of HEIE Planning. The figures are private,
 // so they live in Supabase (admin_docs), never in this repo.
@@ -20,6 +20,11 @@ const EXPENSE_COLS = [
   { label: "This month pending", money: true },
 ];
 const MONTH_CODES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+// The pocket money month, which turns over one second into the first of the month.
+const pocketMonthNow = () => {
+  const t = new Date(Date.now() - 1000);
+  return `${t.getFullYear()}-${t.getMonth()}`;
+};
 // The bank allows only a few reads a day, so a balance is read again at most every
 // six hours.
 const BANK_STALE_MS = 6 * 60 * 60 * 1000;
@@ -272,7 +277,7 @@ export default function Costs({ seed }) {
   const [loaded, setLoaded] = useState(false);
   const [err, setErr] = useState("");
   const [confirm, setConfirm] = useState(null); // delete waiting on Delete or Cancel
-  const nextPaymentId = useRef({}); // per child: the id the blank payment line will be saved under
+  const [pocketMonth, setPocketMonth] = useState(pocketMonthNow);
   const [live, setLive] = useState(null); // today's exchange rates against the euro
   const [bank, setBank] = useState(null); // the bank connection and its last balances
   const [bankMsg, setBankMsg] = useState("");
@@ -364,6 +369,11 @@ export default function Costs({ seed }) {
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => { if (j?.rates) setLive(j); })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setPocketMonth(pocketMonthNow()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -460,29 +470,26 @@ export default function Costs({ seed }) {
   const taxRows = taxPayments.length ? taxPayments : [{ id: "blank", date: "", amount: "" }];
   // Pocket money: two lines, one per child, made the first time the page is opened.
   const pocketKids = doc.pocketKids || [
-    { id: "kid-1", initial: "", month: "", payments: [], open: false },
-    { id: "kid-2", initial: "", month: "", payments: [], open: false },
+    { id: "kid-1", initial: "", weekly: "", payments: [], open: false },
+    { id: "kid-2", initial: "", weekly: "", payments: [], open: false },
   ];
   const editKid = (id, fields) => save({ ...doc, pocketKids: pocketKids.map((k) => (k.id === id ? { ...k, ...fields } : k)) });
-  // Payments always end on a blank line, ready to type into, as soon as the line above
-  // has both a date and an amount. The blank line keeps the id it will be saved under,
-  // so typing into it never loses the cursor.
-  const blankPayment = (kidId) => (nextPaymentId.current[kidId] ||= newId());
-  const editPayment = (kidId, payId, fields) => {
-    const list = pocketKids.find((k) => k.id === kidId)?.payments || [];
-    if (list.some((x) => x.id === payId)) {
-      editKid(kidId, { payments: list.map((x) => (x.id === payId ? { ...x, ...fields } : x)) });
-    } else {
-      delete nextPaymentId.current[kidId];
-      editKid(kidId, { payments: [...list, { id: payId, date: "", amount: "", ...fields }] });
-    }
+  const editPayment = (kid, payId, fields) =>
+    editKid(kid.id, { payments: kid.payments.map((x) => (x.id === payId ? { ...x, ...fields } : x)) });
+  // One press records a payment: today's date and the child's set amount.
+  const payKid = (kid) => {
+    const t = new Date();
+    const date = `${String(t.getDate()).padStart(2, "0")} ${MONTH_CODES[t.getMonth()].toUpperCase()} ${t.getFullYear()}`;
+    editKid(kid.id, { payments: [...(kid.payments || []), { id: newId(), date, amount: num(kid.weekly).toFixed(2) }] });
   };
-  const paymentRows = (k) => {
-    const list = k.payments || [];
-    const last = list[list.length - 1];
-    const done = (x) => String(x.date || "").trim() && String(x.amount ?? "").trim();
-    return !last || done(last) ? [...list, { id: blankPayment(k.id), date: "", amount: "", blank: true }] : list;
-  };
+  // Only this month's payments show. Earlier ones stay saved, out of sight, and a line
+  // with no readable date stays on show so it can never go missing.
+  const [pocketYear, pocketMonthIdx] = pocketMonth.split("-").map(Number);
+  const pocketMonthName = new Date(pocketYear, pocketMonthIdx, 1).toLocaleString("en", { month: "long" });
+  const paymentRows = (k) => (k.payments || []).filter((x) => {
+    const d = parseDate(x.date);
+    return !d || (d.y === pocketYear && d.m === pocketMonthIdx);
+  });
 
   // Expenses in groups, each with its own lines, kept in Supabase. Lines saved before
   // under Home-related carry over as the first group.
@@ -835,14 +842,16 @@ export default function Costs({ seed }) {
           <Plus size={11} strokeWidth={3} />Add payment
         </button>
 
-        {/* Pocket money: one line per child, with their initial and the month, and what
-            was paid out that month in total. Each line opens, on the faint pink, onto the
-            payments themselves (usually weekly): date and amount, in pairs. */}
+        {/* Pocket money: one line per child, with their initial, the set weekly amount,
+            a press to record a payment, and what was paid out this month in total. Each
+            line opens, on the faint pink, onto this month's payments: date and amount. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
-          <span className={head}>Pocket money current month</span>
+          <span className={head}>Pocket money {pocketMonthName}</span>
         </div>
         {pocketKids.map((k) => {
-          const total = (k.payments || []).reduce((sum, x) => sum + num(x.amount), 0);
+          const rows = paymentRows(k);
+          const total = rows.reduce((sum, x) => sum + num(x.amount), 0);
+          const canPay = num(k.weekly) > 0;
           return (
             <div key={k.id}>
               <div className="flex h-[22px] items-stretch border-t border-black">
@@ -854,42 +863,44 @@ export default function Costs({ seed }) {
                     className="w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none placeholder:text-neutral-400"
                   />
                 </span>
-                <span className="flex w-24 shrink-0 items-center border-l border-black px-1">
-                  <select
-                    value={k.month ? k.month.charAt(0).toUpperCase() + k.month.slice(1).toLowerCase() : ""}
-                    onChange={(e) => editKid(k.id, { month: e.target.value })}
-                    className="w-full cursor-pointer bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none"
-                  >
-                    <option value="">Month</option>
-                    {MONTH_CODES.map((m) => <option key={m} value={m}>{m}</option>)}
-                  </select>
+                <span className="flex w-32 shrink-0 items-center gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
+                  <span>EUR</span>
+                  <MoneyInput value={k.weekly} onChange={(v) => editKid(k.id, { weekly: v })} placeholder="0.00" fit />
+                  <span>a week</span>
                 </span>
                 <span
                   onClick={() => editKid(k.id, { open: !k.open })}
                   className="flex flex-1 cursor-pointer select-none items-center gap-2 border-l border-black px-2 text-[11px] text-neutral-500"
                 >
+                  <button
+                    type="button"
+                    disabled={!canPay}
+                    onClick={(e) => { e.stopPropagation(); payKid(k); }}
+                    title={canPay ? "Add a payment with today's date and the set amount" : "Set the weekly amount first"}
+                    className={`flex items-center gap-[2px] font-bold ${canPay ? "text-[#0f766e] hover:text-[#0c5e57]" : "cursor-not-allowed text-neutral-400"}`}
+                  >
+                    <Plus size={11} strokeWidth={3} />Paid today
+                  </button>
                   <ChevronDown size={12} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${k.open ? "rotate-180" : ""}`} />
                 </span>
                 <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
                   EUR {money(total)}
                 </span>
               </div>
-              {k.open && paymentRows(k).map((x) => (
+              {k.open && rows.map((x) => (
                 <div key={x.id} className="group flex h-[22px] items-stretch border-t border-black pt-px" style={{ backgroundColor: "#FBEFEC" }}>
                   <span className="flex flex-1 items-center gap-2 px-2">
                     {/* Pulled left by the icon's own inner margin, so it lines up with the A and S. */}
                     <span className="-ml-[1.5px] min-w-0 flex-1">
-                      <DateCell value={x.date} onChange={(v) => editPayment(k.id, x.id, { date: v })} wholeCell />
+                      <DateCell value={x.date} onChange={(v) => editPayment(k, x.id, { date: v })} wholeCell />
                     </span>
-                    {!x.blank && (
-                      <button onClick={() => ask(() => editKid(k.id, { payments: k.payments.filter((y) => y.id !== x.id) }))} title="Remove" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
-                        <Trash2 size={11} />
-                      </button>
-                    )}
+                    <button onClick={() => ask(() => editKid(k.id, { payments: k.payments.filter((y) => y.id !== x.id) }))} title="Remove" className="ml-auto text-neutral-900 hover:text-[#C1440E]">
+                      <Trash2 size={11} />
+                    </button>
                   </span>
                   <span className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">
                     <span>EUR</span>
-                    <MoneyInput value={x.amount} onChange={(v) => editPayment(k.id, x.id, { amount: v })} placeholder="0.00" fit />
+                    <MoneyInput value={x.amount} onChange={(v) => editPayment(k, x.id, { amount: v })} placeholder="0.00" fit />
                   </span>
                 </div>
               ))}
