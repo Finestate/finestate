@@ -1898,29 +1898,37 @@ export default function Planning() {
                         </div>
                         {/* The sub list: stepped in one further, no tick box, just its plus, grip and bin. */}
                         {(it.subs || []).length > 0 && !it.subsClosed && (
-                          <div className="mt-1 flex flex-col gap-1" style={{ marginLeft: `${20 * (levelOf(it) + 1)}px` }}>
+                          // The whole list takes the drop, so letting go on the marker or a gap still lands.
+                          <div
+                            className="mt-1 flex flex-col gap-1"
+                            style={{ marginLeft: `${20 * (levelOf(it) + 1)}px` }}
+                            onDragOver={(e) => {
+                              if (dragS?.id !== it.id) return;
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const rows = [...e.currentTarget.querySelectorAll("[data-sub-row]")];
+                              const at = rows.findIndex((r) => { const box = r.getBoundingClientRect(); return e.clientY < box.top + box.height / 2; });
+                              setDropS({ id: it.id, index: at < 0 ? rows.length : at });
+                            }}
+                            onDrop={(e) => {
+                              if (dragS?.id !== it.id) return;
+                              e.stopPropagation();
+                              if (dropS?.id === it.id) {
+                                const next = it.subs.slice();
+                                const [row] = next.splice(dragS.index, 1);
+                                next.splice(dropS.index > dragS.index ? dropS.index - 1 : dropS.index, 0, row);
+                                saveSubs(b, g, it.id, next);
+                              }
+                              setDragS(null);
+                              setDropS(null);
+                            }}
+                            onDragLeave={(e) => { if (dragS?.id === it.id && !e.currentTarget.contains(e.relatedTarget)) setDropS(null); }}
+                          >
                             {it.subs.map((x, si) => (
                               <div key={x.id}>
                                 {dragS?.id === it.id && dropS?.id === it.id && dropS.index === si && <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />}
                                 <div
-                                  onDragOver={(e) => {
-                                    if (dragS?.id !== it.id) return;
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    const box = e.currentTarget.getBoundingClientRect();
-                                    setDropS({ id: it.id, index: e.clientY < box.top + box.height / 2 ? si : si + 1 });
-                                  }}
-                                  onDrop={(e) => {
-                                    if (dragS?.id !== it.id) return;
-                                    e.stopPropagation();
-                                    const to = dropS?.index ?? si;
-                                    const next = it.subs.slice();
-                                    const [row] = next.splice(dragS.index, 1);
-                                    next.splice(to > dragS.index ? to - 1 : to, 0, row);
-                                    saveSubs(b, g, it.id, next);
-                                    setDragS(null);
-                                    setDropS(null);
-                                  }}
+                                  data-sub-row
                                   className={`flex items-start gap-1 rounded border border-[#9D00FF] bg-white py-0.5 pl-1.5 pr-1.5 text-[11px] font-semibold text-[#9D00FF] ${dragS?.id === it.id && dragS.index === si ? "opacity-40" : ""}`}
                                 >
                                   <AutoTextarea
