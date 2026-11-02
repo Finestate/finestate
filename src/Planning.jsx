@@ -1,4 +1,5 @@
 import { Fragment, useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
@@ -278,13 +279,15 @@ function CodeHint({ hint, onClick, title, className, children }) {
       className={className}
     >
       {children}
-      {at && (
+      {/* Hung off the page itself: the day line's hover shade would otherwise throw it out of place. */}
+      {at && createPortal(
         <span
           className="pointer-events-none z-[90] max-w-[320px] rounded bg-neutral-900 px-1.5 py-0.5 text-[11px] font-semibold leading-[15px] text-white"
           style={{ position: "fixed", left: at.left, top: at.top, transform: at.flip ? "translate(-100%, -50%)" : "translateY(-50%)" }}
         >
           {hint}
-        </span>
+        </span>,
+        document.body
       )}
     </span>
   );
