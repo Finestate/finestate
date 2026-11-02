@@ -257,6 +257,36 @@ const DAY_BG = "#FBEFEC";
 const MEETING_BOARDS = ["master"];
 // On a company day line only the short code shows: "FI (financials)" reads as FI.
 const shortCode = (c) => String(c || "").split("(")[0].trim();
+// What was in its brackets: "FI (financials)" gives financials.
+const codeBrackets = (c) => String(c || "").match(/\((.*)\)/)?.[1].trim() || "";
+// A short code that shows what was in its brackets in a small box while hovered. The hover
+// is kept in here, and the box is fixed to the screen, so it is never cut off by the table.
+function CodeHint({ hint, onClick, title, className, children }) {
+  const [at, setAt] = useState(null);
+  const show = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setAt({ left: Math.max(4, Math.min(r.left, window.innerWidth - 324)), below: r.bottom + 2, above: r.top - 2, flip: r.bottom > window.innerHeight - 60 });
+  };
+  return (
+    <span
+      onClick={onClick}
+      onMouseEnter={hint ? show : undefined}
+      onMouseLeave={hint ? () => setAt(null) : undefined}
+      title={hint ? undefined : title}
+      className={className}
+    >
+      {children}
+      {at && (
+        <span
+          className="pointer-events-none z-[90] max-w-[320px] rounded bg-neutral-900 px-1.5 py-0.5 text-[11px] font-semibold leading-[15px] text-white"
+          style={{ position: "fixed", left: at.left, top: at.flip ? at.above : at.below, transform: at.flip ? "translateY(-100%)" : undefined }}
+        >
+          {hint}
+        </span>
+      )}
+    </span>
+  );
+}
 const shortLine = (prios, rest) =>
   [prios.length ? `(${prios.map(shortCode).join("-")})` : "", rest.map(shortCode).join("-")]
     .filter(Boolean)
@@ -1379,21 +1409,10 @@ export default function Planning() {
     </div>
   );
 
-  // A small switch beside TODAY: on, the company day lines show each code with its
-  // brackets, as in the dropdown; off, just the short letters. Remembered in this browser.
-  const [showFull, setShowFullRaw] = useState(() => { try { return localStorage.getItem("daily-show-full") === "1"; } catch { return false; } });
-  const setShowFull = (v) => { setShowFullRaw(v); try { localStorage.setItem("daily-show-full", v ? "1" : "0"); } catch {} };
   const renderToday = (first = false) => (
     <>
       <div className={`flex h-[18px] items-center gap-2 px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
         <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
-        <button
-          onClick={() => setShowFull(!showFull)}
-          title={showFull ? "Showing the brackets on Silx, Says, Servefast and HEIE – click for just the letters" : "Showing just the letters – click to show the brackets too"}
-          // Just a small round button: filled when the brackets show, hollow when not.
-          className={`h-[10px] w-[10px] shrink-0 rounded-full border-[1.5px] border-[#7FA8D9] transition-colors ${showFull ? "bg-[#9EC1EA]" : "bg-white"}`}
-        >
-        </button>
         <button onClick={downloadBackup} title="Download a backup of the dropdowns" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
           <Download size={12} strokeWidth={2.5} />
         </button>
@@ -1406,7 +1425,7 @@ export default function Planning() {
   );
 
   // A company day line: just the letter codes of the ticked points, dash separated,
-  // as in AB-SC-FI-CU. Nothing in brackets shows here; the picker below is unchanged
+  // as in AB-SC-FI-CU. What is in brackets shows on hover; the picker below is unchanged
   // and anything typed in brackets stays saved.
   // The hyper-prios lead, together in one small soft-gold box, same weight as the rest.
   // Which sub lists are open on the day lines. Remembered in this browser.
@@ -1430,7 +1449,7 @@ export default function Planning() {
   const allPoints = (b) => { const pts = boards[b].points; return [...(pts.hyper || []), ...(pts.core || []), ...(pts.rest || [])]; };
   const renderShortLine = (b, codes, idx) => {
     const hyper = new Set((boards[b].points.hyper || []).map((it) => it.code));
-    const items = codes.map((c) => ({ c, s: showFull ? String(c).trim() : shortCode(c) })).filter((x) => x.s);
+    const items = codes.map((c) => ({ c, s: shortCode(c) })).filter((x) => x.s);
     const word = (x, k) => {
       const it = allPoints(b).find((p) => p.code === x.c);
       const key = `${b}-${idx}-${it?.id}`;
@@ -1439,14 +1458,15 @@ export default function Planning() {
           {k > 0 && "-"}
           {subsOf(it).length ? (
             // A name with a sub list is purple, and a click opens or closes the list under the line.
-            <span
+            <CodeHint
+              hint={codeBrackets(x.c)}
               onClick={(e) => { e.stopPropagation(); toggleSubOpen(key); }}
               title={subOpen.includes(key) ? "Close the sub list" : "Open the sub list"}
               className="cursor-pointer text-[#9D00FF]"
             >
               {x.s}
-            </span>
-          ) : x.s}
+            </CodeHint>
+          ) : codeBrackets(x.c) ? <CodeHint hint={codeBrackets(x.c)}>{x.s}</CodeHint> : x.s}
         </Fragment>
       );
     };
