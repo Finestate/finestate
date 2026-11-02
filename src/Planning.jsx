@@ -265,7 +265,9 @@ function CodeHint({ hint, onClick, title, className, children }) {
   const [at, setAt] = useState(null);
   const show = (e) => {
     const r = e.currentTarget.getBoundingClientRect();
-    setAt({ left: Math.max(4, Math.min(r.left, window.innerWidth - 324)), below: r.bottom + 2, above: r.top - 2, flip: r.bottom > window.innerHeight - 60 });
+    // Right beside the letters, on their line; on the left of them if the screen runs out.
+    const flip = r.right + 324 > window.innerWidth;
+    setAt({ left: flip ? r.left - 4 : r.right + 4, top: r.top + r.height / 2, flip });
   };
   return (
     <span
@@ -279,7 +281,7 @@ function CodeHint({ hint, onClick, title, className, children }) {
       {at && (
         <span
           className="pointer-events-none z-[90] max-w-[320px] rounded bg-neutral-900 px-1.5 py-0.5 text-[11px] font-semibold leading-[15px] text-white"
-          style={{ position: "fixed", left: at.left, top: at.flip ? at.above : at.below, transform: at.flip ? "translateY(-100%)" : undefined }}
+          style={{ position: "fixed", left: at.left, top: at.top, transform: at.flip ? "translate(-100%, -50%)" : "translateY(-50%)" }}
         >
           {hint}
         </span>
