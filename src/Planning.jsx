@@ -742,6 +742,8 @@ export default function Planning() {
   const [dropL, setDropL] = useState(null); // where a meeting dragged along a day line would land: { board, lineIdx, index }
   const [dragS, setDragS] = useState(null); // a sub list line being dragged: { id of its point, index }
   const [dropS, setDropS] = useState(null); // where it would land
+  // A sub list being set up: one blank line, saved only once something is typed into it.
+  const [subDraft, setSubDraft] = useState(null); // { pid: the point's id, id: the line's id to be }
   const [dropM, setDropM] = useState(null); // where a picker meeting would land: { board, index }
   // Both use the same rule as the personal order lines: land on the marker, counting
   // the gap the dragged box leaves behind.
@@ -1887,9 +1889,20 @@ export default function Planning() {
                             <Plus size={11} strokeWidth={3} />
                           </button>
                           {g === "hyper" && HYPER_ONLY.includes(b) && (
-                            // The first press sets the sub list up; after that it only opens and closes it.
+                            // With no list yet a press shows a blank line to type into (a second press hides
+                            // it); once a line is typed, it only opens and closes the list.
                             <button
-                              onClick={() => ((it.subs || []).length ? savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === it.id ? { ...p, subsClosed: !p.subsClosed } : p)) }) : addSub(b, g, it))}
+                              onClick={() => {
+                                if ((it.subs || []).length) {
+                                  savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === it.id ? { ...p, subsClosed: !p.subsClosed } : p)) });
+                                } else if (subDraft?.pid === it.id) {
+                                  setSubDraft(null);
+                                } else {
+                                  const id = newId();
+                                  setSubDraft({ pid: it.id, id });
+                                  setEditing(id);
+                                }
+                              }}
                               title={(it.subs || []).length ? (it.subsClosed ? "Open the sub list" : "Close the sub list") : "Set up a sub list under this one"}
                               // Green until a list exists, then the same purple as its name on the day line.
                               className={`flex h-[15px] shrink-0 items-center ${(it.subs || []).length ? "text-[#9D00FF] hover:opacity-70" : "text-[#0f766e] hover:text-[#0c5e57]"}`}
@@ -1922,7 +1935,10 @@ export default function Planning() {
                           </button>
                         </div>
                         {/* The sub list: stepped in one further, no tick box, just its plus, grip and bin. */}
-                        {(it.subs || []).length > 0 && !it.subsClosed && (
+                        {(() => {
+                        const draft = !(it.subs || []).length && subDraft?.pid === it.id;
+                        const subRows = draft ? [{ id: subDraft.id, text: "" }] : it.subs || [];
+                        return ((subRows.length > 0 && !it.subsClosed) || draft) && (
                           // The whole list takes the drop, so letting go on the marker or a gap still lands.
                           <div
                             className="mt-1 flex flex-col gap-1"
@@ -1949,12 +1965,13 @@ export default function Planning() {
                             }}
                             onDragLeave={(e) => { if (dragS?.id === it.id && !e.currentTarget.contains(e.relatedTarget)) setDropS(null); }}
                           >
-                            {it.subs.map((x, si) => (
+                            {subRows.map((x, si) => (
                               <div key={x.id}>
                                 {dragS?.id === it.id && dropS?.id === it.id && dropS.index === si && <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />}
                                 <div
                                   data-sub-row
-                                  className={`flex items-start gap-1 rounded border border-[#9D00FF] bg-white py-0.5 pl-1.5 pr-1.5 text-[11px] font-semibold text-[#9D00FF] ${dragS?.id === it.id && dragS.index === si ? "opacity-40" : ""}`}
+                                  // The blank line waiting to be typed into is a plain dashed grey: nothing is saved yet.
+                                  className={`flex items-start gap-1 rounded border bg-white py-0.5 pl-1.5 pr-1.5 text-[11px] font-semibold text-[#9D00FF] ${draft ? "border-dashed border-neutral-300" : "border-[#9D00FF]"} ${dragS?.id === it.id && dragS.index === si ? "opacity-40" : ""}`}
                                 >
                                   <AutoTextarea
                                     boxRef={(el) => { if (el && editing === x.id && document.activeElement !== el) el.focus(); }}
@@ -1962,10 +1979,20 @@ export default function Planning() {
                                     wrap="break-words"
                                     onFocus={() => setEditing(x.id)}
                                     onBlur={() => setEditing(null)}
-                                    onChange={(e) => saveSubs(b, g, it.id, it.subs.map((y) => (y.id === x.id ? { ...y, text: e.target.value.replace(/\r?\n/g, "") } : y)))}
+                                    onChange={(e) => {
+                                      const text = e.target.value.replace(/\r?\n/g, "");
+                                      if (!draft) saveSubs(b, g, it.id, it.subs.map((y) => (y.id === x.id ? { ...y, text } : y)));
+                                      // The first letter typed makes the line real, under the same id so the cursor stays.
+                                      else if (text) { saveSubs(b, g, it.id, [{ id: x.id, text }]); setSubDraft(null); }
+                                    }}
                                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
                                     className="whitespace-pre-wrap break-words bg-transparent leading-[15px] text-[#9D00FF] outline-none"
                                   />
+                                  {draft ? (
+                                    <button onClick={() => setSubDraft(null)} title="Remove this line" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
+                                      <Trash2 size={11} />
+                                    </button>
+                                  ) : (<>
                                   <button onClick={() => addSub(b, g, it, x.id)} title="Add a line under this one" className="flex h-[15px] shrink-0 items-center text-[#9D00FF] hover:opacity-70">
                                     <Plus size={11} strokeWidth={3} />
                                   </button>
@@ -1981,12 +2008,14 @@ export default function Planning() {
                                   <button onClick={() => ask(() => saveSubs(b, g, it.id, it.subs.filter((y) => y.id !== x.id)))} title="Remove this line" className="flex h-[15px] shrink-0 items-center text-[#9D00FF] hover:opacity-70">
                                     <Trash2 size={11} />
                                   </button>
+                                  </>)}
                                 </div>
                               </div>
                             ))}
-                            {dragS?.id === it.id && dropS?.id === it.id && dropS.index === it.subs.length && <div className="h-[2px] w-full bg-[#C1440E]" />}
+                            {dragS?.id === it.id && dropS?.id === it.id && dropS.index === subRows.length && <div className="h-[2px] w-full bg-[#C1440E]" />}
                           </div>
-                        )}
+                        );
+                        })()}
                         </div>
                       ))}
                       {pointDragging(b) && dropP?.board === b && dropP.group === g && list.length > 0 && dropP.index === list.length && (
