@@ -1486,7 +1486,7 @@ export default function Planning() {
       // words start on the same edge as every plain line.
       <div className="-my-[2px] break-words text-[11px] font-semibold leading-[19px] text-neutral-900">
         {top.length > 0 && (
-          <span className="-ml-1 border-x border-[#C9A24A] bg-[#FFF3D6] px-[3px] [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
+          <span className="-ml-1 border border-[#C9A24A] bg-[#FFF3D6] px-[3px] [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
         )}
         {top.length > 0 && rest.length > 0 && "-"}
         {rest.map(word)}
@@ -1518,10 +1518,10 @@ export default function Planning() {
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => dropOnLine(b, idx)}
               title="Choose to-dos"
-              className="flex min-h-[17px] cursor-pointer items-start hover:brightness-[0.98]"
+              className="flex min-h-[21px] cursor-pointer items-start hover:brightness-[0.98]"
             >
               {/* Meetings lead, the core codes sit under them, then the long list. */}
-              <div className="flex flex-1 flex-col gap-0 px-2 py-px">
+              <div className="flex flex-1 flex-col gap-0 px-2 py-[3px]">
                 {line.meetings.length > 0 && (
                   <div className="order-1 flex flex-wrap items-center gap-x-2 gap-y-0 leading-[16px]">
                     {line.meetings.map((m, mi) => (
