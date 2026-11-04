@@ -132,8 +132,9 @@ export default function HW() {
             const base = Array.isArray(d.fitnessGroups)
               ? d.fitnessGroups
               : [{ id: "fg-workouts", title: "Workouts", rows: (Array.isArray(d.fitness) ? d.fitness : []).map((r) => ({ id: r.id, a: r.text || "", b: r.col2 || "" })) }];
-            // A Looks line, a plain list of its own, arrives once; delete it and it stays gone.
-            return d.fitnessLooksAdded ? base : [...base, { id: "fg-looks", title: "Looks", kind: "list", rows: [] }];
+            // A Lks line (once called Looks), a plain list of its own, arrives once; delete it and it stays gone.
+            const named = base.map((x) => (x.title === "Looks" ? { ...x, title: "Lks" } : x));
+            return d.fitnessLooksAdded ? named : [...named, { id: "fg-looks", title: "Lks", kind: "list", rows: [] }];
           })(),
           fitnessLooksAdded: true,
         });
@@ -224,7 +225,7 @@ export default function HW() {
   const toggleDay = (day) => setOpenDays((list) => (list.includes(day) ? list.filter((d) => d !== day) : [...list, day]));
   // Fitness: white lines that open, like the days in Nutrition, onto lines of two equal
   // halves on the faint pink. Each part has its own bin, and Add lines for more.
-  // Which Fitness+Look lines are open stays as you left it after a refresh (this browser).
+  // Which Fitness+Lk lines are open stays as you left it after a refresh (this browser).
   const [fitOpen, setFitOpenRaw] = useState(() => {
     try { const v = JSON.parse(localStorage.getItem("hw-fitness-open") || "[]"); return Array.isArray(v) ? v : []; } catch { return []; }
   });
@@ -830,9 +831,9 @@ export default function HW() {
               </div>
             );
           })}
-        {/* Fitness+Look follows straight on, no grey band before it. */}
+        {/* Fitness+Lk follows straight on, no grey band before it. */}
         <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={head}>Fitness+Look</span>
+          <span className={head}>Fitness+Lk</span>
         </div>
         {notesLoaded && fitnessBlock()}
         {/* The grey band, then Monitoring: Focus, Planning and Situation side by side. */}
