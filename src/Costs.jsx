@@ -80,7 +80,7 @@ function timesPerYear(freq) {
 
 const txt = "w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none placeholder:text-neutral-300";
 const numCls = `${txt} text-right tabular-nums`;
-const head = "text-[11px] font-black uppercase leading-tight tracking-[0.06em] text-neutral-900";
+const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
 const colHead = "whitespace-nowrap text-[11px] font-bold uppercase leading-none tracking-wide text-neutral-500";
 
 // A money field: shows 13,882.06 when you are not in it, the plain figure while typing,
