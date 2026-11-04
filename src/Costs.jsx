@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ChevronDown, RefreshCw, Check, Download } from "lucide-react";
+import { Trash2, ChevronDown, RefreshCw, Check, Download } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { backupStamp, downloadText, dumpLines } from "./backup.js";
 import { DateCell, parseDate } from "./LegalDocuments.jsx";
@@ -249,8 +249,8 @@ const Bin = ({ onClick }) => (
   </button>
 );
 const AddBar = ({ onClick, label = "Add" }) => (
-  <button onClick={onClick} className="flex h-[21px] w-full items-center gap-1 border-t border-black bg-white px-2 text-[11px] font-bold uppercase tracking-wide text-neutral-400 transition-colors hover:text-neutral-800">
-    <Plus size={12} /> {label}
+  <button onClick={onClick} className="flex h-[21px] w-full items-center border-t border-black bg-white px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]">
+    {label}
   </button>
 );
 const Row = ({ children, first }) => (
@@ -756,10 +756,10 @@ export default function Costs({ seed }) {
                   {/* Under the last loan, a quiet line to add the next one. */}
                   <button
                     onClick={() => setLoans([...loans, { id: newId(), name: "", number: "", rate: "", expires: "", amount: "" }])}
-                    className="flex h-[21px] w-full items-center gap-[2px] border-t border-black pl-6 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+                    className="flex h-[21px] w-full items-center border-t border-black pl-6 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
                     style={{ backgroundColor: "#FBEFEC" }}
                   >
-                    <Plus size={11} strokeWidth={3} />Add loan
+                    Add loan
                   </button>
                 </>
               )}
@@ -837,9 +837,9 @@ export default function Costs({ seed }) {
         {/* Always under the last tax payment: a quiet line to add the next one. */}
         <button
           onClick={() => save({ ...doc, taxPayments: [...taxPayments, { id: newId(), date: "", amount: "" }] })}
-          className="flex h-[21px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+          className="flex h-[21px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
         >
-          <Plus size={11} strokeWidth={3} />Add payment
+          Add payment
         </button>
 
         {/* Pocket money: one line per child, with their initial, the set weekly amount,
@@ -877,9 +877,9 @@ export default function Costs({ seed }) {
                     disabled={!canPay}
                     onClick={(e) => { e.stopPropagation(); payKid(k); }}
                     title={canPay ? "Add a payment with today's date and the set amount" : "Set the weekly amount first"}
-                    className={`flex items-center gap-[2px] font-bold ${canPay ? "text-[#0f766e] hover:text-[#0c5e57]" : "cursor-not-allowed text-neutral-400"}`}
+                    className={`flex items-center font-bold ${canPay ? "text-[#0f766e] hover:text-[#0c5e57]" : "cursor-not-allowed text-neutral-400"}`}
                   >
-                    <Plus size={11} strokeWidth={3} />Paid today
+                    Paid today
                   </button>
                   <ChevronDown size={12} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${k.open ? "rotate-180" : ""}`} />
                 </span>
@@ -987,19 +987,19 @@ export default function Costs({ seed }) {
               })}
               <button
                 onClick={() => setExpenseRows(g.id, [...rows, blankExpense()])}
-                className="flex h-[21px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+                className="flex h-[21px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
               >
-                <Plus size={11} strokeWidth={3} />Add expense
+                Add expense
               </button>
             </div>
           );
         })}
         <button
           onClick={() => setExpenseGroups([...expenseGroups, { id: newId(), name: "New group", rows: [] }])}
-          className="flex h-[21px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+          className="flex h-[21px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
           style={{ backgroundColor: SUB_BG }}
         >
-          <Plus size={11} strokeWidth={3} />Add group
+          Add group
         </button>
         {/* Every group together, on white, in bold red: money going out. */}
         <div className="grid h-[21px] grid-cols-6 border-t border-black">
