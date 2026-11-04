@@ -238,9 +238,9 @@ export default function Assets() {
   const addLine = (list, fresh) => (
     <button
       onClick={() => save({ ...doc, [list]: [...(doc[list] || []), { id: newId(), name: "", ...fresh }] })}
-      className="flex h-[21px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+      className="flex h-[21px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
     >
-      <Plus size={11} strokeWidth={3} />Add
+      Add
     </button>
   );
   const toggleOpen = (id) => save({ ...doc, ui: { ...(doc.ui || {}), open: { ...(doc.ui?.open || {}), [id]: !doc.ui?.open?.[id] } } });
@@ -420,10 +420,10 @@ export default function Assets() {
             {open && r.id !== "dib" && (
               <button
                 onClick={() => addSub(list, r.id)}
-                className="flex h-[21px] w-full items-center gap-[2px] border-t border-black pl-6 pr-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                className="flex h-[21px] w-full items-center border-t border-black pl-6 pr-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
                 style={{ backgroundColor: "#FBEFEC" }}
               >
-                <Plus size={11} strokeWidth={3} />Add
+                Add
               </button>
             )}
           </div>
@@ -432,9 +432,9 @@ export default function Assets() {
       {/* Add puts a fresh line at the foot of the group, ready to type in. */}
       <button
         onClick={() => save({ ...doc, [list]: [...(doc[list] || []), { id: newId(), name: "" }] })}
-        className="flex h-[21px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+        className="flex h-[21px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
       >
-        <Plus size={11} strokeWidth={3} />Add
+        Add
       </button>
       {/* The group's total: every account added up, in EUR only, far right. */}
       <div className="flex h-[21px] items-stretch border-t border-black">
