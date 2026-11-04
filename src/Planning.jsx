@@ -1418,7 +1418,7 @@ export default function Planning() {
 
   const renderToday = (first = false) => (
     <>
-      <div className={`flex h-[18px] items-center gap-2 px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
+      <div className={`flex h-[22px] items-center gap-2 px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
         <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
         <button onClick={downloadBackup} title="Download a backup of the dropdowns" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
           <Download size={12} strokeWidth={2.5} />
@@ -2260,7 +2260,7 @@ export default function Planning() {
     const off = "text-neutral-900";
     const on = "text-neutral-900 hover:text-[#9c7c33]";
     return (
-      <div className="flex h-[21px] items-center gap-3 border-t border-black bg-neutral-50 px-2">
+      <div className="flex h-[22px] items-center gap-3 border-t border-black bg-neutral-50 px-2">
         <button
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => applyCmd(target, "bold")}
@@ -2294,7 +2294,7 @@ export default function Planning() {
 
   const TypeMenu = ({ at, opts = ALL_TYPES }) => (
     // Plain words in the same style as the Add bar, no boxes.
-    <div className="flex h-[21px] items-center gap-4 border-t border-black bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide">
+    <div className="flex h-[22px] items-center gap-4 border-t border-black bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide">
       {opts.map(([lbl, type]) => (
         <button key={type} onClick={() => insertAt(at, type)} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>{lbl}</button>
       ))}
@@ -2382,7 +2382,7 @@ export default function Planning() {
                 <div
                   onClick={plainHead ? () => toggleCollapse(r.id) : undefined}
                   title={plainHead ? (collapsed.includes(r.id) ? "Open" : "Close") : undefined}
-                  className={`group relative flex gap-2 ${topBorder} ${botBorder} px-2 ${plainHead ? "cursor-pointer" : ""} ${isHead ? `${plainHead ? "h-[21px]" : "h-[18px]"} items-center py-0` : "min-h-[21px] items-start py-[3px]"}`}
+                  className={`group relative flex gap-2 ${topBorder} ${botBorder} px-2 ${plainHead ? "cursor-pointer" : ""} ${isHead ? `h-[22px] items-center py-0` : "min-h-[22px] items-start py-[3px]"}`}
                   style={{ backgroundColor: bg }}
                 >
                   {field}

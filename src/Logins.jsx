@@ -9,11 +9,14 @@ const BAR_BG = "#F2C46D"; // same ramp as the Costs table: darkest gold on the t
 // One size, one line height across the whole table – same as the Planning page.
 const cell = "px-2 py-0 text-[11px] leading-[15px] text-neutral-900";
 const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
-// Five columns of equal width, so the table reads as a grid.
-// Five equal columns on one grid, headings and rows alike, so every value starts exactly
-// under its heading. The dropdowns carry no frame, so their words line up too.
-const grid = "grid grid-cols-5 items-center gap-2 px-2";
+// Five equal columns on one grid, headings and rows alike, each cell parted from the next
+// by a thin upright line, so every value starts exactly under its heading. The dropdowns
+// carry no frame, so their words line up too.
+const grid = "grid grid-cols-5 items-stretch";
 const col = "min-w-0";
+const Cell = ({ first, children }) => (
+  <div className={`flex min-w-0 items-center px-2 ${first ? "" : "border-l border-black"}`}>{children}</div>
+);
 const select =
   "block h-[15px] cursor-pointer appearance-none border-0 bg-transparent p-0 text-[11px] leading-[15px] text-neutral-900 outline-none disabled:cursor-default disabled:opacity-40";
 
@@ -82,12 +85,12 @@ export default function Logins({ myId }) {
     // Narrow windows scroll the table sideways rather than squashing the columns.
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[640px] border border-black shadow-sm overflow-hidden bg-white">
-        <div className={`${grid} h-[18px] border-b border-black`} style={{ backgroundColor: BAR_BG }}>
-          <span className={`${col} ${head}`}>Name</span>
-          <span className={`${col} ${head}`}>Email</span>
-          <span className={`${col} ${head}`}>Role</span>
-          <span className={`${col} ${head}`}>Status</span>
-          <span className={`${col} ${head}`}>Pages</span>
+        <div className={`${grid} h-[22px] border-b border-black`} style={{ backgroundColor: BAR_BG }}>
+          <Cell first><span className={`${col} ${head}`}>Name</span></Cell>
+          <Cell><span className={`${col} ${head}`}>Email</span></Cell>
+          <Cell><span className={`${col} ${head}`}>Role</span></Cell>
+          <Cell><span className={`${col} ${head}`}>Status</span></Cell>
+          <Cell><span className={`${col} ${head}`}>Pages</span></Cell>
         </div>
 
         {err && <p className="px-2 py-0.5 text-[11px] font-semibold leading-[15px] text-[#b91c1c]">{err}</p>}
@@ -95,10 +98,11 @@ export default function Logins({ myId }) {
         {users.map((u, i) => {
           const count = PAGES.filter((p) => hasPage(u, p.id)).length;
           return (
-            <div key={u.id} className={`${grid} h-[21px] ${i === 0 ? "" : "border-t border-black"}`}>
-              <span className={`${col} truncate text-[11px] leading-[15px] text-neutral-900`}>{u.full_name || "–"}</span>
-              <span className={`${col} truncate text-[11px] leading-[15px] text-neutral-900`}>{u.email}</span>
+            <div key={u.id} className={`${grid} h-[22px] ${i === 0 ? "" : "border-t border-black"}`}>
+              <Cell first><span className={`${col} truncate text-[11px] leading-[15px] text-neutral-900`}>{u.full_name || "–"}</span></Cell>
+              <Cell><span className={`${col} truncate text-[11px] leading-[15px] text-neutral-900`}>{u.email}</span></Cell>
 
+              <Cell>
               <Pick
                 value={u.role}
                 disabled={u.id === myId}
@@ -108,7 +112,9 @@ export default function Logins({ myId }) {
                 <option value="admin">Admin</option>
                 <option value="member">Member</option>
               </Pick>
+              </Cell>
 
+              <Cell>
               <Pick
                 value={u.status}
                 disabled={u.id === myId}
@@ -118,8 +124,10 @@ export default function Logins({ myId }) {
                 <option value="blocked">Blocked</option>
                 <option value="pending">Pending</option>
               </Pick>
+              </Cell>
 
               {/* A small list drops from here, not the whole row. */}
+              <Cell>
               <button
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
@@ -132,6 +140,7 @@ export default function Logins({ myId }) {
                 <span>{count === PAGES.length ? "All pages" : `${count} of ${PAGES.length}`}</span>
                 <ChevronDown size={11} />
               </button>
+              </Cell>
             </div>
           );
         })}
