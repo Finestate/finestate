@@ -238,7 +238,7 @@ export default function Assets() {
   const addLine = (list, fresh) => (
     <button
       onClick={() => save({ ...doc, [list]: [...(doc[list] || []), { id: newId(), name: "", ...fresh }] })}
-      className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+      className="flex h-[21px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
     >
       <Plus size={11} strokeWidth={3} />Add
     </button>
@@ -311,11 +311,11 @@ export default function Assets() {
     <>
       {/* Whose accounts these are, then the column headings under it. */}
       {title && (
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
           <span className={head}>{title}</span>
         </div>
       )}
-      <div className="flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
+      <div className="flex h-[21px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>{firstCol}</span>
         {extra.map(([k, label, w]) => (
           <span key={k} className={`flex ${w} shrink-0 items-center gap-1 border-l border-black px-2 ${head}`}>
@@ -336,7 +336,7 @@ export default function Assets() {
       {[...rowsOf(list), ...(withBlank ? [{ id: blankId.current, name: "" }] : [])].map((r) => {
         const row = (x, sub) => (
           // The lines inside an account sit on the faint pink, as in Cash flow.
-          <div key={sub || x.id} className={`flex h-[22px] items-stretch border-t border-black ${sub ? "pt-px" : ""}`} style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
+          <div key={sub || x.id} className={`flex h-[21px] items-stretch border-t border-black ${sub ? "pt-px" : ""}`} style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
             <input
               value={x.name}
               onChange={(e) => editCash(list, r.id, { name: e.target.value, updated: new Date().toISOString() }, sub)}
@@ -391,7 +391,7 @@ export default function Assets() {
         return (
           <div key={r.id}>
             {/* The whole line opens and closes it, as in Cash flow; only the name itself is for typing. */}
-            <div onClick={() => toggleOpen(r.id)} className="flex h-[22px] cursor-pointer select-none items-stretch border-t border-black">
+            <div onClick={() => toggleOpen(r.id)} className="flex h-[21px] cursor-pointer select-none items-stretch border-t border-black">
               <span className="flex min-w-0 flex-1 items-center gap-1 px-2">
                 <input
                   value={r.name}
@@ -420,7 +420,7 @@ export default function Assets() {
             {open && r.id !== "dib" && (
               <button
                 onClick={() => addSub(list, r.id)}
-                className="flex h-[22px] w-full items-center gap-[2px] border-t border-black pl-6 pr-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                className="flex h-[21px] w-full items-center gap-[2px] border-t border-black pl-6 pr-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
                 style={{ backgroundColor: "#FBEFEC" }}
               >
                 <Plus size={11} strokeWidth={3} />Add
@@ -432,12 +432,12 @@ export default function Assets() {
       {/* Add puts a fresh line at the foot of the group, ready to type in. */}
       <button
         onClick={() => save({ ...doc, [list]: [...(doc[list] || []), { id: newId(), name: "" }] })}
-        className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+        className="flex h-[21px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
       >
         <Plus size={11} strokeWidth={3} />Add
       </button>
       {/* The group's total: every account added up, in EUR only, far right. */}
-      <div className="flex h-[22px] items-stretch border-t border-black">
+      <div className="flex h-[21px] items-stretch border-t border-black">
         <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
         {["eur"].map((cur) => {
           const vals = rowsOf(list).flatMap((r) => r.subs || [r]).map((x) => num(shown(x, cur))).filter((n) => n != null);
@@ -471,7 +471,7 @@ export default function Assets() {
   // The house and the flat can be deleted like any other line; once gone they stay gone.
   const reTotal = (doc.houseGone ? 0 : owned ?? 0) + (doc.flatGone ? 0 : num(flat.value) ?? 0) + moreProps.reduce((sum, x) => sum + (num(x.value) ?? 0), 0);
   const houseOpen = !!doc.ui?.open?.house;
-  const reRow = "flex h-[22px] items-stretch border-t border-black";
+  const reRow = "flex h-[21px] items-stretch border-t border-black";
   const reCell = "flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums";
   const realEstate = (
     <>
@@ -600,7 +600,7 @@ export default function Assets() {
   const mineEur = taxed.reduce((sum, x) => sum + eurOf(x) * (shareOf(x) / 100) * (1 - (num(x.tax) ?? 0) / 100), 0);
   const caOpen = !!doc.ui?.open?.canaccord;
   const caLatest = acct.subs.map((x) => x.updated).filter(Boolean).sort().pop();
-  const caRow = "flex h-[22px] items-stretch border-t border-black";
+  const caRow = "flex h-[21px] items-stretch border-t border-black";
   const caFig = "flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums";
   const canada = (
     <>
@@ -904,7 +904,7 @@ export default function Assets() {
           <div key={name}>
             {/* A grey band, then the section's bar. */}
             <div className={`h-[10px] ${i ? "border-t border-black" : ""}`} style={{ backgroundColor: GAP_BG }} />
-            <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+            <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
               <span className={head}>{name}</span>
             </div>
             {name === "Cash" && cash}
@@ -914,11 +914,11 @@ export default function Assets() {
             {/* The parents' estates, one country after another, each under its own bar. */}
             {name === "Parent estates" && (
               <>
-                <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+                <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
                   <span className={head}>Canada</span>
                 </div>
                 {canada}
-                <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+                <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
                   <span className={head}>Germany</span>
                 </div>
                 {germany}

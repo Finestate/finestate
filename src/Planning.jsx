@@ -1199,7 +1199,7 @@ export default function Planning() {
   const renderCodeLine = (b, list, colour, idx) => (
     // Plain flowing text: each point runs straight on after the square before it, like a sentence.
     // Each square is held to the word before it, so a wrapped line always starts on a word, flush left.
-    <div className="text-[11px] font-semibold leading-[16px]" style={{ color: colour }}>
+    <div className="text-[11px] font-semibold leading-[15px]" style={{ color: colour }}>
       {list.map((c, i) => {
         // Raised so its centre sits exactly halfway up the capitals: measured, 8px above the line foot either way.
         const square = i < list.length - 1 && <span className="mx-1.5 inline-block h-[5px] w-[5px]" style={{ backgroundColor: colour, verticalAlign: "1.5px" }} />;

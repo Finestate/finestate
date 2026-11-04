@@ -85,7 +85,7 @@ export default function Logins({ myId }) {
     // Narrow windows scroll the table sideways rather than squashing the columns.
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[640px] border border-black shadow-sm overflow-hidden bg-white">
-        <div className={`${grid} h-[22px] border-b border-black`} style={{ backgroundColor: BAR_BG }}>
+        <div className={`${grid} h-[21px] border-b border-black`} style={{ backgroundColor: BAR_BG }}>
           <Cell first><span className={`${col} ${head}`}>Name</span></Cell>
           <Cell><span className={`${col} ${head}`}>Email</span></Cell>
           <Cell><span className={`${col} ${head}`}>Role</span></Cell>
@@ -98,7 +98,7 @@ export default function Logins({ myId }) {
         {users.map((u, i) => {
           const count = PAGES.filter((p) => hasPage(u, p.id)).length;
           return (
-            <div key={u.id} className={`${grid} h-[22px] ${i === 0 ? "" : "border-t border-black"}`}>
+            <div key={u.id} className={`${grid} h-[21px] ${i === 0 ? "" : "border-t border-black"}`}>
               <Cell first><span className={`${col} truncate text-[11px] leading-[15px] text-neutral-900`}>{u.full_name || "–"}</span></Cell>
               <Cell><span className={`${col} truncate text-[11px] leading-[15px] text-neutral-900`}>{u.email}</span></Cell>
 

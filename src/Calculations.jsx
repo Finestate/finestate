@@ -81,7 +81,7 @@ export default function Calculations() {
   return (
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[760px] overflow-hidden border border-black bg-white shadow-sm">
-        <div className="flex h-[22px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Custom calculations</span>
         </div>
         {CALCS.map((c) => {
@@ -94,7 +94,7 @@ export default function Calculations() {
           const grid = { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` };
           return (
             <div key={c.id}>
-              <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+              <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
                 <span className={head}>{c.title}</span>
                 {ABOUT[c.id] && (
                   <button onClick={() => setAbout(c)} title="How this works" className="ml-1.5 flex items-center text-neutral-900 hover:text-[#9c7c33]">
@@ -104,17 +104,17 @@ export default function Calculations() {
               </div>
               <div className="grid border-t border-black" style={{ ...grid, backgroundColor: HEADER_BG }}>
                 {c.fields.map((f, i) => (
-                  <span key={f.key} className={`flex h-[21px] items-center px-2 ${head} ${i ? "border-l border-black" : ""}`}>
+                  <span key={f.key} className={`flex h-[20px] items-center px-2 ${head} ${i ? "border-l border-black" : ""}`}>
                     {f.label}{f.type === "pct" ? " %" : ""}
                   </span>
                 ))}
                 {results.map((r) => (
-                  <span key={r.label} className={`flex h-[21px] items-center border-l border-black px-2 ${head}`}>{r.label}</span>
+                  <span key={r.label} className={`flex h-[20px] items-center border-l border-black px-2 ${head}`}>{r.label}</span>
                 ))}
               </div>
               <div className="grid border-t border-black" style={grid}>
                 {c.fields.map((f, i) => (
-                  <span key={f.key} className={`flex h-[21px] items-center px-2 ${i ? "border-l border-black" : ""}`}>
+                  <span key={f.key} className={`flex h-[20px] items-center px-2 ${i ? "border-l border-black" : ""}`}>
                     <input
                       type={f.type === "date" ? "date" : "text"}
                       inputMode={f.type === "date" ? undefined : "decimal"}
@@ -125,7 +125,7 @@ export default function Calculations() {
                   </span>
                 ))}
                 {results.map((r) => (
-                  <span key={r.label} className="flex h-[21px] items-center border-l border-black px-2 text-[11px] font-semibold tabular-nums text-[#1d4ed8]">
+                  <span key={r.label} className="flex h-[20px] items-center border-l border-black px-2 text-[11px] font-semibold tabular-nums text-[#1d4ed8]">
                     {r.value}
                   </span>
                 ))}

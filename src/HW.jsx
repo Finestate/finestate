@@ -262,7 +262,7 @@ export default function HW() {
             <div key={g.id}>
               <div
                 onClick={() => setFitOpen((l) => (l.includes(g.id) ? l.filter((x) => x !== g.id) : [...l, g.id]))}
-                className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
+                className="flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
               >
                 <input
                   value={g.title || ""}
@@ -286,11 +286,11 @@ export default function HW() {
                             <div key={r.id} {...dropProps(`list-${g.id}`, ri, (from, to) => editGroup(g.id, (x) => ({ ...x, rows: moved(x.rows, from, to) })))}>
                             {marker(`list-${g.id}`, ri)}
                             <div className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
-                              <div className="min-w-0 flex-1 px-1.5 py-[3px]">
+                              <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
                                 <GrowText value={r.text || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, text: t } : y)) }))} rows={1} />
                               </div>
                               {/* The grip sits just left of the bin. */}
-                              <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 py-[5px]">
+                              <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
                                 {grip(`list-${g.id}`, ri, true)}
                                 {binBtn(() => editGroup(g.id, (x) => ({ ...x, rows: x.rows.filter((y) => y.id !== r.id) })))}
                               </span>
@@ -336,7 +336,7 @@ export default function HW() {
                     return (
                       <div className="flex items-stretch" style={{ backgroundColor: "#F4D3CA" }}>
                         {bp.items.map((it, k) => (
-                          <div key={it.id} className={`group relative flex min-h-[21px] min-w-0 flex-1 basis-0 items-center justify-center gap-0.5 px-1 py-[3px] ${k ? "border-l border-neutral-400" : ""}`}>
+                          <div key={it.id} className={`group relative flex min-h-[20px] min-w-0 flex-1 basis-0 items-center justify-center gap-0.5 px-1 pt-[3px] pb-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
                             {/* Name and count centred in the cell; the bin shows on hover, at the right. */}
                             <input
                               value={it.text}
@@ -363,10 +363,10 @@ export default function HW() {
                       <div key={wi} className="flex items-stretch border-t border-neutral-400">
                         {/* Just the workout, then its bin. The minutes and the right-hand half
                             that once sat here stay saved, out of sight. */}
-                        <div className="min-w-0 flex-1 px-1.5 py-[3px]">
+                        <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
                           <GrowText value={w.text || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, text: t } : y)) }))} rows={1} />
                         </div>
-                        <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 py-[5px]">
+                        <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
                           {binBtn(() => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).filter((_, yi) => yi !== wi) })))}
                         </span>
                       </div>
@@ -389,7 +389,7 @@ export default function HW() {
         })}
         <button
           onClick={() => saveGroups([...groups, { id: newId(), title: "", rows: [] }])}
-          className="flex h-[22px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+          className="flex h-[21px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
         >
           Add
         </button>
@@ -430,7 +430,7 @@ export default function HW() {
       <div className="flex border-t border-black" style={{ backgroundColor: HEADER_BG }}>
         <div className="grid flex-1" style={{ gridTemplateColumns: `repeat(${cols.length}, minmax(0, 1fr))` }}>
           {cols.map(([field, label], i) => (
-            <span key={field} className={`flex h-[21px] items-center px-2 ${head} ${i ? "border-l border-black" : ""}`}>{editLabel(`${key}-${field}`, label)}</span>
+            <span key={field} className={`flex h-[20px] items-center px-2 ${head} ${i ? "border-l border-black" : ""}`}>{editLabel(`${key}-${field}`, label)}</span>
           ))}
         </div>
         {/* The grip and bin shown in the heading too, so the columns line up and balance. */}
@@ -445,13 +445,13 @@ export default function HW() {
           <div className="flex items-stretch border-t border-black">
             <div className="grid flex-1" style={{ gridTemplateColumns: `repeat(${cols.length}, minmax(0, 1fr))` }}>
               {cols.map(([field], i) => (
-                <span key={field} className={`min-w-0 px-2 py-[3px] ${i ? "border-l border-black" : ""}`}>
+                <span key={field} className={`min-w-0 px-2 pt-[3px] pb-[2px] ${i ? "border-l border-black" : ""}`}>
                   <GrowText value={m[field] || ""} onChange={(t) => editItem(key, m.id, { [field]: t })} rows={1} />
                 </span>
               ))}
             </div>
             {/* The grip always sits just left of the bin. */}
-            <span className="flex w-[49px] shrink-0 items-start gap-2 border-l border-black px-2 py-[5px]">
+            <span className="flex w-[49px] shrink-0 items-start gap-2 border-l border-black px-2 pt-[5px] pb-[4px]">
               {grip(key, idx, m.id !== "blank")}
               {m.id !== "blank" ? (
                 <button onClick={() => setListConfirm({ key, id: m.id })} title="Remove" className="text-neutral-900 hover:text-[#C1440E]">
@@ -466,7 +466,7 @@ export default function HW() {
       ))}
       <button
         onClick={() => saveList(key, [...lists[key], { id: newId(), name: "", text: "" }])}
-        className="flex h-[22px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+        className="flex h-[21px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
       >
         Add
       </button>
@@ -479,16 +479,16 @@ export default function HW() {
         <div key={m.id} {...dropProps(key, idx, (from, to) => saveList(key, moved(lists[key], from, to)))}>
           {marker(key, idx)}
           <div className="flex items-stretch border-t border-black">
-            <span className="flex min-w-0 flex-1 basis-0 items-start px-2 py-[3px]">
+            <span className="flex min-w-0 flex-1 basis-0 items-start px-2 pt-[3px] pb-[2px]">
               <GrowText value={m.text || ""} onChange={(t) => editItem(key, m.id, { text: t })} rows={1} />
             </span>
             {split && (
-              <span className="flex min-w-0 flex-1 basis-0 items-start border-l border-black px-2 py-[3px]">
+              <span className="flex min-w-0 flex-1 basis-0 items-start border-l border-black px-2 pt-[3px] pb-[2px]">
                 <GrowText value={m.col2 || ""} onChange={(t) => editItem(key, m.id, { col2: t })} rows={1} />
               </span>
             )}
             {/* The grip always sits just left of the bin. */}
-            <span className="flex shrink-0 items-start gap-2 px-2 py-[5px]">
+            <span className="flex shrink-0 items-start gap-2 px-2 pt-[5px] pb-[4px]">
               {grip(key, idx, m.id !== "blank")}
               {m.id !== "blank" ? (
                 <button onClick={() => setListConfirm({ key, id: m.id })} title="Remove" className="text-neutral-900 hover:text-[#C1440E]">
@@ -503,7 +503,7 @@ export default function HW() {
       ))}
       <button
         onClick={() => saveList(key, [...lists[key], { id: newId(), name: "", text: "" }])}
-        className="flex h-[22px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+        className="flex h-[21px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
       >
         Add
       </button>
@@ -526,7 +526,7 @@ export default function HW() {
             {/* With a link: the name, then a short (link) right after it. With an address
                 it opens the shop, and the pencil after it changes the address. Without one, a grey
                 (add link) opens the same short box. Enter or a click away saves; Esc cancels. */}
-            <span className="flex w-1/4 min-w-[160px] shrink-0 items-start gap-1 px-2 py-[3px]">
+            <span className="flex w-1/4 min-w-[160px] shrink-0 items-start gap-1 px-2 pt-[3px] pb-[2px]">
               <input
                 value={m.name || ""}
                 onChange={(e) => editItem(key, m.id, { name: e.target.value })}
@@ -564,15 +564,15 @@ export default function HW() {
               ))}
             </span>
             {twoCols && (
-              <span className="flex min-w-0 flex-1 basis-0 items-start border-l border-black px-2 py-[3px]">
+              <span className="flex min-w-0 flex-1 basis-0 items-start border-l border-black px-2 pt-[3px] pb-[2px]">
                 <GrowText value={m.col2 || ""} onChange={(t) => editItem(key, m.id, { col2: t })} rows={1} />
               </span>
             )}
-            <span className="flex min-w-0 flex-1 basis-0 items-start border-l border-black px-2 py-[3px]">
+            <span className="flex min-w-0 flex-1 basis-0 items-start border-l border-black px-2 pt-[3px] pb-[2px]">
               <GrowText value={details} onChange={setDetails} rows={1} />
             </span>
             {/* The grip always sits just left of the bin. */}
-            <span className="flex shrink-0 items-start gap-2 px-2 py-[5px]">
+            <span className="flex shrink-0 items-start gap-2 px-2 pt-[5px] pb-[4px]">
               {grip(key, idx, m.id !== "blank")}
               {m.id !== "blank" ? (
                 <button onClick={() => setListConfirm({ key, id: m.id })} title="Remove" className="text-neutral-900 hover:text-[#C1440E]">
@@ -588,7 +588,7 @@ export default function HW() {
       })}
       <button
         onClick={() => saveList(key, [...lists[key], { id: newId(), name: "", text: "", ...(withLink ? { link: "" } : {}) }])}
-        className="flex h-[22px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+        className="flex h-[21px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
       >
         Add
       </button>
@@ -665,7 +665,7 @@ export default function HW() {
       {/* The HW table, in the Monthly page's style: grey bands between sections. */}
       <div spellCheck className="w-full min-w-[760px] overflow-hidden border border-black bg-white shadow-sm">
         <div className="h-[10px]" style={{ backgroundColor: GAP_BG }} />
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           {editLabel("Foundational", "Foundational")}
           <button onClick={downloadBackup} title="Download a backup of this page" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
             <Download size={12} strokeWidth={2.5} />
@@ -680,7 +680,7 @@ export default function HW() {
               <div
                 // Only one entry open at a time: opening one shuts the others.
                 onClick={() => (notes.length ? saveNotes(notes.map((x) => ({ ...x, open: x.id === n.id ? !x.open : false }))) : editNote(n.id, { open: !n.open }))}
-                className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
+                className="flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2"
               >
                 <input
                   value={n.title || ""}
@@ -720,23 +720,23 @@ export default function HW() {
           ))}
         <button
           onClick={() => saveNotes([...notes, { id: newId(), title: "", text: "", open: false }])}
-          className="flex h-[22px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+          className="flex h-[21px] w-full items-center border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
         >
           Add
         </button>
         {/* The grey band between sections, then the next section. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           {editLabel("Medicines", "Medicines")}
         </div>
         {notesLoaded && listBlock("medicines", false, true)}
         {/* Supplements belong with medicines: its own bar, no grey band before it. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           {editLabel("Supplements", "Supplements")}
         </div>
         {notesLoaded && listBlock("supplements", true)}
         {/* Nutrition: no grey band before it. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           {editLabel("Nutrition", "Nutrition")}
           {/* Opens every day at once, or closes them all. */}
           <button
@@ -759,7 +759,7 @@ export default function HW() {
                 <div
                   onClick={() => toggleDay(day)}
                   // Today's line sits on the pink, so it stands out from the other days.
-                  className={`flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2 ${day === todayKey ? "bg-[#FBEFEC]" : ""}`}
+                  className={`flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2 ${day === todayKey ? "bg-[#FBEFEC]" : ""}`}
                 >
                   {/* Days as three letters in a fixed width, so the = marks line up exactly. */}
                   {editLabel(`day-${day}`, day === "considerations" ? name : name.slice(0, 3), "text-[11px] leading-none text-neutral-900", day === "considerations" ? "" : "w-[24px] shrink-0")}
@@ -792,14 +792,14 @@ export default function HW() {
                         {/* A line labelled "In consideration" stands out: red text on a slightly deeper pink. */}
                         <div className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""} ${/^\s*in consideration/i.test(r.label || "") ? "bg-[#F4D3CA] [&_textarea]:text-[#C1440E] [&_.meal-box]:text-[#C1440E]" : ""}`}>
                           {/* A wider label that wraps, so a longer name grows the line rather than hiding. */}
-                          <div className="w-[100px] shrink-0 border-r border-neutral-400 px-1.5 py-[3px]">
+                          <div className="w-[100px] shrink-0 border-r border-neutral-400 px-1.5 pt-[3px] pb-[2px]">
                             <GrowText value={r.label || ""} onChange={(t) => saveDayRows(day, rowsOfDay(day).map((x) => (x.id === r.id ? { ...x, label: t } : x)))} rows={1} />
                           </div>
-                          <div className="min-w-0 flex-1 px-1.5 py-[3px]">
+                          <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
                             <MealText boxRef={(el) => { mealBoxes.current[`${day}-${r.key}`] = el; }} value={mealOf(day, group, r.key)} onChange={(t) => saveDayMeal(day, r.key, t)} />
                           </div>
                           {/* The red square, then the grip, then the bin. */}
-                          <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 py-[5px]">
+                          <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
                             {/* Highlight words in this line, then press: they turn red, or back to black if red. */}
                             <button
                               onMouseDown={(e) => e.preventDefault()}
@@ -846,43 +846,43 @@ export default function HW() {
             );
           })}
         {/* Fitness+Lk follows straight on, no grey band before it. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           {editLabel("Fitness+Lk", "Fitness+Lk")}
         </div>
         {notesLoaded && fitnessBlock()}
         {/* The grey band, then Monitoring: Focus, Planning and Situation side by side. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           {editLabel("Monitoring", "Monitoring")}
         </div>
         {notesLoaded && columnsBlock("monitoring", [["focus", "Focus"], ["planning", "Planning"], ["situation", "Situation"]])}
         {/* Testing, straight after Monitoring, with Diagnostics under it: a title and its
             full Dropbox path on each line. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           {editLabel("Testing", "Testing")}
         </div>
         {/* One level down from Testing, so the lighter shade. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
           {editLabel("Diagnostics", "Diagnostics")}
         </div>
         {notesLoaded && listBlock("diagnostics")}
         {/* Labs, the same as Diagnostics: one level under Testing. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: HEADER_BG }}>
           {editLabel("Labs", "Labs")}
         </div>
         {notesLoaded && listBlock("labs")}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           {editLabel("Procedures tracking", "Procedures tracking")}
         </div>
         {notesLoaded && lineBlock("procedureTracking")}
         {/* Vaccinations, under Labs: single-column lines for now. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           {editLabel("Vaccinations", "Vaccinations")}
         </div>
         {notesLoaded && lineBlock("vaccinations")}
         {/* The grey band, then Insurance: single-column lines, like Vaccinations. */}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           {editLabel("Insurance", "Insurance")}
         </div>
         {notesLoaded && lineBlock("insurance")}

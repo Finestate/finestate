@@ -14,11 +14,11 @@ export default function Integrations() {
   return (
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[560px] border border-black bg-white shadow-sm">
-        <div className="flex h-[22px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Required site pages</span>
         </div>
         {PAGES.map((p) => (
-          <div key={p.href} className="flex h-[22px] items-stretch border-t border-black">
+          <div key={p.href} className="flex h-[21px] items-stretch border-t border-black">
             <a
               href={p.href}
               target="_blank"

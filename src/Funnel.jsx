@@ -82,7 +82,7 @@ export default function Funnel() {
       <div className="w-full min-w-[640px] overflow-hidden border border-black bg-white shadow-sm">
         <div className="h-[10px]" style={{ backgroundColor: GAP_BG }} />
         {/* The plan, opened and closed from its bar, remembered like everything else. */}
-        <div onClick={() => save({ ...doc, planOpen: !doc.planOpen })} className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div onClick={() => save({ ...doc, planOpen: !doc.planOpen })} className="flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Plan</span>
           <ChevronDown size={14} strokeWidth={2.75} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${doc.planOpen ? "rotate-180" : ""}`} />
         </div>
@@ -94,7 +94,7 @@ export default function Funnel() {
         ))}
         <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
         {/* The bar opens and closes the map, and stays as you left it. */}
-        <div onClick={() => save({ ...doc, open: !doc.open })} className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div onClick={() => save({ ...doc, open: !doc.open })} className="flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className={head}>Macro map</span>
           <span className="text-[11px] text-neutral-700">Stage 1 – where the money is going</span>
           {doc.at && <span className="ml-2 text-[11px] text-neutral-700">updated {dateOf(doc.at)}</span>}
@@ -119,7 +119,7 @@ export default function Funnel() {
               const open = openAreas.includes(a.name);
               return (
                 <div key={a.name + i}>
-                  <div onClick={() => toggleArea(a.name)} className="flex h-[22px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+                  <div onClick={() => toggleArea(a.name)} className="flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
                     <span className="w-4 shrink-0 text-right text-[11px] font-bold tabular-nums text-neutral-900">{i + 1}.</span>
                     <span className={head}>{a.name}</span>
                     <ChevronDown size={12} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${open ? "rotate-180" : ""}`} />

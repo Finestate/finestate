@@ -180,7 +180,7 @@ export default function Bookmarks() {
     <div className="w-full">
       <div className="w-full border border-black bg-white shadow-sm">
         {/* Title: the page's own mark and its name. */}
-        <div className="flex h-[22px] items-center gap-1.5 border-b border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <div className="flex h-[21px] items-center gap-1.5 border-b border-black px-2" style={{ backgroundColor: BAR_BG }}>
           <span className="text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900">Bookmarks</span>
           {/* The mark beside the name adds a bookmark. */}
           {!empty && (

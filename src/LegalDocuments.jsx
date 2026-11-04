@@ -243,7 +243,7 @@ export default function LegalDocuments() {
   const addRow = (at) =>
     save([...items.slice(0, at), { id: newId(), kind: "row", item: "", number: "", issued: "", expiry: "", scan: "" }, ...items.slice(at)]);
   const addBar = (at) => (
-    <div className="flex h-[22px] items-center border-t border-black bg-neutral-50 px-2">
+    <div className="flex h-[21px] items-center border-t border-black bg-neutral-50 px-2">
       <button onClick={() => addRow(at)} className="text-[11px] font-bold uppercase leading-[15px] text-[#0f766e] hover:text-[#0c5e57]">Add row</button>
     </div>
   );
@@ -267,7 +267,7 @@ export default function LegalDocuments() {
               // Each section carries its own column headings underneath it.
               <div>
                 {/* Section bars carry no bin – a section only goes when I remove it. */}
-                <div className={`flex h-[22px] items-center px-2 ${rule}`} style={{ backgroundColor: BAR_BG }}>
+                <div className={`flex h-[21px] items-center px-2 ${rule}`} style={{ backgroundColor: BAR_BG }}>
                   <input value={r.label || ""} onChange={(e) => update(i, "label", e.target.value)} className={`block w-full bg-transparent py-0 ${head} outline-none`} />
                   {pos === 0 && (
                     <button onClick={downloadBackup} title="Download a backup of this page" className="ml-2 shrink-0 text-neutral-900 hover:text-[#9c7c33]">
@@ -276,7 +276,7 @@ export default function LegalDocuments() {
                   )}
                 </div>
                 {/* Thin black lines between the columns, the same as between the rows. */}
-                <div className="flex h-[22px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
+                <div className="flex h-[21px] items-stretch border-t border-black" style={{ backgroundColor: HEADER_BG }}>
                   <span className="flex min-w-0 flex-1 items-stretch">
                     {COLS.map((c, ci) => (
                       <span key={c.key} style={{ flex: `${parseFloat(c.w)} 1 0` }} className={`flex min-w-0 items-center px-2 ${ci ? "border-l border-black" : ""} ${head}`}>{c.label}</span>
@@ -286,7 +286,7 @@ export default function LegalDocuments() {
                 </div>
               </div>
             ) : (
-              <div className={`flex h-[22px] items-stretch ${rule}`}>
+              <div className={`flex h-[21px] items-stretch ${rule}`}>
                 <span className="flex min-w-0 flex-1 items-stretch">
                   {COLS.map((c, ci) => (
                     <span key={c.key} style={{ flex: `${parseFloat(c.w)} 1 0` }} className={`flex min-w-0 items-center px-2 ${ci ? "border-l border-black" : ""}`}>

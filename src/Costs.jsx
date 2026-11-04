@@ -222,7 +222,7 @@ function MoneyInput({ value, onChange, placeholder = "0.00", fit = false }) {
 }
 
 const Main = ({ children }) => (
-  <div className="border-t border-black flex h-[22px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
+  <div className="border-t border-black flex h-[21px] items-center px-2" style={{ backgroundColor: MAIN_BG }}>
     <span className={head}>{children}</span>
   </div>
 );
@@ -232,14 +232,14 @@ const GAP_BG = "#8A8A8A"; // mid grey
 const Gap = ({ first }) => <div className={`h-[10px] ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: GAP_BG }} />;
 // The new table's section bars, in the top orange; the groups under them take the next shade.
 const Section = ({ children, first, right }) => (
-  <div className={`${first ? "" : "border-t border-black"} flex h-[22px] items-center px-2`} style={{ backgroundColor: MAIN_BG }}>
+  <div className={`${first ? "" : "border-t border-black"} flex h-[21px] items-center px-2`} style={{ backgroundColor: MAIN_BG }}>
     <span className={head}>{children}</span>
     {right && <span className="ml-auto flex items-center">{right}</span>}
   </div>
 );
 // `first`: the bar that opens a table, where the frame already draws the line above.
 const Sub = ({ children, first }) => (
-  <div className={`${first ? "" : "border-t border-black"} flex h-[22px] items-center px-2`} style={{ backgroundColor: SUB_BG }}>
+  <div className={`${first ? "" : "border-t border-black"} flex h-[21px] items-center px-2`} style={{ backgroundColor: SUB_BG }}>
     <span className={head}>{children}</span>
   </div>
 );
@@ -249,16 +249,16 @@ const Bin = ({ onClick }) => (
   </button>
 );
 const AddBar = ({ onClick, label = "Add" }) => (
-  <button onClick={onClick} className="flex h-[22px] w-full items-center gap-1 border-t border-black bg-white px-2 text-[11px] font-bold uppercase tracking-wide text-neutral-400 transition-colors hover:text-neutral-800">
+  <button onClick={onClick} className="flex h-[21px] w-full items-center gap-1 border-t border-black bg-white px-2 text-[11px] font-bold uppercase tracking-wide text-neutral-400 transition-colors hover:text-neutral-800">
     <Plus size={12} /> {label}
   </button>
 );
 const Row = ({ children, first }) => (
-  <div className={`flex h-[22px] items-center gap-1.5 px-2 ${first ? "" : "border-t border-black"}`}>{children}</div>
+  <div className={`flex h-[21px] items-center gap-1.5 px-2 ${first ? "" : "border-t border-black"}`}>{children}</div>
 );
 // A two-column line: label on the left, a figure on the right.
 const Figure = ({ label, value, onChange, calc, strong }) => (
-  <div className="flex items-center gap-1.5 border-t border-black flex h-[22px] items-center px-2">
+  <div className="flex items-center gap-1.5 border-t border-black flex h-[21px] items-center px-2">
     <span className={`flex-1 text-[11px] leading-tight text-neutral-900 ${strong ? "font-bold" : ""}`}>{label}</span>
     <span className="w-28 shrink-0">
       {calc ? (
@@ -602,7 +602,7 @@ export default function Costs({ seed }) {
               }${a.iban ? `: ${a.iban.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim()}` : ""}`;
             return (
               // The accounts that open under yours sit on the faint pink of Planning's day lines.
-              <div key={a.uid} className={`flex h-[22px] items-stretch border-t border-black ${sub ? "pt-px" : ""}`} style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
+              <div key={a.uid} className={`flex h-[21px] items-stretch border-t border-black ${sub ? "pt-px" : ""}`} style={sub ? { backgroundColor: "#FBEFEC" } : undefined}>
                 <span
                   onClick={toggle}
                   className={`flex flex-1 items-center gap-1 text-[11px] text-neutral-900 ${sub ? "pl-6 pr-2" : "px-2"} ${toggle ? "cursor-pointer select-none" : ""}`}
@@ -645,14 +645,14 @@ export default function Costs({ seed }) {
         {/* Fixed costs still to go out this month. Nil for now; it will come from the
             costs part of the table once that is built. */}
         {/* Money going out reads in red: pending fixed costs, the card and the debt. */}
-        <div className="flex h-[22px] items-stretch border-t border-black">
+        <div className="flex h-[21px] items-stretch border-t border-black">
           <span className="flex flex-1 items-center px-2 text-[11px] text-[#C1440E]">Pending fixed costs</span>
           <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#C1440E]">
             EUR {money(pendingFixed)}
           </span>
         </div>
         {/* The credit card isn't shared by the bank, so its figure is typed in. */}
-        <div className="flex h-[22px] items-stretch border-t border-black">
+        <div className="flex h-[21px] items-stretch border-t border-black">
           <span className="flex flex-1 items-center gap-1 px-2 text-[11px] text-[#C1440E]">
             Credit card: <CardNumber value={doc.cardNumber} onChange={(v) => save({ ...doc, cardNumber: v })} />
           </span>
@@ -663,7 +663,7 @@ export default function Costs({ seed }) {
         </div>
         {/* Your account's balance once the pending fixed costs and the credit card bill
             have gone out. The card counts as owed whichever way its sign was typed. */}
-        <div className="flex h-[22px] items-stretch border-t border-black">
+        <div className="flex h-[21px] items-stretch border-t border-black">
           <span className="flex flex-1 items-center px-2 text-[11px] font-bold text-neutral-900">Bank balance after fixed costs and credit card deductions</span>
           <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">
             EUR {money(ownBalance - pendingFixed - Math.abs(num(doc.balances.card)))}
@@ -685,7 +685,7 @@ export default function Costs({ seed }) {
                 : [{ id: newId(), name: "", number: "", rate: "", expires: "", amount: "", [field]: val }]
             );
           const loanRows = loans.length ? loans : [{ id: "blank", name: "", number: "", rate: "", expires: "", amount: "" }];
-          const sub = "flex h-[22px] items-stretch border-t border-black";
+          const sub = "flex h-[21px] items-stretch border-t border-black";
           const cellTxt = "bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none";
           return (
             <>
@@ -756,7 +756,7 @@ export default function Costs({ seed }) {
                   {/* Under the last loan, a quiet line to add the next one. */}
                   <button
                     onClick={() => setLoans([...loans, { id: newId(), name: "", number: "", rate: "", expires: "", amount: "" }])}
-                    className="flex h-[22px] w-full items-center gap-[2px] border-t border-black pl-6 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+                    className="flex h-[21px] w-full items-center gap-[2px] border-t border-black pl-6 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
                     style={{ backgroundColor: "#FBEFEC" }}
                   >
                     <Plus size={11} strokeWidth={3} />Add loan
@@ -768,7 +768,7 @@ export default function Costs({ seed }) {
         })()}
         {/* With no bank connected yet, a line to connect one. */}
         {!bank?.accounts?.length && (
-          <div className="flex h-[22px] items-center border-t border-black px-2 text-[10px] uppercase tracking-wide text-neutral-500">
+          <div className="flex h-[21px] items-center border-t border-black px-2 text-[10px] uppercase tracking-wide text-neutral-500">
             <button onClick={connectBank} disabled={bankBusy || bank == null} className="font-bold hover:text-neutral-900">
               {bankBusy ? "Opening the bank…" : "Connect bank"}
             </button>
@@ -783,7 +783,7 @@ export default function Costs({ seed }) {
         {doc.income.map((r) => {
           const cur = String(r.currency || "EUR").trim().toUpperCase() || "EUR";
           return (
-            <div key={r.id} className="flex h-[22px] items-stretch border-t border-black">
+            <div key={r.id} className="flex h-[21px] items-stretch border-t border-black">
               <input
                 value={r.name || ""}
                 onChange={(e) => save({ ...doc, income: doc.income.map((x) => (x.id === r.id ? { ...x, name: e.target.value } : x)) })}
@@ -802,7 +802,7 @@ export default function Costs({ seed }) {
           );
         })}
         {/* The month's income in euros, every line added up. */}
-        <div className="flex h-[22px] items-stretch border-t border-black">
+        <div className="flex h-[21px] items-stretch border-t border-black">
           <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
           <span className="w-36 shrink-0 border-l border-black" />
           <span className="flex w-36 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">
@@ -815,11 +815,11 @@ export default function Costs({ seed }) {
 
         {/* Tax payments: one line each, the date on the left (the same calendar as Legal
             documents) and the amount on the right. Editable from the start. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
           <span className={head}>Tax payments</span>
         </div>
         {taxRows.map((t) => (
-          <div key={t.id} className="group flex h-[22px] items-stretch border-t border-black">
+          <div key={t.id} className="group flex h-[21px] items-stretch border-t border-black">
             <span className="flex flex-1 items-center gap-2 px-2">
               <span className="w-40">
                 <DateCell value={t.date} onChange={(v) => editTax(t.id, "date", v)} />
@@ -837,7 +837,7 @@ export default function Costs({ seed }) {
         {/* Always under the last tax payment: a quiet line to add the next one. */}
         <button
           onClick={() => save({ ...doc, taxPayments: [...taxPayments, { id: newId(), date: "", amount: "" }] })}
-          className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+          className="flex h-[21px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
         >
           <Plus size={11} strokeWidth={3} />Add payment
         </button>
@@ -845,7 +845,7 @@ export default function Costs({ seed }) {
         {/* Pocket money: one line per child, with their initial, the set weekly amount,
             a press to record a payment, and what was paid out this month in total. Each
             line opens, on the faint pink, onto this month's payments: date and amount. */}
-        <div className="flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+        <div className="flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
           <span className={head}>Pocket money {pocketMonthName}</span>
         </div>
         {pocketKids.map((k) => {
@@ -854,7 +854,7 @@ export default function Costs({ seed }) {
           const canPay = num(k.weekly) > 0;
           return (
             <div key={k.id}>
-              <div className="flex h-[22px] items-stretch border-t border-black">
+              <div className="flex h-[21px] items-stretch border-t border-black">
                 <span className="flex w-24 shrink-0 items-center px-2">
                   <input
                     value={k.initial || ""}
@@ -888,7 +888,7 @@ export default function Costs({ seed }) {
                 </span>
               </div>
               {k.open && rows.map((x) => (
-                <div key={x.id} className="group flex h-[22px] items-stretch border-t border-black pt-px" style={{ backgroundColor: "#FBEFEC" }}>
+                <div key={x.id} className="group flex h-[21px] items-stretch border-t border-black pt-px" style={{ backgroundColor: "#FBEFEC" }}>
                   <span className="flex flex-1 items-center gap-2 px-2">
                     {/* Pulled left by the icon's own inner margin, so it lines up with the A and S. */}
                     <span className="-ml-[1.5px] min-w-0 flex-1">
@@ -916,7 +916,7 @@ export default function Costs({ seed }) {
           const rows = g.rows || [];
           return (
             <div key={g.id}>
-              <div className="group flex h-[22px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
+              <div className="group flex h-[21px] items-center border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
                 <input
                   value={g.name || ""}
                   onChange={(ev) => setExpenseGroups(expenseGroups.map((x) => (x.id === g.id ? { ...x, name: ev.target.value } : x)))}
@@ -930,7 +930,7 @@ export default function Costs({ seed }) {
               </div>
               {/* The column headings: six equal, framed columns, the money ones set right,
                   in the rows' own type, just bold, on the next shade down from the group bar. */}
-              <div className="grid h-[22px] grid-cols-6 border-t border-black" style={{ backgroundColor: SUBSUB_BG }}>
+              <div className="grid h-[21px] grid-cols-6 border-t border-black" style={{ backgroundColor: SUBSUB_BG }}>
                 {EXPENSE_COLS.map((c, i) => (
                   <span key={c.label} className={`flex items-center px-2 text-[11px] font-bold uppercase leading-none text-neutral-900 ${i ? "border-l border-black" : ""} ${c.money ? "justify-end text-right" : ""}`}>
                     {c.label}
@@ -941,7 +941,7 @@ export default function Costs({ seed }) {
                 const cell = "flex min-w-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-neutral-900";
                 const edit = (fields) => editExpense(g.id, e.id, fields);
                 return (
-                  <div key={e.id} className="group grid h-[22px] grid-cols-6 border-t border-black">
+                  <div key={e.id} className="group grid h-[21px] grid-cols-6 border-t border-black">
                     <span className="flex min-w-0 items-center px-2">
                       <input value={e.description || ""} onChange={(ev) => edit({ description: ev.target.value })} className="w-full bg-transparent py-0 text-[11px] leading-none text-neutral-900 outline-none" />
                       <button onClick={() => ask(() => setExpenseRows(g.id, rows.filter((x) => x.id !== e.id)))} title="Remove" className="ml-1 shrink-0 text-neutral-900 hover:text-[#C1440E]">
@@ -987,7 +987,7 @@ export default function Costs({ seed }) {
               })}
               <button
                 onClick={() => setExpenseRows(g.id, [...rows, blankExpense()])}
-                className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+                className="flex h-[21px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
               >
                 <Plus size={11} strokeWidth={3} />Add expense
               </button>
@@ -996,13 +996,13 @@ export default function Costs({ seed }) {
         })}
         <button
           onClick={() => setExpenseGroups([...expenseGroups, { id: newId(), name: "New group", rows: [] }])}
-          className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
+          className="flex h-[21px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] transition-colors hover:text-[#0c5e57]"
           style={{ backgroundColor: SUB_BG }}
         >
           <Plus size={11} strokeWidth={3} />Add group
         </button>
         {/* Every group together, on white, in bold red: money going out. */}
-        <div className="grid h-[22px] grid-cols-6 border-t border-black">
+        <div className="grid h-[21px] grid-cols-6 border-t border-black">
             <span className="col-span-4 flex items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-[#C1440E]">Total</span>
             <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(expensesMonthly)}</span>
             <span className="flex items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-[#C1440E]">EUR {money(pendingFixed)}</span>
