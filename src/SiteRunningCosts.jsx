@@ -73,7 +73,10 @@ export default function SiteRunningCosts() {
         <div className="flex h-[21px] items-stretch border-b border-black pl-2" style={{ backgroundColor: BAR_BG }}>
           <span className={`flex flex-1 items-center ${head}`}>{TITLE}</span>
           {/* An upright line parts the cost column from the names, all the way down. */}
-          <span className={`flex w-36 shrink-0 items-center justify-end whitespace-nowrap border-l border-black pl-2 pr-4 ${head}`}>Monthly cost</span>
+          <span className={`flex w-36 shrink-0 items-center justify-end whitespace-nowrap border-l border-black pl-2 pr-4 ${head}`}>
+            {/* Pulled right by its own letter spacing, so the last letter ends exactly where the figures do. */}
+            <span className="-mr-[0.06em]">Monthly cost</span>
+          </span>
         </div>
 
         <div>
