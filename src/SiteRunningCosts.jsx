@@ -70,16 +70,17 @@ export default function SiteRunningCosts() {
     // Narrow windows scroll the table sideways rather than squashing the columns.
     <div className="w-full overflow-x-auto">
       <div className="w-full min-w-[560px] border border-black bg-white shadow-sm overflow-hidden">
-        <div className="flex h-[21px] items-center gap-2 border-b border-black pl-2 pr-4" style={{ backgroundColor: BAR_BG }}>
-          <span className={`flex-1 ${head}`}>{TITLE}</span>
-          <span className={`w-32 shrink-0 whitespace-nowrap text-right ${head}`}>Monthly cost</span>
+        <div className="flex h-[21px] items-stretch border-b border-black pl-2" style={{ backgroundColor: BAR_BG }}>
+          <span className={`flex flex-1 items-center ${head}`}>{TITLE}</span>
+          {/* An upright line parts the cost column from the names, all the way down. */}
+          <span className={`flex w-36 shrink-0 items-center justify-end whitespace-nowrap border-l border-black pl-2 pr-4 ${head}`}>Monthly cost</span>
         </div>
 
         <div>
           {COSTS.map((c, i) => (
-            <div key={c.item} className={`flex h-[21px] items-center gap-2 pl-2 pr-4 ${i === 0 ? "" : "border-t border-black"}`}>
-              <span className={`flex-1 ${txt}`}>{c.item}</span>
-              <div className="flex w-32 shrink-0 items-center justify-end gap-1">
+            <div key={c.item} className={`flex h-[21px] items-stretch pl-2 ${i === 0 ? "" : "border-t border-black"}`}>
+              <span className={`flex flex-1 items-center ${txt}`}>{c.item}</span>
+              <div className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black pl-2 pr-4">
                 <span className={txt}>USD</span>
                 <span className={`tabular-nums ${txt}`}>{c.live && live[c.live] == null ? "…" : priceOf(c).toFixed(2)}</span>
               </div>
@@ -87,9 +88,9 @@ export default function SiteRunningCosts() {
           ))}
         </div>
 
-        <div className="flex h-[21px] items-center gap-2 border-t border-black pl-2 pr-4">
-          <span className={`flex-1 ${head}`}>Total monthly cost</span>
-          <div className="flex w-32 shrink-0 items-center justify-end gap-1">
+        <div className="flex h-[21px] items-stretch border-t border-black pl-2">
+          <span className={`flex flex-1 items-center ${head}`}>Total monthly cost</span>
+          <div className="flex w-36 shrink-0 items-center justify-end gap-1 border-l border-black pl-2 pr-4">
             <span className={`font-bold ${txt}`}>USD</span>
             <span className={`font-bold tabular-nums ${txt}`}>{total.toFixed(2)}</span>
           </div>
