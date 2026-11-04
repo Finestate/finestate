@@ -327,7 +327,7 @@ export default function LegalDocuments() {
                   <col className="w-16" />
                 </colgroup>
                 <thead>
-                  <tr className="bg-neutral-100 text-left text-[10px] font-bold uppercase tracking-wide text-neutral-700">
+                  <tr className="bg-neutral-100 text-left text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">
                     <th className={`${lc} font-bold`}>Name</th>
                     <th className={`${lc} font-bold`}>Link</th>
                     {/* Only a heading, like the bin over the main table: the bins in the rows do the work. */}

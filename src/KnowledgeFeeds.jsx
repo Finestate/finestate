@@ -501,7 +501,7 @@ export default function KnowledgeFeeds() {
                 <col className="w-16" />
               </colgroup>
               <thead>
-                <tr className="bg-neutral-100 text-left text-[10px] font-bold uppercase tracking-wide text-neutral-700">
+                <tr className="bg-neutral-100 text-left text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">
                   <th className="border border-black px-2 py-1 font-bold">Name</th>
                   <th className="border border-black px-2 py-1 font-bold">Words to search, or a feed address</th>
                   <th className="border border-black px-2 py-1" />
