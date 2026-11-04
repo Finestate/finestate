@@ -1343,7 +1343,7 @@ export default function Planning() {
               setDropTop(e.clientY < box.top + box.height / 2 ? ti : ti + 1);
             }}
             style={{ backgroundColor: DAY_BG }}
-            className={`flex h-[22px] items-center gap-1.5 border-t border-black px-2 ${dragTop === ti ? "opacity-40" : ""}`}
+            className={`flex h-[18px] items-center gap-1.5 border-t border-black px-2 ${dragTop === ti ? "opacity-40" : ""}`}
           >
             {/* The words are for typing; the rest of the line, chevron included, opens
                 and closes the notes. */}
@@ -1380,7 +1380,7 @@ export default function Planning() {
             return (
               <div className="border-t border-black px-2 py-1" style={{ backgroundColor: DAY_BG }}>
                 {items.map((it, k) => (
-                  <div key={it.id} className={`flex h-[20px] items-center gap-1.5 pl-4 ${k ? "border-t border-neutral-300" : ""}`}>
+                  <div key={it.id} className={`flex h-[18px] items-center gap-1.5 pl-4 ${k ? "border-t border-neutral-300" : ""}`}>
                     <input
                       value={it.text}
                       onChange={(e) => setItems(items.map((x) => (x.id === it.id ? { ...x, text: e.target.value } : x)))}
@@ -1408,7 +1408,7 @@ export default function Planning() {
         <button
           onClick={() => saveTop([{ id: newId(), text: "" }])}
           style={{ backgroundColor: DAY_BG }}
-          className="flex h-[22px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+          className="flex h-[18px] w-full items-center gap-[2px] border-t border-black px-2 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
         >
           <Plus size={11} strokeWidth={3} />Add
         </button>
@@ -1418,7 +1418,7 @@ export default function Planning() {
 
   const renderToday = (first = false) => (
     <>
-      <div className={`flex h-[22px] items-center gap-2 px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
+      <div className={`flex h-[18px] items-center gap-2 px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
         <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
         <button onClick={downloadBackup} title="Download a backup of the dropdowns" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
           <Download size={12} strokeWidth={2.5} />
@@ -1486,7 +1486,7 @@ export default function Planning() {
       // words start on the same edge as every plain line.
       <div className="-my-[2px] break-words text-[11px] font-semibold leading-[19px] text-neutral-900">
         {top.length > 0 && (
-          <span className="-ml-1 border border-[#C9A24A] bg-[#FFF3D6] px-[3px] [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
+          <span className="-ml-1 border-x border-[#C9A24A] bg-[#FFF3D6] px-[3px] [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
         )}
         {top.length > 0 && rest.length > 0 && "-"}
         {rest.map(word)}
@@ -1518,10 +1518,10 @@ export default function Planning() {
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => dropOnLine(b, idx)}
               title="Choose to-dos"
-              className="flex min-h-[21px] cursor-pointer items-start hover:brightness-[0.98]"
+              className="flex min-h-[17px] cursor-pointer items-start hover:brightness-[0.98]"
             >
               {/* Meetings lead, the core codes sit under them, then the long list. */}
-              <div className="flex flex-1 flex-col gap-0 px-2 py-[3px]">
+              <div className="flex flex-1 flex-col gap-0 px-2 py-px">
                 {line.meetings.length > 0 && (
                   <div className="order-1 flex flex-wrap items-center gap-x-2 gap-y-0 leading-[16px]">
                     {line.meetings.map((m, mi) => (
@@ -2260,7 +2260,7 @@ export default function Planning() {
     const off = "text-neutral-900";
     const on = "text-neutral-900 hover:text-[#9c7c33]";
     return (
-      <div className="flex h-[22px] items-center gap-3 border-t border-black bg-neutral-50 px-2">
+      <div className="flex h-[18px] items-center gap-3 border-t border-black bg-neutral-50 px-2">
         <button
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => applyCmd(target, "bold")}
@@ -2294,7 +2294,7 @@ export default function Planning() {
 
   const TypeMenu = ({ at, opts = ALL_TYPES }) => (
     // Plain words in the same style as the Add bar, no boxes.
-    <div className="flex h-[22px] items-center gap-4 border-t border-black bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide">
+    <div className="flex h-[18px] items-center gap-4 border-t border-black bg-neutral-50 px-2 text-[11px] font-bold uppercase leading-none tracking-wide">
       {opts.map(([lbl, type]) => (
         <button key={type} onClick={() => insertAt(at, type)} className="transition-opacity hover:opacity-70" style={{ color: "#C1440E" }}>{lbl}</button>
       ))}
@@ -2382,7 +2382,7 @@ export default function Planning() {
                 <div
                   onClick={plainHead ? () => toggleCollapse(r.id) : undefined}
                   title={plainHead ? (collapsed.includes(r.id) ? "Open" : "Close") : undefined}
-                  className={`group relative flex gap-2 ${topBorder} ${botBorder} px-2 ${plainHead ? "cursor-pointer" : ""} ${isHead ? `h-[22px] items-center py-0` : "min-h-[22px] items-start py-[3px]"}`}
+                  className={`group relative flex gap-2 ${topBorder} ${botBorder} px-2 ${plainHead ? "cursor-pointer" : ""} ${isHead ? `h-[18px] items-center py-0` : "min-h-[18px] items-start py-px"}`}
                   style={{ backgroundColor: bg }}
                 >
                   {field}
