@@ -1832,9 +1832,9 @@ export default function Planning() {
                         const list = points[g] || [];
                         return (
                       // Each brand sits in its own thin frame, its name on a slim strip across the top.
-                      <div key={g} className={BRAND_GROUPS[b] ? "flex flex-col gap-1 border border-[#C1440E] px-1 pb-1" : "contents"}>
+                      <div key={g} className={BRAND_GROUPS[b] ? "flex flex-col gap-1 border border-[#7B1E3A] px-1 pb-1" : "contents"}>
                       {BRAND_GROUPS[b] ? (
-                        <p className="-mx-1 flex h-[20px] items-center border-b border-[#C1440E] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#7B1E3A]">{BRAND_LABELS[g]}</p>
+                        <p className="-mx-1 flex h-[20px] items-center border-b border-[#7B1E3A] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#7B1E3A]">{BRAND_LABELS[g]}:</p>
                       ) : col === "core" && b !== "master" && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
                       )}
