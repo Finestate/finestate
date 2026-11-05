@@ -241,11 +241,12 @@ const tickedText = (lists, lineIdx) =>
 // Boards whose first column is Hyper-prios only, no Regular prios.
 const HYPER_ONLY = ["silx", "says", "servefast", "fin"];
 // Which point groups a dropdown column holds, top to bottom.
-// Says Media splits each column into its brands, A to Z: Dubai Says keeps the points it
-// always had (the original groups), Says has its own.
-const BRAND_GROUPS = { says: { core: ["hyper", "saysHyper"], rest: ["rest", "saysRest"] } };
-const BRAND_LABELS = { hyper: "Dubai Says", rest: "Dubai Says", saysHyper: "Says", saysRest: "Says" };
-const HYPER_GROUPS = ["hyper", "saysHyper"];
+// Says Media splits each column into its brands: Says Media itself, then Says, then Dubai
+// Says. Dubai Says keeps the points it always had (the original groups).
+const BRAND_GROUPS = { says: { core: ["mediaHyper", "saysHyper", "hyper"], rest: ["mediaRest", "saysRest", "rest"] } };
+const BRAND_LABELS = { mediaHyper: "Says Media", mediaRest: "Says Media", saysHyper: "Says", saysRest: "Says", hyper: "Dubai Says", rest: "Dubai Says" };
+const HYPER_GROUPS = ["mediaHyper", "saysHyper", "hyper"];
+const REST_GROUPS = ["mediaRest", "saysRest", "rest"];
 const colGroups = (b, col) =>
   BRAND_GROUPS[b] ? BRAND_GROUPS[b][col] :
   col === "rest" ? ["rest"] : b === "master" ? ["core"] : HYPER_ONLY.includes(b) ? ["hyper"] : ["hyper", "core"];
@@ -1285,7 +1286,7 @@ export default function Planning() {
         (board.meetings || []).forEach((m) => out.push(`- ${m.name}${m.permanent ? " (permanent)" : ""}`));
       }
       (b === "master" ? ["core", "rest"] : [...colGroups(b, "core"), ...colGroups(b, "rest")]).forEach((g) => {
-        const gi = g === "rest" || g === "saysRest" ? 1 : 0;
+        const gi = REST_GROUPS.includes(g) ? 1 : 0;
         const kind = HYPER_GROUPS.includes(g) ? "Hyper-prios" : (GROUP_LABELS[b] || [])[gi] || (g === "core" ? "Core points" : "Other points");
         const label = BRAND_GROUPS[b] ? `${kind} – ${BRAND_LABELS[g]}` : kind;
         out.push("", label);
@@ -1460,7 +1461,7 @@ export default function Planning() {
     try { localStorage.setItem("daily-sub-open", JSON.stringify(next)); } catch {}
   };
   const subsOf = (it) => (it?.subs || []).filter((x) => String(x.text || "").trim());
-  const allPoints = (b) => { const pts = boards[b].points; return [...(pts.hyper || []), ...(pts.saysHyper || []), ...(pts.core || []), ...(pts.rest || []), ...(pts.saysRest || [])]; };
+  const allPoints = (b) => { const pts = boards[b].points; return [...HYPER_GROUPS, "core", ...REST_GROUPS].flatMap((g) => pts[g] || []); };
   const renderShortLine = (b, codes, idx) => {
     const hyper = new Set(HYPER_GROUPS.flatMap((g) => boards[b].points[g] || []).map((it) => it.code));
     const items = codes.map((c) => ({ c, s: shortCode(c) })).filter((x) => x.s);
@@ -1512,8 +1513,8 @@ export default function Planning() {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
         // Selected points keep their group on the line: meetings, core codes, then the rest.
-        const coreCodes = [...(points.hyper || []), ...(points.saysHyper || []), ...(points.core || [])].filter((it) => line.codes.includes(it.code)).map((it) => it.code);
-        const restCodes = [...(points.rest || []), ...(points.saysRest || [])].filter((it) => line.codes.includes(it.code)).map((it) => it.code);
+        const coreCodes = [...HYPER_GROUPS, "core"].flatMap((g) => points[g] || []).filter((it) => line.codes.includes(it.code)).map((it) => it.code);
+        const restCodes = REST_GROUPS.flatMap((g) => points[g] || []).filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
           // Only the pair needs a rule between them; a single line already sits under
@@ -1830,10 +1831,10 @@ export default function Planning() {
                       {colGroups(b, col).map((g) => {
                         const list = points[g] || [];
                         return (
-                      <Fragment key={g}>
+                      // Each brand sits in its own thin frame, its name on a slim strip across the top.
+                      <div key={g} className={BRAND_GROUPS[b] ? "flex flex-col gap-1 border border-neutral-400 px-1 pb-1" : "contents"}>
                       {BRAND_GROUPS[b] ? (
-                        // Each brand's own section, named in the column.
-                        <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{BRAND_LABELS[g]}</p>
+                        <p className="-mx-1 flex h-[20px] items-center border-b border-neutral-400 bg-[#FBEFEC] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{BRAND_LABELS[g]}</p>
                       ) : col === "core" && b !== "master" && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
                       )}
@@ -2036,7 +2037,7 @@ export default function Planning() {
                       {pointDragging(b) && dropP?.board === b && dropP.group === g && list.length > 0 && dropP.index === list.length && (
                         <div className="h-[2px] w-full bg-[#C1440E]" />
                       )}
-                      </Fragment>
+                      </div>
                         );
                       })}
 
