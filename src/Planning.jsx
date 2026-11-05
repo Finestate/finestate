@@ -1904,7 +1904,7 @@ export default function Planning() {
                           <button onClick={() => addPointAfter(b, g, it.id)} title="Add a point under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
                             <Plus size={11} strokeWidth={3} />
                           </button>
-                          {HYPER_GROUPS.includes(g) && HYPER_ONLY.includes(b) && (
+                          {HYPER_ONLY.includes(b) && (
                             // With no list yet a press shows a blank line to type into (a second press hides
                             // it); once a line is typed, it only opens and closes the list.
                             <button
