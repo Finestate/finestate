@@ -241,7 +241,13 @@ const tickedText = (lists, lineIdx) =>
 // Boards whose first column is Hyper-prios only, no Regular prios.
 const HYPER_ONLY = ["silx", "says", "servefast", "fin"];
 // Which point groups a dropdown column holds, top to bottom.
+// Says Media splits each column into its brands, A to Z: Dubai Says keeps the points it
+// always had (the original groups), Says has its own.
+const BRAND_GROUPS = { says: { core: ["hyper", "saysHyper"], rest: ["rest", "saysRest"] } };
+const BRAND_LABELS = { hyper: "Dubai Says", rest: "Dubai Says", saysHyper: "Says", saysRest: "Says" };
+const HYPER_GROUPS = ["hyper", "saysHyper"];
 const colGroups = (b, col) =>
+  BRAND_GROUPS[b] ? BRAND_GROUPS[b][col] :
   col === "rest" ? ["rest"] : b === "master" ? ["core"] : HYPER_ONLY.includes(b) ? ["hyper"] : ["hyper", "core"];
 // They were first called "Daily master" and so on; saved rows are renamed on load.
 const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep" };
@@ -249,7 +255,7 @@ const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep" };
 const OLD_BARS = ["DAILY SILX", "DAILY SAYS", "DAILY SERVEFAST", "SILX", "SAYS", "SERVEFAST"];
 const DAILY_GROUP = "Daily";
 // What an empty day line shows, so the four boards still read apart at a glance.
-const BOARD_TAGS = { master: "Master", silx: "Silx", says: "Says", servefast: "Servefast", fin: "HEIE" };
+const BOARD_TAGS = { master: "Master", silx: "Silx", says: "Says Media", servefast: "Servefast", fin: "HEIE" };
 // A solid burgundy for the marks on a meeting, so they read clearly.
 const MEETING_ICON = "#7B1E3A";
 // The faintest wash of the table red, behind every pair of day lines.
@@ -1101,7 +1107,7 @@ export default function Planning() {
     savePoints(b, { ...boards[b].points, [g]: boards[b].points[g].map((p) => (p.id === id ? stepLevel(p, d) : p)) });
   const addPoint = (b, g) => {
     const p = { id: newId(), code: "" };
-    savePoints(b, { ...boards[b].points, [g]: [...boards[b].points[g], p] });
+    savePoints(b, { ...boards[b].points, [g]: [...(boards[b].points[g] || []), p] });
     setEditing(p.id);
   };
   // The + on a point puts a fresh one straight under it, at the same step in, ready to type.
@@ -1278,9 +1284,10 @@ export default function Planning() {
         out.push("", "Meetings");
         (board.meetings || []).forEach((m) => out.push(`- ${m.name}${m.permanent ? " (permanent)" : ""}`));
       }
-      (b === "master" ? ["core", "rest"] : HYPER_ONLY.includes(b) ? ["hyper", "rest"] : ["hyper", "core", "rest"]).forEach((g) => {
-        const gi = g === "rest" ? 1 : 0;
-        const label = g === "hyper" ? "Hyper-prios" : (GROUP_LABELS[b] || [])[gi] || (g === "core" ? "Core points" : "Other points");
+      (b === "master" ? ["core", "rest"] : [...colGroups(b, "core"), ...colGroups(b, "rest")]).forEach((g) => {
+        const gi = g === "rest" || g === "saysRest" ? 1 : 0;
+        const kind = HYPER_GROUPS.includes(g) ? "Hyper-prios" : (GROUP_LABELS[b] || [])[gi] || (g === "core" ? "Core points" : "Other points");
+        const label = BRAND_GROUPS[b] ? `${kind} – ${BRAND_LABELS[g]}` : kind;
         out.push("", label);
         (board.points?.[g] || []).forEach((it) => {
           out.push(`${pad(it)}- ${it.code}`);
@@ -1453,9 +1460,9 @@ export default function Planning() {
     try { localStorage.setItem("daily-sub-open", JSON.stringify(next)); } catch {}
   };
   const subsOf = (it) => (it?.subs || []).filter((x) => String(x.text || "").trim());
-  const allPoints = (b) => { const pts = boards[b].points; return [...(pts.hyper || []), ...(pts.core || []), ...(pts.rest || [])]; };
+  const allPoints = (b) => { const pts = boards[b].points; return [...(pts.hyper || []), ...(pts.saysHyper || []), ...(pts.core || []), ...(pts.rest || []), ...(pts.saysRest || [])]; };
   const renderShortLine = (b, codes, idx) => {
-    const hyper = new Set((boards[b].points.hyper || []).map((it) => it.code));
+    const hyper = new Set(HYPER_GROUPS.flatMap((g) => boards[b].points[g] || []).map((it) => it.code));
     const items = codes.map((c) => ({ c, s: shortCode(c) })).filter((x) => x.s);
     const word = (x, k) => {
       const it = allPoints(b).find((p) => p.code === x.c);
@@ -1505,8 +1512,8 @@ export default function Planning() {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
         // Selected points keep their group on the line: meetings, core codes, then the rest.
-        const coreCodes = [...(points.hyper || []), ...points.core].filter((it) => line.codes.includes(it.code)).map((it) => it.code);
-        const restCodes = points.rest.filter((it) => line.codes.includes(it.code)).map((it) => it.code);
+        const coreCodes = [...(points.hyper || []), ...(points.saysHyper || []), ...(points.core || [])].filter((it) => line.codes.includes(it.code)).map((it) => it.code);
+        const restCodes = [...(points.rest || []), ...(points.saysRest || [])].filter((it) => line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
           // Only the pair needs a rule between them; a single line already sits under
@@ -1815,13 +1822,19 @@ export default function Planning() {
                       {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master") && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
                       )}
+                      {BRAND_GROUPS[b] && col === "core" && (
+                        <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">Hyper-prios:</p>
+                      )}
                       {/* A company board's Prios column holds two groups: Hyper-prios on top, then the
                           regular ones; points are dragged between them. */}
                       {colGroups(b, col).map((g) => {
                         const list = points[g] || [];
                         return (
                       <Fragment key={g}>
-                      {col === "core" && b !== "master" && (
+                      {BRAND_GROUPS[b] ? (
+                        // Each brand's own section, named in the column.
+                        <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{BRAND_LABELS[g]}</p>
+                      ) : col === "core" && b !== "master" && (
                         <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
                       )}
                       {/* An empty group still takes a dragged point. */}
@@ -1829,7 +1842,10 @@ export default function Planning() {
                         <div
                           onDragOver={(e) => { e.preventDefault(); setDropP({ board: b, group: g, index: 0 }); }}
                           onDrop={(e) => { e.stopPropagation(); dropPoint(b); }}
-                          className={`h-[19px] rounded border border-dashed ${pointDragging(b) && dropP?.board === b && dropP.group === g ? "border-[#C1440E]" : "border-neutral-300"}`}
+                          // In a brand section the empty space also takes a click to start its first point.
+                          onClick={BRAND_GROUPS[b] ? () => addPoint(b, g) : undefined}
+                          title={BRAND_GROUPS[b] ? "Drag a point here, or click to add one" : undefined}
+                          className={`${BRAND_GROUPS[b] ? "cursor-pointer " : ""}h-[19px] rounded border border-dashed ${pointDragging(b) && dropP?.board === b && dropP.group === g ? "border-[#C1440E]" : "border-neutral-300"}`}
                         />
                       )}
                       {list.map((it, pi) => hiddenRows(list).has(it.id) ? null : (
@@ -1888,7 +1904,7 @@ export default function Planning() {
                           <button onClick={() => addPointAfter(b, g, it.id)} title="Add a point under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
                             <Plus size={11} strokeWidth={3} />
                           </button>
-                          {g === "hyper" && HYPER_ONLY.includes(b) && (
+                          {HYPER_GROUPS.includes(g) && HYPER_ONLY.includes(b) && (
                             // With no list yet a press shows a blank line to type into (a second press hides
                             // it); once a line is typed, it only opens and closes the list.
                             <button
@@ -1976,7 +1992,6 @@ export default function Planning() {
                                   <AutoTextarea
                                     boxRef={(el) => { if (el && editing === x.id && document.activeElement !== el) el.focus(); }}
                                     value={x.text || ""}
-                                    wrap="break-words"
                                     onFocus={() => setEditing(x.id)}
                                     onBlur={() => setEditing(null)}
                                     onChange={(e) => {
@@ -1986,7 +2001,7 @@ export default function Planning() {
                                       else if (text) { saveSubs(b, g, it.id, [{ id: x.id, text }]); setSubDraft(null); }
                                     }}
                                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
-                                    className="whitespace-pre-wrap break-words bg-transparent leading-[15px] text-[#9D00FF] outline-none"
+                                    className="whitespace-pre-wrap break-all bg-transparent leading-[15px] text-[#9D00FF] outline-none"
                                   />
                                   {draft ? (
                                     <button onClick={() => setSubDraft(null)} title="Remove this line" className="flex h-[15px] shrink-0 items-center text-neutral-400 hover:text-neutral-900">
