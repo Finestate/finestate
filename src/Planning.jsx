@@ -1843,10 +1843,10 @@ export default function Planning() {
                         <div
                           onDragOver={(e) => { e.preventDefault(); setDropP({ board: b, group: g, index: 0 }); }}
                           onDrop={(e) => { e.stopPropagation(); dropPoint(b); }}
-                          // In a brand section the empty space also takes a click to start its first point.
-                          onClick={BRAND_GROUPS[b] ? () => addPoint(b, g) : undefined}
-                          title={BRAND_GROUPS[b] ? "Drag a point here, or click to add one" : undefined}
-                          className={`${BRAND_GROUPS[b] ? "cursor-pointer " : ""}h-[19px] rounded border border-dashed ${pointDragging(b) && dropP?.board === b && dropP.group === g ? "border-[#C1440E]" : "border-neutral-300"}`}
+                          // The empty space also takes a click to start its first point.
+                          onClick={() => addPoint(b, g)}
+                          title="Drag a point here, or click to add one"
+                          className={`cursor-pointer h-[19px] rounded border border-dashed ${pointDragging(b) && dropP?.board === b && dropP.group === g ? "border-[#C1440E]" : "border-neutral-300"}`}
                         />
                       )}
                       {list.map((it, pi) => hiddenRows(list).has(it.id) ? null : (
@@ -2041,17 +2041,6 @@ export default function Planning() {
                         );
                       })}
 
-                      {/* The add on the floor of the column shows only while it is empty; after that,
-                          each point's own + adds under it. */}
-                      {colGroups(b, col).every((g) => (points[g] || []).length === 0) && (
-                      <button
-                        onClick={() => addPoint(b, colGroups(b, col).slice(-1)[0])}
-                        title="Add a point"
-                        className="mt-auto flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
-                      >
-                        <Plus size={12} />
-                      </button>
-                      )}
                     </div>
                   </div>
                 ); })}
@@ -2195,21 +2184,14 @@ export default function Planning() {
               {rowDragging && dropAt?.col === k && dropAt.index === cols[k].length && (
                 <div className="h-[2px] w-full bg-[#C1440E]" />
               )}
-              {/* The add on the floor of the column shows only while the list is empty; after
-                  that, each line's own + adds under it. */}
+              {/* While the list is empty, a click on the empty space starts its first line, as in
+                  the point columns; after that, each line's own + adds under it. */}
               {cols[k].length === 0 && (
-              <button
+              <div
                 onClick={() => { addColRow(k, false); setFlash(k); setTimeout(() => setFlash((f) => (f === k ? null : f)), 400); }}
-                title="Add a line"
-                // It flashes red for a moment so you can see the line went in.
-                className={`mt-auto flex h-[19px] w-full items-center justify-center rounded border px-1.5 transition-colors ${
-                  flash === k
-                    ? "border-[#C1440E] bg-[#C1440E] text-white"
-                    : "border-neutral-300 bg-white text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
-                }`}
-              >
-                <Plus size={12} />
-              </button>
+                title="Click to add a line"
+                className={`h-[19px] w-full cursor-pointer rounded border border-dashed transition-colors ${flash === k ? "border-[#C1440E]" : "border-neutral-300"}`}
+              />
               )}
             </div>
           </div>
