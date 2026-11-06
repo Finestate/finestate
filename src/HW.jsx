@@ -342,7 +342,8 @@ export default function HW() {
                               value={it.text}
                               onChange={(e) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)) })}
                               style={{ fieldSizing: "content" }}
-                              className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] leading-[15px] text-neutral-900 outline-none"
+                              // Shown in capitals only: the words are kept as typed, so the counts below still find them.
+                              className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] uppercase leading-[15px] text-neutral-900 outline-none"
                             />
                             {String(it.text || "").trim() && <span className="shrink-0 text-[11px] font-semibold leading-[15px] text-[#0f766e]">({countOf(it.text)})</span>}
                             <span className="absolute right-0.5 top-1/2 hidden -translate-y-1/2 group-hover:flex">{binBtn(() => setBp({ items: bp.items.filter((y) => y.id !== it.id) }))}</span>
@@ -370,7 +371,7 @@ export default function HW() {
                         <div
                           onClick={() => setFt({ open: !ft.open })}
                           title={ft.open ? "Close the list" : "Open the list"}
-                          className="flex h-[21px] cursor-pointer select-none items-center justify-center gap-1 border-t border-neutral-400 text-[11px] font-bold leading-[15px] text-neutral-900"
+                          className="flex h-[21px] cursor-pointer select-none items-center justify-center gap-1 border-t border-neutral-400 text-[11px] uppercase leading-[15px] text-neutral-900"
                           style={{ backgroundColor: "#F4D3CA" }}
                         >
                           Functional training exercises
