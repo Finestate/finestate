@@ -1207,8 +1207,8 @@ export default function Planning() {
     const line = boards[b].lines[idx];
     patchLine(b, idx, { extras: { ...(line.extras || {}), [code]: text } });
   };
-  // `own`: sub entries whose brackets can be typed into on the line, starting from what the
-  // point's own brackets hold below (the Ycfoodmd sub entries). Only those typed with brackets get them.
+  // `own`: the Ycfoodmd sub entries. Their brackets show in red as typed in the list below,
+  // and are changed only there, never on the line.
   const renderCodeLine = (b, list, colour, idx, own = []) => (
     // Plain flowing text: each point runs straight on after the square before it, like a sentence.
     // Each square is held to the word before it, so a wrapped line always starts on a word, flush left.
@@ -1224,16 +1224,14 @@ export default function Planning() {
         // brings them back in full next time.
         const trim = hasNotes({ code: c }) && c.match(/^(.*\()([^)]+)\)$/);
         const trimmed = boards[b].lines[idx]?.fills?.[c] ?? (trim ? trim[2] : "");
-        const ownFill = own.includes(c) && /\(.*\)\s*$/.test(String(c)) ? boards[b].lines[idx]?.fills?.[c] ?? codeBrackets(c) : null;
+        const ownFill = own.includes(c) && /\(.*\)\s*$/.test(String(c)) ? codeBrackets(c) : null;
         return (
           <span key={c}>
             {ownFill != null ? (
-              // Its name, then brackets to type into: what the point below holds shows first.
+              // Its name, then its brackets as they read in the list below.
               <span>
                 {String(c).split("(")[0].trim()} (
-                <span className="lowercase" style={{ color: "#B01E2F" }} onClick={(e) => e.stopPropagation()}>
-                  <FillText key={`${b}-${idx}-${c}-own`} text={ownFill} onChange={(t) => setFill(b, idx, c, t)} />
-                </span>
+                <span className="lowercase" style={{ color: "#B01E2F" }}>{ownFill}</span>
                 <span className="whitespace-nowrap">){square}</span>
               </span>
             ) : trim ? (
