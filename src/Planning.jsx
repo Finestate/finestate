@@ -1021,6 +1021,8 @@ export default function Planning() {
   // Picking a meeting moves it onto the line. A one-off also leaves the picker.
   const pickMeeting = (b, idx, m) => {
     const line = boards[b].lines[idx];
+    // A meeting with no name yet stays below: on the line it would show as just its marks.
+    if (!String(m.name || "").trim() && !line.meetings.some((x) => x.id === m.id)) return;
     if (line.meetings.some((x) => x.id === m.id)) {
       patchLine(b, idx, { meetings: line.meetings.filter((x) => x.id !== m.id) });
       return;
@@ -1545,9 +1547,11 @@ export default function Planning() {
             >
               {/* Meetings lead, the core codes sit under them, then the long list. */}
               <div className="flex flex-1 flex-col gap-0 px-2 pt-[3px] pb-[2px]">
-                {line.meetings.length > 0 && (
+                {line.meetings.some((m) => String(m.name || "").trim() || String(boards[b].meetings.find((x) => x.id === m.id)?.name || "").trim()) && (
                   <div className="order-1 flex flex-wrap items-center gap-x-2 gap-y-0 leading-[16px]">
                     {line.meetings.map((m, mi) => {
+                      // A meeting with no name here or in the list below shows nothing but its marks, so it is left out.
+                      if (!String(m.name || "").trim() && !String(boards[b].meetings.find((x) => x.id === m.id)?.name || "").trim()) return null;
                       // A permanent meeting is changed on the line for this day only: the copy in the
                       // dropdown list keeps its name. Its edit is keyed to the line, as both lines can carry it.
                       const perm = m.permanent || boards[b].meetings.some((x) => x.id === m.id && x.permanent);
@@ -1762,7 +1766,11 @@ export default function Planning() {
                         onFocus={() => setEditing(`pool-${m.id}`)}
                         onChange={(e) => renameMeeting(b, m.id, e.target.value.replace(/\r?\n/g, ""))}
                         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
-                        onBlur={() => setEditing(null)}
+                        onBlur={() => {
+                          setEditing(null);
+                          // Left empty, it goes again: no blank meetings in the list.
+                          if (!String(m.name || "").trim()) saveMeetings(b, boards[b].meetings.filter((x) => x.id !== m.id));
+                        }}
                         className="whitespace-pre-wrap break-all bg-transparent leading-[15px] outline-none"
                       />
                       <button onClick={() => addMeetingAfter(b, m.id)} title="Add a meeting under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
