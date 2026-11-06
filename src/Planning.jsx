@@ -1891,6 +1891,7 @@ export default function Planning() {
                   // Meetings come first, on the left; the core codes sit in the middle.
                   className="order-1 flex min-w-0 flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
                 >
+                  <p className="flex items-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Meetings</p>
                   {meetings.map((m, mi) => (
                     <div key={m.id}>
                     {/* A red marker shows exactly where the meeting will land. */}
@@ -1986,6 +1987,13 @@ export default function Planning() {
                       {(() => {
                         const groups = colGroups(b, col);
                         const lists = groups.map((g) => points[g] || []);
+                        // Finestate's long list carries a title, Y, like the columns beside it.
+                        if (b === "master") return (
+                          <p className="flex items-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
+                            Y
+                            {lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}
+                          </p>
+                        );
                         if (!lists.some(hasHeads)) return null;
                         return <div className="flex h-[13px] items-center">{foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}</div>;
                       })()}
