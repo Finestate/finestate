@@ -2039,7 +2039,7 @@ export default function Planning() {
                       {BRAND_GROUPS[b] ? (
                         <p className="-mx-1 flex h-[20px] items-center border-b border-[#C1440E] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#C1440E]">{BRAND_LABELS[g]}:</p>
                       ) : col === "core" && b !== "master" && (
-                        <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
+                        <p className="pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
                       )}
                       {/* An empty group still takes a dragged point. */}
                       {list.length === 0 && (
