@@ -382,6 +382,8 @@ const HYPER_ONLY = ["silx", "says", "servefast", "fin"];
 const BRAND_GROUPS = { says: { core: ["mediaHyper", "saysHyper", "hyper"], rest: ["mediaRest", "saysRest", "rest"] } };
 const BRAND_LABELS = { mediaHyper: "Says Media", mediaRest: "Says Media", saysHyper: "Says", saysRest: "Says", hyper: "Dubai Says", rest: "Dubai Says" };
 const HYPER_GROUPS = ["mediaHyper", "saysHyper", "hyper"];
+// The Says Media day line: one row per section, each with its short tag, prios first.
+const BRAND_ROWS = [["SM", ["mediaHyper", "mediaRest"]], ["SY", ["saysHyper", "saysRest"]], ["DS", ["hyper", "rest"]]];
 const REST_GROUPS = ["mediaRest", "saysRest", "rest"];
 const colGroups = (b, col) =>
   BRAND_GROUPS[b] ? BRAND_GROUPS[b][col] :
@@ -1871,6 +1873,19 @@ export default function Planning() {
                       );
                     })()}
                   </>
+                ) : BRAND_GROUPS[b] ? (
+                  // Says Media: a row for each section (SM, SY, DS), parted by the same fine
+                  // dashed rule as the Master line. A section with nothing ticked takes no row.
+                  (() => {
+                    const rule = `-ml-2 ${idx === 1 ? "-mr-[38px] pr-[38px]" : "-mr-2 pr-2"} mt-[2px] border-t border-dashed border-[#C97A66] pl-2 pt-[2px]`;
+                    const rows = BRAND_ROWS.map(([tag, gs]) => [tag, gs.flatMap((g) => points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(it.code)).map((it) => it.code)]).filter(([, codes]) => codes.length);
+                    return rows.map(([tag, codes], ri) => (
+                      <div key={tag} className={`flex items-start gap-1.5 ${ri > 0 ? rule : ""}`}>
+                        <span className="shrink-0 text-[11px] font-bold leading-[15px] text-[#C1440E]">{tag}:</span>
+                        <div className="min-w-0 flex-1">{renderShortLine(b, codes, idx)}</div>
+                      </div>
+                    ));
+                  })()
                 ) : (
                   (coreCodes.length > 0 || restCodes.length > 0) &&
                     renderShortLine(b, [...coreCodes, ...restCodes], idx)
