@@ -368,8 +368,8 @@ const SINGLE_BOARDS = ["fin"];
 const ERRANDS_AUTOFILL = true;
 // Every ticked line in Errands prios or H+F order feeds the brackets, joined by a dash, no
 // spaces. Unticking takes it back out; the line itself stays in its list.
-// The errands brackets always start with "seebelow", then the ticked lines.
-const bracketText = (lists, lineIdx) => ["seebelow", tickedText(lists, lineIdx)].filter(Boolean).join("-");
+// The errands brackets hold just the ticked lines ("seebelow" now sits in the point's own name).
+const bracketText = (lists, lineIdx) => tickedText(lists, lineIdx);
 const tickedText = (lists, lineIdx) =>
   TWOCOLS.flatMap(([k]) => (lists[k] || []).filter((r) => isPicked(r, lineIdx)).map((r) => String(r.text || "").trim()))
     .filter(Boolean)
@@ -1386,7 +1386,8 @@ export default function Planning() {
         const square = i < list.length - 1 && <span className="mx-1.5 inline-block h-[5px] w-[5px]" style={{ backgroundColor: colour, verticalAlign: "1.5px" }} />;
         const lastGap = String(c).lastIndexOf(" ") + 1;
         const fillable = /\(\)$/.test(c);
-        const fill = boards[b].lines[idx]?.fills?.[c] || "";
+        // Brackets filled before "seebelow" moved into the name drop it here too.
+        const fill = String(boards[b].lines[idx]?.fills?.[c] || "").replace(/^seebelow-?/i, "");
         // SC carries its letters in brackets. On the line they show in red and can be
         // trimmed as each is done; the point below keeps them all, and unticking it
         // brings them back in full next time.
