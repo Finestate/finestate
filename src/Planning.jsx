@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, Check, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { DatePicker, parseDate } from "./LegalDocuments.jsx";
 
@@ -56,12 +56,11 @@ function MeetWhen({ date, time, onChange }) {
       {anchor && !picked && <DatePicker bg={SETUP_BG} value={date} anchor={anchor} onClose={close} onPick={(v) => { setPicked(v); onChange(v, time || ""); }} />}
       {anchor && picked && (
         <>
-          {/* Only the green tick closes it (each pick is already saved): a click outside does nothing. */}
+          {/* Only Set closes it: a click outside does nothing. */}
           <div className="fixed inset-0 z-[70]" />
           <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left, backgroundColor: SETUP_BG }}>
-            <div className="flex items-center justify-between border-b border-neutral-200 px-1 pb-1.5">
+            <div className="flex items-center justify-center border-b border-neutral-200 px-1 pb-1.5">
               <button type="button" onClick={() => setPicked(null)} title="Change the day" className="text-[11px] font-bold uppercase tracking-wide text-neutral-700 hover:text-[#9c7c33]">{picked}</button>
-              <GreenTick onClick={close} />
             </div>
             {/* Thin lines part the day, the hours and the minutes. */}
             <div className="grid grid-cols-6 gap-0.5 border-b border-neutral-200 py-1.5">
@@ -69,10 +68,14 @@ function MeetWhen({ date, time, onChange }) {
                 <button key={h} type="button" onClick={() => onChange(picked, `${h}:${curM || "00"}`)} className={pill(curH === h)} style={curH === h ? on : undefined}>{h}</button>
               ))}
             </div>
-            <div className="grid grid-cols-6 gap-0.5 pt-1.5">
+            <div className="grid grid-cols-6 gap-0.5 border-b border-neutral-200 py-1.5">
               {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((x) => (
                 <button key={x} type="button" onClick={() => onChange(picked, `${curH || "09"}:${x}`)} className={pill(curH != null && curH !== "" && (curM || "00") === x)} style={curH && (curM || "00") === x ? on : undefined}>:{x}</button>
               ))}
+            </div>
+            {/* Set closes it; each pick is already saved. */}
+            <div className="flex justify-end pt-1.5">
+              <button type="button" onClick={close} className="rounded px-3 text-[11px] font-bold leading-[17px] text-white hover:opacity-80" style={{ backgroundColor: "#9c7c33" }}>Set</button>
             </div>
           </div>
         </>
@@ -87,13 +90,6 @@ const SETUP_BG = "#FFF1D6";
 const RedX = ({ onClick }) => (
   <button type="button" onClick={onClick} title="Close" className="box-border flex aspect-square h-[15px] w-[15px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#C1440E] bg-transparent p-0 leading-none text-[#C1440E] hover:opacity-70">
     <X size={9} strokeWidth={3} className="block" />
-  </button>
-);
-
-// Done: a green ring with a green tick, on no fill, the same size as the red close.
-const GreenTick = ({ onClick }) => (
-  <button type="button" onClick={onClick} title="Done" className="box-border flex aspect-square h-[15px] w-[15px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#16a34a] bg-transparent p-0 leading-none text-[#16a34a] hover:opacity-70">
-    <Check size={9} strokeWidth={3.5} className="block" />
   </button>
 );
 
