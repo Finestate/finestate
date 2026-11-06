@@ -1852,11 +1852,11 @@ export default function Planning() {
                       {
                         for (const g of ["core", "rest"]) {
                           const list = points[g] || [];
-                          const at = list.findIndex((p) => /^\s*(ycfood|errands\b)/i.test(p.code));
+                          const at = list.findIndex((p) => /^\s*(ycfood|errands(?!\s*prios))/i.test(p.code));
                           if (at >= 0) subs = [...subs, ...list.slice(at + 1, blockEnd(list, at)).map((p) => p.code)];
                         }
                       }
-                      const own = [...all.filter((c) => /^\s*(ycfood|errands\b)/i.test(c)), ...subs.filter((c) => all.includes(c))];
+                      const own = [...all.filter((c) => /^\s*(ycfood|errands(?!\s*prios))/i.test(c)), ...subs.filter((c) => all.includes(c))];
                       const rest = all.filter((c) => !own.includes(c));
                       // A fine dashed rule parts the three rows (meetings, Ycfoodmd, the rest), only
                       // where a row sits under another.
