@@ -2302,7 +2302,7 @@ export default function Planning() {
         {/* Errands prios and HF order share one column, HF order underneath, parted by a thin rule. */}
         <div className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
         {TWOCOLS.map(([k, label], ki) => { const hidden = hiddenRows(cols[k]); return (
-          <div key={k} className={`flex min-w-0 flex-col ${ki > 0 ? "-mx-1.5 mt-1.5 border-t border-[#C1440E] px-1.5 pt-1.5" : ""}`}>
+          <div key={k} className={`flex min-w-0 flex-col ${ki > 0 ? "-mx-1.5 mt-1.5 border-t-[3px] border-[#C1440E] px-1.5 pt-1.5" : ""}`}>
             <p className="mb-1 flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
               {label}
               {hasHeads(cols[k]) && foldLink(anyShut(cols[k]), () => foldAllCol(k))}
