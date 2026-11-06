@@ -578,6 +578,26 @@ const withDailySections = (rawList) => {
 // A box as tall as its words. A hidden copy of the text sits in the same spot and sets
 // the height, so it always grows a line when the words wrap, whatever the width.
 // boxRef hands the box itself to whoever needs to focus it.
+// A bullet takes the colour of the words on its line: all red, a red bullet, all black, a black one.
+// Mixed lines keep the plain text colour.
+function tintBullets(el) {
+  if (!el) return;
+  el.querySelectorAll("li").forEach((li) => {
+    li.style.color = "";
+    const colours = new Set();
+    const walk = document.createTreeWalker(li, NodeFilter.SHOW_TEXT);
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      if (!n.nodeValue.trim()) continue;
+      // Only this line's own words, not a list stepped in under it.
+      if (n.parentElement.closest("li") !== li) continue;
+      colours.add(getComputedStyle(n.parentElement).color);
+    }
+    const one = colours.size === 1 ? [...colours][0] : null;
+    if (one && one !== getComputedStyle(li).color) li.style.color = one;
+    if (!li.getAttribute("style")) li.removeAttribute("style");
+  });
+}
+
 function AutoTextarea({ value, boxRef, className = "", wrap = "break-all", fit = false, ...props }) {
   return (
     // `fit`: only as wide as its words, so something can sit right after them.
@@ -1056,6 +1076,7 @@ export default function Planning() {
     if (!el) return;
     el.focus();
     document.execCommand(cmd);
+    tintBullets(el);
     updateHtml(i, el.innerHTML);
   };
   // Two colour buttons: one turns the highlighted words red, the other black.
@@ -1067,6 +1088,7 @@ export default function Planning() {
     if (!el) return;
     el.focus();
     document.execCommand("foreColor", false, color);
+    tintBullets(el);
     updateHtml(i, el.innerHTML);
   };
   const bump = (i, d) => persistRows(rows.map((r, idx) => (idx === i ? { ...r, indent: Math.max(0, Math.min(6, (r.indent || 0) + d)) } : r)));
@@ -1137,6 +1159,7 @@ export default function Planning() {
     if (!el) return;
     el.focus();
     document.execCommand(cmd);
+    tintBullets(el);
     keepNotes(b, el.innerHTML);
   };
   const noteRed = (b, color = INK_RED) => {
@@ -1144,6 +1167,7 @@ export default function Planning() {
     if (!el) return;
     el.focus();
     document.execCommand("foreColor", false, color);
+    tintBullets(el);
     keepNotes(b, el.innerHTML);
   };
   const patchLine = (b, idx, fields) => saveLines(b, boards[b].lines.map((l, i) => (i === idx ? { ...l, ...fields } : l)));
