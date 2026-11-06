@@ -56,7 +56,8 @@ function MeetWhen({ date, time, onChange }) {
       {anchor && !picked && <DatePicker bg={SETUP_BG} value={date} anchor={anchor} onClose={close} onPick={(v) => { setPicked(v); onChange(v, time || ""); }} />}
       {anchor && picked && (
         <>
-          <div className="fixed inset-0 z-[70]" onClick={close} />
+          {/* Only the X closes it: a click outside does nothing. */}
+          <div className="fixed inset-0 z-[70]" />
           <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left, backgroundColor: SETUP_BG }}>
             <div className="flex items-center justify-between border-b border-neutral-200 px-1 pb-1.5">
               <button type="button" onClick={() => setPicked(null)} title="Change the day" className="text-[11px] font-bold uppercase tracking-wide text-neutral-700 hover:text-[#9c7c33]">{picked}</button>
@@ -82,10 +83,10 @@ function MeetWhen({ date, time, onChange }) {
 
 // The meeting setup boxes share one soft tint, so they stand apart from the page.
 const SETUP_BG = "#FFF1D6";
-// Close: a red circle with a white X.
+// Close: a red ring with a red X, on no fill.
 const RedX = ({ onClick }) => (
-  <button type="button" onClick={onClick} title="Close" className="flex h-[14px] w-[14px] shrink-0 items-center justify-center rounded-full bg-[#C1440E] text-white hover:opacity-80">
-    <X size={9} strokeWidth={3.5} />
+  <button type="button" onClick={onClick} title="Close" className="box-border flex aspect-square h-[15px] w-[15px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#C1440E] bg-transparent p-0 leading-none text-[#C1440E] hover:opacity-70">
+    <X size={9} strokeWidth={3} className="block" />
   </button>
 );
 
@@ -104,7 +105,8 @@ function MeetForm({ anchor, init, onSave, onClose }) {
   const field = "w-full min-w-0 rounded-sm bg-white px-1 text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none";
   return (
     <>
-      <div className="fixed inset-0 z-[60]" onClick={onClose} />
+      {/* Only Save or the X closes it: a click outside keeps everything typed. */}
+      <div className="fixed inset-0 z-[60]" />
       <div className="fixed z-[65] w-64 rounded-lg border border-neutral-200 px-2 pb-2 pt-1 shadow-xl" style={{ top: anchor.top, left: anchor.left, backgroundColor: SETUP_BG }}>
         <div className="flex h-[21px] items-center justify-between border-b border-neutral-200">
           <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-700">Meeting</span>
