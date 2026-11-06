@@ -31,7 +31,7 @@ export function parseDate(s) {
 }
 
 // The same picker used on the other sites, in Finestate's gold.
-export function DatePicker({ value, onPick, onClose, anchor }) {
+export function DatePicker({ value, onPick, onClose, anchor, bg = "#ffffff" }) {
   const sel = parseDate(value);
   const now = new Date();
   const [view, setView] = useState(() => (sel ? { y: sel.y, m: sel.m } : { y: now.getFullYear(), m: now.getMonth() }));
@@ -51,7 +51,7 @@ export function DatePicker({ value, onPick, onClose, anchor }) {
   return (
     <>
       <div className="fixed inset-0 z-[70]" onClick={onClose} />
-      <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
+      <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left, backgroundColor: bg }}>
         {/* Double chevrons jump a year at a time, single ones a month. */}
         <div className="flex items-center justify-between px-1 pb-1.5">
           <span className="flex items-center">

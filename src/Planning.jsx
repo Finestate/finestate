@@ -45,7 +45,7 @@ function MeetWhen({ date, time, onChange }) {
   const close = () => { setAnchor(null); setPicked(null); };
   const code = whenCode(date, time);
   const [curH, curM] = String(time || "").split(":");
-  const pill = (on) => `h-6 rounded text-[11px] transition-colors ${on ? "font-bold text-white" : "text-neutral-700 hover:bg-neutral-100"}`;
+  const pill = (on) => `h-6 rounded text-[11px] transition-colors ${on ? "font-bold text-white" : "text-neutral-700 hover:bg-white"}`;
   const on = { backgroundColor: "#9c7c33" };
   return (
     <>
@@ -53,14 +53,14 @@ function MeetWhen({ date, time, onChange }) {
         {code || <Calendar size={11} className="text-neutral-400" />}
       </button>
       {/* A day picked keeps the time already set. */}
-      {anchor && !picked && <DatePicker value={date} anchor={anchor} onClose={close} onPick={(v) => { setPicked(v); onChange(v, time || ""); }} />}
+      {anchor && !picked && <DatePicker bg={SETUP_BG} value={date} anchor={anchor} onClose={close} onPick={(v) => { setPicked(v); onChange(v, time || ""); }} />}
       {anchor && picked && (
         <>
           <div className="fixed inset-0 z-[70]" onClick={close} />
-          <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
+          <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left, backgroundColor: SETUP_BG }}>
             <div className="flex items-center justify-between border-b border-neutral-200 px-1 pb-1.5">
               <button type="button" onClick={() => setPicked(null)} title="Change the day" className="text-[11px] font-bold uppercase tracking-wide text-neutral-700 hover:text-[#9c7c33]">{picked}</button>
-              <button type="button" onClick={close} title="Close" className="rounded p-0.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><X size={13} /></button>
+              <RedX onClick={close} />
             </div>
             {/* Thin lines part the day, the hours and the minutes. */}
             <div className="grid grid-cols-6 gap-0.5 border-b border-neutral-200 py-1.5">
@@ -80,6 +80,15 @@ function MeetWhen({ date, time, onChange }) {
   );
 }
 
+// The meeting setup boxes share one soft tint, so they stand apart from the page.
+const SETUP_BG = "#FFF1D6";
+// Close: a red circle with a white X.
+const RedX = ({ onClick }) => (
+  <button type="button" onClick={onClick} title="Close" className="flex h-[14px] w-[14px] shrink-0 items-center justify-center rounded-full bg-[#C1440E] text-white hover:opacity-80">
+    <X size={9} strokeWidth={3.5} />
+  </button>
+);
+
 // How a meeting reads, all written together: name, location, then its date and time code.
 const meetLabel = (m) => `${m.name || ""}${m.location || ""}${m.permanent ? "" : whenCode(m.date, m.time)}`;
 
@@ -92,11 +101,15 @@ function MeetForm({ anchor, init, onSave, onClose }) {
   const keys = (e) => { if (e.key === "Enter") save(); if (e.key === "Escape") onClose(); };
   const row = "grid h-[21px] grid-cols-[86px_1fr] items-center border-b border-neutral-200";
   const label = "whitespace-nowrap text-[11px] font-bold text-neutral-500";
-  const field = "w-full min-w-0 bg-transparent text-[11px] font-semibold text-neutral-700 outline-none";
+  const field = "w-full min-w-0 rounded-sm bg-white px-1 text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none";
   return (
     <>
       <div className="fixed inset-0 z-[60]" onClick={onClose} />
-      <div className="fixed z-[65] w-64 rounded-lg border border-neutral-200 bg-white px-2 pb-2 pt-1 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
+      <div className="fixed z-[65] w-64 rounded-lg border border-neutral-200 px-2 pb-2 pt-1 shadow-xl" style={{ top: anchor.top, left: anchor.left, backgroundColor: SETUP_BG }}>
+        <div className="flex h-[21px] items-center justify-between border-b border-neutral-200">
+          <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-700">Meeting</span>
+          <RedX onClick={onClose} />
+        </div>
         <div className={row}><span className={label}>Name</span><input autoFocus value={f.name} onChange={(e) => set("name", e.target.value)} onKeyDown={keys} className={field} /></div>
         <div className={row}><span className={label}>Location</span><input value={f.location || ""} onChange={(e) => set("location", e.target.value)} onKeyDown={keys} className={field} /></div>
         {!f.permanent && (
@@ -109,7 +122,6 @@ function MeetForm({ anchor, init, onSave, onClose }) {
         {/* What it will read as on the list. */}
         <div className="truncate pt-1 text-[11px] font-semibold text-neutral-700">{meetLabel(f) || " "}</div>
         <div className="flex justify-end gap-1.5 pt-1">
-          <button type="button" onClick={onClose} className="rounded border border-neutral-300 px-2 text-[11px] leading-[17px] text-neutral-700 hover:bg-neutral-100">Cancel</button>
           <button type="button" onClick={save} disabled={!String(f.name).trim()} className="rounded px-2 text-[11px] font-bold leading-[17px] text-white disabled:opacity-40" style={{ backgroundColor: "#9c7c33" }}>Save</button>
         </div>
       </div>
