@@ -1087,6 +1087,8 @@ export default function Planning() {
     const subs = (it.subs || []).slice();
     const at = afterId ? subs.findIndex((x) => x.id === afterId) + 1 : subs.length;
     const row = { id: newId(), text: "" };
+    // A new line starts at the same step in as the one it is added under.
+    if (at > 0 && levelOf(subs[at - 1])) row.level = levelOf(subs[at - 1]);
     subs.splice(at, 0, row);
     saveSubs(b, g, it.id, subs);
     setEditing(row.id);
@@ -1723,7 +1725,7 @@ export default function Planning() {
               return lists.length > 0 && (
                 <div className="-mt-[2px] px-2 pb-[3px] text-[11px] leading-[15px]">
                   {lists.flatMap((it) => subsOf(it)).map((x) => (
-                    <p key={x.id} className="whitespace-pre-wrap break-words text-[#9D00FF]">{x.text}</p>
+                    <p key={x.id} style={levelOf(x) ? { paddingLeft: `${12 * levelOf(x)}px` } : undefined} className="whitespace-pre-wrap break-words text-[#9D00FF]">{x.text}</p>
                   ))}
                 </div>
               );
@@ -2044,6 +2046,8 @@ export default function Planning() {
                                 {dragS?.id === it.id && dropS?.id === it.id && dropS.index === si && <div className="mb-1 h-[2px] w-full bg-[#C1440E]" />}
                                 <div
                                   data-sub-row
+                                  // A stepped in line sits further right, a step at a time; nothing folds, every level shows.
+                                  style={levelOf(x) ? { marginLeft: `${20 * levelOf(x)}px` } : undefined}
                                   // The blank line waiting to be typed into is a plain dashed grey: nothing is saved yet.
                                   className={`flex items-start gap-1 rounded border bg-white py-0.5 pl-1.5 pr-1.5 text-[11px] font-semibold text-[#9D00FF] ${draft ? "border-dashed border-neutral-300" : "border-[#9D00FF]"} ${dragS?.id === it.id && dragS.index === si ? "opacity-40" : ""}`}
                                 >
@@ -2068,6 +2072,12 @@ export default function Planning() {
                                   ) : (<>
                                   <button onClick={() => addSub(b, g, it, x.id)} title="Add a line under this one" className="flex h-[15px] shrink-0 items-center text-[#9D00FF] hover:opacity-70">
                                     <Plus size={11} strokeWidth={3} />
+                                  </button>
+                                  <button onClick={() => saveSubs(b, g, it.id, it.subs.map((y) => (y.id === x.id ? stepLevel(y, -1) : y)))} title="Step out" className="flex h-[15px] shrink-0 items-center text-[#9D00FF] opacity-60 hover:opacity-100">
+                                    <ChevronsLeft size={11} />
+                                  </button>
+                                  <button onClick={() => saveSubs(b, g, it.id, it.subs.map((y) => (y.id === x.id ? stepLevel(y, 1) : y)))} title="Step in" className="flex h-[15px] shrink-0 items-center text-[#9D00FF] opacity-60 hover:opacity-100">
+                                    <ChevronsRight size={11} />
                                   </button>
                                   <span
                                     draggable
