@@ -58,18 +58,17 @@ function MeetWhen({ date, time, onChange }) {
         <>
           <div className="fixed inset-0 z-[70]" onClick={close} />
           <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
-            <div className="flex items-center justify-between px-1 pb-1.5">
-              <button type="button" onClick={() => setPicked(null)} title="Change the day" className="text-[11px] font-bold uppercase tracking-wide text-neutral-700 underline hover:text-[#9c7c33]">{picked}</button>
+            <div className="flex items-center justify-between border-b border-neutral-200 px-1 pb-1.5">
+              <button type="button" onClick={() => setPicked(null)} title="Change the day" className="text-[11px] font-bold uppercase tracking-wide text-neutral-700 hover:text-[#9c7c33]">{picked}</button>
               <button type="button" onClick={close} title="Close" className="rounded p-0.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><X size={13} /></button>
             </div>
-            <div className="mb-0.5 text-[9px] font-bold uppercase text-neutral-400">Hour</div>
-            <div className="mb-1.5 grid grid-cols-6 gap-0.5">
+            {/* Thin lines part the day, the hours and the minutes. */}
+            <div className="grid grid-cols-6 gap-0.5 border-b border-neutral-200 py-1.5">
               {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0")).map((h) => (
                 <button key={h} type="button" onClick={() => onChange(picked, `${h}:${curM || "00"}`)} className={pill(curH === h)} style={curH === h ? on : undefined}>{h}</button>
               ))}
             </div>
-            <div className="mb-0.5 text-[9px] font-bold uppercase text-neutral-400">Minutes</div>
-            <div className="grid grid-cols-6 gap-0.5">
+            <div className="grid grid-cols-6 gap-0.5 pt-1.5">
               {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((x) => (
                 <button key={x} type="button" onClick={() => onChange(picked, `${curH || "09"}:${x}`)} className={pill(curH != null && curH !== "" && (curM || "00") === x)} style={curH && (curM || "00") === x ? on : undefined}>:{x}</button>
               ))}
