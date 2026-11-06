@@ -358,6 +358,53 @@ export default function HW() {
                       </div>
                     );
                   })()}
+                  {/* Right under the body areas: Functional training exercises, one title across the table.
+                      A click anywhere on it opens its list of exercises, one per line, added,
+                      moved and binned. Open or shut is kept with the rest. */}
+                  {(() => {
+                    const ft = g.functional || { open: false, rows: [] };
+                    const setFt = (fields) => editGroup(g.id, (x) => ({ ...x, functional: { ...(x.functional || { open: false, rows: [] }), ...fields } }));
+                    const key = `func-${g.id}`;
+                    return (
+                      <>
+                        <div
+                          onClick={() => setFt({ open: !ft.open })}
+                          title={ft.open ? "Close the list" : "Open the list"}
+                          className="flex h-[21px] cursor-pointer select-none items-center justify-center gap-1 border-t border-neutral-400 text-[11px] font-bold leading-[15px] text-neutral-900"
+                          style={{ backgroundColor: "#F4D3CA" }}
+                        >
+                          Functional training exercises
+                          <ChevronDown size={12} className={`shrink-0 transition-transform ${ft.open ? "rotate-180" : ""}`} />
+                        </div>
+                        {/* Same colour as the body areas row and its title. */}
+                        {ft.open && (
+                          <div className="border-t border-neutral-400" style={{ backgroundColor: "#F4D3CA" }}>
+                            {ft.rows.map((r, ri) => (
+                              <div key={r.id} {...dropProps(key, ri, (from, to) => setFt({ rows: moved(ft.rows, from, to) }))}>
+                                {marker(key, ri)}
+                                <div className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
+                                  <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
+                                    <GrowText value={r.text || ""} onChange={(t) => setFt({ rows: ft.rows.map((y) => (y.id === r.id ? { ...y, text: t } : y)) })} rows={1} />
+                                  </div>
+                                  <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
+                                    {grip(key, ri, true)}
+                                    {binBtn(() => setFt({ rows: ft.rows.filter((y) => y.id !== r.id) }))}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                            {marker(key, ft.rows.length)}
+                            <button
+                              onClick={() => setFt({ rows: [...ft.rows, { id: newId(), text: "" }] })}
+                              className={`flex h-[21px] w-full items-center pl-[7px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${ft.rows.length ? "border-t border-neutral-400" : ""}`}
+                            >
+                              Add
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                     {weekOf(g).map((w, wi) => {
                       return (
                       <div key={wi} className="flex items-stretch border-t border-neutral-400">
