@@ -159,7 +159,7 @@ const NOTES_KEY = "finestate.planning.notes"; // department notes, one per compa
 const PLAN_KEY = "planning"; // the whole page, kept in the private admin_docs table
 
 // The lists that sit under the daily area, side by side, under one folding bar.
-const TWOCOLS = [["errands", "Errands prios"], ["hf", "H+F order"]];
+const TWOCOLS = [["errands", "Errands prios"], ["hf", "HF order"]];
 const PERSONAL_ID = "personal-order";
 // A tick lives on one day line. Older saves ticked the list itself, and those count
 // as ticks on the first line.
@@ -1891,7 +1891,7 @@ export default function Planning() {
                   // Meetings come first, on the left; the core codes sit in the middle.
                   className="order-1 flex min-w-0 flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
                 >
-                  <p className="flex items-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Meetings</p>
+                  <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Meetings</p>
                   {meetings.map((m, mi) => (
                     <div key={m.id}>
                     {/* A red marker shows exactly where the meeting will land. */}
@@ -1987,10 +1987,10 @@ export default function Planning() {
                       {(() => {
                         const groups = colGroups(b, col);
                         const lists = groups.map((g) => points[g] || []);
-                        // Finestate's long list carries a title, Y, like the columns beside it.
+                        // Finestate's long list carries a title, YOU, like the columns beside it.
                         if (b === "master") return (
-                          <p className="flex items-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
-                            Y
+                          <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
+                            YOU
                             {lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}
                           </p>
                         );
@@ -2276,7 +2276,7 @@ export default function Planning() {
       <div className="contents">
         {TWOCOLS.map(([k, label]) => { const hidden = hiddenRows(cols[k]); return (
           <div key={k} className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
-            <p className="mb-1 flex items-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
+            <p className="mb-1 flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
               {label}
               {hasHeads(cols[k]) && foldLink(anyShut(cols[k]), () => foldAllCol(k))}
             </p>
