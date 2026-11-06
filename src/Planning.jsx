@@ -1881,7 +1881,8 @@ export default function Planning() {
                     const rows = BRAND_ROWS.map(([tag, gs]) => [tag, gs.flatMap((g) => points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(it.code)).map((it) => it.code)]).filter(([, codes]) => codes.length);
                     return rows.map(([tag, codes], ri) => (
                       <div key={tag} className={`flex items-start gap-1.5 ${ri > 0 ? rule : ""}`}>
-                        <span className="shrink-0 text-[11px] font-bold leading-[15px] text-[#C1440E]">{tag}:</span>
+                        {/* A fixed width, so the codes after SM, SY and DS all start on the same edge. */}
+                        <span className="w-[24px] shrink-0 text-[11px] font-bold leading-[15px] text-[#C1440E]">{tag}:</span>
                         <div className="min-w-0 flex-1">{renderShortLine(b, codes, idx)}</div>
                       </div>
                     ));
