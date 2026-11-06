@@ -2024,10 +2024,10 @@ export default function Planning() {
                         return <div className="flex h-[13px] items-center">{foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}</div>;
                       })()}
                       {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master") && (
-                        <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">{GROUP_LABELS[b][gi]}:</p>
+                        <p className="pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{GROUP_LABELS[b][gi]}:</p>
                       )}
                       {BRAND_GROUPS[b] && col === "core" && (
-                        <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-500">Hyper-prios:</p>
+                        <p className="pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Hyper-prios:</p>
                       )}
                       {/* A company board's Prios column holds two groups: Hyper-prios on top, then the
                           regular ones; points are dragged between them. */}
