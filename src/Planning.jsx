@@ -475,7 +475,9 @@ const moveBlock = (list, from, to) => {
 };
 // A line with stepped-in lines right under it heads a group: it can be closed and
 // opened, and closing it hides everything under it until the next line at its level.
-const isHead = (list, i) => i + 1 < list.length && levelOf(list[i + 1]) > levelOf(list[i]);
+// Ycfoodmd always shows the lines stepped in under it: it never folds shut.
+const alwaysOpen = (r) => /^\s*ycfood/i.test(String(r?.code || ""));
+const isHead = (list, i) => i + 1 < list.length && levelOf(list[i + 1]) > levelOf(list[i]) && !alwaysOpen(list[i]);
 const hiddenRows = (list) => {
   const hidden = new Set();
   let closedAt = null;
