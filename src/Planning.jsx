@@ -1843,7 +1843,7 @@ export default function Planning() {
                 {MEETING_BOARDS.includes(b) ? (
                   <>
                     {/* All the ticked points run on as one line of text, so the next one starts right after the last square. */}
-                    {/* On both day lines Ycfoodmd sits on a row of its own, straight under the meetings. */}
+                    {/* On both day lines Errands (once Ycfoodmd) sits on a row of its own, straight under the meetings. */}
                     {(() => {
                       const all = [...coreCodes, ...restCodes];
                       // Its ticked sub entries (the points stepped in under it, at any depth) follow it on that row.
@@ -1851,11 +1851,11 @@ export default function Planning() {
                       {
                         for (const g of ["core", "rest"]) {
                           const list = points[g] || [];
-                          const at = list.findIndex((p) => /^\s*ycfood/i.test(p.code));
+                          const at = list.findIndex((p) => /^\s*(ycfood|errands\b)/i.test(p.code));
                           if (at >= 0) subs = [...subs, ...list.slice(at + 1, blockEnd(list, at)).map((p) => p.code)];
                         }
                       }
-                      const own = [...all.filter((c) => /^\s*ycfood/i.test(c)), ...subs.filter((c) => all.includes(c))];
+                      const own = [...all.filter((c) => /^\s*(ycfood|errands\b)/i.test(c)), ...subs.filter((c) => all.includes(c))];
                       const rest = all.filter((c) => !own.includes(c));
                       // A fine dashed rule parts the three rows (meetings, Ycfoodmd, the rest), only
                       // where a row sits under another.
