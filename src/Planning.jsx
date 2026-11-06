@@ -80,6 +80,43 @@ function MeetWhen({ date, time, onChange }) {
   );
 }
 
+// How a meeting reads, all written together: name, location, then its date and time code.
+const meetLabel = (m) => `${m.name || ""}${m.location || ""}${m.permanent ? "" : whenCode(m.date, m.time)}`;
+
+// The + opens this little table: name, location, date and time, and a tick for a recurring one.
+// Clicking a meeting opens it again to change it.
+function MeetForm({ anchor, init, onSave, onClose }) {
+  const [f, setF] = useState(() => ({ name: "", location: "", date: "", time: "", permanent: false, ...init }));
+  const set = (k, v) => setF((x) => ({ ...x, [k]: v }));
+  const save = () => { if (String(f.name).trim()) onSave({ ...f, name: f.name.trim(), location: String(f.location || "").trim() }); };
+  const keys = (e) => { if (e.key === "Enter") save(); if (e.key === "Escape") onClose(); };
+  const row = "grid h-[21px] grid-cols-[86px_1fr] items-center border-b border-neutral-200";
+  const label = "whitespace-nowrap text-[11px] font-bold text-neutral-500";
+  const field = "w-full min-w-0 bg-transparent text-[11px] font-semibold text-neutral-700 outline-none";
+  return (
+    <>
+      <div className="fixed inset-0 z-[60]" onClick={onClose} />
+      <div className="fixed z-[65] w-64 rounded-lg border border-neutral-200 bg-white px-2 pb-2 pt-1 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
+        <div className={row}><span className={label}>Name</span><input autoFocus value={f.name} onChange={(e) => set("name", e.target.value)} onKeyDown={keys} className={field} /></div>
+        <div className={row}><span className={label}>Location</span><input value={f.location || ""} onChange={(e) => set("location", e.target.value)} onKeyDown={keys} className={field} /></div>
+        {!f.permanent && (
+          <div className={row}><span className={label}>Date and time</span><span className="flex text-[11px] font-semibold text-neutral-700"><MeetWhen date={f.date} time={f.time} onChange={(d, t) => setF((x) => ({ ...x, date: d, time: t }))} /></span></div>
+        )}
+        <div className={row}>
+          <span className={label}>Recurring</span>
+          <input type="checkbox" checked={!!f.permanent} onChange={(e) => set("permanent", e.target.checked)} className="block h-[10px] w-[10px] cursor-pointer" style={{ accentColor: "#C1440E", margin: 0 }} />
+        </div>
+        {/* What it will read as on the list. */}
+        <div className="truncate pt-1 text-[11px] font-semibold text-neutral-700">{meetLabel(f) || " "}</div>
+        <div className="flex justify-end gap-1.5 pt-1">
+          <button type="button" onClick={onClose} className="rounded border border-neutral-300 px-2 text-[11px] leading-[17px] text-neutral-700 hover:bg-neutral-100">Cancel</button>
+          <button type="button" onClick={save} disabled={!String(f.name).trim()} className="rounded px-2 text-[11px] font-bold leading-[17px] text-white disabled:opacity-40" style={{ backgroundColor: "#9c7c33" }}>Save</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
 // Same ramp as the Costs table: darkest gold on the main title bars, then down.
@@ -631,11 +668,14 @@ export default function Planning() {
   // One board per daily heading: Master keeps the original saves, the company ones
   // start empty and are stored beside them.
   const [boards, setBoards] = useState(loadBoards);
-  const [newMeeting, setNewMeeting] = useState("");
-  const [newPermanent, setNewPermanent] = useState(false);
-  const [newDate, setNewDate] = useState("");
-  const [newTime, setNewTime] = useState("");
-  const [adding, setAdding] = useState(false);
+  // The meeting table open from a +, or from clicking a meeting: { b, id (none when new), anchor }.
+  const [meetForm, setMeetForm] = useState(null);
+  const openMeetForm = (e, b, id = null) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const height = 170;
+    const top = r.bottom + 4 + height > window.innerHeight ? Math.max(4, r.top - 4 - height) : r.bottom + 4;
+    setMeetForm({ b, id, anchor: { top, left: Math.max(4, Math.min(r.left, window.innerWidth - 264)) } });
+  };
   // What is being dragged: a box from the picker, or a name already on a line.
   const [drag, setDrag] = useState(null);
   const [editing, setEditing] = useState(null); // meeting being typed in, so dragging steps aside
@@ -1233,24 +1273,18 @@ export default function Planning() {
       saveMeetings(b, next);
     }
   };
-  // The + on a meeting puts a fresh one straight under it, ready to type.
-  const addMeetingAfter = (b, id) => {
-    const list = boards[b].meetings.slice();
-    const at = list.findIndex((x) => x.id === id);
-    // It takes the date of the one above, so it lands right under it.
-    const m = { id: newId(), name: "", permanent: false, ...(list[at]?.date && !list[at].permanent ? { date: list[at].date, time: list[at].time } : {}) };
-    list.splice(at + 1, 0, m);
-    saveMeetings(b, list);
-    setEditing(m.id);
-  };
-  const addMeeting = (b) => {
-    const name = newMeeting.trim();
-    if (!name) return;
-    saveMeetings(b, [...boards[b].meetings, { id: newId(), name, permanent: newPermanent, ...(!newPermanent && newDate ? { date: newDate, time: newTime } : {}) }]);
-    setNewMeeting("");
-    setNewPermanent(false);
-    setNewDate("");
-    setNewTime("");
+  // Saving the meeting table: a new one joins the list; a changed one also carries its new
+  // words onto any line already holding it (except a day copy renamed by hand, which keeps its name).
+  const saveMeetForm = (b, id, f) => {
+    const fields = { name: f.name, location: f.location, permanent: !!f.permanent, date: f.permanent ? "" : f.date || "", time: f.permanent ? "" : f.time || "" };
+    if (!id) {
+      saveMeetings(b, [...boards[b].meetings, { id: newId(), ...fields }]);
+    } else {
+      const old = boards[b].meetings.find((m) => m.id === id)?.name;
+      saveMeetings(b, boards[b].meetings.map((m) => (m.id === id ? { ...m, ...fields } : m)));
+      saveLines(b, boards[b].lines.map((l) => ({ ...l, meetings: l.meetings.map((m) => (m.id === id ? { ...m, ...fields, name: old == null || m.name === old ? fields.name : m.name } : m)) })));
+    }
+    setMeetForm(null);
   };
 
   // The up arrow on the second line rolls the next day's plan into today.
@@ -1699,7 +1733,8 @@ export default function Planning() {
                           <span className="mr-[3px] leading-[15px]">
                             {/* A day copy left blank falls back to its name in the list, so a meeting never shows as just its marks. */}
                             {String(m.name || "").trim() ? m.name : boards[b].meetings.find((x) => x.id === m.id)?.name || ""}
-                            {/* Its date and time follow the name with no space: N25W15. */}
+                            {/* Its location, date and time follow the name with no space: DentistMarinaN25W15. */}
+                            {m.location || boards[b].meetings.find((x) => x.id === m.id)?.location || ""}
                             {!perm && whenCode(m.date, m.time)}
                           </span>
                         )}
@@ -1853,28 +1888,11 @@ export default function Planning() {
                     >
                       {/* The name, then straight after it the date and time code (N25W15).
                           A ticked reminder has no date. */}
-                      <span className="flex min-w-0 flex-1 items-start">
-                      {/* A long name runs on to the next line instead of being cut off. */}
-                      <AutoTextarea
-                        fit
-                        // Typing here is kept apart from the same meeting on a day line, so that
-                        // copy never takes the cursor away mid word.
-                        boxRef={(el) => { if (el && editing === `pool-${m.id}` && document.activeElement !== el) el.focus(); }}
-                        value={m.name}
-                        // A single click is enough to type here; the grip is for dragging.
-                        onFocus={() => setEditing(`pool-${m.id}`)}
-                        onChange={(e) => renameMeeting(b, m.id, e.target.value.replace(/\r?\n/g, ""))}
-                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
-                        onBlur={() => {
-                          setEditing(null);
-                          // Left empty, it goes again: no blank meetings in the list.
-                          if (!String(m.name || "").trim()) saveMeetings(b, boards[b].meetings.filter((x) => x.id !== m.id));
-                        }}
-                        className="whitespace-pre-wrap break-all bg-transparent leading-[15px] outline-none"
-                      />
-                      {!m.permanent && <MeetWhen date={m.date} time={m.time} onChange={(d, t) => saveMeetings(b, boards[b].meetings.map((x) => (x.id === m.id ? { ...x, date: d, time: t } : x)))} />}
-                      </span>
-                      <button onClick={() => addMeetingAfter(b, m.id)} title="Add a meeting under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
+                      {/* Name, location, date and time all written together. Click to change them. */}
+                      <button type="button" onClick={(e) => openMeetForm(e, b, m.id)} title="Change this meeting" className="min-w-0 flex-1 whitespace-pre-wrap break-all text-left leading-[15px]">
+                        {meetLabel(m)}
+                      </button>
+                      <button onClick={(e) => openMeetForm(e, b)} title="Add a meeting" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
                         <Plus size={11} strokeWidth={3} />
                       </button>
                       {/* Click to put it on the line above. A one off leaves this list,
@@ -1911,52 +1929,21 @@ export default function Planning() {
                     <div className="h-[2px] w-full bg-[#C1440E]" />
                   )}
 
-                  {/* The add sits right under the last box. Tick it for a reminder, which takes no date. */}
-                  {adding ? (
-                    <span className="flex w-full items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
-                      {/* Only as wide as the name, so the date and time code sits straight after it. */}
-                      <span className="grid min-w-[6px] max-w-full">
-                      <span aria-hidden className="invisible col-start-1 row-start-1 whitespace-pre text-[11px] font-semibold">{newMeeting || "Meeting"}</span>
-                      <input
-                        autoFocus
-                        value={newMeeting}
-                        onChange={(e) => setNewMeeting(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") { addMeeting(b); setAdding(false); }
-                          if (e.key === "Escape") { setNewMeeting(""); setAdding(false); }
-                        }}
-                        placeholder="Meeting"
-                        size={1}
-                        className="col-start-1 row-start-1 w-full min-w-0 bg-transparent text-[11px] font-semibold text-neutral-700 outline-none placeholder:font-normal placeholder:text-neutral-300"
-                      />
-                      </span>
-                      {/* Tick it for a reminder, which takes no date or time. */}
-                      {!newPermanent && <span className="-ml-1.5 flex text-[11px] font-semibold text-neutral-700"><MeetWhen date={newDate} time={newTime} onChange={(d, t) => { setNewDate(d); setNewTime(t); }} /></span>}
-                      <span className="flex-1" />
-                      <input
-                        type="checkbox"
-                        checked={newPermanent}
-                        onChange={(e) => setNewPermanent(e.target.checked)}
-                        title="Tick to make this a permanent meeting"
-                        className="block h-[10px] w-[10px] shrink-0 cursor-pointer"
-                        style={{ accentColor: "#C1440E", margin: 0 }}
-                      />
-                      <button onClick={() => { addMeeting(b); setAdding(false); }} title="Save" className="shrink-0 text-[#9c7c33] hover:opacity-70">
-                        <Plus size={12} />
-                      </button>
-                      {/* Changed your mind: drop the half typed meeting. */}
-                      <button onClick={() => { setNewMeeting(""); setNewPermanent(false); setNewDate(""); setNewTime(""); setAdding(false); }} title="Cancel" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => setAdding(true)}
-                      title="Add a meeting"
-                      className="flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
-                    >
-                      <Plus size={12} />
-                    </button>
+                  {/* The add sits right under the last box and opens the meeting table. */}
+                  <button
+                    onClick={(e) => openMeetForm(e, b)}
+                    title="Add a meeting"
+                    className="flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                  >
+                    <Plus size={12} />
+                  </button>
+                  {meetForm?.b === b && (
+                    <MeetForm
+                      anchor={meetForm.anchor}
+                      init={meetForm.id ? boards[b].meetings.find((x) => x.id === meetForm.id) : {}}
+                      onClose={() => setMeetForm(null)}
+                      onSave={(f) => saveMeetForm(b, meetForm.id, f)}
+                    />
                   )}
                 </div>
                 )}
