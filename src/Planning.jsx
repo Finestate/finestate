@@ -1205,7 +1205,9 @@ export default function Planning() {
     const line = boards[b].lines[idx];
     patchLine(b, idx, { extras: { ...(line.extras || {}), [code]: text } });
   };
-  const renderCodeLine = (b, list, colour, idx) => (
+  // `own`: sub entries whose brackets can be typed into on the line, starting from what the
+  // point's own brackets hold below (the Ycfoodmd sub entries). Only those typed with brackets get them.
+  const renderCodeLine = (b, list, colour, idx, own = []) => (
     // Plain flowing text: each point runs straight on after the square before it, like a sentence.
     // Each square is held to the word before it, so a wrapped line always starts on a word, flush left.
     <div className="text-[11px] font-semibold leading-[15px]" style={{ color: colour }}>
@@ -1220,9 +1222,19 @@ export default function Planning() {
         // brings them back in full next time.
         const trim = hasNotes({ code: c }) && c.match(/^(.*\()([^)]+)\)$/);
         const trimmed = boards[b].lines[idx]?.fills?.[c] ?? (trim ? trim[2] : "");
+        const ownFill = own.includes(c) && /\(.*\)\s*$/.test(String(c)) ? boards[b].lines[idx]?.fills?.[c] ?? codeBrackets(c) : null;
         return (
           <span key={c}>
-            {trim ? (
+            {ownFill != null ? (
+              // Its name, then brackets to type into: what the point below holds shows first.
+              <span>
+                {String(c).split("(")[0].trim()} (
+                <span className="lowercase" style={{ color: "#B01E2F" }} onClick={(e) => e.stopPropagation()}>
+                  <FillText key={`${b}-${idx}-${c}-own`} text={ownFill} onChange={(t) => setFill(b, idx, c, t)} />
+                </span>
+                <span className="whitespace-nowrap">){square}</span>
+              </span>
+            ) : trim ? (
               <span className="whitespace-nowrap">
                 <span className="inline-flex items-center">
                   {trim[1]}
@@ -1593,7 +1605,8 @@ export default function Planning() {
                           />
                         ) : (
                           <span className="mr-[3px] leading-[15px]">
-                            {m.name}
+                            {/* A day copy left blank falls back to its name in the list, so a meeting never shows as just its marks. */}
+                            {String(m.name || "").trim() ? m.name : boards[b].meetings.find((x) => x.id === m.id)?.name || ""}
                           </span>
                         )}
                         {/* The Lshopgroom meeting takes brackets on the day line, to type anything into in red.
@@ -1658,11 +1671,20 @@ export default function Planning() {
                     {/* On today's line Ycfoodmd sits on a row of its own, straight under the meetings. */}
                     {(() => {
                       const all = [...coreCodes, ...restCodes];
-                      const own = idx === 0 ? all.filter((c) => /^\s*ycfood/i.test(c)) : [];
+                      // Its ticked sub entries (the points stepped in under it) follow it on that row.
+                      let subs = [];
+                      if (idx === 0) {
+                        for (const g of ["core", "rest"]) {
+                          const list = points[g] || [];
+                          const at = list.findIndex((p) => /^\s*ycfood/i.test(p.code));
+                          if (at >= 0) subs = [...subs, ...list.slice(at + 1, blockEnd(list, at)).map((p) => p.code)];
+                        }
+                      }
+                      const own = idx === 0 ? [...all.filter((c) => /^\s*ycfood/i.test(c)), ...subs.filter((c) => all.includes(c))] : [];
                       const rest = all.filter((c) => !own.includes(c));
                       return (
                         <>
-                          {own.length > 0 && <div className="order-2">{renderCodeLine(b, own, "#171717", idx)}</div>}
+                          {own.length > 0 && <div className="order-2">{renderCodeLine(b, own, "#171717", idx, subs)}</div>}
                           <div className="order-3">{rest.length > 0 && renderCodeLine(b, rest, "#171717", idx)}</div>
                         </>
                       );
