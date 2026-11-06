@@ -33,6 +33,7 @@ const whenCode = (date, time) => {
 function MeetWhen({ date, time, onChange }) {
   const [anchor, setAnchor] = useState(null);
   const [picked, setPicked] = useState(null); // the day chosen, showing its time
+  const orig = useRef(null); // what it held when opened, put back if the box is bailed out of
   const btn = useRef(null);
   const open = () => {
     const r = btn.current?.getBoundingClientRect();
@@ -41,8 +42,11 @@ function MeetWhen({ date, time, onChange }) {
     const top = r.bottom + 4 + height > window.innerHeight ? Math.max(4, r.top - 4 - height) : r.bottom + 4;
     setAnchor({ top, left: Math.min(r.left, window.innerWidth - 236) });
     setPicked(null);
+    orig.current = { date: date || "", time: time || "" };
   };
   const close = () => { setAnchor(null); setPicked(null); };
+  // The X: nothing picked this time is kept.
+  const bail = () => { if (orig.current) onChange(orig.current.date, orig.current.time); close(); };
   const code = whenCode(date, time);
   const [curH, curM] = String(time || "").split(":");
   const pill = (on) => `h-6 rounded text-[11px] transition-colors ${on ? "font-bold text-white" : "text-neutral-700 hover:bg-white"}`;
@@ -56,11 +60,12 @@ function MeetWhen({ date, time, onChange }) {
       {anchor && !picked && <DatePicker bg={SETUP_BG} value={date} anchor={anchor} onClose={close} onPick={(v) => { setPicked(v); onChange(v, time || ""); }} />}
       {anchor && picked && (
         <>
-          {/* Only Set closes it: a click outside does nothing. */}
+          {/* Only Set (keep) or the X (bail out) closes it: a click outside does nothing. */}
           <div className="fixed inset-0 z-[70]" />
           <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left, backgroundColor: SETUP_BG }}>
-            <div className="flex items-center justify-center border-b border-neutral-200 px-1 pb-1.5">
+            <div className="flex items-center justify-between border-b border-neutral-200 px-1 pb-1.5">
               <button type="button" onClick={() => setPicked(null)} title="Back to the calendar" className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-neutral-700 hover:text-[#9c7c33]"><ChevronLeft size={13} strokeWidth={2.5} className="text-[#9c7c33]" />{picked}</button>
+              <RedX onClick={bail} />
             </div>
             {/* Thin lines part the day, the hours and the minutes. */}
             <div className="grid grid-cols-6 gap-0.5 border-b border-neutral-200 py-1.5">
