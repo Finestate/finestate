@@ -4,16 +4,34 @@ import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight
 import { supabase } from "./lib/supabaseClient.js";
 import { DatePicker, parseDate } from "./LegalDocuments.jsx";
 
-// Meetings: ticked reminders first (in the order dragged), then dated ones soonest first,
-// then any still waiting for a date.
+// Meetings: ticked reminders first (in the order dragged), then dated ones soonest first
+// (by date, then time), then any still waiting for a date.
 const meetRank = (m) => (m.permanent ? 0 : parseDate(m.date) ? 1 : 2);
-const meetTime = (m) => { const d = parseDate(m.date); return d ? Date.UTC(d.y, d.m, d.d) : 0; };
+const meetTime = (m) => {
+  const d = parseDate(m.date);
+  if (!d) return 0;
+  const [h, mi] = String(m.time || "").split(":").map(Number);
+  return Date.UTC(d.y, d.m, d.d, Number.isFinite(h) ? h : 0, Number.isFinite(mi) ? mi : 0);
+};
 const sortMeetings = (list) => list.slice().sort((a, b) => meetRank(a) - meetRank(b) || (meetRank(a) === 1 ? meetTime(a) - meetTime(b) : 0));
 
-// The date in front of a meeting: "12 NOV", or a calendar mark when it has none yet.
-// Clicking opens the same calendar as the Legal page.
-function MeetDate({ value, onChange }) {
+// The code typed straight after a meeting's name: month letter, day, weekday letter, time.
+// 25 NOV 2026 (a Wednesday) at 15:00 reads N25W15; at 15:30 it reads N25W1530.
+const whenCode = (date, time) => {
+  const d = parseDate(date);
+  if (!d) return "";
+  const day = "SMTWTFS"[new Date(d.y, d.m, d.d).getDay()];
+  const [h, mi] = String(time || "").split(":");
+  const t = h == null || h === "" ? "" : `${h}${mi && mi !== "00" ? mi : ""}`;
+  return `${"JFMAMJJASOND"[d.m]}${d.d}${day}${t}`;
+};
+
+// A meeting's date and time: the Legal page calendar first, then the hour in the same style.
+// Shows the code (N25W15) when set, or a calendar mark when not.
+function MeetWhen({ date, time, onChange }) {
   const [anchor, setAnchor] = useState(null);
+  const [picked, setPicked] = useState(null); // the day chosen, waiting for its hour
+  const [mins, setMins] = useState("00");
   const btn = useRef(null);
   const open = () => {
     const r = btn.current?.getBoundingClientRect();
@@ -21,14 +39,41 @@ function MeetDate({ value, onChange }) {
     const height = 240;
     const top = r.bottom + 4 + height > window.innerHeight ? Math.max(4, r.top - 4 - height) : r.bottom + 4;
     setAnchor({ top, left: Math.min(r.left, window.innerWidth - 236) });
+    setPicked(null);
+    setMins(String(time || "").split(":")[1] || "00");
   };
-  const d = parseDate(value);
+  const close = () => { setAnchor(null); setPicked(null); };
+  const code = whenCode(date, time);
+  const curH = String(time || "").split(":")[0];
+  const pill = (on) => `h-6 rounded text-[11px] transition-colors ${on ? "font-bold text-white" : "text-neutral-700 hover:bg-neutral-100"}`;
   return (
     <>
-      <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} title="Pick a date" className="flex h-[15px] shrink-0 items-center whitespace-nowrap text-[11px] font-bold leading-[15px] text-[#9c7c33] hover:opacity-70">
-        {d ? `${String(d.d).padStart(2, "0")} ${value.trim().split(/\s+/)[1].toUpperCase()}` : <Calendar size={11} className="text-neutral-400" />}
+      <button ref={btn} type="button" onClick={() => (anchor ? close() : open())} title="Pick a date and time" className="flex h-[15px] shrink-0 items-center whitespace-nowrap leading-[15px] hover:opacity-70">
+        {code || <Calendar size={11} className="text-neutral-400" />}
       </button>
-      {anchor && <DatePicker value={value} anchor={anchor} onClose={() => setAnchor(null)} onPick={(v) => { onChange(v); setAnchor(null); }} />}
+      {anchor && !picked && <DatePicker value={date} anchor={anchor} onClose={close} onPick={(v) => setPicked(v)} />}
+      {anchor && picked && (
+        <>
+          <div className="fixed inset-0 z-[70]" onClick={close} />
+          <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 bg-white p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left }}>
+            <div className="px-1 pb-1.5 text-center text-[11px] font-bold uppercase tracking-wide text-neutral-700">{picked}</div>
+            {/* Minutes first if not on the hour; clicking the hour saves. */}
+            <div className="mb-1 grid grid-cols-4 gap-0.5">
+              {["00", "15", "30", "45"].map((x) => (
+                <button key={x} type="button" onClick={() => setMins(x)} className={pill(mins === x)} style={mins === x ? { backgroundColor: "#9c7c33" } : undefined}>:{x}</button>
+              ))}
+            </div>
+            <div className="grid grid-cols-6 gap-0.5">
+              {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0")).map((h) => {
+                const on = picked === date && curH === h;
+                return (
+                  <button key={h} type="button" onClick={() => { onChange(picked, `${h}:${mins}`); close(); }} className={pill(on)} style={on ? { backgroundColor: "#9c7c33" } : undefined}>{h}</button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
@@ -472,13 +517,14 @@ const withDailySections = (rawList) => {
 // A box as tall as its words. A hidden copy of the text sits in the same spot and sets
 // the height, so it always grows a line when the words wrap, whatever the width.
 // boxRef hands the box itself to whoever needs to focus it.
-function AutoTextarea({ value, boxRef, className = "", wrap = "break-all", ...props }) {
+function AutoTextarea({ value, boxRef, className = "", wrap = "break-all", fit = false, ...props }) {
   return (
-    <span className="grid min-w-0 flex-1">
+    // `fit`: only as wide as its words, so something can sit right after them.
+    <span className={`grid ${fit ? "min-w-[6px]" : "min-w-0 flex-1"}`}>
       <span aria-hidden className={`invisible col-start-1 row-start-1 whitespace-pre-wrap ${wrap} leading-[15px]`}>
         {String(value || "") + "​"}
       </span>
-      <textarea ref={boxRef} value={value} rows={1} {...props} className={`col-start-1 row-start-1 h-full w-full resize-none overflow-hidden p-0 ${className}`} />
+      <textarea ref={boxRef} value={value} rows={1} {...(fit ? { cols: 1 } : {})} {...props} className={`col-start-1 row-start-1 h-full w-full resize-none overflow-hidden p-0 ${className}`} />
     </span>
   );
 }
@@ -586,6 +632,7 @@ export default function Planning() {
   const [newMeeting, setNewMeeting] = useState("");
   const [newPermanent, setNewPermanent] = useState(false);
   const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
   const [adding, setAdding] = useState(false);
   // What is being dragged: a box from the picker, or a name already on a line.
   const [drag, setDrag] = useState(null);
@@ -1189,7 +1236,7 @@ export default function Planning() {
     const list = boards[b].meetings.slice();
     const at = list.findIndex((x) => x.id === id);
     // It takes the date of the one above, so it lands right under it.
-    const m = { id: newId(), name: "", permanent: false, ...(list[at]?.date && !list[at].permanent ? { date: list[at].date } : {}) };
+    const m = { id: newId(), name: "", permanent: false, ...(list[at]?.date && !list[at].permanent ? { date: list[at].date, time: list[at].time } : {}) };
     list.splice(at + 1, 0, m);
     saveMeetings(b, list);
     setEditing(m.id);
@@ -1197,10 +1244,11 @@ export default function Planning() {
   const addMeeting = (b) => {
     const name = newMeeting.trim();
     if (!name) return;
-    saveMeetings(b, [...boards[b].meetings, { id: newId(), name, permanent: newPermanent, ...(!newPermanent && newDate ? { date: newDate } : {}) }]);
+    saveMeetings(b, [...boards[b].meetings, { id: newId(), name, permanent: newPermanent, ...(!newPermanent && newDate ? { date: newDate, time: newTime } : {}) }]);
     setNewMeeting("");
     setNewPermanent(false);
     setNewDate("");
+    setNewTime("");
   };
 
   // The up arrow on the second line rolls the next day's plan into today.
@@ -1649,6 +1697,8 @@ export default function Planning() {
                           <span className="mr-[3px] leading-[15px]">
                             {/* A day copy left blank falls back to its name in the list, so a meeting never shows as just its marks. */}
                             {String(m.name || "").trim() ? m.name : boards[b].meetings.find((x) => x.id === m.id)?.name || ""}
+                            {/* Its date and time follow the name with no space: N25W15. */}
+                            {!perm && whenCode(m.date, m.time)}
                           </span>
                         )}
                         {/* The Lshopgroom meeting takes brackets on the day line, to type anything into in red.
@@ -1799,10 +1849,12 @@ export default function Planning() {
                       onDrop={(e) => { e.stopPropagation(); dropPoolMeeting(b); }}
                       className={`flex w-full items-start gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.board === b && drag.index === mi ? "opacity-40" : ""}`}
                     >
-                      {/* A ticked reminder has no date; every other entry shows its date first. */}
-                      {!m.permanent && <MeetDate value={m.date} onChange={(v) => saveMeetings(b, boards[b].meetings.map((x) => (x.id === m.id ? { ...x, date: v } : x)))} />}
+                      {/* The name, then straight after it the date and time code (N25W15).
+                          A ticked reminder has no date. */}
+                      <span className="flex min-w-0 flex-1 items-start">
                       {/* A long name runs on to the next line instead of being cut off. */}
                       <AutoTextarea
+                        fit
                         // Typing here is kept apart from the same meeting on a day line, so that
                         // copy never takes the cursor away mid word.
                         boxRef={(el) => { if (el && editing === `pool-${m.id}` && document.activeElement !== el) el.focus(); }}
@@ -1818,6 +1870,8 @@ export default function Planning() {
                         }}
                         className="whitespace-pre-wrap break-all bg-transparent leading-[15px] outline-none"
                       />
+                      {!m.permanent && <MeetWhen date={m.date} time={m.time} onChange={(d, t) => saveMeetings(b, boards[b].meetings.map((x) => (x.id === m.id ? { ...x, date: d, time: t } : x)))} />}
+                      </span>
                       <button onClick={() => addMeetingAfter(b, m.id)} title="Add a meeting under this one" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
                         <Plus size={11} strokeWidth={3} />
                       </button>
@@ -1858,7 +1912,6 @@ export default function Planning() {
                   {/* The add sits right under the last box. Tick it for a reminder, which takes no date. */}
                   {adding ? (
                     <span className="flex w-full items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
-                      {!newPermanent && <MeetDate value={newDate} onChange={setNewDate} />}
                       <input
                         autoFocus
                         value={newMeeting}
@@ -1870,6 +1923,8 @@ export default function Planning() {
                         placeholder="Meeting"
                         className="w-full min-w-0 bg-transparent text-[11px] outline-none placeholder:text-neutral-300"
                       />
+                      {/* Tick it for a reminder, which takes no date or time. */}
+                      {!newPermanent && <span className="text-[11px] font-semibold text-neutral-700"><MeetWhen date={newDate} time={newTime} onChange={(d, t) => { setNewDate(d); setNewTime(t); }} /></span>}
                       <input
                         type="checkbox"
                         checked={newPermanent}
@@ -1882,7 +1937,7 @@ export default function Planning() {
                         <Plus size={12} />
                       </button>
                       {/* Changed your mind: drop the half typed meeting. */}
-                      <button onClick={() => { setNewMeeting(""); setNewPermanent(false); setNewDate(""); setAdding(false); }} title="Cancel" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
+                      <button onClick={() => { setNewMeeting(""); setNewPermanent(false); setNewDate(""); setNewTime(""); setAdding(false); }} title="Cancel" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
                         <X size={12} />
                       </button>
                     </span>
