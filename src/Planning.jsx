@@ -2,6 +2,36 @@ import { Fragment, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
+import { DatePicker, parseDate } from "./LegalDocuments.jsx";
+
+// Meetings: ticked reminders first (in the order dragged), then dated ones soonest first,
+// then any still waiting for a date.
+const meetRank = (m) => (m.permanent ? 0 : parseDate(m.date) ? 1 : 2);
+const meetTime = (m) => { const d = parseDate(m.date); return d ? Date.UTC(d.y, d.m, d.d) : 0; };
+const sortMeetings = (list) => list.slice().sort((a, b) => meetRank(a) - meetRank(b) || (meetRank(a) === 1 ? meetTime(a) - meetTime(b) : 0));
+
+// The date in front of a meeting: "12 NOV", or a calendar mark when it has none yet.
+// Clicking opens the same calendar as the Legal page.
+function MeetDate({ value, onChange }) {
+  const [anchor, setAnchor] = useState(null);
+  const btn = useRef(null);
+  const open = () => {
+    const r = btn.current?.getBoundingClientRect();
+    if (!r) return;
+    const height = 240;
+    const top = r.bottom + 4 + height > window.innerHeight ? Math.max(4, r.top - 4 - height) : r.bottom + 4;
+    setAnchor({ top, left: Math.min(r.left, window.innerWidth - 236) });
+  };
+  const d = parseDate(value);
+  return (
+    <>
+      <button ref={btn} type="button" onClick={() => (anchor ? setAnchor(null) : open())} title="Pick a date" className="flex h-[15px] shrink-0 items-center whitespace-nowrap text-[11px] font-bold leading-[15px] text-[#9c7c33] hover:opacity-70">
+        {d ? `${String(d.d).padStart(2, "0")} ${value.trim().split(/\s+/)[1].toUpperCase()}` : <Calendar size={11} className="text-neutral-400" />}
+      </button>
+      {anchor && <DatePicker value={value} anchor={anchor} onClose={() => setAnchor(null)} onPick={(v) => { onChange(v); setAnchor(null); }} />}
+    </>
+  );
+}
 
 // Blank editable table – exact dimensions/fonts of the Silxops MD-area table.
 // Rows are header / subheader / text. Colours step brightest → lowest (title → header → sub-header).
@@ -555,6 +585,7 @@ export default function Planning() {
   const [boards, setBoards] = useState(loadBoards);
   const [newMeeting, setNewMeeting] = useState("");
   const [newPermanent, setNewPermanent] = useState(false);
+  const [newDate, setNewDate] = useState("");
   const [adding, setAdding] = useState(false);
   // What is being dragged: a box from the picker, or a name already on a line.
   const [drag, setDrag] = useState(null);
@@ -950,7 +981,7 @@ export default function Planning() {
       return next;
     });
   };
-  const saveMeetings = (b, next) => patchBoard(b, { meetings: next });
+  const saveMeetings = (b, next) => patchBoard(b, { meetings: sortMeetings(next) });
   const savePoints = (b, next) => patchBoard(b, { points: next });
   // Servefast and HEIE keep no Regular prios: any still there join the Hyper-prios, once
   // Planning has its saved copy.
@@ -981,8 +1012,10 @@ export default function Planning() {
         gone.forEach((k) => delete fills[k]);
         return fills;
       };
-      const due = meetings.some((m) => mark(m) !== m) || lines.some((l) => (l.meetings || []).some((m) => mark(m) !== m) || stale(l).length);
-      if (due) patchBoard(b, { meetings: meetings.map(mark), lines: lines.map((l) => ({ ...l, meetings: (l.meetings || []).map(mark), fills: tidy(l) })) });
+      // The list also keeps its order: reminders, then dates soonest first, then undated.
+      const unsorted = sortMeetings(meetings).some((m, i) => m !== meetings[i]);
+      const due = unsorted || meetings.some((m) => mark(m) !== m) || lines.some((l) => (l.meetings || []).some((m) => mark(m) !== m) || stale(l).length);
+      if (due) patchBoard(b, { meetings: sortMeetings(meetings.map(mark)), lines: lines.map((l) => ({ ...l, meetings: (l.meetings || []).map(mark), fills: tidy(l) })) });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boards]);
@@ -1154,17 +1187,20 @@ export default function Planning() {
   // The + on a meeting puts a fresh one straight under it, ready to type.
   const addMeetingAfter = (b, id) => {
     const list = boards[b].meetings.slice();
-    const m = { id: newId(), name: "", permanent: false };
-    list.splice(list.findIndex((x) => x.id === id) + 1, 0, m);
+    const at = list.findIndex((x) => x.id === id);
+    // It takes the date of the one above, so it lands right under it.
+    const m = { id: newId(), name: "", permanent: false, ...(list[at]?.date && !list[at].permanent ? { date: list[at].date } : {}) };
+    list.splice(at + 1, 0, m);
     saveMeetings(b, list);
     setEditing(m.id);
   };
   const addMeeting = (b) => {
     const name = newMeeting.trim();
     if (!name) return;
-    saveMeetings(b, [...boards[b].meetings, { id: newId(), name, permanent: newPermanent }]);
+    saveMeetings(b, [...boards[b].meetings, { id: newId(), name, permanent: newPermanent, ...(!newPermanent && newDate ? { date: newDate } : {}) }]);
     setNewMeeting("");
     setNewPermanent(false);
+    setNewDate("");
   };
 
   // The up arrow on the second line rolls the next day's plan into today.
@@ -1763,6 +1799,8 @@ export default function Planning() {
                       onDrop={(e) => { e.stopPropagation(); dropPoolMeeting(b); }}
                       className={`flex w-full items-start gap-1.5 rounded border bg-white px-1.5 py-0.5 text-[11px] font-semibold text-neutral-700 hover:text-neutral-900 ${m.permanent ? "border-[#C1440E]" : "border-neutral-300 hover:border-neutral-400"} ${drag?.from === "pool" && drag.board === b && drag.index === mi ? "opacity-40" : ""}`}
                     >
+                      {/* A ticked reminder has no date; every other entry shows its date first. */}
+                      {!m.permanent && <MeetDate value={m.date} onChange={(v) => saveMeetings(b, boards[b].meetings.map((x) => (x.id === m.id ? { ...x, date: v } : x)))} />}
                       {/* A long name runs on to the next line instead of being cut off. */}
                       <AutoTextarea
                         // Typing here is kept apart from the same meeting on a day line, so that
@@ -1817,9 +1855,10 @@ export default function Planning() {
                     <div className="h-[2px] w-full bg-[#C1440E]" />
                   )}
 
-                  {/* The add sits on the floor of the column, right under the last box. */}
+                  {/* The add sits right under the last box. Tick it for a reminder, which takes no date. */}
                   {adding ? (
-                    <span className="mt-auto flex w-full items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
+                    <span className="flex w-full items-center gap-1.5 rounded border border-neutral-400 bg-white px-1.5 py-0.5">
+                      {!newPermanent && <MeetDate value={newDate} onChange={setNewDate} />}
                       <input
                         autoFocus
                         value={newMeeting}
@@ -1843,7 +1882,7 @@ export default function Planning() {
                         <Plus size={12} />
                       </button>
                       {/* Changed your mind: drop the half typed meeting. */}
-                      <button onClick={() => { setNewMeeting(""); setNewPermanent(false); setAdding(false); }} title="Cancel" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
+                      <button onClick={() => { setNewMeeting(""); setNewPermanent(false); setNewDate(""); setAdding(false); }} title="Cancel" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
                         <X size={12} />
                       </button>
                     </span>
@@ -1851,7 +1890,7 @@ export default function Planning() {
                     <button
                       onClick={() => setAdding(true)}
                       title="Add a meeting"
-                      className="mt-auto flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
+                      className="flex h-[19px] w-full items-center justify-center rounded border border-neutral-300 bg-white px-1.5 text-[#9c7c33] hover:border-neutral-400 hover:opacity-70"
                     >
                       <Plus size={12} />
                     </button>

@@ -31,7 +31,7 @@ export function parseDate(s) {
 }
 
 // The same picker used on the other sites, in Finestate's gold.
-function DatePicker({ value, onPick, onClose, anchor }) {
+export function DatePicker({ value, onPick, onClose, anchor }) {
   const sel = parseDate(value);
   const now = new Date();
   const [view, setView] = useState(() => (sel ? { y: sel.y, m: sel.m } : { y: now.getFullYear(), m: now.getMonth() }));
