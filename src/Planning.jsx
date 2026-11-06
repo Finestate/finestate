@@ -1687,7 +1687,8 @@ export default function Planning() {
                       // A fine dashed rule parts the three rows (meetings, Ycfoodmd, the rest), only
                       // where a row sits under another.
                       const hasMeet = line.meetings.some((m) => String(m.name || "").trim() || String(boards[b].meetings.find((x) => x.id === m.id)?.name || "").trim());
-                      const rule = "mt-[2px] border-t border-dashed border-[#C97A66] pt-[2px]";
+                      // It runs edge to edge, under the up arrow too on the line being planned.
+                      const rule = `-ml-2 ${idx === 1 ? "-mr-[38px] pr-[38px]" : "-mr-2 pr-2"} mt-[2px] border-t border-dashed border-[#C97A66] pl-2 pt-[2px]`;
                       return (
                         <>
                           {own.length > 0 && <div className={`order-2 ${hasMeet ? rule : ""}`}>{renderCodeLine(b, own, "#171717", idx, subs)}</div>}
