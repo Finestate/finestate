@@ -2012,10 +2012,10 @@ export default function Planning() {
                       {(() => {
                         const groups = colGroups(b, col);
                         const lists = groups.map((g) => points[g] || []);
-                        // Finestate's long list carries a title, YOU, like the columns beside it.
+                        // Finestate's long list carries a title, Y, like the columns beside it.
                         if (b === "master") return (
                           <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
-                            YOU
+                            Y
                             {lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}
                           </p>
                         );
