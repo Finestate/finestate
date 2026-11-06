@@ -1674,8 +1674,8 @@ export default function Planning() {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
         // Selected points keep their group on the line: meetings, core codes, then the rest.
-        const coreCodes = [...HYPER_GROUPS, "core"].flatMap((g) => points[g] || []).filter((it) => line.codes.includes(it.code)).map((it) => it.code);
-        const restCodes = REST_GROUPS.flatMap((g) => points[g] || []).filter((it) => line.codes.includes(it.code)).map((it) => it.code);
+        const coreCodes = [...HYPER_GROUPS, "core"].flatMap((g) => points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(it.code)).map((it) => it.code);
+        const restCodes = REST_GROUPS.flatMap((g) => points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(it.code)).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
           // Only the pair needs a rule between them; a single line already sits under
@@ -1809,7 +1809,8 @@ export default function Planning() {
                       ); })}
                   </div>
                 )}
-                {line.meetings.length === 0 && coreCodes.length === 0 && restCodes.length === 0 && (
+                {/* Nothing showing on the line (a meeting with no name does not count): the board name stands in. */}
+                {!line.meetings.some((m) => String(m.name || "").trim() || String(boards[b].meetings.find((x) => x.id === m.id)?.name || "").trim()) && coreCodes.length === 0 && restCodes.length === 0 && (
                   <span style={{ color: MEETING_ICON }} className="inline-flex items-center text-[11px] font-semibold leading-[15px]">
                     {BOARD_TAGS[b]}
                   </span>
