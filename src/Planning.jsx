@@ -1393,7 +1393,8 @@ export default function Planning() {
         // brings them back in full next time.
         const trim = hasNotes({ code: c }) && c.match(/^(.*\()([^)]+)\)$/);
         const trimmed = boards[b].lines[idx]?.fills?.[c] ?? (trim ? trim[2] : "");
-        const ownFill = own.includes(c) && /\(.*\)\s*$/.test(String(c)) ? codeBrackets(c) : null;
+        // Any point typed with words in its brackets shows them in red, wherever it sits on the line.
+        const ownFill = !trim && /\(\s*[^)\s][^)]*\)\s*$/.test(String(c)) ? codeBrackets(c) : null;
         return (
           <span key={c}>
             {ownFill != null ? (
