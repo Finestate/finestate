@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { DatePicker, parseDate } from "./LegalDocuments.jsx";
 
@@ -60,7 +60,7 @@ function MeetWhen({ date, time, onChange }) {
           <div className="fixed inset-0 z-[70]" />
           <div className="fixed z-[80] w-56 rounded-lg border border-neutral-200 p-2 shadow-xl" style={{ top: anchor.top, left: anchor.left, backgroundColor: SETUP_BG }}>
             <div className="flex items-center justify-center border-b border-neutral-200 px-1 pb-1.5">
-              <button type="button" onClick={() => setPicked(null)} title="Change the day" className="text-[11px] font-bold uppercase tracking-wide text-neutral-700 hover:text-[#9c7c33]">{picked}</button>
+              <button type="button" onClick={() => setPicked(null)} title="Back to the calendar" className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-neutral-700 hover:text-[#9c7c33]"><ChevronLeft size={13} strokeWidth={2.5} className="text-[#9c7c33]" />{picked}</button>
             </div>
             {/* Thin lines part the day, the hours and the minutes. */}
             <div className="grid grid-cols-6 gap-0.5 border-b border-neutral-200 py-1.5">
