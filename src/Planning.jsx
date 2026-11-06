@@ -1655,7 +1655,18 @@ export default function Planning() {
                 {MEETING_BOARDS.includes(b) ? (
                   <>
                     {/* All the ticked points run on as one line of text, so the next one starts right after the last square. */}
-                    <div className="order-2">{coreCodes.length + restCodes.length > 0 && renderCodeLine(b, [...coreCodes, ...restCodes], "#171717", idx)}</div>
+                    {/* On today's line Ycfoodmd sits on a row of its own, straight under the meetings. */}
+                    {(() => {
+                      const all = [...coreCodes, ...restCodes];
+                      const own = idx === 0 ? all.filter((c) => /^s*ycfood/i.test(c)) : [];
+                      const rest = all.filter((c) => !own.includes(c));
+                      return (
+                        <>
+                          {own.length > 0 && <div className="order-2">{renderCodeLine(b, own, "#171717", idx)}</div>}
+                          <div className="order-3">{rest.length > 0 && renderCodeLine(b, rest, "#171717", idx)}</div>
+                        </>
+                      );
+                    })()}
                   </>
                 ) : (
                   (coreCodes.length > 0 || restCodes.length > 0) &&
