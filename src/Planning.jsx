@@ -1907,7 +1907,7 @@ export default function Planning() {
               // non-prios and its department notes.
               // On trial for Finestate: its core points column is set aside, so meetings (left)
               // and the long list (right) share the top row in two equal halves.
-              <div className={`grid ${b === "master" ? "grid-cols-5" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
+              <div className={`grid ${b === "master" ? "grid-cols-4" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
@@ -2299,8 +2299,10 @@ export default function Planning() {
     <>
       {/* On trial: the three lists sit in the same row as meetings and the long list, five across. */}
       <div className="contents">
-        {TWOCOLS.map(([k, label]) => { const hidden = hiddenRows(cols[k]); return (
-          <div key={k} className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+        {/* Errands prios and HF order share one column, HF order underneath, parted by a thin rule. */}
+        <div className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+        {TWOCOLS.map(([k, label], ki) => { const hidden = hiddenRows(cols[k]); return (
+          <div key={k} className={`flex min-w-0 flex-col ${ki > 0 ? "-mx-1.5 mt-1.5 border-t border-[#C1440E] px-1.5 pt-1.5" : ""}`}>
             <p className="mb-1 flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
               {label}
               {hasHeads(cols[k]) && foldLink(anyShut(cols[k]), () => foldAllCol(k))}
@@ -2406,6 +2408,7 @@ export default function Planning() {
             </div>
           </div>
         ); })}
+        </div>
         {/* Third column: a free field, no lines and no tick boxes, just text. */}
         <div className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
           <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
