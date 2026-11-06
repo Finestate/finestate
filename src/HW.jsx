@@ -375,7 +375,6 @@ export default function HW() {
                           style={{ backgroundColor: "#F4D3CA" }}
                         >
                           Functional training exercises
-                          <ChevronDown size={12} className={`shrink-0 transition-transform ${ft.open ? "rotate-180" : ""}`} />
                         </div>
                         {/* Same colour as the body areas row and its title. */}
                         {ft.open && (
