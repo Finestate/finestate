@@ -1127,10 +1127,12 @@ export default function Planning() {
     savePoints(b, { ...boards[b].points, [g]: moveBlock(boards[b].points[g], from, to) });
   };
 
-  // Renaming reaches the picker copy and every line that already carries it.
+  // Renaming reaches the picker copy and every line that already carries it, except a line
+  // where that day's copy was changed by hand: it keeps its own words.
   const renameMeeting = (b, id, name) => {
+    const old = boards[b].meetings.find((m) => m.id === id)?.name;
     saveMeetings(b, boards[b].meetings.map((m) => (m.id === id ? { ...m, name } : m)));
-    saveLines(b, boards[b].lines.map((l) => ({ ...l, meetings: l.meetings.map((m) => (m.id === id ? { ...m, name } : m)) })));
+    saveLines(b, boards[b].lines.map((l) => ({ ...l, meetings: l.meetings.map((m) => (m.id === id && (old == null || m.name === old) ? { ...m, name } : m)) })));
   };
   const dropMeeting = (b, idx, id) => patchLine(b, idx, { meetings: boards[b].lines[idx].meetings.filter((x) => x.id !== id) });
   // Puts a meeting back in the picker below, into the spot it came from.
@@ -1533,15 +1535,20 @@ export default function Planning() {
               <div className="flex flex-1 flex-col gap-0 px-2 pt-[3px] pb-[2px]">
                 {line.meetings.length > 0 && (
                   <div className="order-1 flex flex-wrap items-center gap-x-2 gap-y-0 leading-[16px]">
-                    {line.meetings.map((m, mi) => (
+                    {line.meetings.map((m, mi) => {
+                      // A permanent meeting is changed on the line for this day only: the copy in the
+                      // dropdown list keeps its name. Its edit is keyed to the line, as both lines can carry it.
+                      const perm = m.permanent || boards[b].meetings.some((x) => x.id === m.id && x.permanent);
+                      const editKey = perm ? `${idx}:${m.id}` : m.id;
+                      return (
                       <span
                         key={m.id}
-                        draggable={editing !== m.id && inFill !== m.id}
-                        // A one-off is renamed here with a double click. A permanent one is
-                        // renamed only in the dropdown list; on the line just its brackets take typing.
+                        draggable={editing !== editKey && inFill !== m.id}
+                        // A double click renames it here. A one-off is renamed everywhere; a permanent
+                        // one only on this line, for this day.
                         onDoubleClick={(e) => {
                           e.stopPropagation();
-                          if (!(m.permanent || boards[b].meetings.some((x) => x.id === m.id && x.permanent))) setEditing(m.id);
+                          setEditing(editKey);
                         }}
                         onDragStart={(e) => { e.stopPropagation(); setDrag({ from: "line", board: b, lineIdx: idx, index: mi, id: m.id }); }}
                         onDragEnd={() => { setDrag(null); setDropL(null); }}
@@ -1571,12 +1578,15 @@ export default function Planning() {
                           <span className={`pointer-events-none absolute -bottom-px -top-px w-[2px] bg-[#C1440E] ${dropL.index === mi ? "-left-[5px]" : "-right-[5px]"}`} />
                         )}
                         {/* Plain text until double clicked, so the bin sits right after the words. */}
-                        {editing === m.id ? (
+                        {editing === editKey ? (
                           <input
                             ref={(el) => { if (el && document.activeElement !== el) el.focus(); }}
                             value={m.name}
                             onClick={(e) => e.stopPropagation()}
-                            onChange={(e) => renameMeeting(b, m.id, e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                            onChange={(e) => (perm
+                              ? patchLine(b, idx, { meetings: line.meetings.map((x) => (x.id === m.id ? { ...x, name: e.target.value } : x)) })
+                              : renameMeeting(b, m.id, e.target.value))}
                             onBlur={() => setEditing(null)}
                             style={{ width: `${Math.max(2, m.name.length)}ch` }}
                             className="bg-transparent text-[11px] leading-[15px] outline-none"
@@ -1632,7 +1642,7 @@ export default function Planning() {
                           <Trash2 size={10} />
                         </button>
                       </span>
-                    ))}
+                      ); })}
                   </div>
                 )}
                 {line.meetings.length === 0 && coreCodes.length === 0 && restCodes.length === 0 && (
