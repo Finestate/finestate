@@ -1672,19 +1672,19 @@ export default function Planning() {
                 {MEETING_BOARDS.includes(b) ? (
                   <>
                     {/* All the ticked points run on as one line of text, so the next one starts right after the last square. */}
-                    {/* On today's line Ycfoodmd sits on a row of its own, straight under the meetings. */}
+                    {/* On both day lines Ycfoodmd sits on a row of its own, straight under the meetings. */}
                     {(() => {
                       const all = [...coreCodes, ...restCodes];
                       // Its ticked sub entries (the points stepped in under it) follow it on that row.
                       let subs = [];
-                      if (idx === 0) {
+                      {
                         for (const g of ["core", "rest"]) {
                           const list = points[g] || [];
                           const at = list.findIndex((p) => /^\s*ycfood/i.test(p.code));
                           if (at >= 0) subs = [...subs, ...list.slice(at + 1, blockEnd(list, at)).map((p) => p.code)];
                         }
                       }
-                      const own = idx === 0 ? [...all.filter((c) => /^\s*ycfood/i.test(c)), ...subs.filter((c) => all.includes(c))] : [];
+                      const own = [...all.filter((c) => /^\s*ycfood/i.test(c)), ...subs.filter((c) => all.includes(c))];
                       const rest = all.filter((c) => !own.includes(c));
                       return (
                         <>
