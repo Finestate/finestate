@@ -1658,7 +1658,7 @@ export default function Planning() {
                     {/* On today's line Ycfoodmd sits on a row of its own, straight under the meetings. */}
                     {(() => {
                       const all = [...coreCodes, ...restCodes];
-                      const own = idx === 0 ? all.filter((c) => /^s*ycfood/i.test(c)) : [];
+                      const own = idx === 0 ? all.filter((c) => /^\s*ycfood/i.test(c)) : [];
                       const rest = all.filter((c) => !own.includes(c));
                       return (
                         <>
