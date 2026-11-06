@@ -613,17 +613,6 @@ const moveBlock = (list, from, to) => {
 // A line with stepped-in lines right under it heads a group: it can be closed and
 // opened, and closing it hides everything under it until the next line at its level.
 const isHead = (list, i) => i + 1 < list.length && levelOf(list[i + 1]) > levelOf(list[i]);
-// Reminders: the lines stepped in under it never show on the day line alone. Ticked, they
-// fill its brackets, and only while Reminders itself is ticked.
-const isRem = (c) => /^\s*reminders/i.test(String(c || ""));
-const remKids = (points) => {
-  const out = {};
-  Object.values(points || {}).forEach((list) => {
-    if (!Array.isArray(list)) return;
-    list.forEach((x, i) => { if (isRem(x.code)) out[x.code] = list.slice(i + 1, blockEnd(list, i)).map((y) => y.code); });
-  });
-  return out;
-};
 const hiddenRows = (list) => {
   const hidden = new Set();
   let closedAt = null;
@@ -1162,15 +1151,6 @@ export default function Planning() {
   const toggleTodo = (b, idx, code) => {
     const line = boards[b].lines[idx];
     const has = line.codes.includes(code);
-    const kids = remKids(boards[b].points);
-    // A Reminders line does nothing until Reminders itself is ticked on that day.
-    const head = Object.keys(kids).find((h) => kids[h].includes(code));
-    if (head && !has && !line.codes.includes(head)) return;
-    // Unticking Reminders clears its lines' ticks too.
-    if (has && kids[code]) {
-      patchLine(b, idx, { codes: line.codes.filter((c) => c !== code && !kids[code].includes(c)) });
-      return;
-    }
     const fills = { ...(line.fills || {}) };
     const extras = { ...(line.extras || {}) };
     if (has) { delete fills[code]; delete extras[code]; }
@@ -1373,8 +1353,7 @@ export default function Planning() {
   };
   // `own`: the Ycfoodmd sub entries. Their brackets show in red as typed in the list below,
   // and are changed only there, never on the line.
-  // `brk`: Reminders and the ticked lines under it, joined by a dash, for its brackets.
-  const renderCodeLine = (b, list, colour, idx, own = [], brk = {}) => (
+  const renderCodeLine = (b, list, colour, idx, own = []) => (
     // Plain flowing text: each point runs straight on after the square before it, like a sentence.
     // Each square is held to the word before it, so a wrapped line always starts on a word, flush left.
     <div className="text-[11px] font-semibold leading-[15px]" style={{ color: colour }}>
@@ -1392,13 +1371,7 @@ export default function Planning() {
         const ownFill = own.includes(c) && /\(.*\)\s*$/.test(String(c)) ? codeBrackets(c) : null;
         return (
           <span key={c}>
-            {brk[c] != null ? (
-              <span>
-                {String(c).replace(/\s*\(\s*\)\s*$/, "")}
-                {brk[c] && <> (<span className="lowercase" style={{ color: "#B01E2F" }}>{brk[c]}</span>)</>}
-                <span className="whitespace-nowrap">{square}</span>
-              </span>
-            ) : ownFill != null ? (
+            {ownFill != null ? (
               // Its name, then its brackets as they read in the list below.
               <span>
                 {String(c).split("(")[0].trim()} (
@@ -1847,20 +1820,14 @@ export default function Planning() {
                     {/* All the ticked points run on as one line of text, so the next one starts right after the last square. */}
                     {/* On both day lines Ycfoodmd sits on a row of its own, straight under the meetings. */}
                     {(() => {
-                      // Reminders' own lines go inside its brackets, never on their own.
-                      const kids = remKids(points);
-                      const kidSet = new Set(Object.values(kids).flat());
-                      const brk = {};
-                      Object.keys(kids).forEach((h) => { brk[h] = kids[h].filter((k) => line.codes.includes(k)).map((k) => String(k).trim()).join("-"); });
-                      const all = [...coreCodes, ...restCodes].filter((c) => !kidSet.has(c));
-                      // Its ticked sub entries (the points stepped in under it) follow it on that row.
-                      // Reminders and its lines are never among them, wherever it sits.
+                      const all = [...coreCodes, ...restCodes];
+                      // Its ticked sub entries (the points stepped in under it, at any depth) follow it on that row.
                       let subs = [];
                       {
                         for (const g of ["core", "rest"]) {
                           const list = points[g] || [];
                           const at = list.findIndex((p) => /^\s*ycfood/i.test(p.code));
-                          if (at >= 0) subs = [...subs, ...list.slice(at + 1, blockEnd(list, at)).map((p) => p.code).filter((c) => !isRem(c) && !kidSet.has(c))];
+                          if (at >= 0) subs = [...subs, ...list.slice(at + 1, blockEnd(list, at)).map((p) => p.code)];
                         }
                       }
                       const own = [...all.filter((c) => /^\s*ycfood/i.test(c)), ...subs.filter((c) => all.includes(c))];
@@ -1872,8 +1839,8 @@ export default function Planning() {
                       const rule = `-ml-2 ${idx === 1 ? "-mr-[38px] pr-[38px]" : "-mr-2 pr-2"} mt-[2px] border-t border-dashed border-[#C97A66] pl-2 pt-[2px]`;
                       return (
                         <>
-                          {own.length > 0 && <div className={`order-2 ${hasMeet ? rule : ""}`}>{renderCodeLine(b, own, "#171717", idx, subs, brk)}</div>}
-                          {rest.length > 0 && <div className={`order-3 ${hasMeet || own.length > 0 ? rule : ""}`}>{renderCodeLine(b, rest, "#171717", idx, [], brk)}</div>}
+                          {own.length > 0 && <div className={`order-2 ${hasMeet ? rule : ""}`}>{renderCodeLine(b, own, "#171717", idx, subs)}</div>}
+                          {rest.length > 0 && <div className={`order-3 ${hasMeet || own.length > 0 ? rule : ""}`}>{renderCodeLine(b, rest, "#171717", idx)}</div>}
                         </>
                       );
                     })()}
