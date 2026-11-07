@@ -1911,9 +1911,9 @@ export default function Planning() {
                     const rule = `-ml-2 ${idx === 1 ? "-mr-[38px] pr-[38px]" : "-mr-2 pr-2"} mt-[2px] border-t border-dashed border-[#C97A66] pl-2 pt-[3px]`;
                     const rows = BRAND_ROWS.map(([tag, gs]) => [tag, gs.flatMap((g) => points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(it.code)).map((it) => it.code)]).filter(([, codes]) => codes.length);
                     return rows.map(([tag, codes], ri) => (
-                      <div key={tag} className={`flex items-start gap-1.5 ${ri > 0 ? rule : ""}`}>
+                      <div key={tag} className={`flex items-start gap-[7px] ${ri > 0 ? rule : ""}`}>
                         {/* A fixed width, so the codes after SM, SY and DS all start on the same edge. */}
-                        <span className="w-[24px] shrink-0 text-[11px] font-bold leading-[15px] text-[#C1440E]">{tag}:</span>
+                        <span className="w-[20px] shrink-0 text-[11px] font-bold leading-[15px] text-[#C1440E]">{tag}:</span>
                         <div className="min-w-0 flex-1">{renderShortLine(b, codes, idx)}</div>
                       </div>
                     ));
