@@ -1206,9 +1206,9 @@ export default function Planning() {
         onClick={(e) => { e.stopPropagation(); tickAll(b, idx, groups); }}
         title={all ? "Untick all" : "Tick all"}
         // Just the tick, no box: faint until every one is ticked, then full gold.
-        className={`ml-1 flex h-[15px] shrink-0 items-center text-[#9c7c33] transition-opacity ${all ? "opacity-100" : "opacity-40 hover:opacity-80"}`}
+        className={`ml-[3px] flex h-[15px] shrink-0 translate-y-px items-center text-[#9c7c33] transition-opacity ${all ? "opacity-100" : "opacity-55 hover:opacity-90"}`}
       >
-        <Check size={12} strokeWidth={3} />
+        <Check size={12} strokeWidth={4} />
       </button>
     );
   };
