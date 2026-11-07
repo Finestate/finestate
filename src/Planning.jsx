@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Plus, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, List, ChevronsRight, ChevronsLeft, X, Check, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { DatePicker, parseDate } from "./LegalDocuments.jsx";
 
@@ -1188,6 +1188,30 @@ export default function Planning() {
     patchLine(b, idx, { codes: has ? line.codes.filter((c) => c !== code) : [...line.codes, code], fills, extras });
   };
 
+  // The tick beside Hyper-prios: ticks every hyper point on this day line, or, when all
+  // are ticked already, unticks them all.
+  const tickAll = (b, idx, groups) => {
+    const line = boards[b].lines[idx];
+    const codes = groups.flatMap((g) => boards[b].points[g] || []).map((p) => p.code).filter((c) => String(c || "").trim());
+    if (!codes.length) return;
+    const all = codes.every((c) => line.codes.includes(c));
+    patchLine(b, idx, { codes: all ? line.codes.filter((c) => !codes.includes(c)) : [...line.codes, ...codes.filter((c) => !line.codes.includes(c))] });
+  };
+  const tickAllBtn = (b, idx, groups) => {
+    const codes = groups.flatMap((g) => boards[b].points[g] || []).map((p) => p.code).filter((c) => String(c || "").trim());
+    const all = codes.length > 0 && codes.every((c) => boards[b].lines[idx].codes.includes(c));
+    return (
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); tickAll(b, idx, groups); }}
+        title={all ? "Untick all" : "Tick all"}
+        className={`ml-1.5 flex h-[13px] w-[13px] shrink-0 items-center justify-center rounded-[3px] border transition-colors ${all ? "border-[#9c7c33] bg-[#9c7c33] text-white" : "border-[#9c7c33] text-[#9c7c33] hover:bg-[#9c7c33]/10"}`}
+      >
+        <Check size={9} strokeWidth={3.5} />
+      </button>
+    );
+  };
+
   // Picking a meeting moves it onto the line. A one-off also leaves the picker.
   const pickMeeting = (b, idx, m) => {
     const line = boards[b].lines[idx];
@@ -2043,7 +2067,7 @@ export default function Planning() {
                         <p className="pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{GROUP_LABELS[b][gi]}:</p>
                       )}
                       {BRAND_GROUPS[b] && col === "core" && (
-                        <p className="pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Hyper-prios:</p>
+                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Hyper-prios:{tickAllBtn(b, idx, HYPER_GROUPS)}</p>
                       )}
                       {/* A company board's Prios column holds two groups: Hyper-prios on top, then the
                           regular ones; points are dragged between them. */}
@@ -2055,7 +2079,7 @@ export default function Planning() {
                       {BRAND_GROUPS[b] ? (
                         <p className="-mx-1 flex h-[20px] items-center border-b border-[#C1440E] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#C1440E]">{BRAND_LABELS[g]}:</p>
                       ) : col === "core" && b !== "master" && (
-                        <p className="pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
+                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}{g === "hyper" && tickAllBtn(b, idx, ["hyper"])}</p>
                       )}
                       {/* An empty group still takes a dragged point. */}
                       {list.length === 0 && (
