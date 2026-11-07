@@ -159,7 +159,7 @@ const NOTES_KEY = "finestate.planning.notes"; // department notes, one per compa
 const PLAN_KEY = "planning"; // the whole page, kept in the private admin_docs table
 
 // The lists that sit under the daily area, side by side, under one folding bar.
-const TWOCOLS = [["errands", "Errands prios"], ["hf", "HF order"]];
+const TWOCOLS = [["errands", "Errands list"], ["hf", "HF order"]];
 const PERSONAL_ID = "personal-order";
 // A tick lives on one day line. Older saves ticked the list itself, and those count
 // as ticks on the first line.
