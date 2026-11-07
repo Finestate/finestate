@@ -365,7 +365,8 @@ const BOARDS = [
 // Boards whose dropdown is Prios, Non-prios and notes: no hyper-prios.
 const SINGLE_BOARDS = ["fin"];
 // Ticked lines write themselves into the Errandsprios brackets. Set to false to switch it off entirely.
-const ERRANDS_AUTOFILL = true;
+// Off: On plate and HF order no longer have tick boxes, so nothing writes into those brackets.
+const ERRANDS_AUTOFILL = false;
 // Every ticked line in Errands prios or H+F order feeds the brackets, joined by a dash, no
 // spaces. Unticking takes it back out; the line itself stays in its list.
 // The errands brackets hold just the ticked lines ("seebelow" now sits in the point's own name).
@@ -1415,7 +1416,8 @@ export default function Planning() {
         const lastGap = String(c).lastIndexOf(" ") + 1;
         const fillable = /\(\)$/.test(c);
         // Brackets filled before "seebelow" moved into the name drop it here too.
-        const fill = String(boards[b].lines[idx]?.fills?.[c] || "").replace(/^seebelow-?/i, "");
+        // With the ticks gone, words they wrote earlier no longer show; typed words still do.
+        const fill = ERRANDS_AUTOFILL ? String(boards[b].lines[idx]?.fills?.[c] || "").replace(/^seebelow-?/i, "") : "";
         // SC carries its letters in brackets. On the line they show in red and can be
         // trimmed as each is done; the point below keeps them all, and unticking it
         // brings them back in full next time.
@@ -1885,7 +1887,9 @@ export default function Planning() {
                           if (at >= 0) subs = [...subs, ...list.slice(at + 1, blockEnd(list, at)).map((p) => p.code)];
                         }
                       }
-                      const own = [...all.filter((c) => /^\s*(ycfood|errands(?!\s*prios))/i.test(c)), ...subs.filter((c) => all.includes(c))];
+                      // Everything ticked in the Errands+Reminders column shares that row, in the column's order.
+                      const errandCol = (points.errand || []).map((p) => p.code).filter((c) => all.includes(c));
+                      const own = [...new Set([...all.filter((c) => /^\s*(ycfood|errands(?!\s*prios))/i.test(c)), ...subs.filter((c) => all.includes(c)), ...errandCol])];
                       const rest = all.filter((c) => !own.includes(c));
                       // A fine dashed rule parts the three rows (meetings, Ycfoodmd, the rest), only
                       // where a row sits under another.
@@ -2390,17 +2394,7 @@ export default function Planning() {
                       </button>
                     )}
                   </span>
-                  {/* Boxed to the exact line height, so it sits dead centre on the first line. */}
-                  <span className="flex h-[15px] shrink-0 items-center">
-                    <input
-                      type="checkbox"
-                      checked={isPicked(r, lineIdx)}
-                      onChange={() => toggleColPick(k, r.id, lineIdx)}
-                      title="Tick"
-                      className="block h-[11px] w-[11px] cursor-pointer"
-                      style={{ accentColor: "#C1440E", margin: 0 }}
-                    />
-                  </span>
+                  {/* On plate and HF order are plain lists now: no tick boxes. */}
                   {/* On a group head the words stay editable, and the space after them opens
                       and closes the group. */}
                   <WrapLine
