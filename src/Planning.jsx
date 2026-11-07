@@ -159,7 +159,7 @@ const NOTES_KEY = "finestate.planning.notes"; // department notes, one per compa
 const PLAN_KEY = "planning"; // the whole page, kept in the private admin_docs table
 
 // The lists that sit under the daily area, side by side, under one folding bar.
-const TWOCOLS = [["errands", "Errands list"], ["hf", "HF order"]];
+const TWOCOLS = [["errands", "To-dos"], ["hf", "HF order"]];
 const PERSONAL_ID = "personal-order";
 // A tick lives on one day line. Older saves ticked the list itself, and those count
 // as ticks on the first line.
@@ -384,8 +384,9 @@ const BRAND_LABELS = { mediaHyper: "Says Media", mediaRest: "Says Media", saysHy
 const HYPER_GROUPS = ["mediaHyper", "saysHyper", "hyper"];
 // The Says Media day line: one row per section, each with its short tag, prios first.
 const BRAND_ROWS = [["SM", ["mediaHyper", "mediaRest"]], ["SY", ["saysHyper", "saysRest"]], ["DS", ["hyper", "rest"]]];
-const REST_GROUPS = ["mediaRest", "saysRest", "rest"];
-const colGroups = (b, col) =>
+// "errand": Finestate's own Errands column, between Meetings and Y.
+const REST_GROUPS = ["errand", "mediaRest", "saysRest", "rest"];
+const colGroups = (b, col) => col === "errand" ? ["errand"] :
   BRAND_GROUPS[b] ? BRAND_GROUPS[b][col] :
   col === "rest" ? ["rest"] : b === "master" ? ["core"] : HYPER_ONLY.includes(b) ? ["hyper"] : ["hyper", "core"];
 // They were first called "Daily master" and so on; saved rows are renamed on load.
@@ -789,7 +790,7 @@ export default function Planning() {
     const which = Array.isArray(lineIdx) ? lineIdx : [lineIdx];
     const master = boards.master;
     // Whatever the point is called now, it is the one about errands with brackets.
-    const code = [...master.points.core, ...master.points.rest]
+    const code = [...master.points.core, ...(master.points.errand || []), ...master.points.rest]
       .map((p) => String(p.code).trim())
       .find((c) => /errands/i.test(c) && /\(\s*\)$/.test(c));
     if (!code) return;
@@ -872,7 +873,7 @@ export default function Planning() {
     if (!toPoints) nextCols[to] = dest;
     if (fromPoints || toPoints) {
       const nextPts = { ...pts, rest: toPoints ? dest : left };
-      const bracket = ERRANDS_AUTOFILL ? [...nextPts.core, ...nextPts.rest].map((p) => String(p.code).trim()).find(isBrackets) : null;
+      const bracket = ERRANDS_AUTOFILL ? [...nextPts.core, ...(nextPts.errand || []), ...nextPts.rest].map((p) => String(p.code).trim()).find(isBrackets) : null;
       const lines = master.lines.map((l, i) => {
         let codes = l.codes;
         const fills = { ...(l.fills || {}) };
@@ -1497,7 +1498,7 @@ export default function Planning() {
         out.push("", "Meetings");
         (board.meetings || []).forEach((m) => out.push(`- ${m.name}${m.permanent ? " (permanent)" : ""}`));
       }
-      (b === "master" ? ["core", "rest"] : [...colGroups(b, "core"), ...colGroups(b, "rest")]).forEach((g) => {
+      (b === "master" ? ["core", "errand", "rest"] : [...colGroups(b, "core"), ...colGroups(b, "rest")]).forEach((g) => {
         const gi = REST_GROUPS.includes(g) ? 1 : 0;
         const kind = HYPER_GROUPS.includes(g) ? "Hyper-prios" : (GROUP_LABELS[b] || [])[gi] || (g === "core" ? "Core points" : "Other points");
         const label = BRAND_GROUPS[b] ? `${kind} – ${BRAND_LABELS[g]}` : kind;
@@ -1878,7 +1879,7 @@ export default function Planning() {
                       // Its ticked sub entries (the points stepped in under it, at any depth) follow it on that row.
                       let subs = [];
                       {
-                        for (const g of ["core", "rest"]) {
+                        for (const g of ["core", "errand", "rest"]) {
                           const list = points[g] || [];
                           const at = list.findIndex((p) => /^\s*(ycfood|errands(?!\s*prios))/i.test(p.code));
                           if (at >= 0) subs = [...subs, ...list.slice(at + 1, blockEnd(list, at)).map((p) => p.code)];
@@ -1950,7 +1951,7 @@ export default function Planning() {
               // non-prios and its department notes.
               // On trial for Finestate: its core points column is set aside, so meetings (left)
               // and the long list (right) share the top row in two equal halves.
-              <div className={`grid ${b === "master" ? "grid-cols-4" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
+              <div className={`grid ${b === "master" ? "grid-cols-5" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
@@ -2038,15 +2039,16 @@ export default function Planning() {
                 </div>
                 )}
 
-                {["core", "rest"].filter((col) => !(b === "master" && col === "core")).map((col) => { const gi = col === "rest" ? 1 : 0; return (
-                  <div key={col} className={`${col === "core" ? "order-2" : "order-3"} min-w-0 self-stretch border-[3px] border-[#C1440E] p-1.5`}>
+                {/* Finestate: Errands (its own column, right after Meetings), then Y. */}
+                {(b === "master" ? ["errand", "rest"] : ["core", "rest"]).map((col) => { const gi = col === "core" ? 0 : 1; const tail = col === "errand" ? "errand" : "rest"; return (
+                  <div key={col} className={`${col === "rest" ? "order-3" : "order-2"} min-w-0 self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     <div
                       className="flex h-full flex-col gap-1"
                       onDragOver={(e) => {
                         e.preventDefault();
                         // Below the last line, a line from another column lands at the foot.
-                        if (b === "master" && rowDragging && (!points.rest.length || (e.target === e.currentTarget && e.clientY >= e.currentTarget.lastElementChild.getBoundingClientRect().bottom))) {
-                          setDropP({ board: b, group: "rest", index: points.rest.length });
+                        if (b === "master" && rowDragging && (!(points[tail] || []).length || (e.target === e.currentTarget && e.clientY >= e.currentTarget.lastElementChild.getBoundingClientRect().bottom))) {
+                          setDropP({ board: b, group: tail, index: (points[tail] || []).length });
                         }
                       }}
                       onDrop={() => dropPoint(b)}
@@ -2055,10 +2057,10 @@ export default function Planning() {
                       {(() => {
                         const groups = colGroups(b, col);
                         const lists = groups.map((g) => points[g] || []);
-                        // Finestate's long list carries a title, Y, like the columns beside it.
+                        // Finestate's columns carry titles, Errands and Y, like the columns beside them.
                         if (b === "master") return (
                           <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
-                            Y
+                            {col === "errand" ? "Errands" : "Y"}
                             {lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}
                           </p>
                         );
