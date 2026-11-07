@@ -1205,9 +1205,10 @@ export default function Planning() {
         type="button"
         onClick={(e) => { e.stopPropagation(); tickAll(b, idx, groups); }}
         title={all ? "Untick all" : "Tick all"}
-        className={`ml-1.5 flex h-[13px] w-[13px] shrink-0 items-center justify-center rounded-[3px] border transition-colors ${all ? "border-[#9c7c33] bg-[#9c7c33] text-white" : "border-[#9c7c33] text-[#9c7c33] hover:bg-[#9c7c33]/10"}`}
+        // Just the tick, no box: faint until every one is ticked, then full gold.
+        className={`ml-1 flex h-[15px] shrink-0 items-center text-[#9c7c33] transition-opacity ${all ? "opacity-100" : "opacity-40 hover:opacity-80"}`}
       >
-        <Check size={9} strokeWidth={3.5} />
+        <Check size={12} strokeWidth={3} />
       </button>
     );
   };
@@ -2067,7 +2068,7 @@ export default function Planning() {
                         <p className="pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{GROUP_LABELS[b][gi]}:</p>
                       )}
                       {BRAND_GROUPS[b] && col === "core" && (
-                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Hyper-prios:{tickAllBtn(b, idx, HYPER_GROUPS)}</p>
+                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Hyper-prios:</p>
                       )}
                       {/* A company board's Prios column holds two groups: Hyper-prios on top, then the
                           regular ones; points are dragged between them. */}
@@ -2077,7 +2078,7 @@ export default function Planning() {
                       // Each brand sits in its own thin frame, its name on a slim strip across the top.
                       <div key={g} className={BRAND_GROUPS[b] ? "flex flex-col gap-1 border border-[#C1440E] px-1 pb-1" : "contents"}>
                       {BRAND_GROUPS[b] ? (
-                        <p className="-mx-1 flex h-[20px] items-center border-b border-[#C1440E] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#C1440E]">{BRAND_LABELS[g]}:</p>
+                        <p className="-mx-1 flex h-[20px] items-center border-b border-[#C1440E] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#C1440E]">{BRAND_LABELS[g]}:{HYPER_GROUPS.includes(g) && tickAllBtn(b, idx, [g])}</p>
                       ) : col === "core" && b !== "master" && (
                         <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}{g === "hyper" && tickAllBtn(b, idx, ["hyper"])}</p>
                       )}
