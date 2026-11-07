@@ -1710,7 +1710,7 @@ export default function Planning() {
       // words start on the same edge as every plain line.
       <div className="-my-[2px] break-words text-[11px] font-semibold leading-[19px] text-neutral-900">
         {top.length > 0 && (
-          <span className="-ml-1 border border-[#C9A24A] bg-[#FFF3D6] px-[3px] [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
+          <span className="-ml-1 border border-[#C9A24A] bg-[#FFF3D6] px-[3px] pt-px [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
         )}
         {top.length > 0 && rest.length > 0 && "-"}
         {rest.map(word)}
@@ -1908,7 +1908,7 @@ export default function Planning() {
                   // Says Media: a row for each section (SM, SY, DS), parted by the same fine
                   // dashed rule as the Master line. A section with nothing ticked takes no row.
                   (() => {
-                    const rule = `-ml-2 ${idx === 1 ? "-mr-[38px] pr-[38px]" : "-mr-2 pr-2"} mt-[2px] border-t border-dashed border-[#C97A66] pl-2 pt-[2px]`;
+                    const rule = `-ml-2 ${idx === 1 ? "-mr-[38px] pr-[38px]" : "-mr-2 pr-2"} mt-[2px] border-t border-dashed border-[#C97A66] pl-2 pt-[3px]`;
                     const rows = BRAND_ROWS.map(([tag, gs]) => [tag, gs.flatMap((g) => points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(it.code)).map((it) => it.code)]).filter(([, codes]) => codes.length);
                     return rows.map(([tag, codes], ri) => (
                       <div key={tag} className={`flex items-start gap-1.5 ${ri > 0 ? rule : ""}`}>
