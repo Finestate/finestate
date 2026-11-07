@@ -2060,7 +2060,7 @@ export default function Planning() {
                         // Finestate's columns carry titles, Errands and Y, like the columns beside them.
                         if (b === "master") return (
                           <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
-                            {col === "errand" ? "Errands" : "Y"}
+                            {col === "errand" ? "Errands+Reminders" : "Y"}
                             {lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}
                           </p>
                         );
