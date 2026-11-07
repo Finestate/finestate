@@ -159,7 +159,13 @@ const NOTES_KEY = "finestate.planning.notes"; // department notes, one per compa
 const PLAN_KEY = "planning"; // the whole page, kept in the private admin_docs table
 
 // The lists that sit under the daily area, side by side, under one folding bar.
-const TWOCOLS = [["errands", "On plate"], ["hf", "HF order"]];
+// The gold Hyper-prios box: its frame is painted inside the text's own height, so it sits
+// 2px slimmer than a real border would make it, still even above and below.
+const GOLD_LINE = "linear-gradient(#C9A24A,#C9A24A)";
+const GOLD_BOX = {
+  background: `${GOLD_LINE} top / 100% 1px no-repeat, ${GOLD_LINE} bottom / 100% 1px no-repeat, ${GOLD_LINE} left / 1px 100% no-repeat, ${GOLD_LINE} right / 1px 100% no-repeat, #FFF3D6`,
+};
+const TWOCOLS = [["errands", "General list"], ["hf", "HF list"]];
 const PERSONAL_ID = "personal-order";
 // A tick lives on one day line. Older saves ticked the list itself, and those count
 // as ticks on the first line.
@@ -367,6 +373,9 @@ const SINGLE_BOARDS = ["fin"];
 // Ticked lines write themselves into the Errandsprios brackets. Set to false to switch it off entirely.
 // Off: On plate and HF order no longer have tick boxes, so nothing writes into those brackets.
 const ERRANDS_AUTOFILL = false;
+// Errands+Reminders entries always end in a space and brackets.
+const ERRAND_BRK = /\s\([^)]*\)\s*$/;
+const withBrk = (c) => c.replace(/\s*\(?\s*\)?\s*$/, "") + " ()";
 // Every ticked line in Errands prios or H+F order feeds the brackets, joined by a dash, no
 // spaces. Unticking takes it back out; the line itself stays in its list.
 // The errands brackets hold just the ticked lines ("seebelow" now sits in the point's own name).
@@ -1266,14 +1275,30 @@ export default function Planning() {
   };
   // A renamed point carries its new wording onto any line already holding it.
   const renamePoint = (b, g, id, raw) => {
-    const code = raw;
     const pts = boards[b].points;
     const old = pts[g].find((p) => p.id === id)?.code;
+    // Errands+Reminders: every entry ends in " (…)", which can't be deleted. The first
+    // letter typed brings the brackets, and a change that would remove them is ignored.
+    let code = raw;
+    if (g === "errand") {
+      if (ERRAND_BRK.test(old || "")) { if (!ERRAND_BRK.test(code)) return false; }
+      else if (code) code = withBrk(code);
+    }
     savePoints(b, { ...pts, [g]: pts[g].map((p) => (p.id === id ? { ...p, code } : p)) });
     if (old && old !== code) {
       saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.map((c) => (c === old ? code : c)) })));
     }
+    return code;
   };
+  // Entries already in Errands+Reminders without brackets get them, once, after loading.
+  useEffect(() => {
+    if (!planReady) return;
+    const list = boards.master?.points?.errand || [];
+    if (!list.some((p) => p.code && !ERRAND_BRK.test(p.code))) return;
+    const map = {};
+    const errand = list.map((p) => { if (!p.code || ERRAND_BRK.test(p.code)) return p; map[p.code] = withBrk(p.code); return { ...p, code: map[p.code] }; });
+    patchBoard("master", { points: { ...boards.master.points, errand }, lines: boards.master.lines.map((l) => ({ ...l, codes: l.codes.map((c) => map[c] || c) })) });
+  }, [planReady, boards.master?.points?.errand]);
   // A point's sub list: plain lines under it, no tick boxes. They show on the day line
   // when the point is ticked and its red name is clicked.
   const saveSubs = (b, g, id, subs) =>
@@ -1710,7 +1735,7 @@ export default function Planning() {
       // words start on the same edge as every plain line.
       <div className="-my-[2px] break-words text-[11px] font-semibold leading-[19px] text-neutral-900">
         {top.length > 0 && (
-          <span className="-ml-1 border border-[#C9A24A] bg-[#FFF3D6] px-[3px] pt-px [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">{top.map(word)}</span>
+          <span className="-ml-1 px-1 pt-px [-webkit-box-decoration-break:clone] [box-decoration-break:clone]" style={GOLD_BOX}>{top.map(word)}</span>
         )}
         {top.length > 0 && rest.length > 0 && "-"}
         {rest.map(word)}
@@ -2147,7 +2172,12 @@ export default function Planning() {
                             boxRef={(el) => { if (el && editing === it.id && document.activeElement !== el) el.focus(); }}
                             value={it.code}
                             readOnly={editing !== it.id}
-                            onChange={(e) => renamePoint(b, g, it.id, e.target.value.replace(/\r?\n/g, ""))}
+                            onChange={(e) => {
+                              const el = e.currentTarget, pos = el.selectionStart;
+                              const got = renamePoint(b, g, it.id, e.target.value.replace(/\r?\n/g, ""));
+                              // Keep the cursor where the typing is when the brackets are added or kept.
+                              if (g === "errand" && got !== e.target.value) requestAnimationFrame(() => { const at = got === false ? Math.max(0, pos) : pos; el.setSelectionRange(at, at); });
+                            }}
                             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
                             onBlur={() => setEditing(null)}
                             className={`whitespace-pre-wrap break-all bg-transparent leading-[15px] outline-none ${editing === it.id ? "" : "pointer-events-none"}`}
