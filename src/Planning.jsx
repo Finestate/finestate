@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Plus, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, List, ChevronsRight, ChevronsLeft, X, Check, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { DatePicker, parseDate } from "./LegalDocuments.jsx";
 
@@ -1199,31 +1199,6 @@ export default function Planning() {
     patchLine(b, idx, { codes: has ? line.codes.filter((c) => c !== code) : [...line.codes, code], fills, extras });
   };
 
-  // The tick beside Hyper-prios: ticks every hyper point on this day line, or, when all
-  // are ticked already, unticks them all.
-  const tickAll = (b, idx, groups) => {
-    const line = boards[b].lines[idx];
-    const codes = groups.flatMap((g) => boards[b].points[g] || []).map((p) => p.code).filter((c) => String(c || "").trim());
-    if (!codes.length) return;
-    const all = codes.every((c) => line.codes.includes(c));
-    patchLine(b, idx, { codes: all ? line.codes.filter((c) => !codes.includes(c)) : [...line.codes, ...codes.filter((c) => !line.codes.includes(c))] });
-  };
-  const tickAllBtn = (b, idx, groups) => {
-    const codes = groups.flatMap((g) => boards[b].points[g] || []).map((p) => p.code).filter((c) => String(c || "").trim());
-    const all = codes.length > 0 && codes.every((c) => boards[b].lines[idx].codes.includes(c));
-    return (
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); tickAll(b, idx, groups); }}
-        title={all ? "Untick all" : "Tick all"}
-        // Just the tick, no box: faint until every one is ticked, then full gold.
-        className={`ml-[3px] flex h-[15px] shrink-0 translate-y-px items-center text-[#9c7c33] transition-opacity ${all ? "opacity-100" : "opacity-55 hover:opacity-90"}`}
-      >
-        <Check size={12} strokeWidth={4} />
-      </button>
-    );
-  };
-
   // Picking a meeting moves it onto the line. A one-off also leaves the picker.
   const pickMeeting = (b, idx, m) => {
     const line = boards[b].lines[idx];
@@ -2110,9 +2085,9 @@ export default function Planning() {
                       // Each brand sits in its own thin frame, its name on a slim strip across the top.
                       <div key={g} className={BRAND_GROUPS[b] ? "flex flex-col gap-1 border border-[#C1440E] px-1 pb-1" : "contents"}>
                       {BRAND_GROUPS[b] ? (
-                        <p className="-mx-1 flex h-[20px] items-center border-b border-[#C1440E] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#C1440E]">{BRAND_LABELS[g]}:{HYPER_GROUPS.includes(g) && tickAllBtn(b, idx, [g])}</p>
+                        <p className="-mx-1 flex h-[20px] items-center border-b border-[#C1440E] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#C1440E]">{BRAND_LABELS[g]}:</p>
                       ) : col === "core" && b !== "master" && (
-                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}{g === "hyper" && tickAllBtn(b, idx, ["hyper"])}</p>
+                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
                       )}
                       {/* An empty group still takes a dragged point. */}
                       {list.length === 0 && (
