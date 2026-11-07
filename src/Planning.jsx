@@ -1421,7 +1421,8 @@ export default function Planning() {
         const trim = hasNotes({ code: c }) && c.match(/^(.*\()([^)]+)\)$/);
         const trimmed = boards[b].lines[idx]?.fills?.[c] ?? (trim ? trim[2] : "");
         // Any point typed with words in its brackets shows them in red, wherever it sits on the line.
-        const ownFill = !trim && /\(\s*[^)\s][^)]*\)\s*$/.test(String(c)) ? codeBrackets(c) : null;
+        // Foodycmd's brackets, even empty, are also read-only here: changed only in the list below.
+        const ownFill = !trim && (/\(\s*[^)\s][^)]*\)\s*$/.test(String(c)) || (/^\s*foodycmd/i.test(String(c)) && /\(.*\)\s*$/.test(String(c)))) ? codeBrackets(c) : null;
         return (
           <span key={c}>
             {ownFill != null ? (
