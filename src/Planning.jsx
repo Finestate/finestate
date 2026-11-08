@@ -393,6 +393,10 @@ const HYPER_ONLY = ["silx", "says", "servefast", "fin"];
 const BRAND_GROUPS = { says: { core: ["mediaHyper", "saysHyper", "hyper"], rest: ["mediaRest", "saysRest", "rest"] } };
 const BRAND_LABELS = { mediaHyper: "Says Media", mediaRest: "Says Media", saysHyper: "Says", saysRest: "Says", hyper: "Dubai Says", rest: "Dubai Says" };
 const HYPER_GROUPS = ["mediaHyper", "saysHyper", "hyper"];
+// Says Media ticks each section on its own: the same name in Says Media, Says and Dubai Says
+// is three separate ticks. Elsewhere a tick is just the point's name.
+const SECTION_OF = { mediaHyper: "SM", mediaRest: "SM", saysHyper: "SY", saysRest: "SY", hyper: "DS", rest: "DS" };
+const tickKey = (b, g, code) => (BRAND_GROUPS[b] && SECTION_OF[g] ? `${SECTION_OF[g]}|${code}` : code);
 // The Says Media day line: one row per section, each with its short tag, prios first.
 const BRAND_ROWS = [["SM", ["mediaHyper", "mediaRest"]], ["SY", ["saysHyper", "saysRest"]], ["DS", ["hyper", "rest"]]];
 // "errand": Finestate's own Errands column, between Meetings and Y.
@@ -950,6 +954,9 @@ export default function Planning() {
         const to = (pts[dropP.group] || []).slice();
         to.splice(dropP.index, 0, ...block);
         savePoints(b, { ...pts, [dragP.group]: from, [dropP.group]: to });
+        // On Says Media a point moved to another section takes its ticks with it.
+        const remap = Object.fromEntries(block.filter((x) => x.code).map((x) => [tickKey(b, dragP.group, x.code), tickKey(b, dropP.group, x.code)]).filter(([a, c]) => a !== c));
+        if (Object.keys(remap).length) saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.map((c) => remap[c] || c) })));
       }
     }
     endRowDrag();
@@ -1262,10 +1269,25 @@ export default function Planning() {
     }
     savePoints(b, { ...pts, [g]: pts[g].map((p) => (p.id === id ? { ...p, code } : p)) });
     if (old && old !== code) {
-      saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.map((c) => (c === old ? code : c)) })));
+      const was = tickKey(b, g, old), now = tickKey(b, g, code);
+      saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.map((c) => (c === was ? now : c)) })));
     }
     return code;
   };
+  // Says Media ticks saved before sections ticked apart: each becomes a tick in every
+  // section holding that name (what showed before), once, after loading.
+  useEffect(() => {
+    if (!planReady) return;
+    for (const b of Object.keys(BRAND_GROUPS)) {
+      const bd = boards[b];
+      if (!bd) continue;
+      const groups = Object.keys(SECTION_OF);
+      const keysFor = (c) => [...new Set(groups.filter((g) => (bd.points[g] || []).some((it) => it.code === c)).map((g) => tickKey(b, g, c)))];
+      const plain = (c) => !/^(SM|SY|DS)\|/.test(c) && keysFor(c).length;
+      if (!bd.lines.some((l) => l.codes.some(plain))) continue;
+      patchBoard(b, { lines: bd.lines.map((l) => ({ ...l, codes: [...new Set(l.codes.flatMap((c) => (plain(c) ? keysFor(c) : [c])))] })) });
+    }
+  }, [planReady, boards.says]);
   // Entries already in Errands+Reminders without brackets get them, once, after loading.
   useEffect(() => {
     if (!planReady) return;
@@ -1298,7 +1320,7 @@ export default function Planning() {
     const left = removeOnly(pts[g], id);
     const freed = (point?.subs || []).map((x) => ({ id: x.id, code: x.text, level: levelOf(point) }));
     savePoints(b, { ...pts, [g]: [...left.slice(0, at), ...freed, ...left.slice(at)] });
-    if (gone) saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.filter((c) => c !== gone) })));
+    if (gone) saveLines(b, boards[b].lines.map((l) => ({ ...l, codes: l.codes.filter((c) => c !== tickKey(b, g, gone)) })));
   };
   // A point with stepped-in points under it opens and closes like a little dropdown.
   const togglePointClosed = (b, g, id) =>
@@ -1678,11 +1700,12 @@ export default function Planning() {
   };
   const subsOf = (it) => (it?.subs || []).filter((x) => String(x.text || "").trim());
   const allPoints = (b) => { const pts = boards[b].points; return [...HYPER_GROUPS, "core", ...REST_GROUPS].flatMap((g) => pts[g] || []); };
-  const renderShortLine = (b, codes, idx) => {
-    const hyper = new Set(HYPER_GROUPS.flatMap((g) => boards[b].points[g] || []).map((it) => it.code));
+  // `gs`: on Says Media, only that section's groups, so a shared name finds its own point.
+  const renderShortLine = (b, codes, idx, gs) => {
+    const hyper = new Set(HYPER_GROUPS.filter((g) => !gs || gs.includes(g)).flatMap((g) => boards[b].points[g] || []).map((it) => it.code));
     const items = codes.map((c) => ({ c, s: shortCode(c) })).filter((x) => x.s);
     const word = (x, k) => {
-      const it = allPoints(b).find((p) => p.code === x.c);
+      const it = (gs ? gs.flatMap((g) => boards[b].points[g] || []) : allPoints(b)).find((p) => p.code === x.c);
       const key = `${b}-${idx}-${it?.id}`;
       return (
         <Fragment key={x.c}>
@@ -1730,8 +1753,8 @@ export default function Planning() {
         const open = boards[b].open === idx;
         const { meetings, points } = boards[b];
         // Selected points keep their group on the line: meetings, core codes, then the rest.
-        const coreCodes = [...HYPER_GROUPS, "core"].flatMap((g) => points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(it.code)).map((it) => it.code);
-        const restCodes = REST_GROUPS.flatMap((g) => points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(it.code)).map((it) => it.code);
+        const coreCodes = [...HYPER_GROUPS, "core"].flatMap((g) => (points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(tickKey(b, g, it.code)))).map((it) => it.code);
+        const restCodes = REST_GROUPS.flatMap((g) => (points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(tickKey(b, g, it.code)))).map((it) => it.code);
         return (
           // A heavy rule between today and the next day, so the two never blur.
           // Only the pair needs a rule between them; a single line already sits under
@@ -1910,12 +1933,12 @@ export default function Planning() {
                   // dashed rule as the Master line. A section with nothing ticked takes no row.
                   (() => {
                     const rule = `-ml-2 ${idx === 1 ? "-mr-[38px] pr-[38px]" : "-mr-2 pr-2"} mt-[2px] border-t border-dashed border-[#C97A66] pl-2 pt-[3px]`;
-                    const rows = BRAND_ROWS.map(([tag, gs]) => [tag, gs.flatMap((g) => points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(it.code)).map((it) => it.code)]).filter(([, codes]) => codes.length);
-                    return rows.map(([tag, codes], ri) => (
+                    const rows = BRAND_ROWS.map(([tag, gs]) => [tag, gs.flatMap((g) => (points[g] || []).filter((it) => String(it.code || "").trim() && line.codes.includes(tickKey(b, g, it.code)))).map((it) => it.code), gs]).filter(([, codes]) => codes.length);
+                    return rows.map(([tag, codes, gs], ri) => (
                       <div key={tag} className={`flex items-start gap-[7px] ${ri > 0 ? rule : ""}`}>
                         {/* A fixed width, so the codes after SM, SY and DS all start on the same edge. */}
                         <span className="w-[20px] shrink-0 text-[11px] font-bold leading-[15px] text-[#C1440E]">{tag}:</span>
-                        <div className="min-w-0 flex-1">{renderShortLine(b, codes, idx)}</div>
+                        <div className="min-w-0 flex-1">{renderShortLine(b, codes, idx, gs)}</div>
                       </div>
                     ));
                   })()
@@ -1939,7 +1962,7 @@ export default function Planning() {
             {/* Open sub lists: just the point's lines, in purple, snug under the day line with no
                 gaps, on the same left edge as the words above. */}
             {(() => {
-              const lists = MEETING_BOARDS.includes(b) ? [] : allPoints(b).filter((it) => line.codes.includes(it.code) && subsOf(it).length && subOpen.includes(`${b}-${idx}-${it.id}`));
+              const lists = MEETING_BOARDS.includes(b) ? [] : [...HYPER_GROUPS, "core", ...REST_GROUPS].flatMap((g) => (boards[b].points[g] || []).filter((it) => line.codes.includes(tickKey(b, g, it.code)) && subsOf(it).length && subOpen.includes(`${b}-${idx}-${it.id}`)));
               return lists.length > 0 && (
                 <div className="-mt-[2px] px-2 pb-[3px] text-[11px] leading-[15px]">
                   {lists.flatMap((it) => subsOf(it)).map((x) => (
@@ -2137,8 +2160,8 @@ export default function Planning() {
                           <span className="flex h-[15px] shrink-0 items-center">
                             <input
                               type="checkbox"
-                              checked={line.codes.includes(it.code)}
-                              onChange={() => toggleTodo(b, idx, it.code)}
+                              checked={line.codes.includes(tickKey(b, g, it.code))}
+                              onChange={() => toggleTodo(b, idx, tickKey(b, g, it.code))}
                               className="block h-3 w-3 cursor-pointer"
                               style={{ accentColor: GOLD, margin: 0 }}
                             />
