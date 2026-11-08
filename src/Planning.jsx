@@ -22,7 +22,8 @@ const whenCode = (date, time) => {
   if (!d) return "";
   const day = "SMTWTFS"[new Date(d.y, d.m, d.d).getDay()];
   const [h, mi] = String(time || "").split(":");
-  const t = h == null || h === "" ? "" : `${h}${mi && mi !== "00" ? mi : ""}`;
+  // Morning hours without the leading 0: 9, not 09.
+  const t = h == null || h === "" ? "" : `${Number(h)}${mi && mi !== "00" ? mi : ""}`;
   return `${"JFMAMJJASOND"[d.m]}${d.d}${day}${t}`;
 };
 
@@ -70,7 +71,7 @@ function MeetWhen({ date, time, onChange }) {
             {/* Thin lines part the day, the hours and the minutes. */}
             <div className="grid grid-cols-6 gap-0.5 border-b border-neutral-200 py-1.5">
               {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0")).map((h) => (
-                <button key={h} type="button" onClick={() => onChange(picked, `${h}:${curM || "00"}`)} className={pill(curH === h)} style={curH === h ? on : undefined}>{h}</button>
+                <button key={h} type="button" onClick={() => onChange(picked, `${h}:${curM || "00"}`)} className={pill(curH === h)} style={curH === h ? on : undefined}>{Number(h)}</button>
               ))}
             </div>
             <div className="grid grid-cols-6 gap-0.5 border-b border-neutral-200 py-1.5">
