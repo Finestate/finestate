@@ -334,8 +334,9 @@ export default function HW() {
                           <div className="flex h-[21px] items-center justify-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900" style={{ backgroundColor: "#F4D3CA" }}>
                             {title}
                           </div>
-                          {/* All the areas in one line, side by side in equal cells; a long name wraps inside its cell. */}
-                          <div className="flex items-stretch border-t border-neutral-400" style={{ backgroundColor: "#F4D3CA" }}>
+                          {/* All the areas in one line, side by side in equal cells; a long name wraps inside its cell.
+                              A table given no areas (Functional training) has no such row. */}
+                          {items && <div className="flex items-stretch border-t border-neutral-400" style={{ backgroundColor: "#F4D3CA" }}>
                             {items.map((it, k) => (
                               <div key={it.id} className={`group relative flex min-h-[20px] min-w-0 flex-1 basis-0 items-center justify-center px-1 pt-[3px] pb-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
                                 <input
@@ -355,7 +356,7 @@ export default function HW() {
                             >
                               <Plus size={11} strokeWidth={3} />
                             </button>
-                          </div>
+                          </div>}
                           {week.map((w, wi) => (
                             <div key={wi} className="flex items-stretch border-t border-neutral-400">
                               <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
@@ -388,8 +389,8 @@ export default function HW() {
                         <div className="h-2" />
                         {table(
                           "Functional training",
-                          ft.body.items,
-                          (items) => setFt((t) => ({ ...t, body: { ...t.body, items } })),
+                          null,
+                          null,
                           ft.week,
                           (fn) => setFt((t) => ({ ...t, week: fn(t.week) })),
                         )}
