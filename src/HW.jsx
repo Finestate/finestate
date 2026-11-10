@@ -328,7 +328,8 @@ export default function HW() {
                     };
                     const ft = ftOf(g);
                     const setFt = (fn) => editGroup(g.id, (x) => ({ ...x, functionalTable: fn(ftOf(x)) }));
-                    const table = (title, items, setItems, week, setWeek) => (
+                    // `dk` names the table for moving rows; `nested` gives each row its own dropdown of lines.
+                    const table = (title, items, setItems, week, setWeek, dk, nested) => (
                       <>
                         <div className="border border-neutral-400">
                           <div className="flex h-[21px] items-center justify-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900" style={{ backgroundColor: "#F4D3CA" }}>
@@ -338,7 +339,7 @@ export default function HW() {
                               A table given no areas (Functional training) has no such row. */}
                           {items && <div className="flex items-stretch border-t border-neutral-400" style={{ backgroundColor: "#F4D3CA" }}>
                             {items.map((it, k) => (
-                              <div key={it.id} className={`group relative flex min-h-[20px] min-w-0 flex-1 basis-0 items-center justify-center px-1 pt-[3px] pb-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
+                              <div key={it.id} className={`group relative flex min-h-[20px] min-w-0 flex-1 basis-0 items-center justify-center gap-0.5 px-1 pt-[3px] pb-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
                                 <input
                                   value={it.text}
                                   onChange={(e) => setItems(items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)))}
@@ -346,6 +347,8 @@ export default function HW() {
                                   // Shown in capitals only: the words are kept as typed.
                                   className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] uppercase leading-[15px] text-neutral-900 outline-none"
                                 />
+                                {/* How many rows below name this area (its words anywhere in a row, capitals aside). */}
+                                {String(it.text || "").trim() && <span className="shrink-0 text-[11px] font-semibold leading-[15px] text-[#0f766e]">({week.filter((w) => String(w.text || "").toLowerCase().includes(String(it.text).trim().toLowerCase())).length})</span>}
                                 <span className="absolute right-0.5 top-1/2 hidden -translate-y-1/2 group-hover:flex">{binBtn(() => setItems(items.filter((y) => y.id !== it.id)))}</span>
                               </div>
                             ))}
@@ -357,16 +360,58 @@ export default function HW() {
                               <Plus size={11} strokeWidth={3} />
                             </button>
                           </div>}
-                          {week.map((w, wi) => (
-                            <div key={wi} className="flex items-stretch border-t border-neutral-400">
+                          {week.map((w, wi) => {
+                            const edit = (fields) => setWeek((list) => list.map((y, yi) => (yi === wi ? { ...y, ...fields } : y)));
+                            const subs = w.subs || [];
+                            const sk = `${dk}-${wi}`;
+                            return (
+                            <div key={wi} {...dropProps(dk, wi, (from, to) => setWeek((list) => moved(list, from, to)))}>
+                            {marker(dk, wi)}
+                            <div className="flex items-stretch border-t border-neutral-400">
                               <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
-                                <GrowText value={w.text || ""} onChange={(t) => setWeek((list) => list.map((y, yi) => (yi === wi ? { ...y, text: t } : y)))} rows={1} />
+                                <GrowText value={w.text || ""} onChange={(t) => edit({ text: t })} rows={1} />
                               </div>
+                              {/* The move grip sits just left of the bin; a dropdown row has its chevron first. */}
                               <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
+                                {nested && (
+                                  <button onClick={() => edit({ open: !w.open })} title={w.open ? "Close" : "Open"} className="flex shrink-0 items-center text-neutral-900 hover:text-[#9c7c33]">
+                                    <ChevronDown size={11} className={`transition-transform ${w.open ? "rotate-180" : ""}`} />
+                                  </button>
+                                )}
+                                {grip(dk, wi, true)}
                                 {binBtn(() => setWeek((list) => list.filter((_, yi) => yi !== wi)))}
                               </span>
                             </div>
-                          ))}
+                            {/* Under an open row: its own lines, stepped in on white, moved and binned the same way. */}
+                            {nested && w.open && (
+                              <div className="border-t border-neutral-400 bg-white">
+                                {subs.map((x, xi) => (
+                                  <div key={x.id} {...dropProps(sk, xi, (from, to) => edit({ subs: moved(subs, from, to) }))}>
+                                    {marker(sk, xi)}
+                                    <div className={`flex items-stretch ${xi ? "border-t border-neutral-300" : ""}`}>
+                                      <div className="min-w-0 flex-1 pl-5 pr-1.5 pt-[3px] pb-[2px]">
+                                        <GrowText value={x.text || ""} onChange={(t) => edit({ subs: subs.map((y) => (y.id === x.id ? { ...y, text: t } : y)) })} rows={1} />
+                                      </div>
+                                      <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-300 px-1.5 pt-[5px] pb-[4px]">
+                                        {grip(sk, xi, true)}
+                                        {binBtn(() => edit({ subs: subs.filter((y) => y.id !== x.id) }))}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                                {marker(sk, subs.length)}
+                                <button
+                                  onClick={() => edit({ subs: [...subs, { id: newId(), text: "" }] })}
+                                  className={`flex h-[21px] w-full items-center pl-5 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${subs.length ? "border-t border-neutral-300" : ""}`}
+                                >
+                                  Add
+                                </button>
+                              </div>
+                            )}
+                            </div>
+                            );
+                          })}
+                          {marker(dk, week.length)}
                         </div>
                         {/* Add sits under the frame, plain: a fresh row to fill in. */}
                         <button
@@ -385,6 +430,7 @@ export default function HW() {
                           (items) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), items } })),
                           weekOf(g),
                           (fn) => editGroup(g.id, (x) => ({ ...x, week: fn(weekOf(x)) })),
+                          `wl-${g.id}`,
                         )}
                         <div className="h-2" />
                         {table(
@@ -393,6 +439,8 @@ export default function HW() {
                           null,
                           ft.week,
                           (fn) => setFt((t) => ({ ...t, week: fn(t.week) })),
+                          `ft-${g.id}`,
+                          true,
                         )}
                       </>
                     );
