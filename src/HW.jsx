@@ -315,118 +315,87 @@ export default function HW() {
                     </>
                   ) : (
                   <>
-                  {/* Seven fixed lines, Monday to Sunday: a narrow day column you can retype,
-                      then the workout. The first time, earlier lines fill the days in order. */}
-                  <div className="border border-neutral-400">
-                  {/* At the top of the table, always shown: the body areas to train, one column,
-                      each followed by how many workout lines name it. */}
+                  {/* Two tables, each the same build: a title bar, its body areas (added and
+                      binned), then its rows. Weightlifting on top, Functional training under it. */}
                   {(() => {
                     const BODY = ["Chest", "Back – upper (lats, traps, rhomboids)", "Back – lower", "Shoulders", "Biceps", "Triceps", "Forearms and grip", "Core – abs", "Core – obliques", "Glutes", "Quads", "Hamstrings", "Calves", "Hips and adductors", "Neck", "Cardio and conditioning", "Mobility and stretching"];
                     const bp = g.body || { title: "Body areas", items: BODY.map((t, k) => ({ id: `b${k}`, text: t })) };
-                    const setBp = (fields) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), ...fields } }));
-                    // How many workout lines mention each area: its words found anywhere in a
-                    // line, capitals aside. Shown after the area as (2).
-                    const lines = weekOf(g).map((w) => String(w.text || "").toLowerCase());
-                    const countOf = (t) => {
-                      const k = String(t || "").trim().toLowerCase();
-                      return k ? lines.filter((l) => l.includes(k)).length : 0;
+                    // Functional training starts with the top table's body areas and the lines
+                    // from the old Functional training exercises dropdown.
+                    const ftOf = (x) => x.functionalTable || {
+                      body: { items: (x.body || bp).items.map((it) => ({ id: newId(), text: it.text })) },
+                      week: ((x.functional && x.functional.rows) || []).map((r) => ({ day: "", text: r.text || "" })),
                     };
-                    // All the areas in one line, side by side in equal cells with a thin line
-                    // between each; a long name wraps inside its cell. The + at the end adds one.
-                    return (
-                      <div className="flex items-stretch" style={{ backgroundColor: "#F4D3CA" }}>
-                        {bp.items.map((it, k) => (
-                          <div key={it.id} className={`group relative flex min-h-[20px] min-w-0 flex-1 basis-0 items-center justify-center gap-0.5 px-1 pt-[3px] pb-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
-                            {/* Name and count centred in the cell; the bin shows on hover, at the right. */}
-                            <input
-                              value={it.text}
-                              onChange={(e) => setBp({ items: bp.items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)) })}
-                              style={{ fieldSizing: "content" }}
-                              // Shown in capitals only: the words are kept as typed, so the counts below still find them.
-                              className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] uppercase leading-[15px] text-neutral-900 outline-none"
-                            />
-                            {String(it.text || "").trim() && <span className="shrink-0 text-[11px] font-semibold leading-[15px] text-[#0f766e]">({countOf(it.text)})</span>}
-                            <span className="absolute right-0.5 top-1/2 hidden -translate-y-1/2 group-hover:flex">{binBtn(() => setBp({ items: bp.items.filter((y) => y.id !== it.id) }))}</span>
-                          </div>
-                        ))}
-                        <button
-                          onClick={() => setBp({ items: [...bp.items, { id: newId(), text: "" }] })}
-                          title="Add a body area"
-                          className={`flex shrink-0 items-center px-1.5 text-[#0f766e] hover:text-[#0c5e57] ${bp.items.length ? "border-l border-neutral-400" : ""}`}
-                        >
-                          <Plus size={11} strokeWidth={3} />
-                        </button>
-                      </div>
-                    );
-                  })()}
-                  {/* Right under the body areas: Functional training exercises, one title across the table.
-                      A click anywhere on it opens its list of exercises, one per line, added,
-                      moved and binned. Open or shut is kept with the rest. */}
-                  {(() => {
-                    const ft = g.functional || { open: false, rows: [] };
-                    const setFt = (fields) => editGroup(g.id, (x) => ({ ...x, functional: { ...(x.functional || { open: false, rows: [] }), ...fields } }));
-                    const key = `func-${g.id}`;
-                    return (
+                    const ft = ftOf(g);
+                    const setFt = (fn) => editGroup(g.id, (x) => ({ ...x, functionalTable: fn(ftOf(x)) }));
+                    const table = (title, items, setItems, week, setWeek) => (
                       <>
-                        <div
-                          onClick={() => setFt({ open: !ft.open })}
-                          title={ft.open ? "Close the list" : "Open the list"}
-                          className="flex h-[21px] cursor-pointer select-none items-center justify-center gap-1 border-t border-neutral-400 text-[11px] uppercase leading-[15px] text-neutral-900"
-                          style={{ backgroundColor: "#F4D3CA" }}
-                        >
-                          Functional training exercises
-                        </div>
-                        {/* Same colour as the body areas row and its title. */}
-                        {ft.open && (
-                          <div className="border-t border-neutral-400" style={{ backgroundColor: "#F4D3CA" }}>
-                            {ft.rows.map((r, ri) => (
-                              <div key={r.id} {...dropProps(key, ri, (from, to) => setFt({ rows: moved(ft.rows, from, to) }))}>
-                                {marker(key, ri)}
-                                <div className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
-                                  <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
-                                    <GrowText value={r.text || ""} onChange={(t) => setFt({ rows: ft.rows.map((y) => (y.id === r.id ? { ...y, text: t } : y)) })} rows={1} />
-                                  </div>
-                                  <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
-                                    {grip(key, ri, true)}
-                                    {binBtn(() => setFt({ rows: ft.rows.filter((y) => y.id !== r.id) }))}
-                                  </span>
-                                </div>
+                        <div className="border border-neutral-400">
+                          <div className="flex h-[21px] items-center justify-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900" style={{ backgroundColor: "#F4D3CA" }}>
+                            {title}
+                          </div>
+                          {/* All the areas in one line, side by side in equal cells; a long name wraps inside its cell. */}
+                          <div className="flex items-stretch border-t border-neutral-400" style={{ backgroundColor: "#F4D3CA" }}>
+                            {items.map((it, k) => (
+                              <div key={it.id} className={`group relative flex min-h-[20px] min-w-0 flex-1 basis-0 items-center justify-center px-1 pt-[3px] pb-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
+                                <input
+                                  value={it.text}
+                                  onChange={(e) => setItems(items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)))}
+                                  style={{ fieldSizing: "content" }}
+                                  // Shown in capitals only: the words are kept as typed.
+                                  className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] uppercase leading-[15px] text-neutral-900 outline-none"
+                                />
+                                <span className="absolute right-0.5 top-1/2 hidden -translate-y-1/2 group-hover:flex">{binBtn(() => setItems(items.filter((y) => y.id !== it.id)))}</span>
                               </div>
                             ))}
-                            {marker(key, ft.rows.length)}
                             <button
-                              onClick={() => setFt({ rows: [...ft.rows, { id: newId(), text: "" }] })}
-                              className={`flex h-[21px] w-full items-center pl-[7px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${ft.rows.length ? "border-t border-neutral-400" : ""}`}
+                              onClick={() => setItems([...items, { id: newId(), text: "" }])}
+                              title="Add a body area"
+                              className={`flex shrink-0 items-center px-1.5 text-[#0f766e] hover:text-[#0c5e57] ${items.length ? "border-l border-neutral-400" : ""}`}
                             >
-                              Add
+                              <Plus size={11} strokeWidth={3} />
                             </button>
                           </div>
+                          {week.map((w, wi) => (
+                            <div key={wi} className="flex items-stretch border-t border-neutral-400">
+                              <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
+                                <GrowText value={w.text || ""} onChange={(t) => setWeek((list) => list.map((y, yi) => (yi === wi ? { ...y, text: t } : y)))} rows={1} />
+                              </div>
+                              <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
+                                {binBtn(() => setWeek((list) => list.filter((_, yi) => yi !== wi)))}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Add sits under the frame, plain: a fresh row to fill in. */}
+                        <button
+                          onClick={() => setWeek((list) => [...list, { day: "", text: "" }])}
+                          className="mt-1 flex items-center pl-[5px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
+                        >
+                          Add
+                        </button>
+                      </>
+                    );
+                    return (
+                      <>
+                        {table(
+                          "Weightlifting",
+                          bp.items,
+                          (items) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), items } })),
+                          weekOf(g),
+                          (fn) => editGroup(g.id, (x) => ({ ...x, week: fn(weekOf(x)) })),
+                        )}
+                        <div className="h-2" />
+                        {table(
+                          "Functional training",
+                          ft.body.items,
+                          (items) => setFt((t) => ({ ...t, body: { ...t.body, items } })),
+                          ft.week,
+                          (fn) => setFt((t) => ({ ...t, week: fn(t.week) })),
                         )}
                       </>
                     );
                   })()}
-                    {weekOf(g).map((w, wi) => {
-                      return (
-                      <div key={wi} className="flex items-stretch border-t border-neutral-400">
-                        {/* Just the workout, then its bin. The minutes and the right-hand half
-                            that once sat here stay saved, out of sight. */}
-                        <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
-                          <GrowText value={w.text || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).map((y, yi) => (yi === wi ? { ...y, text: t } : y)) }))} rows={1} />
-                        </div>
-                        <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
-                          {binBtn(() => editGroup(g.id, (x) => ({ ...x, week: weekOf(x).filter((_, yi) => yi !== wi) })))}
-                        </span>
-                      </div>
-                      );
-                    })}
-                  </div>
-                  {/* Add sits under the frame, plain: a fresh row to fill in. */}
-                  <button
-                    onClick={() => editGroup(g.id, (x) => ({ ...x, week: [...weekOf(x), { day: "", text: "" }] }))}
-                    className="mt-1 flex items-center pl-[5px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
-                  >
-                    Add
-                  </button>
                   </>
                   )}
                 </div>
