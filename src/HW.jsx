@@ -329,6 +329,7 @@ export default function HW() {
                     const ft = ftOf(g);
                     const setFt = (fn) => editGroup(g.id, (x) => ({ ...x, functionalTable: fn(ftOf(x)) }));
                     // `dk` names the table for moving rows; `nested` gives each row its own dropdown of lines.
+                    // `nested` also means a free row of cells up top, with no counts.
                     const table = (title, items, setItems, week, setWeek, dk, nested) => (
                       <>
                         <div className="border border-neutral-400">
@@ -348,13 +349,13 @@ export default function HW() {
                                   className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] uppercase leading-[15px] text-neutral-900 outline-none"
                                 />
                                 {/* How many rows below name this area (its words anywhere in a row, capitals aside). */}
-                                {String(it.text || "").trim() && <span className="shrink-0 text-[11px] font-semibold leading-[15px] text-[#0f766e]">({week.filter((w) => String(w.text || "").toLowerCase().includes(String(it.text).trim().toLowerCase())).length})</span>}
+                                {!nested && String(it.text || "").trim() && <span className="shrink-0 text-[11px] font-semibold leading-[15px] text-[#0f766e]">({week.filter((w) => String(w.text || "").toLowerCase().includes(String(it.text).trim().toLowerCase())).length})</span>}
                                 <span className="absolute right-0.5 top-1/2 hidden -translate-y-1/2 group-hover:flex">{binBtn(() => setItems(items.filter((y) => y.id !== it.id)))}</span>
                               </div>
                             ))}
                             <button
                               onClick={() => setItems([...items, { id: newId(), text: "" }])}
-                              title="Add a body area"
+                              title={nested ? "Add a cell" : "Add a body area"}
                               className={`flex shrink-0 items-center px-1.5 text-[#0f766e] hover:text-[#0c5e57] ${items.length ? "border-l border-neutral-400" : ""}`}
                             >
                               <Plus size={11} strokeWidth={3} />
@@ -435,8 +436,9 @@ export default function HW() {
                         <div className="h-2" />
                         {table(
                           "Functional training",
-                          null,
-                          null,
+                          // Its own row of cells, empty to start, for whatever you want there.
+                          ft.cells || [],
+                          (cells) => setFt((t) => ({ ...t, cells })),
                           ft.week,
                           (fn) => setFt((t) => ({ ...t, week: fn(t.week) })),
                           `ft-${g.id}`,
