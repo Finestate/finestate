@@ -340,7 +340,8 @@ export default function HW() {
                               A table given no areas (Functional training) has no such row. */}
                           {items && <div className="flex items-stretch border-t border-neutral-400" style={{ backgroundColor: "#F4D3CA" }}>
                             {items.map((it, k) => (
-                              <div key={it.id} className={`group relative flex min-h-[20px] min-w-0 flex-1 basis-0 items-center justify-center gap-0.5 px-1 pt-[3px] pb-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
+                              <div key={it.id} onClick={(e) => { if (!e.target.closest("button")) e.currentTarget.querySelector("input")?.focus(); }} className={`group relative flex min-h-[20px] min-w-0 flex-1 basis-0 cursor-text items-center justify-center gap-0.5 px-1 pt-[3px] pb-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
+                                {/* A click anywhere in the cell puts the cursor in it, so an empty one is easy to type in. */}
                                 <input
                                   value={it.text}
                                   onChange={(e) => setItems(items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)))}
