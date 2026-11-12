@@ -349,8 +349,6 @@ export default function HW() {
                                   // Shown in capitals only: the words are kept as typed.
                                   className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] uppercase leading-[15px] text-neutral-900 outline-none"
                                 />
-                                {/* How many rows below name this area (its words anywhere in a row, capitals aside). */}
-                                {!nested && String(it.text || "").trim() && <span className="shrink-0 text-[11px] font-semibold leading-[15px] text-[#0f766e]">({week.filter((w) => String(w.text || "").toLowerCase().includes(String(it.text).trim().toLowerCase())).length})</span>}
                                 <span className="absolute right-0.5 top-1/2 hidden -translate-y-1/2 group-hover:flex">{binBtn(() => setItems(items.filter((y) => y.id !== it.id)))}</span>
                               </div>
                             ))}
