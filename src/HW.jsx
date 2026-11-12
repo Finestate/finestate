@@ -52,6 +52,7 @@ export default function HW() {
   // dragged line will land.
   const [drag, setDrag] = useState(null); // { section, from }
   const [dropAt, setDropAt] = useState(null); // { section, index }
+  const [addMenu, setAddMenu] = useState(null); // the workouts table whose Add menu is open
   const moved = (list, from, to) => {
     const next = list.slice();
     const [item] = next.splice(from, 1);
@@ -416,13 +417,24 @@ export default function HW() {
                           {marker(dk, week.length)}
                         </div>
                         {/* Under the frame, plain: a normal row, or a row that opens onto its own lines. */}
-                        <div className="mt-1 flex items-center gap-3 pl-[5px]">
-                          <button onClick={() => setWeek((list) => [...list, { day: "", text: "" }])} className="text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]">
-                            Add row
+                        {/* One Add: it opens a little menu to pick the kind of row. */}
+                        <div className="relative mt-1 pl-[5px]">
+                          <button onClick={() => setAddMenu(addMenu === dk ? null : dk)} className="flex items-center gap-0.5 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]">
+                            Add <ChevronDown size={11} strokeWidth={3} className={`transition-transform ${addMenu === dk ? "rotate-180" : ""}`} />
                           </button>
-                          <button onClick={() => setWeek((list) => [...list, { day: "", text: "", drop: true, open: true, subs: [] }])} className="text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]">
-                            Add dropdown row
-                          </button>
+                          {addMenu === dk && (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setAddMenu(null)} />
+                              <div className="absolute left-[5px] top-full z-50 mt-0.5 border border-neutral-400 bg-white text-[11px] text-neutral-900 shadow">
+                                <button onClick={() => { setWeek((list) => [...list, { day: "", text: "" }]); setAddMenu(null); }} className="block h-[21px] w-full whitespace-nowrap px-2 text-left hover:bg-[#FBEFEC]">
+                                  Row
+                                </button>
+                                <button onClick={() => { setWeek((list) => [...list, { day: "", text: "", drop: true, open: true, subs: [] }]); setAddMenu(null); }} className="block h-[21px] w-full whitespace-nowrap border-t border-neutral-400 px-2 text-left hover:bg-[#FBEFEC]">
+                                  Dropdown row
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </>
                     );
