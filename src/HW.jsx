@@ -315,8 +315,8 @@ export default function HW() {
                     </>
                   ) : (
                   <>
-                  {/* Two tables, each the same build: a title bar, its body areas (added and
-                      binned), then its rows. Weightlifting on top, Functional training under it. */}
+                  {/* One table: a title bar, its body areas (added and binned), then its rows,
+                      each a normal row or one that opens onto lines of its own. */}
                   {(() => {
                     const BODY = ["Chest", "Back – upper (lats, traps, rhomboids)", "Back – lower", "Shoulders", "Biceps", "Triceps", "Forearms and grip", "Core – abs", "Core – obliques", "Glutes", "Quads", "Hamstrings", "Calves", "Hips and adductors", "Neck", "Cardio and conditioning", "Mobility and stretching"];
                     const bp = g.body || { title: "Body areas", items: BODY.map((t, k) => ({ id: `b${k}`, text: t })) };
@@ -326,40 +326,42 @@ export default function HW() {
                       body: { items: (x.body || bp).items.map((it) => ({ id: newId(), text: it.text })) },
                       week: ((x.functional && x.functional.rows) || []).map((r) => ({ day: "", text: r.text || "" })),
                     };
-                    const ft = ftOf(g);
-                    const setFt = (fn) => editGroup(g.id, (x) => ({ ...x, functionalTable: fn(ftOf(x)) }));
-                    // `dk` names the table for moving rows; `nested` gives each row its own dropdown of lines.
-                    // `nested` also means a free row of cells up top, with no counts.
-                    const table = (title, items, setItems, week, setWeek, dk, nested) => (
+                    // A row of cells side by side, equal widths; a long name wraps inside its cell.
+                    const cellRow = (items, setItems, topLine, addTitle) => (
+                      <div className={`flex items-stretch ${topLine ? "border-t border-neutral-400" : ""}`} style={{ backgroundColor: "#F4D3CA" }}>
+                        {items.map((it, k) => (
+                          <div key={it.id} onClick={(e) => { if (!e.target.closest("button")) e.currentTarget.querySelector("input")?.focus(); }} className={`group relative flex min-h-[20px] min-w-0 flex-1 basis-0 cursor-text items-center justify-center gap-0.5 px-1 pt-[3px] pb-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
+                            {/* A click anywhere in the cell puts the cursor in it, so an empty one is easy to type in. */}
+                            <input
+                              value={it.text}
+                              onChange={(e) => setItems(items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)))}
+                              style={{ fieldSizing: "content" }}
+                              // Shown in capitals only: the words are kept as typed.
+                              className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] uppercase leading-[15px] text-neutral-900 outline-none"
+                            />
+                            <span className="absolute right-0.5 top-1/2 hidden -translate-y-1/2 group-hover:flex">{binBtn(() => setItems(items.filter((y) => y.id !== it.id)))}</span>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => setItems([...items, { id: newId(), text: "" }])}
+                          title={addTitle}
+                          className={`flex shrink-0 items-center px-1.5 text-[#0f766e] hover:text-[#0c5e57] ${items.length ? "border-l border-neutral-400" : ""}`}
+                        >
+                          <Plus size={11} strokeWidth={3} />
+                        </button>
+                      </div>
+                    );
+                    const table = (title, items, setItems, week, setWeek, dk, cells, setCells) => (
                       <>
                         <div className="border border-neutral-400">
-                          <div className="flex h-[21px] items-center justify-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900" style={{ backgroundColor: "#F4D3CA" }}>
-                            {title}
-                          </div>
-                          {/* All the areas in one line, side by side in equal cells; a long name wraps inside its cell.
-                              A table given no areas (Functional training) has no such row. */}
-                          {items && <div className="flex items-stretch border-t border-neutral-400" style={{ backgroundColor: "#F4D3CA" }}>
-                            {items.map((it, k) => (
-                              <div key={it.id} onClick={(e) => { if (!e.target.closest("button")) e.currentTarget.querySelector("input")?.focus(); }} className={`group relative flex min-h-[20px] min-w-0 flex-1 basis-0 cursor-text items-center justify-center gap-0.5 px-1 pt-[3px] pb-[2px] ${k ? "border-l border-neutral-400" : ""}`}>
-                                {/* A click anywhere in the cell puts the cursor in it, so an empty one is easy to type in. */}
-                                <input
-                                  value={it.text}
-                                  onChange={(e) => setItems(items.map((y) => (y.id === it.id ? { ...y, text: e.target.value } : y)))}
-                                  style={{ fieldSizing: "content" }}
-                                  // Shown in capitals only: the words are kept as typed.
-                                  className="min-w-[2ch] max-w-full bg-transparent text-center text-[11px] uppercase leading-[15px] text-neutral-900 outline-none"
-                                />
-                                <span className="absolute right-0.5 top-1/2 hidden -translate-y-1/2 group-hover:flex">{binBtn(() => setItems(items.filter((y) => y.id !== it.id)))}</span>
-                              </div>
-                            ))}
-                            <button
-                              onClick={() => setItems([...items, { id: newId(), text: "" }])}
-                              title={nested ? "Add a cell" : "Add a body area"}
-                              className={`flex shrink-0 items-center px-1.5 text-[#0f766e] hover:text-[#0c5e57] ${items.length ? "border-l border-neutral-400" : ""}`}
-                            >
-                              <Plus size={11} strokeWidth={3} />
-                            </button>
-                          </div>}
+                          {title && (
+                            <div className="flex h-[21px] items-center justify-center text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900" style={{ backgroundColor: "#F4D3CA" }}>
+                              {title}
+                            </div>
+                          )}
+                          {items && cellRow(items, setItems, !!title, "Add a body area")}
+                          {/* Under the body areas: the Functional training row, its own cells. */}
+                          {cells && cellRow(cells, setCells, true, "Add a functional training type")}
                           {week.map((w, wi) => {
                             const edit = (fields) => setWeek((list) => list.map((y, yi) => (yi === wi ? { ...y, ...fields } : y)));
                             const subs = w.subs || [];
@@ -373,7 +375,7 @@ export default function HW() {
                               </div>
                               {/* The move grip sits just left of the bin; a dropdown row has its chevron first. */}
                               <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
-                                {nested && (
+                                {w.drop && (
                                   <button onClick={() => edit({ open: !w.open })} title={w.open ? "Close" : "Open"} className="flex shrink-0 items-center text-neutral-900 hover:text-[#9c7c33]">
                                     <ChevronDown size={11} className={`transition-transform ${w.open ? "rotate-180" : ""}`} />
                                   </button>
@@ -383,7 +385,7 @@ export default function HW() {
                               </span>
                             </div>
                             {/* Under an open row: its own lines, stepped in on white, moved and binned the same way. */}
-                            {nested && w.open && (
+                            {w.drop && w.open && (
                               <div className="border-t border-neutral-400 bg-white">
                                 {subs.map((x, xi) => (
                                   <div key={x.id} {...dropProps(sk, xi, (from, to) => edit({ subs: moved(subs, from, to) }))}>
@@ -413,37 +415,30 @@ export default function HW() {
                           })}
                           {marker(dk, week.length)}
                         </div>
-                        {/* Add sits under the frame, plain: a fresh row to fill in. */}
-                        <button
-                          onClick={() => setWeek((list) => [...list, { day: "", text: "" }])}
-                          className="mt-1 flex items-center pl-[5px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
-                        >
-                          Add
-                        </button>
+                        {/* Under the frame, plain: a normal row, or a row that opens onto its own lines. */}
+                        <div className="mt-1 flex items-center gap-3 pl-[5px]">
+                          <button onClick={() => setWeek((list) => [...list, { day: "", text: "" }])} className="text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]">
+                            Add row
+                          </button>
+                          <button onClick={() => setWeek((list) => [...list, { day: "", text: "", drop: true, open: true, subs: [] }])} className="text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]">
+                            Add dropdown row
+                          </button>
+                        </div>
                       </>
                     );
-                    return (
-                      <>
-                        {table(
-                          "Weightlifting",
-                          bp.items,
-                          (items) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), items } })),
-                          weekOf(g),
-                          (fn) => editGroup(g.id, (x) => ({ ...x, week: fn(weekOf(x)) })),
-                          `wl-${g.id}`,
-                        )}
-                        <div className="h-2" />
-                        {table(
-                          "Functional training",
-                          // Its own row of cells, empty to start, for whatever you want there.
-                          ft.cells || [],
-                          (cells) => setFt((t) => ({ ...t, cells })),
-                          ft.week,
-                          (fn) => setFt((t) => ({ ...t, week: fn(t.week) })),
-                          `ft-${g.id}`,
-                          true,
-                        )}
-                      </>
+                    // One table now. The Functional training rows join it once, after the others,
+                    // as dropdown rows, keeping their lines; the move is saved with the first change.
+                    const rowsOf = (x) => (x.ftMerged ? weekOf(x) : [...weekOf(x), ...ftOf(x).week.map((r) => ({ ...r, drop: true }))]);
+                    // No title bar: the body areas head the table.
+                    return table(
+                      null,
+                      bp.items,
+                      (items) => editGroup(g.id, (x) => ({ ...x, body: { ...(x.body || bp), items } })),
+                      rowsOf(g),
+                      (fn) => editGroup(g.id, (x) => ({ ...x, week: fn(rowsOf(x)), ftMerged: true })),
+                      `wl-${g.id}`,
+                      ftOf(g).cells || [],
+                      (cells) => editGroup(g.id, (x) => ({ ...x, functionalTable: { ...ftOf(x), cells } })),
                     );
                   })()}
                   </>
