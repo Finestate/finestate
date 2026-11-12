@@ -385,14 +385,14 @@ export default function HW() {
                                 {binBtn(() => setWeek((list) => list.filter((_, yi) => yi !== wi)))}
                               </span>
                             </div>
-                            {/* Under an open row: its own lines, stepped in on white, moved and binned the same way. */}
+                            {/* Under an open row: its own lines on white, on the same left edge as every row, moved and binned the same way. */}
                             {w.drop && w.open && (
                               <div className="border-t border-neutral-400 bg-white">
                                 {subs.map((x, xi) => (
                                   <div key={x.id} {...dropProps(sk, xi, (from, to) => edit({ subs: moved(subs, from, to) }))}>
                                     {marker(sk, xi)}
                                     <div className={`flex items-stretch ${xi ? "border-t border-neutral-300" : ""}`}>
-                                      <div className="min-w-0 flex-1 pl-5 pr-1.5 pt-[3px] pb-[2px]">
+                                      <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
                                         <GrowText value={x.text || ""} onChange={(t) => edit({ subs: subs.map((y) => (y.id === x.id ? { ...y, text: t } : y)) })} rows={1} />
                                       </div>
                                       <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-300 px-1.5 pt-[5px] pb-[4px]">
@@ -405,7 +405,7 @@ export default function HW() {
                                 {marker(sk, subs.length)}
                                 <button
                                   onClick={() => edit({ subs: [...subs, { id: newId(), text: "" }] })}
-                                  className={`flex h-[21px] w-full items-center pl-5 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${subs.length ? "border-t border-neutral-300" : ""}`}
+                                  className={`flex h-[21px] w-full items-center pl-1.5 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57] ${subs.length ? "border-t border-neutral-300" : ""}`}
                                 >
                                   Add
                                 </button>
@@ -418,14 +418,15 @@ export default function HW() {
                         </div>
                         {/* Under the frame, plain: a normal row, or a row that opens onto its own lines. */}
                         {/* One Add: it opens a little menu to pick the kind of row. */}
-                        <div className="relative mt-1 pl-[5px]">
+                        {/* 7px in: the frame's 1px line plus the rows' 6px, so Add starts on the rows' edge. */}
+                        <div className="relative mt-1 pl-[7px]">
                           <button onClick={() => setAddMenu(addMenu === dk ? null : dk)} className="flex items-center gap-0.5 text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]">
                             Add <ChevronDown size={11} strokeWidth={3} className={`transition-transform ${addMenu === dk ? "rotate-180" : ""}`} />
                           </button>
                           {addMenu === dk && (
                             <>
                               <div className="fixed inset-0 z-40" onClick={() => setAddMenu(null)} />
-                              <div className="absolute left-[5px] top-full z-50 mt-0.5 border border-neutral-400 bg-white text-[11px] text-neutral-900 shadow">
+                              <div className="absolute left-[7px] top-full z-50 mt-0.5 border border-neutral-400 bg-white text-[11px] text-neutral-900 shadow">
                                 <button onClick={() => { setWeek((list) => [...list, { day: "", text: "" }]); setAddMenu(null); }} className="block h-[21px] w-full whitespace-nowrap px-2 text-left hover:bg-[#FBEFEC]">
                                   Row
                                 </button>
