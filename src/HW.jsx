@@ -223,7 +223,7 @@ export default function HW() {
     try { localStorage.setItem("hw-nutrition-open", JSON.stringify(v)); } catch {}
     return v;
   });
-  const ALL_NUTRITION = [...DAYS.map(([d]) => d), "considerations"];
+  const ALL_NUTRITION = ["dubai", ...DAYS.map(([d]) => d), "considerations"];
   const allOpen = openDays.length === ALL_NUTRITION.length;
   const toggleDay = (day) => setOpenDays((list) => (list.includes(day) ? list.filter((d) => d !== day) : [...list, day]));
   // Fitness: white lines that open, like the days in Nutrition, onto lines of two equal
@@ -825,7 +825,8 @@ export default function HW() {
             underneath on the faint pink; today is open to start. Considerations closes the
             list the same way. */}
         {notesLoaded &&
-          [...DAYS, ["considerations", "Considerations"]].map(([day, name, group]) => {
+          // Dubai heads the list for now: a temporary line with meals of its own, like a day.
+          [["dubai", "DXB"], ...DAYS, ["considerations", "Considerations"]].map(([day, name, group]) => {
             const open = openDays.includes(day);
             const twin = twinOf[day];
             return (
