@@ -288,7 +288,20 @@ export default function HW() {
                             {marker(`list-${g.id}`, ri)}
                             <div className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
                               <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
-                                <GrowText value={r.text || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, text: t } : y)) }))} rows={1} />
+                                {/^\s*clothes/i.test(r.text || "") ? (
+                                  // The Clothes line: its box only as wide as its words, then a chevron that opens the AI chat underneath.
+                                  <div className="flex items-start">
+                                    <span className="inline-grid min-w-0 max-w-full">
+                                      <span className="invisible col-start-1 row-start-1 whitespace-pre text-[11px] leading-[15px]">{(r.text || "") + " "}</span>
+                                      <input value={r.text || ""} onChange={(e) => { const t = e.target.value; editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, text: t } : y)) })); }} className="col-start-1 row-start-1 w-full min-w-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none" />
+                                    </span>
+                                    <button onClick={() => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, aiOpen: !y.aiOpen } : y)) }))} title={r.aiOpen ? "Close" : "Open"} className="ml-1 flex h-[15px] shrink-0 items-center text-neutral-900 hover:text-[#9c7c33]">
+                                      <ChevronDown size={11} className={`transition-transform ${r.aiOpen ? "rotate-180" : ""}`} />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <GrowText value={r.text || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, text: t } : y)) }))} rows={1} />
+                                )}
                               </div>
                               {/* The grip sits just left of the bin. */}
                               <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
@@ -296,8 +309,8 @@ export default function HW() {
                                 {binBtn(() => editGroup(g.id, (x) => ({ ...x, rows: x.rows.filter((y) => y.id !== r.id) })))}
                               </span>
                             </div>
-                            {/* Under the Clothes line, always shown: a chat with Claude for fashion tips and links. */}
-                            {/^\s*clothes/i.test(r.text || "") && (
+                            {/* Under the Clothes line, when its chevron is open: a chat with Claude for fashion tips and links. */}
+                            {/^\s*clothes/i.test(r.text || "") && r.aiOpen && (
                               <div className="border-t border-neutral-400 px-1.5 pb-1.5">
                                 <BibleChat topic="fashion" chat={r.chat || []} onChange={(chat) => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, chat } : y)) }))} />
                               </div>
