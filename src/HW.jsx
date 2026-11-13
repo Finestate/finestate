@@ -378,8 +378,8 @@ export default function HW() {
                             </div>
                           )}
                           {items && cellRow(items, setItems, !!title, "Add a body area")}
-                          {/* Under the body areas: the Functional training row, its own cells. */}
-                          {cells && cellRow(cells, setCells, true, "Add a functional training type")}
+                          {/* The Functional training row sits under the first row (here only while there are no rows). */}
+                          {cells && !week.length && cellRow(cells, setCells, true, "Add a functional training type")}
                           {week.map((w, wi) => {
                             const edit = (fields) => setWeek((list) => list.map((y, yi) => (yi === wi ? { ...y, ...fields } : y)));
                             const subs = w.subs || [];
@@ -428,6 +428,8 @@ export default function HW() {
                                 </button>
                               </div>
                             )}
+                            {/* Under the first row: the Functional training row, its own cells. */}
+                            {wi === 0 && cells && cellRow(cells, setCells, true, "Add a functional training type")}
                             </div>
                             );
                           })}
