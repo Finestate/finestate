@@ -31,7 +31,8 @@ export function parseDate(s) {
 }
 
 // The same picker used on the other sites, in Finestate's gold.
-export function DatePicker({ value, onPick, onClose, anchor, bg = "#ffffff" }) {
+// `markToday`: today's date wears a thin red ring with red figures (the meeting setup uses it).
+export function DatePicker({ value, onPick, onClose, anchor, bg = "#ffffff", markToday = false }) {
   const sel = parseDate(value);
   const now = new Date();
   const [view, setView] = useState(() => (sel ? { y: sel.y, m: sel.m } : { y: now.getFullYear(), m: now.getMonth() }));
@@ -71,13 +72,14 @@ export function DatePicker({ value, onPick, onClose, anchor, bg = "#ffffff" }) {
           {cells.map((d, i) => {
             if (!d) return <div key={i} />;
             const isSel = sel && sel.d === d && sel.m === view.m && sel.y === view.y;
+            const isToday = markToday && d === now.getDate() && view.m === now.getMonth() && view.y === now.getFullYear();
             return (
               <button
                 key={i}
                 type="button"
                 onClick={() => onPick(`${pad(d)} ${MONTHS[view.m]} ${view.y}`)}
-                className={`h-6 rounded text-[11px] transition-colors ${isSel ? "font-bold text-white" : "text-neutral-700 hover:bg-neutral-100"}`}
-                style={isSel ? { backgroundColor: GOLD } : undefined}
+                className={`h-6 rounded text-[11px] transition-colors ${isSel ? "font-bold text-white" : isToday ? "font-bold text-[#C1440E] hover:bg-neutral-100" : "text-neutral-700 hover:bg-neutral-100"}`}
+                style={isSel ? { backgroundColor: GOLD, ...(isToday ? { boxShadow: "inset 0 0 0 1.5px #C1440E" } : {}) } : isToday ? { boxShadow: "inset 0 0 0 1px #C1440E" } : undefined}
               >
                 {d}
               </button>
