@@ -287,7 +287,11 @@ export default function HW() {
                             <div key={r.id} {...dropProps(`list-${g.id}`, ri, (from, to) => editGroup(g.id, (x) => ({ ...x, rows: moved(x.rows, from, to) })))}>
                             {marker(`list-${g.id}`, ri)}
                             <div className={`flex items-stretch ${ri ? "border-t border-neutral-400" : ""}`}>
-                              <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
+                              <div
+                                // On the Clothes line, a click anywhere right of the words opens or closes the AI chat.
+                                onClick={/^\s*clothes/i.test(r.text || "") ? (e) => { if (e.target.tagName !== "INPUT") editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, aiOpen: !y.aiOpen } : y)) })); } : undefined}
+                                className={`min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px] ${/^\s*clothes/i.test(r.text || "") ? "cursor-pointer" : ""}`}
+                              >
                                 {/^\s*clothes/i.test(r.text || "") ? (
                                   // The Clothes line: its box only as wide as its words, then a chevron that opens the AI chat underneath.
                                   <div className="flex items-start">
@@ -295,9 +299,9 @@ export default function HW() {
                                       <span className="invisible col-start-1 row-start-1 whitespace-pre text-[11px] leading-[15px]">{(r.text || "") + " "}</span>
                                       <input value={r.text || ""} onChange={(e) => { const t = e.target.value; editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, text: t } : y)) })); }} className="col-start-1 row-start-1 w-full min-w-0 bg-transparent text-[11px] leading-[15px] text-neutral-900 outline-none" />
                                     </span>
-                                    <button onClick={() => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, aiOpen: !y.aiOpen } : y)) }))} title={r.aiOpen ? "Close" : "Open"} className="ml-1 flex h-[15px] shrink-0 items-center text-neutral-900 hover:text-[#9c7c33]">
+                                    <span title={r.aiOpen ? "Close" : "Open"} className="ml-1 flex h-[15px] shrink-0 items-center text-neutral-900 hover:text-[#9c7c33]">
                                       <ChevronDown size={11} className={`transition-transform ${r.aiOpen ? "rotate-180" : ""}`} />
-                                    </button>
+                                    </span>
                                   </div>
                                 ) : (
                                   <GrowText value={r.text || ""} onChange={(t) => editGroup(g.id, (x) => ({ ...x, rows: x.rows.map((y) => (y.id === r.id ? { ...y, text: t } : y)) }))} rows={1} />
