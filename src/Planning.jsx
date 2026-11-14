@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Plus, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, List, ChevronsRight, ChevronsLeft, X, GripVertical, Calendar, Download, ListPlus } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 import { DatePicker, parseDate } from "./LegalDocuments.jsx";
+import MiniTimer from "./MiniTimer.jsx";
 
 // Meetings: dated ones soonest first (by date, then time), then any still waiting for a date,
 // then the ticked reminders at the bottom (in the order dragged).
@@ -1666,6 +1667,8 @@ export default function Planning() {
     <>
       <div className={`flex h-[21px] items-center gap-2 px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
         <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
+        {/* Just right of Today: the mini timer. */}
+        <MiniTimer />
         <button onClick={downloadBackup} title="Download a backup of the dropdowns" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
           <Download size={12} strokeWidth={2.5} />
         </button>

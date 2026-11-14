@@ -28,6 +28,7 @@ import Assets from "./Assets.jsx";
 import Calculations from "./Calculations.jsx";
 import Funnel from "./Funnel.jsx";
 import HW from "./HW.jsx";
+import { TimerWatcher } from "./MiniTimer.jsx";
 import KnowledgeFeeds from "./KnowledgeFeeds.jsx";
 import ErrorBoundary from "./ErrorBoundary.jsx";
 import Auth from "./Auth.jsx";
@@ -331,6 +332,8 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[#FBF5E9]">
+      {/* The Daily timer keeps time and chimes on any page. */}
+      <TimerWatcher />
       <Sidebar route={route} onGo={go} allowed={allowed} />
       <TopBar
         onGo={go}
