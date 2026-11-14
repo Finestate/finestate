@@ -184,8 +184,8 @@ export default function MiniTimer() {
             1 sec (test)
           </button>
           {(endAt > 0 || pausedLeft > 0) && (
-            <button type="button" onClick={() => start(0)} className="col-span-4 h-[21px] border-t border-black text-[11px] font-bold uppercase tracking-[0.06em] text-[#C1440E] hover:bg-[#FBEFEC]">
-              Stop
+            <button type="button" onClick={() => start(0)} className="col-span-4 h-[21px] border-t border-neutral-300 text-[11px] text-[#C1440E] hover:bg-[#FBEFEC]">
+              Clear
             </button>
           )}
         </div>,
