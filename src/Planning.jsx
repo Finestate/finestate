@@ -58,7 +58,7 @@ function MeetWhen({ date, time, onChange }) {
         {code || <Calendar size={11} className="text-neutral-400" />}
       </button>
       {/* A day picked keeps the time already set. */}
-      {anchor && !picked && <DatePicker bg={SETUP_BG} markToday value={date} anchor={anchor} onClose={close} onPick={(v) => { setPicked(v); onChange(v, time || ""); }} />}
+      {anchor && !picked && <DatePicker bg={SETUP_BG} markToday mondayFirst value={date} anchor={anchor} onClose={close} onPick={(v) => { setPicked(v); onChange(v, time || ""); }} />}
       {anchor && picked && (
         <>
           {/* Only Set (keep) or the X (bail out) closes it: a click outside does nothing. */}

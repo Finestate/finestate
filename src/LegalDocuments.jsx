@@ -32,13 +32,15 @@ export function parseDate(s) {
 
 // The same picker used on the other sites, in Finestate's gold.
 // `markToday`: today's date wears a thin red ring with red figures (the meeting setup uses it).
-export function DatePicker({ value, onPick, onClose, anchor, bg = "#ffffff", markToday = false }) {
+export function DatePicker({ value, onPick, onClose, anchor, bg = "#ffffff", markToday = false, mondayFirst = false }) {
   const sel = parseDate(value);
   const now = new Date();
   const [view, setView] = useState(() => (sel ? { y: sel.y, m: sel.m } : { y: now.getFullYear(), m: now.getMonth() }));
   const daysIn = (y, m) => new Date(y, m + 1, 0).getDate();
   const cells = [];
-  for (let i = 0; i < new Date(view.y, view.m, 1).getDay(); i++) cells.push(null);
+  // Blank days before the 1st: counted from Sunday, or from Monday when the week starts on a Monday.
+  const lead = (new Date(view.y, view.m, 1).getDay() + (mondayFirst ? 6 : 0)) % 7;
+  for (let i = 0; i < lead; i++) cells.push(null);
   for (let d = 1; d <= daysIn(view.y, view.m); d++) cells.push(d);
   while (cells.length % 7) cells.push(null);
   const shift = (delta) => setView((v) => {
@@ -66,7 +68,7 @@ export function DatePicker({ value, onPick, onClose, anchor, bg = "#ffffff", mar
           </span>
         </div>
         <div className="mb-0.5 grid grid-cols-7 gap-0.5 text-center text-[9px] font-bold uppercase text-neutral-400">
-          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <div key={i}>{d}</div>)}
+          {(mondayFirst ? ["M", "T", "W", "T", "F", "S", "S"] : ["S", "M", "T", "W", "T", "F", "S"]).map((d, i) => <div key={i}>{d}</div>)}
         </div>
         <div className="grid grid-cols-7 gap-0.5">
           {cells.map((d, i) => {
