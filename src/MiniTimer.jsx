@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Timer } from "lucide-react";
+import { Timer, X } from "lucide-react";
 
 // A tiny countdown timer. The end time lives here and in this browser, so it keeps
 // running while you move around the site (and through a refresh). TimerWatcher sits
@@ -125,8 +125,10 @@ export default function MiniTimer() {
       {/* Done: the clock flashes red until Close is pressed. */}
       {ringAt > 0 && (
         <>
-          <span className="mt-blink flex h-[15px] items-center bg-[#C1440E] px-1 text-[11px] font-bold tabular-nums leading-none tracking-[0.02em] text-white">0:00</span>
-          <button type="button" onClick={closeRing} title="Close" className="flex h-[15px] items-center border border-black bg-white px-1 text-[10px] font-bold uppercase leading-none tracking-[0.06em] text-neutral-900 hover:bg-[#FBEFEC]">Close</button>
+          <span onClick={closeRing} title="Stop" className="mt-blink flex h-[15px] cursor-pointer items-center bg-[#C1440E] px-1 text-[11px] font-bold tabular-nums leading-none tracking-[0.02em] text-white">0:00</span>
+          <button type="button" onClick={closeRing} title="Stop" className="flex h-[15px] items-center text-[#C1440E] hover:text-neutral-900">
+            <X size={13} strokeWidth={3} />
+          </button>
         </>
       )}
       {menu && createPortal(
