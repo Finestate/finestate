@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Timer } from "lucide-react";
+import { Pause, Play, Timer } from "lucide-react";
 
 // A tiny countdown timer. The end time lives here and in this browser, so it keeps
 // running while you move around the site (and through a refresh). TimerWatcher sits
@@ -8,6 +8,12 @@ import { Timer } from "lucide-react";
 const KEY = "finestate.timer.end";
 let endAt = (() => { try { return Number(localStorage.getItem(KEY)) || 0; } catch { return 0; } })();
 let mins = (() => { try { return Number(localStorage.getItem(KEY + ".mins")) || 0; } catch { return 0; } })();
+// While paused: the time that was left, kept so a refresh keeps it too.
+let pausedLeft = (() => { try { return Number(localStorage.getItem(KEY + ".paused")) || 0; } catch { return 0; } })();
+const setPaused = (ms) => {
+  pausedLeft = ms;
+  try { ms ? localStorage.setItem(KEY + ".paused", String(ms)) : localStorage.removeItem(KEY + ".paused"); } catch {}
+};
 const subs = new Set();
 const emit = () => subs.forEach((f) => f());
 const setEnd = (t) => {
@@ -108,9 +114,11 @@ export default function MiniTimer() {
     document.addEventListener("keydown", esc);
     return () => { document.removeEventListener("mousedown", off); document.removeEventListener("keydown", esc); };
   }, [menu]);
-  const left = endAt ? Math.max(0, Math.ceil((endAt - Date.now()) / 1000)) : 0;
+  const left = endAt ? Math.max(0, Math.ceil((endAt - Date.now()) / 1000)) : Math.ceil(pausedLeft / 1000);
+  const pause = () => { setPaused(Math.max(0, endAt - Date.now())); setEnd(0); };
+  const resume = () => { wake(); const ms = pausedLeft; setPaused(0); setEnd(Date.now() + ms); };
   const clock = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
-  const start = (m) => { wake(); if (ringAt) closeRing(); mins = m; try { localStorage.setItem(KEY + ".mins", String(m)); } catch {} setEnd(m ? Date.now() + m * 60000 : 0); setMenu(null); };
+  const start = (m) => { wake(); if (ringAt) closeRing(); setPaused(0); mins = m; try { localStorage.setItem(KEY + ".mins", String(m)); } catch {} setEnd(m ? Date.now() + m * 60000 : 0); setMenu(null); };
   const open = () => {
     const r = btn.current.getBoundingClientRect();
     setMenu(menu ? null : { top: r.bottom + 3, left: r.left });
@@ -118,10 +126,18 @@ export default function MiniTimer() {
   return (
     <span data-mini-timer className="flex shrink-0 items-center gap-1 leading-none" onClick={(e) => e.stopPropagation()}>
       {/* A small stopwatch: a click opens the minutes, picking one starts it straight away. */}
-      <button ref={btn} type="button" onClick={open} title={endAt ? "Change or stop the timer" : "Timer"} className="flex h-[15px] items-center text-neutral-900 hover:text-[#9c7c33]">
+      <button ref={btn} type="button" onClick={open} title={endAt || pausedLeft ? "Change or stop the timer" : "Timer"} className="flex h-[15px] items-center text-neutral-900 hover:text-[#9c7c33]">
         <Timer size={12} strokeWidth={2.5} />
       </button>
-      {endAt > 0 && !ringAt && <span className="text-[11px] font-bold tabular-nums tracking-[0.02em] text-[#C1440E]">{clock}</span>}
+      {/* Running: the clock in red, then pause. Paused: the clock in grey, then play. */}
+      {(endAt > 0 || pausedLeft > 0) && !ringAt && (
+        <>
+          <span className={`text-[11px] font-bold tabular-nums tracking-[0.02em] ${endAt ? "text-[#C1440E]" : "text-neutral-500"}`}>{clock}</span>
+          <button type="button" onClick={endAt ? pause : resume} title={endAt ? "Pause" : "Resume"} className="flex h-[15px] items-center text-neutral-900 hover:text-[#9c7c33]">
+            {endAt ? <Pause size={11} strokeWidth={2.75} /> : <Play size={11} strokeWidth={2.75} />}
+          </button>
+        </>
+      )}
       {/* Done: the clock flashes red until it is clicked. */}
       {ringAt > 0 && (
         <>
@@ -144,7 +160,7 @@ export default function MiniTimer() {
           <button type="button" onClick={() => start(1 / 60)} className="col-span-4 h-[21px] border-t border-neutral-300 text-[11px] font-bold text-neutral-900 hover:bg-[#FBEFEC]">
             1 sec (test)
           </button>
-          {endAt > 0 && (
+          {(endAt > 0 || pausedLeft > 0) && (
             <button type="button" onClick={() => start(0)} className="col-span-4 h-[21px] border-t border-black text-[11px] font-bold uppercase tracking-[0.06em] text-[#C1440E] hover:bg-[#FBEFEC]">
               Stop
             </button>
