@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Pause, Play, Timer } from "lucide-react";
+import { Timer } from "lucide-react";
 
 // A tiny countdown timer. The end time lives here and in this browser, so it keeps
 // running while you move around the site (and through a refresh). TimerWatcher sits
@@ -63,8 +63,34 @@ const setRing = (t) => {
   try { t ? localStorage.setItem(KEY + ".ring", String(t)) : localStorage.removeItem(KEY + ".ring"); } catch {}
   emit();
 };
-const finish = () => { setEnd(0); setRing(Date.now()); };
+// The saved state, read fresh. Every open tab of the site shares it, so a pause, stop
+// or start in one tab reaches the others straight away.
+const num = (k) => { try { return Number(localStorage.getItem(k)) || 0; } catch { return 0; } };
+const load = () => {
+  endAt = num(KEY);
+  pausedLeft = num(KEY + ".paused");
+  ringAt = num(KEY + ".ring");
+  mins = num(KEY + ".mins");
+};
+// Only the tab that saw the time run out plays the sound, so two tabs never chime together.
+let ringsHere = false;
+const finish = () => {
+  // Another tab may have paused, stopped or changed the timer: trust the saved state.
+  if (num(KEY) !== endAt) { load(); emit(); return; }
+  ringsHere = true;
+  setEnd(0);
+  setRing(Date.now());
+};
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key && !e.key.startsWith(KEY)) return;
+    load();
+    if (!ringAt) { ringsHere = false; playing.forEach((o) => { try { o.stop(); } catch {} }); playing = []; }
+    emit();
+  });
+}
 export const closeRing = () => {
+  ringsHere = false;
   setRing(0);
   playing.forEach((o) => { try { o.stop(); } catch {} });
   playing = [];
@@ -87,7 +113,7 @@ export function TimerWatcher() {
   // While ringing and under 30 seconds in: a chime every 2 seconds.
   useEffect(() => {
     if (!ringAt) return;
-    const ring = () => { if (ringAt && Date.now() - ringAt < 30000) chime(); };
+    const ring = () => { if (ringAt && ringsHere && Date.now() - ringAt < 30000) chime(); };
     ring();
     const id = setInterval(ring, 2000);
     return () => clearInterval(id);
@@ -129,14 +155,11 @@ export default function MiniTimer() {
       <button ref={btn} type="button" onClick={open} title={endAt || pausedLeft ? "Change or stop the timer" : "Timer"} className="flex h-[15px] items-center text-neutral-900 hover:text-[#9c7c33]">
         <Timer size={12} strokeWidth={2.5} />
       </button>
-      {/* Running: the clock in red, then pause. Paused: the clock in grey, then play. */}
+      {/* Running: the clock in red. A click on it pauses (grey), another carries on. */}
       {(endAt > 0 || pausedLeft > 0) && !ringAt && (
-        <>
-          <span className={`text-[11px] font-bold tabular-nums tracking-[0.02em] ${endAt ? "text-[#C1440E]" : "text-neutral-500"}`}>{clock}</span>
-          <button type="button" onClick={endAt ? pause : resume} title={endAt ? "Pause" : "Resume"} className="flex h-[15px] items-center text-neutral-900 hover:text-[#9c7c33]">
-            {endAt ? <Pause size={11} strokeWidth={2.75} /> : <Play size={11} strokeWidth={2.75} />}
-          </button>
-        </>
+        <button type="button" onClick={endAt ? pause : resume} title={endAt ? "Pause" : "Resume"} className={`h-[15px] cursor-pointer text-[11px] font-bold leading-none tabular-nums tracking-[0.02em] ${endAt ? "text-[#C1440E]" : "text-neutral-500"}`}>
+          {clock}
+        </button>
       )}
       {/* Done: the clock flashes red until it is clicked. */}
       {ringAt > 0 && (
