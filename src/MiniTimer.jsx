@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Timer, X } from "lucide-react";
+import { Timer } from "lucide-react";
 
 // A tiny countdown timer. The end time lives here and in this browser, so it keeps
 // running while you move around the site (and through a refresh). TimerWatcher sits
@@ -122,13 +122,10 @@ export default function MiniTimer() {
         <Timer size={12} strokeWidth={2.5} />
       </button>
       {endAt > 0 && !ringAt && <span className="text-[11px] font-bold tabular-nums tracking-[0.02em] text-[#C1440E]">{clock}</span>}
-      {/* Done: the clock flashes red until Close is pressed. */}
+      {/* Done: the clock flashes red until it is clicked. */}
       {ringAt > 0 && (
         <>
           <span onClick={closeRing} title="Stop" className="mt-blink flex h-[15px] cursor-pointer items-center bg-[#C1440E] px-1 text-[11px] font-bold tabular-nums leading-none tracking-[0.02em] text-white">0:00</span>
-          <button type="button" onClick={closeRing} title="Stop" className="flex h-[15px] items-center text-[#C1440E] hover:text-neutral-900">
-            <X size={13} strokeWidth={3} />
-          </button>
         </>
       )}
       {menu && createPortal(
