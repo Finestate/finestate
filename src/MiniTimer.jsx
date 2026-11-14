@@ -143,6 +143,10 @@ export default function MiniTimer() {
               {m}
             </button>
           ))}
+          {/* TEMP for testing: a 1 second timer. Remove once the timer is right. */}
+          <button type="button" onClick={() => start(1 / 60)} className="col-span-4 h-[21px] border-t border-neutral-300 text-[11px] font-bold text-neutral-900 hover:bg-[#FBEFEC]">
+            1 sec (test)
+          </button>
           {endAt > 0 && (
             <button type="button" onClick={() => start(0)} className="col-span-4 h-[21px] border-t border-black text-[11px] font-bold uppercase tracking-[0.06em] text-[#C1440E] hover:bg-[#FBEFEC]">
               Stop
