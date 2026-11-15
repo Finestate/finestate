@@ -1925,8 +1925,8 @@ export default function Planning() {
                       const rule = `-ml-2 ${idx === 1 ? "-mr-[38px] pr-[38px]" : "-mr-2 pr-2"} mt-[2px] border-t border-dashed border-[#C97A66] pl-2 pt-[2px]`;
                       return (
                         <>
-                          {own.length > 0 && <div className={`order-2 ${hasMeet ? rule : ""}`}>{renderCodeLine(b, own, "#171717", idx, subs)}</div>}
-                          {rest.length > 0 && <div className={`order-3 ${hasMeet || own.length > 0 ? rule : ""}`}>{renderCodeLine(b, rest, "#171717", idx)}</div>}
+                          {/* Meetings keep the top row; everything else runs on together in one row under them. */}
+                          {own.length + rest.length > 0 && <div className={`order-2 ${hasMeet ? rule : ""}`}>{renderCodeLine(b, [...own, ...rest], "#171717", idx, subs)}</div>}
                         </>
                       );
                     })()}
