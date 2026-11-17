@@ -416,6 +416,9 @@ const BOARD_TAGS = { master: "Master", silx: "Silx", says: "Says Media", servefa
 const MEETING_ICON = "#7B1E3A";
 // The faintest wash of the table red, behind every pair of day lines.
 const DAY_BG = "#FBEFEC";
+// The Notes dropdown at the top of Today: its own light shade, and a column per business.
+const NOTES_BG = "#FFF1D6";
+const TODAY_NOTES = [["finestate", "Finestate"], ["silx", "Silx"], ["says", "Says"], ["servefast", "Servefast"]];
 // Only Master plans meetings; the company boards are just their two point columns.
 const MEETING_BOARDS = ["master"];
 // On a company day line only the short code shows: "FI (financials)" reads as FI.
@@ -742,7 +745,10 @@ export default function Planning() {
   const [todoAnchor, setTodoAnchor] = useState(() => { try { return localStorage.getItem(TODO_ANCHOR_KEY) || null; } catch { return null; } });
   // Errands prios and H+F order: plain lists, each line typed, moved or binned.
   // These hold door codes and names, so they live in Supabase, never in this public repo.
-  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [], temp: "", toplines: [] });
+  // Whether the Notes dropdown at the top of Today is open, kept in this browser.
+  const [notesOpen, setNotesOpenRaw] = useState(() => { try { return localStorage.getItem("planning-today-notes-open") === "1"; } catch { return false; } });
+  const setNotesOpen = (v) => { setNotesOpenRaw(v); try { localStorage.setItem("planning-today-notes-open", v ? "1" : "0"); } catch {} };
+  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [], temp: "", toplines: [], todayNotes: {} });
   useEffect(() => {
     supabase
       .from("admin_docs")
@@ -752,7 +758,7 @@ export default function Planning() {
       .then(({ data }) => {
         const d = data?.data;
         // A column added later starts empty rather than undefined.
-        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [], temp: d.temp || "", toplines: Array.isArray(d.toplines) ? d.toplines : [{ id: newId(), text: "" }] });
+        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [], temp: d.temp || "", toplines: Array.isArray(d.toplines) ? d.toplines : [{ id: newId(), text: "" }], todayNotes: d.todayNotes || {} });
       });
   }, []);
   const saveCols = (next) => {
@@ -1175,7 +1181,9 @@ export default function Planning() {
   const saveNotes = (b, text) => patchBoard(b, { notes: text });
   // The notes ribbon: the browser's own commands, on whatever is selected there.
   // "scratch" is Master's free column, which is kept with the personal order lists.
-  const keepNotes = (b, html) => (b === "scratch" ? saveCols({ ...cols, scratch: html }) : saveNotes(b, html));
+  // "tn-…" are the four Notes columns at the top of Today, kept there too.
+  const saveTodayNote = (k, html) => saveCols({ ...cols, todayNotes: { ...(cols.todayNotes || {}), [k]: html } });
+  const keepNotes = (b, html) => (b === "scratch" ? saveCols({ ...cols, scratch: html }) : b.startsWith("tn-") ? saveTodayNote(b.slice(3), html) : saveNotes(b, html));
   const noteCmd = (b, cmd) => {
     const el = noteRefs.current[b];
     if (!el) return;
@@ -1673,6 +1681,46 @@ export default function Planning() {
           <Download size={12} strokeWidth={2.5} />
         </button>
       </div>
+      {/* Notes: a dropdown at the top of Today, on its own light shade, with a free
+          notes column for each business. Open or shut stays as left after a refresh. */}
+      <div
+        onClick={() => setNotesOpen(!notesOpen)}
+        className="flex h-[21px] cursor-pointer select-none items-center gap-1 border-t border-black px-2"
+        style={{ backgroundColor: NOTES_BG }}
+      >
+        <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Notes</span>
+        <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${notesOpen ? "rotate-180" : ""}`} />
+      </div>
+      {notesOpen && (
+        <div className="grid grid-cols-4 gap-1.5 border-t border-black p-1.5" style={{ backgroundColor: NOTES_BG }}>
+          {TODAY_NOTES.map(([k, label]) => (
+            <div key={k} className="flex min-w-0 flex-col border-[3px] border-[#C1440E] bg-white p-1.5">
+              <p className="mb-1 pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
+              <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
+                <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(`tn-${k}`, "bold")} title="Bold the highlighted words" className="-m-1 flex h-6 w-6 items-center justify-center rounded text-neutral-900 hover:bg-black/5">
+                  <span className="flex h-3 w-3 -translate-y-px items-center justify-center text-[17px] font-black leading-none">B</span>
+                </button>
+                <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed(`tn-${k}`)} title="Turn the highlighted words red" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
+                  <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_RED }} />
+                </button>
+                <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteRed(`tn-${k}`, INK_BLACK)} title="Turn the highlighted words black" className="-m-1 flex h-6 w-6 items-center justify-center rounded hover:bg-black/5">
+                  <span className="block h-3 w-3 rounded-[2px]" style={{ backgroundColor: INK_BLACK }} />
+                </button>
+                <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(`tn-${k}`, "insertUnorderedList")} title="Bullet the selected lines" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><List size={14} strokeWidth={2.75} /></button>
+                <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(`tn-${k}`, "outdent")} title="Decrease indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsLeft size={14} strokeWidth={2.75} /></button>
+                <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(`tn-${k}`, "indent")} title="Increase indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsRight size={14} strokeWidth={2.75} /></button>
+              </div>
+              <RichLine
+                plainBack
+                html={cols.todayNotes?.[k] || ""}
+                innerRef={(el) => { noteRefs.current[`tn-${k}`] = el; }}
+                onInput={(html) => saveTodayNote(k, html)}
+                className="rich-line block min-h-[30px] w-full flex-1 whitespace-pre-wrap break-words text-[11px] font-semibold leading-[15px] text-neutral-700 outline-none"
+              />
+            </div>
+          ))}
+        </div>
+      )}
       {/* The free lines under the Today bar are set aside for now; their text stays saved. */}
       {BOARDS.map(([b]) => (
         <div key={b}>{renderTodoLines(b, 0)}</div>
