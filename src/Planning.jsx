@@ -391,7 +391,8 @@ const HYPER_ONLY = ["silx", "says", "servefast", "fin"];
 // Which point groups a dropdown column holds, top to bottom.
 // Says Media splits each column into its brands: Says Media itself, then Says, then Dubai
 // Says. Dubai Says keeps the points it always had (the original groups).
-const BRAND_GROUPS = { says: { core: ["mediaHyper", "saysHyper", "hyper"], rest: ["mediaRest", "saysRest", "rest"] } };
+// The Says Media sections are set aside: only Says and Dubai Says show. Their entries stay saved.
+const BRAND_GROUPS = { says: { core: ["saysHyper", "hyper"], rest: ["saysRest", "rest"] } };
 const BRAND_LABELS = { mediaHyper: "Says Media", mediaRest: "Says Media", saysHyper: "Says", saysRest: "Says", hyper: "Dubai Says", rest: "Dubai Says" };
 const HYPER_GROUPS = ["mediaHyper", "saysHyper", "hyper"];
 // Says Media ticks each section on its own: the same name in Says Media, Says and Dubai Says
@@ -399,7 +400,7 @@ const HYPER_GROUPS = ["mediaHyper", "saysHyper", "hyper"];
 const SECTION_OF = { mediaHyper: "SM", mediaRest: "SM", saysHyper: "SY", saysRest: "SY", hyper: "DS", rest: "DS" };
 const tickKey = (b, g, code) => (BRAND_GROUPS[b] && SECTION_OF[g] ? `${SECTION_OF[g]}|${code}` : code);
 // The Says Media day line: one row per section, each with its short tag, prios first.
-const BRAND_ROWS = [["SM", ["mediaHyper", "mediaRest"]], ["SY", ["saysHyper", "saysRest"]], ["DS", ["hyper", "rest"]]];
+const BRAND_ROWS = [["SY", ["saysHyper", "saysRest"]], ["DS", ["hyper", "rest"]]];
 // "errand": Finestate's own Errands column, between Meetings and Y.
 const REST_GROUPS = ["errand", "mediaRest", "saysRest", "rest"];
 const colGroups = (b, col) => col === "errand" ? ["errand"] :
