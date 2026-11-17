@@ -418,7 +418,7 @@ const MEETING_ICON = "#7B1E3A";
 const DAY_BG = "#FBEFEC";
 // The Notes dropdown at the top of Today: its own light shade, and a column per business.
 const NOTES_BG = "#EEF7EE";
-const TODAY_NOTES = [["finestate", "Finestate"], ["silx", "Silx"], ["says", "Says"], ["servefast", "Servefast"]];
+const TODAY_NOTES = [["master", "Master"], ["silx", "Silx"], ["says", "Says"], ["servefast", "Servefast"], ["finestate", "Finestate"]];
 // Only Master plans meetings; the company boards are just their two point columns.
 const MEETING_BOARDS = ["master"];
 // On a company day line only the short code shows: "FI (financials)" reads as FI.
@@ -1693,7 +1693,7 @@ export default function Planning() {
         <span style={{ color: MEETING_ICON }} className="inline-flex items-center text-[11px] font-semibold leading-[15px]">Notes</span>
       </div>
       {notesOpen && (
-        <div className="grid grid-cols-4 gap-1.5 border-t border-black p-1.5" style={{ backgroundColor: NOTES_BG }}>
+        <div className="grid grid-cols-5 gap-1.5 border-t border-black p-1.5" style={{ backgroundColor: NOTES_BG }}>
           {TODAY_NOTES.map(([k, label]) => (
             <div key={k} className="flex min-w-0 flex-col border-[3px] border-[#C1440E] p-1.5">
               <p className="mb-1 pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
