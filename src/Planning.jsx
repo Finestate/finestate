@@ -418,7 +418,7 @@ const MEETING_ICON = "#7B1E3A";
 const DAY_BG = "#FBEFEC";
 // The Notes dropdown at the top of Today: its own light shade, and a column per business.
 const NOTES_BG = "#EEF7EE";
-const TODAY_NOTES = [["master", "Master"], ["silx", "Silx"], ["says", "Says"], ["servefast", "Servefast"], ["finestate", "Finestate"]];
+const TODAY_NOTES = [["master", "Master"], ["silx", "Silx"], ["says", "Says"], ["servefast", "Servefast"], ["heie", "HEIE"]];
 // Only Master plans meetings; the company boards are just their two point columns.
 const MEETING_BOARDS = ["master"];
 // On a company day line only the short code shows: "FI (financials)" reads as FI.
