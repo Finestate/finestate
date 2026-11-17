@@ -417,7 +417,7 @@ const MEETING_ICON = "#7B1E3A";
 // The faintest wash of the table red, behind every pair of day lines.
 const DAY_BG = "#FBEFEC";
 // The Notes dropdown at the top of Today: its own light shade, and a column per business.
-const NOTES_BG = "#FFF1D6";
+const NOTES_BG = "#F6E3DD";
 const TODAY_NOTES = [["finestate", "Finestate"], ["silx", "Silx"], ["says", "Says"], ["servefast", "Servefast"]];
 // Only Master plans meetings; the company boards are just their two point columns.
 const MEETING_BOARDS = ["master"];
@@ -1685,16 +1685,17 @@ export default function Planning() {
           notes column for each business. Open or shut stays as left after a refresh. */}
       <div
         onClick={() => setNotesOpen(!notesOpen)}
-        className="flex h-[21px] cursor-pointer select-none items-center gap-1 border-t border-black px-2"
+        title={notesOpen ? "Close" : "Open"}
+        className="flex min-h-[20px] cursor-pointer select-none items-start border-t border-black px-2 pt-[3px] pb-[2px] hover:brightness-[0.98]"
         style={{ backgroundColor: NOTES_BG }}
       >
-        <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Notes</span>
-        <ChevronDown size={12} className={`shrink-0 text-neutral-900 transition-transform ${notesOpen ? "rotate-180" : ""}`} />
+        {/* Styled exactly like the Master, Silx and other lines under it: the whole line is the toggle. */}
+        <span style={{ color: MEETING_ICON }} className="inline-flex items-center text-[11px] font-semibold leading-[15px]">Notes</span>
       </div>
       {notesOpen && (
         <div className="grid grid-cols-4 gap-1.5 border-t border-black p-1.5" style={{ backgroundColor: NOTES_BG }}>
           {TODAY_NOTES.map(([k, label]) => (
-            <div key={k} className="flex min-w-0 flex-col border-[3px] border-[#C1440E] bg-white p-1.5">
+            <div key={k} className="flex min-w-0 flex-col border-[3px] border-[#C1440E] p-1.5">
               <p className="mb-1 pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{label}</p>
               <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
                 <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(`tn-${k}`, "bold")} title="Bold the highlighted words" className="-m-1 flex h-6 w-6 items-center justify-center rounded text-neutral-900 hover:bg-black/5">
