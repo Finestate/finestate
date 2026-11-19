@@ -286,6 +286,41 @@ function RichLine({ html, onInput, onFocus, onEnter, innerRef, className, plainB
 
 // Text between a point's brackets. It hugs its words exactly – no padding either
 // side – and stays uncontrolled so the caret never jumps while typing.
+// A column title that looks like plain text. A click lets it be retyped; Enter or a click
+// away keeps it. Left empty, it goes back to its usual name.
+function EditTitle({ text, onSave }) {
+  const ref = useRef(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!on || !el) return;
+    el.focus();
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    r.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }, [on]);
+  return (
+    <span
+      ref={ref}
+      contentEditable={on}
+      suppressContentEditableWarning
+      spellCheck={false}
+      onClick={(e) => { e.stopPropagation(); if (!on) setOn(true); }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); }
+        if (e.key === "Escape") { e.currentTarget.textContent = text; e.currentTarget.blur(); }
+      }}
+      onBlur={(e) => { setOn(false); const t = e.currentTarget.textContent.trim(); if (t !== text) onSave(t); }}
+      className={`outline-none ${on ? "cursor-text" : "cursor-pointer"}`}
+    >
+      {text}
+    </span>
+  );
+}
+
 function FillText({ text, onChange }) {
   const ref = useRef(null);
   // Follows changes made elsewhere, such as ticking a personal order line, but
@@ -749,7 +784,7 @@ export default function Planning() {
   // Whether the Notes dropdown at the top of Today is open, kept in this browser.
   const [notesOpen, setNotesOpenRaw] = useState(() => { try { return localStorage.getItem("planning-today-notes-open") === "1"; } catch { return false; } });
   const setNotesOpen = (v) => { setNotesOpenRaw(v); try { localStorage.setItem("planning-today-notes-open", v ? "1" : "0"); } catch {} };
-  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [], temp: "", toplines: [], todayNotes: {} });
+  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [], temp: "", toplines: [], todayNotes: {}, titles: {} });
   useEffect(() => {
     supabase
       .from("admin_docs")
@@ -759,7 +794,7 @@ export default function Planning() {
       .then(({ data }) => {
         const d = data?.data;
         // A column added later starts empty rather than undefined.
-        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [], temp: d.temp || "", toplines: Array.isArray(d.toplines) ? d.toplines : [{ id: newId(), text: "" }], todayNotes: d.todayNotes || {} });
+        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [], temp: d.temp || "", toplines: Array.isArray(d.toplines) ? d.toplines : [{ id: newId(), text: "" }], todayNotes: d.todayNotes || {}, titles: d.titles || {} });
       });
   }, []);
   const saveCols = (next) => {
@@ -1183,6 +1218,10 @@ export default function Planning() {
   // The notes ribbon: the browser's own commands, on whatever is selected there.
   // "scratch" is Master's free column, which is kept with the personal order lists.
   // "tn-…" are the four Notes columns at the top of Today, kept there too.
+  // Column titles in the dropdowns, retyped on a click; kept with the lists.
+  const colTitle = (key, def) => (
+    <EditTitle key={key} text={cols.titles?.[key] || def} onSave={(t) => saveCols({ ...cols, titles: { ...(cols.titles || {}), [key]: t } })} />
+  );
   const saveTodayNote = (k, html) => saveCols({ ...cols, todayNotes: { ...(cols.todayNotes || {}), [k]: html } });
   const keepNotes = (b, html) => (b === "scratch" ? saveCols({ ...cols, scratch: html }) : b.startsWith("tn-") ? saveTodayNote(b.slice(3), html) : saveNotes(b, html));
   const noteCmd = (b, cmd) => {
@@ -2060,7 +2099,7 @@ export default function Planning() {
                   // Meetings come first, on the left; the core codes sit in the middle.
                   className="order-1 flex min-w-0 flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
                 >
-                  <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Meetings</p>
+                  <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-meetings`, "Meetings")}</p>
                   {meetings.map((m, mi) => (
                     <div key={m.id}>
                     {/* A red marker shows exactly where the meeting will land. */}
@@ -2160,7 +2199,7 @@ export default function Planning() {
                         // Finestate's columns carry titles, Errands and Y, like the columns beside them.
                         if (b === "master") return (
                           <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
-                            {col === "errand" ? "Reminders" : "Y"}
+                            {colTitle(`${b}-${col}`, col === "errand" ? "Reminders" : "Y")}
                             {lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}
                           </p>
                         );
@@ -2168,10 +2207,10 @@ export default function Planning() {
                         return <div className="flex h-[13px] items-center">{foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}</div>;
                       })()}
                       {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master") && (
-                        <p className="pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{GROUP_LABELS[b][gi]}:</p>
+                        <p className="pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-g${gi}`, GROUP_LABELS[b][gi])}:</p>
                       )}
                       {BRAND_GROUPS[b] && col === "core" && (
-                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Hyper-prios:</p>
+                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-hyperprios`, "Hyper-prios")}:</p>
                       )}
                       {/* A company board's Prios column holds two groups: Hyper-prios on top, then the
                           regular ones; points are dragged between them. */}
@@ -2181,9 +2220,9 @@ export default function Planning() {
                       // Each brand sits in its own thin frame, its name on a slim strip across the top.
                       <div key={g} className={BRAND_GROUPS[b] ? "flex flex-col gap-1 border border-[#C1440E] px-1 pb-1" : "contents"}>
                       {BRAND_GROUPS[b] ? (
-                        <p className="-mx-1 flex h-[20px] items-center border-b border-[#C1440E] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#C1440E]">{BRAND_LABELS[g]}:</p>
+                        <p className="-mx-1 flex h-[20px] items-center border-b border-[#C1440E] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#C1440E]">{colTitle(`${b}-${g}`, BRAND_LABELS[g])}:</p>
                       ) : col === "core" && b !== "master" && (
-                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{g === "hyper" ? "Hyper-prios:" : "Regular prios:"}</p>
+                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-${g}`, g === "hyper" ? "Hyper-prios" : "Regular prios")}:</p>
                       )}
                       {/* An empty group still takes a dragged point. */}
                       {list.length === 0 && (
@@ -2455,7 +2494,7 @@ export default function Planning() {
         {TWOCOLS.map(([k, label], ki) => { const hidden = hiddenRows(cols[k]); return (
           <div key={k} className={`flex min-w-0 flex-col ${ki > 0 ? "-mx-1.5 mt-1.5 border-t-[3px] border-[#C1440E] px-1.5 pt-1.5" : ""}`}>
             <p className="mb-1 flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
-              {label}
+              {colTitle(`two-${k}`, label)}
               {hasHeads(cols[k]) && foldLink(anyShut(cols[k]), () => foldAllCol(k))}
             </p>
             <div
