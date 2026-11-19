@@ -1457,11 +1457,30 @@ export default function Planning() {
         const trim = hasNotes({ code: c }) && c.match(/^(.*\()([^)]+)\)$/);
         const trimmed = boards[b].lines[idx]?.fills?.[c] ?? (trim ? trim[2] : "");
         // Any point typed with words in its brackets shows them in red, wherever it sits on the line.
-        // Foodycmd's brackets, even empty, are also read-only here: changed only in the list below.
-        const ownFill = !trim && (/\(\s*[^)\s][^)]*\)\s*$/.test(String(c)) || (/^\s*foodycmd/i.test(String(c)) && /\(.*\)\s*$/.test(String(c)))) ? codeBrackets(c) : null;
+        // Foodycmd's brackets are typed into right here on the line, in red, for this day only.
+        // They start from what the list below holds.
+        const food = !trim && /^\s*foodycmd/i.test(String(c)) && /\(.*\)\s*$/.test(String(c));
+        const ownFill = !trim && !food && /\(\s*[^)\s][^)]*\)\s*$/.test(String(c)) ? codeBrackets(c) : null;
         return (
           <span key={c}>
-            {ownFill != null ? (
+            {food ? (
+              <span>
+                {String(c).split("(")[0].trim()}{" "}
+                {/* The whole bracket is one easy target: a click puts the caret at the end, ready to type. */}
+                <span
+                  onClick={(e) => { e.stopPropagation(); if (!e.target.isContentEditable) focusEnd(e.currentTarget.querySelector("[contenteditable]")); }}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  title="Click to type"
+                  className="group/ff cursor-text"
+                >
+                  (
+                  <span className="inline-block lowercase group-focus-within/ff:min-w-[3ch]">
+                    <FillText key={`${b}-${idx}-${c}-food`} text={boards[b].lines[idx]?.fills?.[c] ?? codeBrackets(c)} onChange={(t) => setFill(b, idx, c, t)} />
+                  </span>
+                  <span className="whitespace-nowrap">){square}</span>
+                </span>
+              </span>
+            ) : ownFill != null ? (
               // Its name, then its brackets as they read in the list below.
               <span>
                 {String(c).split("(")[0].trim()} (
