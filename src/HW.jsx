@@ -223,7 +223,7 @@ export default function HW() {
     try { localStorage.setItem("hw-nutrition-open", JSON.stringify(v)); } catch {}
     return v;
   });
-  const ALL_NUTRITION = ["dubai", ...DAYS.map(([d]) => d), "considerations"];
+  const ALL_NUTRITION = [...DAYS.map(([d]) => d), "considerations"];
   const allOpen = openDays.length === ALL_NUTRITION.length;
   const toggleDay = (day) => setOpenDays((list) => (list.includes(day) ? list.filter((d) => d !== day) : [...list, day]));
   // Fitness: white lines that open, like the days in Nutrition, onto lines of two equal
@@ -844,8 +844,7 @@ export default function HW() {
             underneath on the faint pink; today is open to start. Considerations closes the
             list the same way. */}
         {notesLoaded &&
-          // Dubai heads the list for now: a temporary line with meals of its own, like a day.
-          [["dubai", "DXB"], ...DAYS, ["considerations", "Considerations"]].map(([day, name, group]) => {
+          [...DAYS, ["considerations", "Considerations"]].map(([day, name, group]) => {
             const open = openDays.includes(day);
             const twin = twinOf[day];
             return (
@@ -879,46 +878,52 @@ export default function HW() {
                         right. (A second, amber set was tried and set aside; its text stays saved.) */}
                     {/* The day's lines: each a label (Meal, Extra, or anything you type) and what
                         it is; lines can be added under the frame and binned. */}
+                    {/* Two tables a day: Home on top, Dubai under it, each with its own title bar and Add. */}
+                    {[[day, group, "Home"], [`${day}@dubai`, undefined, "Dubai"]].map(([dk, gp, title], ti) => (
+                    <div key={dk} className={ti ? "mt-3" : ""}>
                     <div className="border border-neutral-400">
-                      {rowsOfDay(day).map((r, mi) => (
-                        <div key={r.id} {...dropProps(`nut-${day}`, mi, (from, to) => saveDayRows(day, moved(rowsOfDay(day), from, to)))}>
-                        {marker(`nut-${day}`, mi)}
+                      <div className="flex h-[21px] items-center border-b border-neutral-400 px-1.5 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900" style={{ backgroundColor: "#F4D3CA" }}>{title}</div>
+                      {rowsOfDay(dk).map((r, mi) => (
+                        <div key={r.id} {...dropProps(`nut-${dk}`, mi, (from, to) => saveDayRows(dk, moved(rowsOfDay(dk), from, to)))}>
+                        {marker(`nut-${dk}`, mi)}
                         {/* A line labelled "In consideration" stands out: red text on a slightly deeper pink. */}
                         <div className={`flex items-stretch ${mi ? "border-t border-neutral-400" : ""} ${/^\s*in consideration/i.test(r.label || "") ? "bg-[#F4D3CA] [&_textarea]:text-[#C1440E] [&_.meal-box]:text-[#C1440E]" : ""}`}>
                           {/* A wider label that wraps, so a longer name grows the line rather than hiding. */}
                           <div className="w-[100px] shrink-0 border-r border-neutral-400 px-1.5 pt-[3px] pb-[2px]">
-                            <GrowText value={r.label || ""} onChange={(t) => saveDayRows(day, rowsOfDay(day).map((x) => (x.id === r.id ? { ...x, label: t } : x)))} rows={1} />
+                            <GrowText value={r.label || ""} onChange={(t) => saveDayRows(dk, rowsOfDay(dk).map((x) => (x.id === r.id ? { ...x, label: t } : x)))} rows={1} />
                           </div>
                           <div className="min-w-0 flex-1 px-1.5 pt-[3px] pb-[2px]">
-                            <MealText boxRef={(el) => { mealBoxes.current[`${day}-${r.key}`] = el; }} value={mealOf(day, group, r.key)} onChange={(t) => saveDayMeal(day, r.key, t)} />
+                            <MealText boxRef={(el) => { mealBoxes.current[`${dk}-${r.key}`] = el; }} value={mealOf(dk, gp, r.key)} onChange={(t) => saveDayMeal(dk, r.key, t)} />
                           </div>
                           {/* The red square, then the grip, then the bin. */}
                           <span className="flex shrink-0 items-start gap-1.5 border-l border-neutral-400 px-1.5 pt-[5px] pb-[4px]">
                             {/* Highlight words in this line, then press: they turn red, or back to black if red. */}
                             <button
                               onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => toggleRed(mealBoxes.current[`${day}-${r.key}`], (html) => saveDayMeal(day, r.key, html))}
+                              onClick={() => toggleRed(mealBoxes.current[`${dk}-${r.key}`], (html) => saveDayMeal(dk, r.key, html))}
                               title="Turn the highlighted words red, or back to black"
                               className="flex h-[11px] w-[11px] shrink-0 items-center justify-center"
                             >
                               <span className="block h-[9px] w-[9px] rounded-[1px] hover:opacity-70" style={{ backgroundColor: INK_RED }} />
                             </button>
-                            {grip(`nut-${day}`, mi, true)}
-                            <button onClick={() => setListConfirm({ run: () => saveDayRows(day, rowsOfDay(day).filter((x) => x.id !== r.id)) })} title="Remove" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
+                            {grip(`nut-${dk}`, mi, true)}
+                            <button onClick={() => setListConfirm({ run: () => saveDayRows(dk, rowsOfDay(dk).filter((x) => x.id !== r.id)) })} title="Remove" className="shrink-0 text-neutral-900 hover:text-[#C1440E]">
                               <Trash2 size={11} />
                             </button>
                           </span>
                         </div>
                         </div>
                       ))}
-                      {marker(`nut-${day}`, rowsOfDay(day).length)}
+                      {marker(`nut-${dk}`, rowsOfDay(dk).length)}
                     </div>
                     <button
-                      onClick={() => { const key = newId(); saveDayRows(day, [...rowsOfDay(day), { id: key, label: "", key }]); }}
+                      onClick={() => { const key = newId(); saveDayRows(dk, [...rowsOfDay(dk), { id: key, label: "", key }]); }}
                       className="mt-1 flex items-center pl-[7px] text-[11px] font-bold text-[#0f766e] hover:text-[#0c5e57]"
                     >
                       Add
                     </button>
+                    </div>
+                    ))}
                   </div>
                 )}
                 {open && day === "considerations" && (
