@@ -2242,7 +2242,8 @@ export default function Planning() {
                           <AutoTextarea
                             boxRef={(el) => { if (el && editing === it.id && document.activeElement !== el) el.focus(); }}
                             value={it.code}
-                            readOnly={editing !== it.id}
+                            // Foodycmd is fixed here: its brackets are typed into only on the day line above.
+                            readOnly={editing !== it.id || /^\s*foodycmd/i.test(it.code)}
                             onChange={(e) => {
                               const el = e.currentTarget, pos = el.selectionStart;
                               const got = renamePoint(b, g, it.id, e.target.value.replace(/\r?\n/g, ""));
