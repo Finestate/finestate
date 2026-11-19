@@ -180,6 +180,19 @@ export default function HW() {
     setNutrition(next);
     persist({ foundational: notes, ...lists, nutrition: next });
   };
+  // Copy Monday: a day takes Monday's Home and Dubai lines, labels and meals, exactly.
+  const copyMonday = (day) => {
+    const days = { ...(nutrition.days || {}) };
+    const dayRows = { ...(nutrition.dayRows || {}) };
+    [["mon", "weekdays", day], ["mon@dubai", undefined, `${day}@dubai`]].forEach(([src, srcGroup, dest]) => {
+      const rows = rowsOfDay(src);
+      dayRows[dest] = rows.map((r) => ({ ...r }));
+      days[dest] = Object.fromEntries(rows.map((r) => [r.key, mealOf(src, srcGroup, r.key)]));
+    });
+    const next = { ...nutrition, days, dayRows };
+    setNutrition(next);
+    persist({ foundational: notes, ...lists, nutrition: next });
+  };
   const twinOf = (() => {
     const COLORS = ["#0f766e", "#9c7c33", "#C1440E", "#1d4ed8", "#7A0019", "#525252"];
     const byKey = {};
@@ -882,7 +895,18 @@ export default function HW() {
                     {[[day, group, "Home"], [`${day}@dubai`, undefined, "Dubai"]].map(([dk, gp, title], ti) => (
                     <div key={dk} className={ti ? "mt-3" : ""}>
                     <div className="border border-neutral-400">
-                      <div className="flex h-[21px] items-center border-b border-neutral-400 px-1.5 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900" style={{ backgroundColor: "#F4D3CA" }}>{title}</div>
+                      <div className="flex h-[21px] items-center border-b border-neutral-400 px-1.5 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900" style={{ backgroundColor: "#F4D3CA" }}>
+                        {title}
+                        {/* Any day but Monday can take Monday's meals, Home and Dubai both. */}
+                        {!ti && day !== "mon" && (
+                          <button
+                            onClick={() => setListConfirm({ msg: `Make ${name} the same as Monday?`, ok: "Copy", run: () => copyMonday(day) })}
+                            className="ml-auto text-[10px] font-normal normal-case tracking-normal text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]"
+                          >
+                            Copy Monday
+                          </button>
+                        )}
+                      </div>
                       {rowsOfDay(dk).map((r, mi) => (
                         <div key={r.id} {...dropProps(`nut-${dk}`, mi, (from, to) => saveDayRows(dk, moved(rowsOfDay(dk), from, to)))}>
                         {marker(`nut-${dk}`, mi)}
@@ -994,14 +1018,14 @@ export default function HW() {
       {listConfirm != null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setListConfirm(null)}>
           <div className="w-full max-w-sm border-[5px] bg-white p-6 text-center shadow-2xl" style={{ borderColor: "#C1440E" }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900 [overflow-wrap:anywhere]">Delete this?</p>
+            <p className="text-[14px] font-bold uppercase tracking-[0.06em] text-neutral-900 [overflow-wrap:anywhere]">{listConfirm.msg || "Delete this?"}</p>
             <div className="mt-5 flex justify-center gap-3 text-[12px] font-bold uppercase tracking-wide">
               <button
                 onClick={() => { if (listConfirm.run) listConfirm.run(); else saveList(listConfirm.key, lists[listConfirm.key].filter((x) => x.id !== listConfirm.id)); setListConfirm(null); }}
                 className="border-2 px-5 py-1.5 text-white transition-opacity hover:opacity-80"
                 style={{ backgroundColor: "#C1440E", borderColor: "#C1440E" }}
               >
-                Delete
+                {listConfirm.ok || "Delete"}
               </button>
               <button onClick={() => setListConfirm(null)} className="border-2 px-5 py-1.5 transition-opacity hover:opacity-70" style={{ borderColor: "#C1440E", color: "#C1440E" }}>
                 Cancel
