@@ -444,7 +444,7 @@ const HYPER_ONLY = ["silx", "says", "servefast", "fin"];
 // Says Media splits each column into its brands: Says Media itself, then Says, then Dubai
 // Says. Dubai Says keeps the points it always had (the original groups).
 // The Says Media sections are set aside: only Says and Dubai Says show. Their entries stay saved.
-const BRAND_GROUPS = { says: { core: ["saysHyper", "hyper"], rest: ["saysRest", "rest"] } };
+const BRAND_GROUPS = { says: { core: ["hyper", "saysHyper"], rest: ["rest", "saysRest"] } };
 const BRAND_LABELS = { mediaHyper: "Says Media", mediaRest: "Says Media", saysHyper: "Says", saysRest: "Says", hyper: "Dubai Says", rest: "Dubai Says" };
 const HYPER_GROUPS = ["mediaHyper", "saysHyper", "hyper"];
 // Says Media ticks each section on its own: the same name in Says Media, Says and Dubai Says
