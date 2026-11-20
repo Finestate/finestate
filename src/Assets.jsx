@@ -650,50 +650,56 @@ export default function Assets() {
         <span className={`${reCell} font-bold text-neutral-900`}>EUR {money(reTotal)}</span>
       </div>
       {/* Mortgage payback scenarios: its own sub header under the Property total. */}
-      <div className={reRow} style={{ backgroundColor: HEADER_BG }}>
-        <span className={`flex flex-1 items-center px-2 ${head}`}>Mortgage payback scenarios</span>
-        <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Rate</span>
-        <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Expires</span>
-        <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed today</span>
-        <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Monthly</span>
-        {EXTRA_YEARS.map((y) => (
-          <span key={y} className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`} title={`Extra paid off in ${y}: in December, or at expiry in the year the loan expires`}>Extra {y}</span>
-        ))}
-        <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed at expiry</span>
-      </div>
-      {payback.rows.map((p) => (
-        <div key={p.id} className={reRow}>
-          <span className="flex min-w-0 flex-1 items-center truncate px-2 text-[11px] text-neutral-900">{p.name}</span>
-          <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.rate != null ? `${p.rate}%` : ""}</span>
-          <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.expires}</span>
-          <span className="flex w-28 shrink-0 items-center border-l border-black px-2">
-            <OwedInput key={`${p.id}-${p.owed}`} value={p.owed} onSave={(v) => saveOwed(p.id, v)} />
-          </span>
-          <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{num(p.monthly) != null ? `EUR ${money(p.monthly)}` : ""}</span>
-          {EXTRA_YEARS.map((y) => p.exp && y > p.exp.y ? (
-            // That December falls after the loan expires: nothing to pay, greyed out.
-            <span key={y} className="w-28 shrink-0 border-l border-black bg-neutral-200" title="After this loan expires" />
-          ) : (
-            <span key={y} className="flex w-28 shrink-0 items-center border-l border-black px-2">
-              <Amount cur="EUR" value={p.extra[y] ?? ""} onChange={(v) => save({ ...doc, mortExtraYears: { ...(doc.mortExtraYears || {}), [p.id]: { ...(doc.mortExtraYears?.[p.id] || {}), [y]: v } } })} />
-            </span>
+      {/* Equal columns that widen with the screen; on a narrow screen the table scrolls sideways
+          rather than cutting a title off. */}
+      <div className="overflow-x-auto">
+        <div className="min-w-[1480px]">
+          <div className={reRow} style={{ backgroundColor: HEADER_BG }}>
+            <span className={`flex min-w-[200px] flex-[2] basis-0 items-center whitespace-nowrap px-2 ${head}`}>Mortgage payback scenarios</span>
+            <span className={`flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 ${head}`}>Rate</span>
+            <span className={`flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center border-l border-black px-2 ${head}`}>Expires</span>
+            <span className={`flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 ${head}`}>Owed today</span>
+            <span className={`flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 ${head}`}>Monthly</span>
+            {EXTRA_YEARS.map((y) => (
+              <span key={y} className={`flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 ${head}`} title={`Extra paid off in ${y}: in December, or at expiry in the year the loan expires`}>Extra {y}</span>
+            ))}
+            <span className={`flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 ${head}`}>Owed at expiry</span>
+          </div>
+          {payback.rows.map((p) => (
+            <div key={p.id} className={reRow}>
+              <span className="flex min-w-[200px] flex-[2] basis-0 items-center truncate px-2 text-[11px] text-neutral-900">{p.name}</span>
+              <span className="flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.rate != null ? `${p.rate}%` : ""}</span>
+              <span className="flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.expires}</span>
+              <span className="flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center border-l border-black px-2">
+                <OwedInput key={`${p.id}-${p.owed}`} value={p.owed} onSave={(v) => saveOwed(p.id, v)} />
+              </span>
+              <span className="flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{num(p.monthly) != null ? `EUR ${money(p.monthly)}` : ""}</span>
+              {EXTRA_YEARS.map((y) => p.exp && y > p.exp.y ? (
+                // That December falls after the loan expires: nothing to pay, greyed out.
+                <span key={y} className="min-w-[128px] flex-1 basis-0 whitespace-nowrap border-l border-black bg-neutral-200" title="After this loan expires" />
+              ) : (
+                <span key={y} className="flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center border-l border-black px-2">
+                  <Amount cur="EUR" value={p.extra[y] ?? ""} onChange={(v) => save({ ...doc, mortExtraYears: { ...(doc.mortExtraYears || {}), [p.id]: { ...(doc.mortExtraYears?.[p.id] || {}), [y]: v } } })} />
+                </span>
+              ))}
+              <span className="flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900" title={p.note}>
+                {p.atExpiry == null ? "" : p.paidOff ? `Paid off ${p.paidOff}` : `EUR ${money(p.atExpiry)}`}
+              </span>
+            </div>
           ))}
-          <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900" title={p.note}>
-            {p.atExpiry == null ? "" : p.paidOff ? `Paid off ${p.paidOff}` : `EUR ${money(p.atExpiry)}`}
-          </span>
+          {payback.rows.length > 1 && (
+            <div className={reRow}>
+              <span className="flex min-w-[200px] flex-[2] basis-0 items-center whitespace-nowrap px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
+              <span className="min-w-[128px] flex-1 basis-0 whitespace-nowrap border-l border-black" />
+              <span className="min-w-[128px] flex-1 basis-0 whitespace-nowrap border-l border-black" />
+              <span className="flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(payback.owed)}</span>
+              <span className="min-w-[128px] flex-1 basis-0 whitespace-nowrap border-l border-black" />
+              {EXTRA_YEARS.map((y) => <span key={y} className="min-w-[128px] flex-1 basis-0 whitespace-nowrap border-l border-black" />)}
+              <span className="flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">{payback.done ? `EUR ${money(payback.atExpiry)}` : ""}</span>
+            </div>
+          )}
         </div>
-      ))}
-      {payback.rows.length > 1 && (
-        <div className={reRow}>
-          <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
-          <span className="w-28 shrink-0 border-l border-black" />
-          <span className="w-28 shrink-0 border-l border-black" />
-          <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(payback.owed)}</span>
-          <span className="w-28 shrink-0 border-l border-black" />
-          {EXTRA_YEARS.map((y) => <span key={y} className="w-28 shrink-0 border-l border-black" />)}
-          <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">{payback.done ? `EUR ${money(payback.atExpiry)}` : ""}</span>
-        </div>
-      )}
+      </div>
     </>
   );
 
