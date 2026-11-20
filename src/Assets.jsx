@@ -72,7 +72,8 @@ const money = (v) => {
 // A typed amount: plain while you type in it, then shown with its currency, as in
 // Cash flow, once you leave it.
 // `auto`: the figure was worked out by the site, so it reads in blue.
-function Amount({ value, onChange, cur, auto }) {
+// `red`: an extra payment, typed in red.
+function Amount({ value, onChange, cur, auto, red }) {
   const [typing, setTyping] = useState(false);
   return (
     <input
@@ -81,7 +82,7 @@ function Amount({ value, onChange, cur, auto }) {
       onBlur={() => setTyping(false)}
       onChange={(e) => onChange(e.target.value)}
       inputMode="decimal"
-      className={`w-full bg-transparent text-right text-[11px] tabular-nums outline-none ${auto && !typing ? "text-[#1d4ed8]" : "text-neutral-900"}`}
+      className={`w-full bg-transparent text-right text-[11px] tabular-nums outline-none ${red ? "text-[#E0101F]" : auto && !typing ? "text-[#1d4ed8]" : "text-neutral-900"}`}
     />
   );
 }
@@ -679,7 +680,7 @@ export default function Assets() {
                 <span key={y} className="min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap border-l border-black bg-neutral-200" title="After this loan expires" />
               ) : (
                 <span key={y} className="flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center border-l border-black px-1.5">
-                  <Amount cur="" value={p.extra[y] ?? ""} onChange={(v) => save({ ...doc, mortExtraYears: { ...(doc.mortExtraYears || {}), [p.id]: { ...(doc.mortExtraYears?.[p.id] || {}), [y]: v } } })} />
+                  <Amount red cur="" value={p.extra[y] ?? ""} onChange={(v) => save({ ...doc, mortExtraYears: { ...(doc.mortExtraYears || {}), [p.id]: { ...(doc.mortExtraYears?.[p.id] || {}), [y]: v } } })} />
                 </span>
               ))}
               <span className="flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center justify-end border-l border-black px-1.5 text-[11px] font-bold tabular-nums text-neutral-900" title={p.note}>
