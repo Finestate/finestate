@@ -1,24 +1,28 @@
 import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
 
-// Investing > Funnel, built in stages from the top down. Stage 1, the Macro map: where the
-// big money is being spent now, area by area, each with its stats, the reason, a plain
-// explanation and the industries it pulls in. Claude writes it from a web search; the box
-// under it asks for updates. Kept in Supabase with the version before, to go back to.
-const DOC_ID = "macro-map";
+// Investing > Funnel: from geopolitics down to companies, one stage under the other.
+// Each stage is written by Claude from a web search. Ticking items in a stage decides what
+// the next stage is built from, so the chain from a force down to a company stays visible:
+// each item shows what it is tied to above, and is flagged when that is no longer ticked.
+// Each stage also has an Ask box for questions, kept as a short thread.
+// Everything is kept in Supabase, with the version before each update to go back to.
+const DOC_ID = "funnel";
 const BAR_BG = "#F2C46D";
-const SUB_BG = "#FFE4B3";
 const GAP_BG = "#8A8A8A";
 const PINK = "#FBEFEC";
+const TEAL = "#0f766e";
+const RED = "#E0101F";
 const head = "text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900";
-// The plan for the Funnel, kept on the page so it is not forgotten while it is built.
-const PLAN = [
-  ["Stage 1 – Macro map", "Where the big money is being spent now, with stats and sources, why, a plain explanation, and the industries each area pulls in."],
-  ["Stage 2 – Industries", "A closer look at each industry, following the money down the chain: who actually captures the spending (for example chips and power before software)."],
-  ["Stage 3 – Top ETFs", "The leading ETFs per industry, used as a filter as well as a list: weak 3 to 5 year performance is a warning sign, and the top holdings give the stage 4 shortlist."],
-  ["Stage 4 – Companies", "Individual companies to watch and why, each with a short scorecard: growth, profit margins, debt and price."],
-  ["Monthly check", "Review from the top once a month; if a stage 1 area cools, everything under it gets flagged."],
+const label = "text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-500";
+
+const STAGES = [
+  ["geo", "Geopolitics", "the forces shaping where money goes"],
+  ["region", "Regions", "who gains and who loses from them"],
+  ["industry", "Industries", "who captures the money in those regions"],
+  ["etf", "ETFs", "funds that hold those industries"],
+  ["company", "Companies", "the businesses inside, with a scorecard"],
 ];
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -27,12 +31,15 @@ const dateOf = (iso) => {
   const d = new Date(iso);
   return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 };
+// The score's colour: strong ties in green, weak in grey.
+const scoreColor = (n) => (n >= 8 ? "#15803d" : n >= 5 ? "#9c7c33" : "#737373");
 
 export default function Funnel() {
-  const [doc, setDoc] = useState(null); // { map, at, prev, prevAt, open, openAreas }
-  const [ask, setAsk] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
+  const [doc, setDoc] = useState(null);
+  const [asks, setAsks] = useState({}); // what is typed in each stage's Update box
+  const [questions, setQuestions] = useState({}); // what is typed in each stage's Ask box
+  const [busy, setBusy] = useState(""); // "geo:build", "region:ask" and so on
+  const [err, setErr] = useState({});
 
   useEffect(() => {
     supabase
@@ -40,7 +47,7 @@ export default function Funnel() {
       .select("data")
       .eq("id", DOC_ID)
       .maybeSingle()
-      .then(({ data }) => setDoc(data?.data || { open: true }));
+      .then(({ data }) => setDoc(data?.data || { open: { geo: true } }));
   }, []);
 
   const save = (next) => {
@@ -48,151 +55,268 @@ export default function Funnel() {
     supabase.from("admin_docs").upsert({ id: DOC_ID, data: next, updated_at: new Date().toISOString() }).then(() => {});
   };
 
-  // Ask Claude for a fresh or updated map; it searches the web, so it can take a minute.
-  const update = async () => {
+  if (!doc) return <div className="w-full" />;
+
+  const stages = doc.stages || {};
+  const picks = doc.picks || {};
+  const open = doc.open || {};
+  const openItems = doc.openItems || [];
+  const chat = doc.chat || {};
+  const itemsOf = (key) => stages[key]?.data?.items || [];
+  const tickedOf = (key) => itemsOf(key).filter((x) => (picks[key] || []).includes(x.name));
+  // Everything ticked above a stage, top first.
+  const chainFor = (i) => STAGES.slice(0, i).map(([k]) => ({ stage: k, items: tickedOf(k) }));
+
+  const call = async (key, i, mode) => {
     if (busy) return;
-    setBusy(true);
-    setErr("");
+    setBusy(`${key}:${mode}`);
+    setErr((e) => ({ ...e, [key]: "" }));
     try {
       const { data } = await supabase.auth.getSession();
       const r = await fetch("/api/funnel-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${data?.session?.access_token || ""}` },
-        body: JSON.stringify({ map: doc.map || null, ask: ask.trim() }),
+        body: JSON.stringify({
+          mode,
+          stage: key,
+          current: stages[key]?.data || null,
+          chain: chainFor(i),
+          ask: (asks[key] || "").trim(),
+          question: (questions[key] || "").trim(),
+        }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || j.error) throw new Error(j.error || "Claude could not answer. If this keeps happening, try a shorter request.");
-      save({ ...doc, map: j.map, at: new Date().toISOString(), prev: doc.map || null, prevAt: doc.at || "" });
-      setAsk("");
+      if (mode === "ask") {
+        save({ ...doc, chat: { ...chat, [key]: [{ q: questions[key].trim(), a: j.answer, at: new Date().toISOString() }, ...(chat[key] || [])].slice(0, 20) } });
+        setQuestions((q) => ({ ...q, [key]: "" }));
+      } else {
+        const was = stages[key];
+        // Ticks carry over for items that are still there.
+        const names = j.stage.items.map((x) => x.name);
+        save({
+          ...doc,
+          stages: { ...stages, [key]: { data: j.stage, at: new Date().toISOString(), prev: was?.data || null, prevAt: was?.at || "" } },
+          picks: { ...picks, [key]: (picks[key] || []).filter((n) => names.includes(n)) },
+          open: { ...open, [key]: true },
+        });
+        setAsks((a) => ({ ...a, [key]: "" }));
+      }
     } catch (e) {
-      setErr(e.message || "Something went wrong. Please try again.");
+      setErr((x) => ({ ...x, [key]: e.message || "Something went wrong. Please try again." }));
     } finally {
-      setBusy(false);
+      setBusy("");
     }
   };
 
-  if (!doc) return <div className="w-full" />;
-  const map = doc.map;
-  const openAreas = doc.openAreas || [];
-  const toggleArea = (name) => save({ ...doc, openAreas: openAreas.includes(name) ? openAreas.filter((x) => x !== name) : [...openAreas, name] });
-  const label = "text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-500";
+  const toggle = (obj, k) => ({ ...obj, [k]: !obj[k] });
+  const togglePick = (key, name) => {
+    const cur = picks[key] || [];
+    save({ ...doc, picks: { ...picks, [key]: cur.includes(name) ? cur.filter((n) => n !== name) : [...cur, name] } });
+  };
+  const toggleItem = (id) => save({ ...doc, openItems: openItems.includes(id) ? openItems.filter((x) => x !== id) : [...openItems, id] });
 
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="w-full min-w-[640px] overflow-hidden border border-black bg-white shadow-sm">
-        <div className="h-[10px]" style={{ backgroundColor: GAP_BG }} />
-        {/* The plan, opened and closed from its bar, remembered like everything else. */}
-        <div onClick={() => save({ ...doc, planOpen: !doc.planOpen })} className="flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={head}>Plan</span>
-          <ChevronDown size={14} strokeWidth={2.75} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${doc.planOpen ? "rotate-180" : ""}`} />
-        </div>
-        {doc.planOpen && PLAN.map(([t, d]) => (
-          <div key={t} className="flex gap-2 border-t border-black px-2 py-[3px] text-[11px] leading-[15px] text-neutral-900" style={{ backgroundColor: PINK }}>
-            <span className="w-[140px] shrink-0 font-bold">{t}</span>
-            <span>{d}</span>
-          </div>
-        ))}
-        <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
-        {/* The bar opens and closes the map, and stays as you left it. */}
-        <div onClick={() => save({ ...doc, open: !doc.open })} className="flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
-          <span className={head}>Macro map</span>
-          <span className="text-[11px] text-neutral-700">Stage 1 – where the money is going</span>
-          {doc.at && <span className="ml-2 text-[11px] text-neutral-700">updated {dateOf(doc.at)}</span>}
-          <ChevronDown size={14} strokeWidth={2.75} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${doc.open ? "rotate-180" : ""}`} />
-        </div>
-        {doc.open && (
-          <>
-            {/* Right now: the overview. */}
-            <div className="border-t border-black px-2 py-1.5 text-[11px] leading-[16px] text-neutral-900" style={{ backgroundColor: PINK }}>
-              {map ? (
-                <>
-                  <p>{map.overview}</p>
-                  {map.asOf && <p className="pt-0.5 text-[10px] text-neutral-500">Picture as of {map.asOf}</p>}
-                </>
-              ) : (
-                <p className="italic text-neutral-500">No map yet. Use the box below to ask Claude to build the first one.</p>
-              )}
+    <div className="w-full overflow-hidden border border-black bg-white shadow-sm">
+      {STAGES.map(([key, title, sub], i) => {
+        const st = stages[key];
+        const data = st?.data;
+        const items = data?.items || [];
+        const mine = picks[key] || [];
+        const above = i > 0 ? tickedOf(STAGES[i - 1][0]) : [];
+        // Names ticked anywhere above, to check each item's ties against.
+        const tickedAbove = chainFor(i).flatMap((c) => c.items.map((x) => x.name));
+        const blocked = i > 0 && above.length === 0;
+        const isOpen = !!open[key];
+        return (
+          <div key={key}>
+            <div className={`h-[10px] ${i ? "border-t border-black" : ""}`} style={{ backgroundColor: GAP_BG }} />
+            {/* The stage's bar: number, name, what it is, how many ticked, when updated. */}
+            <div onClick={() => save({ ...doc, open: toggle(open, key) })} className="flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+              <span className={head}>{i + 1}. {title}</span>
+              <span className="truncate text-[11px] text-neutral-700">{sub}</span>
+              <span className="ml-auto shrink-0 text-[11px] tabular-nums text-neutral-700">
+                {items.length > 0 && `${mine.length} of ${items.length} ticked`}
+                {st?.at && ` – updated ${dateOf(st.at)}`}
+              </span>
+              <ChevronDown size={14} strokeWidth={2.75} className={`shrink-0 text-neutral-900 transition-transform ${isOpen ? "rotate-180" : ""}`} />
             </div>
-            {/* Each spending area: a line that opens onto its stats, the reason, the plain
-                version and the industries it pulls in. */}
-            {map?.areas?.map((a, i) => {
-              const open = openAreas.includes(a.name);
-              return (
-                <div key={a.name + i}>
-                  <div onClick={() => toggleArea(a.name)} className="flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: SUB_BG }}>
-                    <span className="w-4 shrink-0 text-right text-[11px] font-bold tabular-nums text-neutral-900">{i + 1}.</span>
-                    <span className={head}>{a.name}</span>
-                    <ChevronDown size={12} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${open ? "rotate-180" : ""}`} />
+            {isOpen && (
+              <>
+                {/* What this stage is built from: the ticks in the stage above. */}
+                {i > 0 && (
+                  <div className="flex min-h-[21px] flex-wrap items-center gap-1 border-t border-black px-2 py-[2px] text-[11px]">
+                    <span className={label}>Built from</span>
+                    {above.length ? above.map((x) => (
+                      <span key={x.name} className="border border-neutral-400 bg-white px-1.5 leading-[15px] text-neutral-900">{x.name}</span>
+                    )) : <span className="italic text-neutral-500">Tick at least one item in {STAGES[i - 1][1]} first.</span>}
                   </div>
-                  {open && (
-                    <div className="flex flex-col gap-1.5 border-t border-black px-2 py-1.5 pl-8 text-[11px] leading-[16px] text-neutral-900">
-                      {a.stats?.length > 0 && (
-                        <div>
-                          <p className={label}>The numbers</p>
-                          {a.stats.map((s, k) => <p key={k}>• {s}</p>)}
-                        </div>
-                      )}
-                      {a.why && (
-                        <div>
-                          <p className={label}>Why</p>
-                          <p>{a.why}</p>
-                        </div>
-                      )}
-                      {a.simple && (
-                        <div className="border-l-[3px] border-[#F2C46D] pl-2">
-                          <p className={label}>Put simply</p>
-                          <p>{a.simple}</p>
-                        </div>
-                      )}
-                      {a.industries?.length > 0 && (
-                        <div>
-                          <p className={label}>Industries that play a role</p>
-                          <div className="flex flex-wrap gap-1 pt-0.5">
-                            {a.industries.map((n) => (
-                              <span key={n} className="border border-neutral-400 bg-white px-1.5 text-[11px] leading-[16px]">{n}</span>
-                            ))}
+                )}
+                {/* The big picture of this stage. */}
+                <div className="border-t border-black px-2 py-1 text-[11px] leading-[16px] text-neutral-900" style={{ backgroundColor: PINK }}>
+                  {data ? (
+                    <>
+                      <p>{data.overview}</p>
+                      {data.asOf && <p className="text-[10px] text-neutral-500">Picture as of {data.asOf}</p>}
+                    </>
+                  ) : (
+                    <p className="italic text-neutral-500">Not built yet. Press Build below and Claude will search the web and write it.</p>
+                  )}
+                </div>
+                {/* One line per item: tick, name, tag, score; it opens onto the detail. */}
+                {items.map((x, n) => {
+                  const id = `${key}:${x.name}`;
+                  const itemOpen = openItems.includes(id);
+                  const ticked = mine.includes(x.name);
+                  const lost = i > 0 && (x.links || []).length > 0 && !(x.links || []).some((l) => tickedAbove.includes(l));
+                  return (
+                    <div key={id}>
+                      <div onClick={() => toggleItem(id)} className={`flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2 ${ticked ? "bg-[#EEF7EE]" : ""}`}>
+                        <input
+                          type="checkbox"
+                          checked={ticked}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={() => togglePick(key, x.name)}
+                          className="h-3 w-3 shrink-0 cursor-pointer accent-[#0f766e]"
+                          title="Tick to take this into the next stage"
+                        />
+                        <span className="w-4 shrink-0 text-right text-[11px] tabular-nums text-neutral-500">{n + 1}.</span>
+                        <span className="truncate text-[11px] font-semibold text-neutral-900">{x.name}</span>
+                        {x.tag && x.tag !== x.name && <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.04em] text-neutral-500">{x.tag}</span>}
+                        {lost && <span className="shrink-0 text-[10px] font-bold" style={{ color: RED }} title="What this is tied to above is no longer ticked">Unticked above</span>}
+                        <span className="ml-auto flex shrink-0 items-center gap-1.5">
+                          {x.links?.length > 0 && <span className="hidden max-w-[260px] truncate text-[10px] text-neutral-500 md:inline">{x.links.join(", ")}</span>}
+                          {Number.isFinite(+x.score) && (
+                            <span className="w-[34px] text-right text-[11px] font-bold tabular-nums" style={{ color: scoreColor(+x.score) }} title="How strongly it is tied to the chain above, out of 10">
+                              {x.score}/10
+                            </span>
+                          )}
+                          <ChevronDown size={12} className={`text-neutral-900 transition-transform ${itemOpen ? "rotate-180" : ""}`} />
+                        </span>
+                      </div>
+                      {itemOpen && (
+                        <div className="grid grid-cols-1 gap-x-4 gap-y-1.5 border-t border-black px-2 py-1.5 pl-[46px] text-[11px] leading-[16px] text-neutral-900 md:grid-cols-2">
+                          <div className="flex flex-col gap-1.5">
+                            {x.simple && (
+                              <div className="border-l-[3px] border-[#F2C46D] pl-2">
+                                <p className={label}>Put simply</p>
+                                <p>{x.simple}</p>
+                              </div>
+                            )}
+                            {x.why && (
+                              <div>
+                                <p className={label}>Why it matters</p>
+                                <p>{x.why}</p>
+                              </div>
+                            )}
+                            {x.stats?.length > 0 && (
+                              <div>
+                                <p className={label}>The numbers</p>
+                                {x.stats.map((s, k) => <p key={k}>• {s}</p>)}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-1.5">
+                            {x.facts && Object.keys(x.facts).length > 0 && (
+                              <div className="border border-neutral-300">
+                                {Object.entries(x.facts).map(([k, v]) => (
+                                  <div key={k} className="flex border-t border-neutral-300 first:border-t-0">
+                                    <span className="w-[110px] shrink-0 bg-neutral-50 px-1.5 text-[10px] font-bold uppercase leading-[18px] tracking-[0.04em] text-neutral-500">{k}</span>
+                                    <span className="min-w-0 flex-1 px-1.5 leading-[18px]">{String(v)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {x.links?.length > 0 && (
+                              <div>
+                                <p className={label}>Tied to above</p>
+                                <div className="flex flex-wrap gap-1 pt-0.5">
+                                  {x.links.map((l) => (
+                                    <span key={l} className={`border px-1.5 leading-[16px] ${tickedAbove.includes(l) ? "border-[#0f766e] text-[#0f766e]" : "border-neutral-300 text-neutral-400 line-through"}`}>{l}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {x.watch && (
+                              <div>
+                                <p className={label}>Watch</p>
+                                <p>{x.watch}</p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
                     </div>
-                  )}
+                  );
+                })}
+                {st?.prev && (
+                  <div className="border-t border-black px-2 py-[3px]">
+                    <button
+                      onClick={() => save({ ...doc, stages: { ...stages, [key]: { ...st, data: st.prev, at: st.prevAt, prev: st.data, prevAt: st.at } } })}
+                      className="text-[10px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]"
+                    >
+                      Swap back to the version before
+                    </button>
+                  </div>
+                )}
+                {/* Build or update: what to change, then the button. Enter sends. */}
+                <div className="flex items-center gap-2 border-t border-black px-2 py-1">
+                  <input
+                    value={asks[key] || ""}
+                    onChange={(e) => setAsks((a) => ({ ...a, [key]: e.target.value }))}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !blocked) call(key, i, "build"); }}
+                    placeholder={data ? "What should Claude change? Leave empty to refresh it all." : "Anything Claude should focus on? Leave empty for a general picture."}
+                    className="h-[21px] min-w-0 flex-1 border border-neutral-400 bg-white px-1.5 text-[11px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#0f766e]"
+                  />
+                  <button
+                    onClick={() => call(key, i, "build")}
+                    disabled={!!busy || blocked}
+                    className="h-[21px] w-[78px] shrink-0 bg-[#0f766e] text-[11px] font-bold uppercase tracking-wide text-white hover:bg-[#0c5e57] disabled:opacity-40"
+                  >
+                    {busy === `${key}:build` ? "Working…" : data ? "Update" : "Build"}
+                  </button>
                 </div>
-              );
-            })}
-            {doc.prev && (
-              <div className="border-t border-black px-2 py-1">
-                <button
-                  onClick={() => save({ ...doc, map: doc.prev, at: doc.prevAt, prev: doc.map, prevAt: doc.at })}
-                  className="text-[10px] text-[#0f766e] underline underline-offset-2 hover:text-[#0c5e57]"
-                >
-                  Swap back to the previous map
-                </button>
-              </div>
+                {/* Ask: questions about this stage, answered in plain words. */}
+                <div className="flex items-center gap-2 border-t border-black px-2 py-1">
+                  <input
+                    value={questions[key] || ""}
+                    onChange={(e) => setQuestions((q) => ({ ...q, [key]: e.target.value }))}
+                    onKeyDown={(e) => { if (e.key === "Enter" && (questions[key] || "").trim()) call(key, i, "ask"); }}
+                    placeholder={`Ask anything about ${title.toLowerCase()}, such as how two of them are linked.`}
+                    className="h-[21px] min-w-0 flex-1 border border-neutral-400 bg-white px-1.5 text-[11px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#0f766e]"
+                  />
+                  <button
+                    onClick={() => call(key, i, "ask")}
+                    disabled={!!busy || !(questions[key] || "").trim()}
+                    className="h-[21px] w-[78px] shrink-0 border border-[#0f766e] bg-white text-[11px] font-bold uppercase tracking-wide text-[#0f766e] hover:bg-[#EEF7EE] disabled:opacity-40"
+                  >
+                    {busy === `${key}:ask` ? "Working…" : "Ask"}
+                  </button>
+                </div>
+                {busy.startsWith(`${key}:`) && <p className="border-t border-black px-2 py-[3px] text-[11px] italic text-neutral-500">Claude is searching the web and writing. This can take up to a minute.</p>}
+                {err[key] && <p className="border-t border-black px-2 py-[3px] text-[11px] font-semibold" style={{ color: RED }}>{err[key]}</p>}
+                {/* The thread: newest first. */}
+                {(chat[key] || []).map((c, k) => (
+                  <div key={c.at + k} className="group flex gap-2 border-t border-black px-2 py-1 text-[11px] leading-[16px] text-neutral-900">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold">{c.q}</p>
+                      <p className="whitespace-pre-wrap">{c.a}</p>
+                    </div>
+                    <button
+                      onClick={() => save({ ...doc, chat: { ...chat, [key]: chat[key].filter((_, m) => m !== k) } })}
+                      title="Remove this question"
+                      className="shrink-0 self-start pt-[2px] text-neutral-400 opacity-0 hover:text-[#C1440E] group-hover:opacity-100"
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                ))}
+              </>
             )}
-            {/* The AI box: what to update, then Update. Enter sends; Shift+Enter starts a new line. */}
-            <div className="flex items-start gap-2 border-t border-black px-2 py-1.5">
-              <textarea
-                value={ask}
-                onChange={(e) => setAsk(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); update(); } }}
-                rows={2}
-                placeholder={map ? "What should Claude update? Leave empty to refresh the whole map." : "Anything Claude should take into account? Leave empty for a general map."}
-                className="min-w-0 flex-1 resize-none border border-neutral-400 bg-white px-1.5 py-1 text-[11px] leading-[15px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#0f766e]"
-              />
-              <button
-                onClick={update}
-                disabled={busy}
-                className="h-[24px] shrink-0 border border-[#0f766e] bg-[#0f766e] px-3 text-[11px] font-bold uppercase tracking-wide text-white hover:bg-[#0c5e57] disabled:opacity-50"
-              >
-                {busy ? "Working…" : map ? "Update" : "Build"}
-              </button>
-            </div>
-            {busy && <p className="border-t border-black px-2 py-1 text-[11px] italic text-neutral-500">Claude is searching the web and writing. This can take up to a minute.</p>}
-            {err && <p className="border-t border-black px-2 py-1 text-[11px] font-semibold text-[#C1440E]">{err}</p>}
-          </>
-        )}
-        <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
-      </div>
+          </div>
+        );
+      })}
+      <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
     </div>
   );
 }
