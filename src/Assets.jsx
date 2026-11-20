@@ -84,6 +84,22 @@ function Amount({ value, onChange, cur, auto }) {
   );
 }
 
+// What is owed today on a loan: typed, kept only once you leave the box.
+function OwedInput({ value, onSave }) {
+  const [typing, setTyping] = useState(null);
+  return (
+    <input
+      value={typing ?? (num(value) != null ? `EUR ${money(value)}` : "")}
+      onFocus={() => setTyping(num(value) != null ? String(Math.abs(num(value))) : "")}
+      onChange={(e) => setTyping(e.target.value)}
+      onBlur={() => { if (typing != null && num(typing) != null && Math.abs(num(typing)) !== Math.abs(num(value))) onSave(typing); setTyping(null); }}
+      onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+      inputMode="decimal"
+      className="w-full bg-transparent text-right text-[11px] tabular-nums text-neutral-900 outline-none"
+    />
+  );
+}
+
 // A typed percentage: plain while you type, then shown with its % sign.
 function Percent({ value, onChange }) {
   const [typing, setTyping] = useState(false);
@@ -206,6 +222,19 @@ export default function Assets() {
       .then(({ data }) => setLoans((data?.data?.loans || []).filter((l) => num(l.amount) != null)));
   }, []);
 
+  // What is owed today on a loan, typed in the payback table: it goes back onto the loan
+  // on Cash flow (its Debt line), keeping the loan's own sign, so both pages agree.
+  const saveOwed = async (id, v) => {
+    const n = num(v);
+    if (n == null) return;
+    const { data } = await supabase.from("admin_docs").select("data").eq("id", "costs-fc").maybeSingle();
+    const fc = data?.data;
+    if (!fc || !Array.isArray(fc.loans)) return;
+    const loansNext = fc.loans.map((l) => (l.id !== id ? l : { ...l, amount: String(num(l.amount) < 0 ? -Math.abs(n) : Math.abs(n)) }));
+    const { error } = await supabase.from("admin_docs").upsert({ id: "costs-fc", data: { ...fc, loans: loansNext }, updated_at: new Date().toISOString() });
+    if (error) { setErr(error.message); return; }
+    setLoans(loansNext.filter((l) => num(l.amount) != null));
+  };
   const save = (next) => {
     setDoc(next);
     supabase
@@ -213,6 +242,13 @@ export default function Assets() {
       .upsert({ id: DOC_ID, data: next, updated_at: new Date().toISOString() })
       .then(({ error }) => setErr(error ? error.message : ""));
   };
+  // The monthly loan payments, the same every month, set once from the bank statements:
+  // the larger loan 687.50, the smaller 433.34. Saved into the page's data the first time.
+  useEffect(() => {
+    if (!doc || doc.mortMonthly || loans.length !== 2) return;
+    const [big, small] = [...loans].sort((a, b) => Math.abs(num(b.amount)) - Math.abs(num(a.amount)));
+    save({ ...doc, mortMonthly: { [big.id]: "687.50", [small.id]: "433.34" } });
+  }, [doc, loans]);
   // `list` is "cash" (Silx) or "personal". `sub` is one of the lines inside an
   // account, such as DIB's Bank balance. Typing in the blank line at the foot of a
   // list makes it a real line, and a fresh blank one appears under it.
@@ -623,10 +659,10 @@ export default function Assets() {
           <span className="flex min-w-0 flex-1 items-center truncate px-2 text-[11px] text-neutral-900">{p.name}</span>
           <span className="flex w-16 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.rate != null ? `${p.rate}%` : ""}</span>
           <span className="flex w-24 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.expires}</span>
-          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">EUR {money(p.owed)}</span>
           <span className="flex w-32 shrink-0 items-center border-l border-black px-2">
-            <Amount cur="EUR" value={p.monthly} onChange={(v) => save({ ...doc, mortMonthly: { ...(doc.mortMonthly || {}), [p.id]: v } })} />
+            <OwedInput key={`${p.id}-${p.owed}`} value={p.owed} onSave={(v) => saveOwed(p.id, v)} />
           </span>
+          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{num(p.monthly) != null ? `EUR ${money(p.monthly)}` : ""}</span>
           <span className="flex w-32 shrink-0 items-center border-l border-black px-2">
             <Amount cur="EUR" value={p.extra} onChange={(v) => save({ ...doc, mortExtra: { ...(doc.mortExtra || {}), [p.id]: v } })} />
           </span>
