@@ -420,7 +420,7 @@ const BOARDS = [
   ["says", "Says"],
   ["servefast", "Servefast"],
   // HEIE's own board, at the foot: Prios, Non-prios and a notes field.
-  ["fin", "HEIE"],
+  ["fin", "Finestate"],
 ];
 // Boards whose dropdown is Prios, Non-prios and notes: no hyper-prios.
 const SINGLE_BOARDS = ["fin"];
@@ -464,14 +464,14 @@ const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep" };
 const OLD_BARS = ["DAILY SILX", "DAILY SAYS", "DAILY SERVEFAST", "SILX", "SAYS", "SERVEFAST"];
 const DAILY_GROUP = "Daily";
 // What an empty day line shows, so the four boards still read apart at a glance.
-const BOARD_TAGS = { master: "Master", silx: "Silx", says: "Says Media", servefast: "Servefast", fin: "HEIE" };
+const BOARD_TAGS = { master: "Master", silx: "Silx", says: "Says Media", servefast: "Servefast", fin: "Finestate" };
 // A solid burgundy for the marks on a meeting, so they read clearly.
 const MEETING_ICON = "#7B1E3A";
 // The faintest wash of the table red, behind every pair of day lines.
 const DAY_BG = "#FBEFEC";
 // The Notes dropdown at the top of Today: its own light shade, and a column per business.
 const NOTES_BG = "#EEF7EE";
-const TODAY_NOTES = [["master", "Master"], ["silx", "Silx"], ["says", "Says"], ["servefast", "Servefast"], ["heie", "Finestate"]];
+const TODAY_NOTES = [["master", "Master"], ["silx", "Silx"], ["says", "Says"], ["servefast", "Servefast"], ["heie", "HEIE"]];
 // Only Master plans meetings; the company boards are just their two point columns.
 const MEETING_BOARDS = ["master"];
 // On a company day line only the short code shows: "FI (financials)" reads as FI.
