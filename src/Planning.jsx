@@ -263,6 +263,21 @@ const clearBacks = (el) => {
     if (!x.getAttribute("style")) x.removeAttribute("style");
   });
 };
+// No outside fonts: any font, size, spacing or height brought in from elsewhere is dropped,
+// so every word shows in the site's own font. Bold and the red and black inks stay.
+const clearFonts = (el) => {
+  el.querySelectorAll("[style]").forEach((x) => {
+    ["font-family", "font-size", "line-height", "letter-spacing", "font-style", "font-variant", "text-transform"].forEach((p) => x.style.removeProperty(p));
+    if (!x.getAttribute("style")) x.removeAttribute("style");
+  });
+  el.querySelectorAll("font[face], font[size]").forEach((x) => { x.removeAttribute("face"); x.removeAttribute("size"); });
+};
+// Pasting always brings the words only, as plain text, never their look.
+const pastePlain = (e) => {
+  e.preventDefault();
+  const t = e.clipboardData?.getData("text/plain") || "";
+  document.execCommand("insertText", false, t);
+};
 function RichLine({ html, onInput, onFocus, onEnter, innerRef, className, plainBack = false }) {
   const ref = useRef(null);
   // Follows text that arrives after the first render, such as a load from storage,
@@ -271,13 +286,15 @@ function RichLine({ html, onInput, onFocus, onEnter, innerRef, className, plainB
     const el = ref.current;
     if (el && document.activeElement !== el && el.innerHTML !== (html || "")) el.innerHTML = html || "";
     if (el && plainBack) clearBacks(el);
+    if (el) clearFonts(el);
   }, [html, plainBack]);
   return (
     <div
       ref={(el) => { ref.current = el; if (innerRef) innerRef(el); }}
       contentEditable
       suppressContentEditableWarning
-      onInput={(e) => { if (plainBack) clearBacks(e.currentTarget); onInput(e.currentTarget.innerHTML); }}
+      onPaste={pastePlain}
+      onInput={(e) => { if (plainBack) clearBacks(e.currentTarget); clearFonts(e.currentTarget); onInput(e.currentTarget.innerHTML); }}
       onFocus={onFocus}
       className={className}
     />
