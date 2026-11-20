@@ -518,9 +518,10 @@ export default function Assets() {
       const rate = (() => { const n = parseFloat(String(l.rate ?? "").replace(",", ".")); return Number.isFinite(n) ? n : null; })();
       const exp = parseDate(l.expires);
       const monthly = doc.mortMonthly?.[l.id] ?? "";
-      const extra = doc.mortExtra?.[l.id] ?? "";
-      // Extra payments: typed per month, on top of the usual payment.
-      const pay = num(monthly) == null ? null : num(monthly) + (num(extra) || 0);
+      // Extra payments: a lump sum a year, paid off the loan each December, starting
+      // this coming December, on top of the usual monthly payment.
+      const extra = doc.mortExtraYear?.[l.id] ?? "";
+      const pay = num(monthly);
       let atExpiry = null, paidOff = null, note = "";
       if (rate != null && exp && pay != null) {
         const months = Math.max(0, (exp.y - today.getFullYear()) * 12 + (exp.m - today.getMonth()) - (exp.d < today.getDate() ? 1 : 0));
@@ -528,6 +529,7 @@ export default function Assets() {
         let bal = owed;
         for (let i = 1; i <= months; i++) {
           bal = bal * (1 + r) - pay;
+          if ((today.getMonth() + i) % 12 === 11) bal -= num(extra) || 0;
           if (bal <= 0) {
             const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
             paidOff = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
@@ -651,7 +653,7 @@ export default function Assets() {
         <span className={`flex w-24 shrink-0 items-center border-l border-black px-2 ${head}`}>Expires</span>
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed today</span>
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Monthly</span>
-        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Extra payments</span>
+        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`} title="Paid once a year, each December">Extra per year</span>
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed at expiry</span>
       </div>
       {payback.rows.map((p) => (
@@ -664,7 +666,7 @@ export default function Assets() {
           </span>
           <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{num(p.monthly) != null ? `EUR ${money(p.monthly)}` : ""}</span>
           <span className="flex w-32 shrink-0 items-center border-l border-black px-2">
-            <Amount cur="EUR" value={p.extra} onChange={(v) => save({ ...doc, mortExtra: { ...(doc.mortExtra || {}), [p.id]: v } })} />
+            <Amount cur="EUR" value={p.extra} onChange={(v) => save({ ...doc, mortExtraYear: { ...(doc.mortExtraYear || {}), [p.id]: v } })} />
           </span>
           <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900" title={p.note}>
             {p.atExpiry == null ? "" : p.paidOff ? `Paid off ${p.paidOff}` : `EUR ${money(p.atExpiry)}`}
