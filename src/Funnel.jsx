@@ -316,6 +316,13 @@ export default function Funnel() {
           </div>
         );
       })}
+      {/* Market adjustment opps: a placeholder for now, to be built later. */}
+      <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
+      <div onClick={() => save({ ...doc, open: toggle(open, "mao") })} className="flex h-[21px] cursor-pointer select-none items-center gap-2 border-t border-black px-2" style={{ backgroundColor: BAR_BG }}>
+        <span className={head}>Market adjustment opps</span>
+        <ChevronDown size={14} strokeWidth={2.75} className={`ml-auto shrink-0 text-neutral-900 transition-transform ${open.mao ? "rotate-180" : ""}`} />
+      </div>
+      {open.mao && <div className="h-[21px] border-t border-black" />}
       <div className="h-[10px] border-t border-black" style={{ backgroundColor: GAP_BG }} />
     </div>
   );
