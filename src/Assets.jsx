@@ -664,7 +664,7 @@ export default function Assets() {
             {EXTRA_YEARS.map((y) => (
               <span key={y} className={`flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center justify-end border-l border-black px-1.5 ${head}`} title={`Extra paid off in ${y}: in December, or at expiry in the year the loan expires`}>Extra {y}</span>
             ))}
-            <span className={`flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center justify-end border-l border-black px-1.5 ${head}`}>Expiry amount</span>
+            <span className={`flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center justify-end border-l border-black px-1.5 ${head}`}>Owed at close</span>
           </div>
           {payback.rows.map((p) => (
             <div key={p.id} className={pbRow} style={pbCols}>
