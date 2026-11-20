@@ -459,7 +459,7 @@ const colGroups = (b, col) => col === "errand" ? ["errand"] :
   BRAND_GROUPS[b] ? BRAND_GROUPS[b][col] :
   col === "rest" ? ["rest"] : b === "master" ? ["core"] : HYPER_ONLY.includes(b) ? ["hyper"] : ["hyper", "core"];
 // They were first called "Daily master" and so on; saved rows are renamed on load.
-const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep" };
+const OLD_LABELS = { "DAILY MASTER": "Prep", "MASTER": "Prep", "HEIE": "Finestate" };
 // Only Prep carries a bar now; the company boards hang underneath it unlabelled.
 const OLD_BARS = ["DAILY SILX", "DAILY SAYS", "DAILY SERVEFAST", "SILX", "SAYS", "SERVEFAST"];
 const DAILY_GROUP = "Daily";
@@ -471,7 +471,7 @@ const MEETING_ICON = "#7B1E3A";
 const DAY_BG = "#FBEFEC";
 // The Notes dropdown at the top of Today: its own light shade, and a column per business.
 const NOTES_BG = "#EEF7EE";
-const TODAY_NOTES = [["master", "Master"], ["silx", "Silx"], ["says", "Says"], ["servefast", "Servefast"], ["heie", "HEIE"]];
+const TODAY_NOTES = [["master", "Master"], ["silx", "Silx"], ["says", "Says"], ["servefast", "Servefast"], ["heie", "Finestate"]];
 // Only Master plans meetings; the company boards are just their two point columns.
 const MEETING_BOARDS = ["master"];
 // On a company day line only the short code shows: "FI (financials)" reads as FI.
@@ -547,7 +547,7 @@ const BOARD_SEEDS = {
 const DAILY_SECTIONS = [BOARDS[0][1]];
 const boardOf = (r) => {
   const t = String(r?.text || "").trim().toUpperCase();
-  const hit = BOARDS.find(([, label]) => label.toUpperCase() === t);
+  const hit = BOARDS.find(([, label]) => label.toUpperCase() === (t === "HEIE" ? "FINESTATE" : t));
   return hit ? hit[0] : null;
 };
 // Master keeps the original storage keys so nothing already saved moves.
