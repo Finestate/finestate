@@ -651,30 +651,30 @@ export default function Assets() {
       {/* Mortgage payback scenarios: its own sub header under the Property total. */}
       <div className={reRow} style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>Mortgage payback scenarios</span>
-        <span className={`flex w-16 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Rate</span>
-        <span className={`flex w-24 shrink-0 items-center border-l border-black px-2 ${head}`}>Expires</span>
-        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed today</span>
-        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Monthly</span>
+        <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Rate</span>
+        <span className={`flex w-28 shrink-0 items-center border-l border-black px-2 ${head}`}>Expires</span>
+        <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed today</span>
+        <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Monthly</span>
         {EXTRA_YEARS.map((y) => (
-          <span key={y} className={`flex w-24 shrink-0 items-center justify-end border-l border-black px-2 ${head}`} title={`Extra paid off in ${y}, counted in December`}>Extra {y}</span>
+          <span key={y} className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`} title={`Extra paid off in ${y}, counted in December`}>Extra {y}</span>
         ))}
-        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed at expiry</span>
+        <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed at expiry</span>
       </div>
       {payback.rows.map((p) => (
         <div key={p.id} className={reRow}>
           <span className="flex min-w-0 flex-1 items-center truncate px-2 text-[11px] text-neutral-900">{p.name}</span>
-          <span className="flex w-16 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.rate != null ? `${p.rate}%` : ""}</span>
-          <span className="flex w-24 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.expires}</span>
-          <span className="flex w-32 shrink-0 items-center border-l border-black px-2">
+          <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.rate != null ? `${p.rate}%` : ""}</span>
+          <span className="flex w-28 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.expires}</span>
+          <span className="flex w-28 shrink-0 items-center border-l border-black px-2">
             <OwedInput key={`${p.id}-${p.owed}`} value={p.owed} onSave={(v) => saveOwed(p.id, v)} />
           </span>
-          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{num(p.monthly) != null ? `EUR ${money(p.monthly)}` : ""}</span>
+          <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{num(p.monthly) != null ? `EUR ${money(p.monthly)}` : ""}</span>
           {EXTRA_YEARS.map((y) => (
-            <span key={y} className="flex w-24 shrink-0 items-center border-l border-black px-2">
+            <span key={y} className="flex w-28 shrink-0 items-center border-l border-black px-2">
               <Amount cur="EUR" value={p.extra[y] ?? ""} onChange={(v) => save({ ...doc, mortExtraYears: { ...(doc.mortExtraYears || {}), [p.id]: { ...(doc.mortExtraYears?.[p.id] || {}), [y]: v } } })} />
             </span>
           ))}
-          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900" title={p.note}>
+          <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900" title={p.note}>
             {p.atExpiry == null ? "" : p.paidOff ? `Paid off ${p.paidOff}` : `EUR ${money(p.atExpiry)}`}
           </span>
         </div>
@@ -682,12 +682,12 @@ export default function Assets() {
       {payback.rows.length > 1 && (
         <div className={reRow}>
           <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
-          <span className="w-16 shrink-0 border-l border-black" />
-          <span className="w-24 shrink-0 border-l border-black" />
-          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(payback.owed)}</span>
-          <span className="w-32 shrink-0 border-l border-black" />
-          {EXTRA_YEARS.map((y) => <span key={y} className="w-24 shrink-0 border-l border-black" />)}
-          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">{payback.done ? `EUR ${money(payback.atExpiry)}` : ""}</span>
+          <span className="w-28 shrink-0 border-l border-black" />
+          <span className="w-28 shrink-0 border-l border-black" />
+          <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(payback.owed)}</span>
+          <span className="w-28 shrink-0 border-l border-black" />
+          {EXTRA_YEARS.map((y) => <span key={y} className="w-28 shrink-0 border-l border-black" />)}
+          <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">{payback.done ? `EUR ${money(payback.atExpiry)}` : ""}</span>
         </div>
       )}
     </>
