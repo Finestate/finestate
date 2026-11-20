@@ -363,11 +363,14 @@ export default function App() {
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
             {route === "admin/integrations" && <Integrations />}
-            {route === "assets/investing" && <KnowledgeFeeds />}
-            {/* Funnel: empty until we build it together. */}
-            {route === "investing/funnel" && <Funnel />}
+            {/* Funnel, with the Knowledge table under it. The old Knowledge link lands here too. */}
+            {(route === "investing/funnel" || route === "assets/investing") && (
+              <div className="flex flex-col gap-3">
+                <Funnel />
+                <KnowledgeFeeds />
+              </div>
+            )}
             {route === "investing/contributions" && <div />}
-            {route === "investing/portfolio" && <div />}
             {route === "investing/calculations" && <Calculations />}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}

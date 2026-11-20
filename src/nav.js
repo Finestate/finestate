@@ -46,14 +46,12 @@ export const NAV = [
     name: "Investing",
     icon: BullIcon,
     children: [
-      // Portfolio heads the section.
-      { id: "investing/portfolio", name: "Portfolio" },
-      // The custom calculators from the planning sheet.
+      // The custom calculators from the planning sheet head the section.
       { id: "investing/calculations", name: "Calculations" },
       // How much is planned to go into investments each month, quarter or year.
       { id: "investing/contributions", name: "Contributions" },
+      // Funnel also carries the Knowledge table, under its own.
       { id: "investing/funnel", name: "Funnel" },
-      { id: "assets/investing", name: "Knowledge" },
     ],
   },
 ];
