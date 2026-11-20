@@ -543,7 +543,7 @@ export default function Assets() {
         atExpiry = bal;
         note = `${months} monthly payments until expiry`;
       }
-      return { id: l.id, name: l.name ? `Mortgage: ${l.name}` : "Mortgage", rate, expires: l.expires || "", owed, monthly, extra, exp, atExpiry, paidOff, note };
+      return { id: l.id, name: l.name || "Loan", rate, expires: l.expires || "", owed, monthly, extra, exp, atExpiry, paidOff, note };
     });
     return {
       rows,
@@ -555,6 +555,9 @@ export default function Assets() {
   const houseOpen = !!doc.ui?.open?.house;
   const reRow = "flex h-[21px] items-stretch border-t border-black";
   const reCell = "flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums";
+  // The payback table: a grid, the name a little wider, every other column exactly equal.
+  const pbRow = "grid h-[21px] items-stretch border-t border-black";
+  const pbCols = { gridTemplateColumns: `minmax(0,1.4fr) repeat(${5 + EXTRA_YEARS.length}, minmax(0,1fr))` };
   const realEstate = (
     <>
       <div className={reRow} style={{ backgroundColor: HEADER_BG }}>
@@ -651,8 +654,8 @@ export default function Assets() {
       </div>
       {/* Mortgage payback scenarios: its own sub header under the Property total. */}
       {/* Equal columns that share the width of the table: never any sideways scrolling. */}
-          <div className={reRow} style={{ backgroundColor: HEADER_BG }}>
-            <span className={`flex min-w-0 flex-[1.2] basis-0 items-center whitespace-nowrap px-2 ${head}`}>Mortgage scenarios (EUR)</span>
+          <div className={pbRow} style={{ ...pbCols, backgroundColor: HEADER_BG }}>
+            <span className={`flex min-w-0 flex-[1.2] basis-0 items-center whitespace-nowrap px-2 ${head}`}>Mortgage scenarios</span>
             <span className={`flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center justify-end border-l border-black px-1.5 ${head}`}>Rate</span>
             <span className={`flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center border-l border-black px-1.5 ${head}`}>Expires</span>
             <span className={`flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center justify-end border-l border-black px-1.5 ${head}`}>Owed today</span>
@@ -663,7 +666,7 @@ export default function Assets() {
             <span className={`flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center justify-end border-l border-black px-1.5 ${head}`}>Expiry amount</span>
           </div>
           {payback.rows.map((p) => (
-            <div key={p.id} className={reRow}>
+            <div key={p.id} className={pbRow} style={pbCols}>
               <span className="flex min-w-0 flex-[1.2] basis-0 items-center truncate px-2 text-[11px] text-neutral-900">{p.name}</span>
               <span className="flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center justify-end border-l border-black px-1.5 text-[11px] tabular-nums text-[#1d4ed8]">{p.rate != null ? `${p.rate}%` : ""}</span>
               <span className="flex min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap items-center border-l border-black px-1.5 text-[11px] tabular-nums text-[#1d4ed8]">{p.expires}</span>
@@ -685,7 +688,7 @@ export default function Assets() {
             </div>
           ))}
           {payback.rows.length > 1 && (
-            <div className={reRow}>
+            <div className={pbRow} style={pbCols}>
               <span className="flex min-w-0 flex-[1.2] basis-0 items-center whitespace-nowrap px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
               <span className="min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap border-l border-black" />
               <span className="min-w-0 flex-1 basis-0 overflow-hidden whitespace-nowrap border-l border-black" />
