@@ -48,8 +48,6 @@ export const NAV = [
     children: [
       // The custom calculators from the planning sheet head the section.
       { id: "investing/calculations", name: "Calculations" },
-      // How much is planned to go into investments each month, quarter or year.
-      { id: "investing/contributions", name: "Contributions" },
       // Funnel also carries the Knowledge table, under its own.
       { id: "investing/funnel", name: "Funnel" },
     ],

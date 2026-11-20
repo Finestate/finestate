@@ -370,7 +370,6 @@ export default function App() {
                 <KnowledgeFeeds />
               </div>
             )}
-            {route === "investing/contributions" && <div />}
             {route === "investing/calculations" && <Calculations />}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}
