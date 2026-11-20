@@ -56,7 +56,7 @@ let _idc = 0;
 const newId = () => "a" + Date.now().toString(36) + "-" + (_idc++);
 
 // The years the payback table takes an extra payment for.
-const EXTRA_YEARS = [2027, 2028, 2029, 2030, 2031];
+const EXTRA_YEARS = [2026, 2027, 2028, 2029, 2030, 2031];
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 // Amounts are kept as typed; on screen they read with thousands commas and two decimals.
@@ -653,7 +653,7 @@ export default function Assets() {
       {/* Equal columns that widen with the screen; on a narrow screen the table scrolls sideways
           rather than cutting a title off. */}
       <div className="overflow-x-auto">
-        <div className="min-w-[1480px]">
+        <div className="min-w-[1608px]">
           <div className={reRow} style={{ backgroundColor: HEADER_BG }}>
             <span className={`flex min-w-[200px] flex-[2] basis-0 items-center whitespace-nowrap px-2 ${head}`}>Mortgage payback scenarios</span>
             <span className={`flex min-w-[128px] flex-1 basis-0 whitespace-nowrap items-center justify-end border-l border-black px-2 ${head}`}>Rate</span>
