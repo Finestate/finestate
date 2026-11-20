@@ -56,7 +56,7 @@ let _idc = 0;
 const newId = () => "a" + Date.now().toString(36) + "-" + (_idc++);
 
 // The years the payback table takes an extra payment for.
-const EXTRA_YEARS = [2027, 2028, 2029, 2030];
+const EXTRA_YEARS = [2027, 2028, 2029, 2030, 2031];
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 // Amounts are kept as typed; on screen they read with thousands commas and two decimals.
@@ -520,8 +520,8 @@ export default function Assets() {
       const rate = (() => { const n = parseFloat(String(l.rate ?? "").replace(",", ".")); return Number.isFinite(n) ? n : null; })();
       const exp = parseDate(l.expires);
       const monthly = doc.mortMonthly?.[l.id] ?? "";
-      // Extra payments: a lump sum typed for each year, 2027 to 2030, paid off the loan in
-      // December of that year, on top of the usual monthly payment.
+      // Extra payments: a lump sum typed for each year, paid off the loan in December of
+      // that year (in the expiry year, at expiry), on top of the usual monthly payment.
       const extra = doc.mortExtraYears?.[l.id] || {};
       const pay = num(monthly);
       let atExpiry = null, paidOff = null, note = "";
@@ -531,7 +531,8 @@ export default function Assets() {
         let bal = owed;
         for (let i = 1; i <= months; i++) {
           bal = bal * (1 + r) - pay;
-          if ((today.getMonth() + i) % 12 === 11) bal -= num(extra[today.getFullYear() + Math.floor((today.getMonth() + i) / 12)]) || 0;
+          // A year's extra is paid in its December, or, in the year the loan expires, in its last month.
+          if ((today.getMonth() + i) % 12 === 11 || i === months) bal -= num(extra[today.getFullYear() + Math.floor((today.getMonth() + i) / 12)]) || 0;
           if (bal <= 0) {
             const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
             paidOff = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
@@ -656,7 +657,7 @@ export default function Assets() {
         <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed today</span>
         <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Monthly</span>
         {EXTRA_YEARS.map((y) => (
-          <span key={y} className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`} title={`Extra paid off in ${y}, counted in December`}>Extra {y}</span>
+          <span key={y} className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`} title={`Extra paid off in ${y}: in December, or at expiry in the year the loan expires`}>Extra {y}</span>
         ))}
         <span className={`flex w-28 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed at expiry</span>
       </div>
@@ -669,7 +670,7 @@ export default function Assets() {
             <OwedInput key={`${p.id}-${p.owed}`} value={p.owed} onSave={(v) => saveOwed(p.id, v)} />
           </span>
           <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{num(p.monthly) != null ? `EUR ${money(p.monthly)}` : ""}</span>
-          {EXTRA_YEARS.map((y) => p.exp && (y > p.exp.y || (y === p.exp.y && p.exp.m < 11)) ? (
+          {EXTRA_YEARS.map((y) => p.exp && y > p.exp.y ? (
             // That December falls after the loan expires: nothing to pay, greyed out.
             <span key={y} className="w-28 shrink-0 border-l border-black bg-neutral-200" title="After this loan expires" />
           ) : (
