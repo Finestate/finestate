@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Minus, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient.js";
+import { parseDate } from "./LegalDocuments.jsx";
 
 // What is owned, section by section. Built up step by step; the figures live in
 // Supabase, never in this public repo.
@@ -470,6 +471,44 @@ export default function Assets() {
   const editProp = (id, fields) => save({ ...doc, moreProps: moreProps.map((x) => (x.id === id ? { ...x, ...fields, updated: new Date().toISOString() } : x)) });
   // The house and the flat can be deleted like any other line; once gone they stay gone.
   const reTotal = (doc.houseGone ? 0 : owned ?? 0) + (doc.flatGone ? 0 : num(flat.value) ?? 0) + moreProps.reduce((sum, x) => sum + (num(x.value) ?? 0), 0);
+  // Mortgage payback: each loan from Cash flow (what is owed, its rate and expiry, in blue),
+  // with its monthly payment typed here. What is still owed at expiry assumes the owed
+  // figure is today's, interest charged monthly at the yearly rate / 12, and the same
+  // payment every month with nothing extra.
+  const payback = (() => {
+    const today = new Date();
+    const rows = loans.map((l) => {
+      const owed = Math.abs(num(l.amount) || 0);
+      const rate = (() => { const n = parseFloat(String(l.rate ?? "").replace(",", ".")); return Number.isFinite(n) ? n : null; })();
+      const exp = parseDate(l.expires);
+      const monthly = doc.mortMonthly?.[l.id] ?? "";
+      const pay = num(monthly);
+      let atExpiry = null, paidOff = null, note = "";
+      if (rate != null && exp && pay != null) {
+        const months = Math.max(0, (exp.y - today.getFullYear()) * 12 + (exp.m - today.getMonth()) - (exp.d < today.getDate() ? 1 : 0));
+        const r = rate / 100 / 12;
+        let bal = owed;
+        for (let i = 1; i <= months; i++) {
+          bal = bal * (1 + r) - pay;
+          if (bal <= 0) {
+            const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+            paidOff = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+            bal = 0;
+            break;
+          }
+        }
+        atExpiry = bal;
+        note = `${months} monthly payments until expiry`;
+      }
+      return { id: l.id, name: l.name ? `Mortgage: ${l.name}` : "Mortgage", rate, expires: l.expires || "", owed, monthly, atExpiry, paidOff, note };
+    });
+    return {
+      rows,
+      owed: rows.reduce((s, x) => s + x.owed, 0),
+      atExpiry: rows.reduce((s, x) => s + (x.atExpiry || 0), 0),
+      done: rows.length > 0 && rows.every((x) => x.atExpiry != null),
+    };
+  })();
   const houseOpen = !!doc.ui?.open?.house;
   const reRow = "flex h-[21px] items-stretch border-t border-black";
   const reCell = "flex w-40 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums";
@@ -570,8 +609,36 @@ export default function Assets() {
       {/* Mortgage payback scenarios: its own sub header under the Property total. */}
       <div className={reRow} style={{ backgroundColor: HEADER_BG }}>
         <span className={`flex flex-1 items-center px-2 ${head}`}>Mortgage payback scenarios</span>
+        <span className={`flex w-16 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Rate</span>
+        <span className={`flex w-24 shrink-0 items-center border-l border-black px-2 ${head}`}>Expires</span>
+        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed today</span>
+        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Monthly</span>
+        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed at expiry</span>
       </div>
-      <div className={reRow} />
+      {payback.rows.map((p) => (
+        <div key={p.id} className={reRow}>
+          <span className="flex min-w-0 flex-1 items-center truncate px-2 text-[11px] text-neutral-900">{p.name}</span>
+          <span className="flex w-16 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.rate != null ? `${p.rate}%` : ""}</span>
+          <span className="flex w-24 shrink-0 items-center border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">{p.expires}</span>
+          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">EUR {money(p.owed)}</span>
+          <span className="flex w-32 shrink-0 items-center border-l border-black px-2">
+            <Amount cur="EUR" value={p.monthly} onChange={(v) => save({ ...doc, mortMonthly: { ...(doc.mortMonthly || {}), [p.id]: v } })} />
+          </span>
+          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900" title={p.note}>
+            {p.atExpiry == null ? "" : p.paidOff ? `Paid off ${p.paidOff}` : `EUR ${money(p.atExpiry)}`}
+          </span>
+        </div>
+      ))}
+      {payback.rows.length > 1 && (
+        <div className={reRow}>
+          <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
+          <span className="w-16 shrink-0 border-l border-black" />
+          <span className="w-24 shrink-0 border-l border-black" />
+          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(payback.owed)}</span>
+          <span className="w-32 shrink-0 border-l border-black" />
+          <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">{payback.done ? `EUR ${money(payback.atExpiry)}` : ""}</span>
+        </div>
+      )}
     </>
   );
 
