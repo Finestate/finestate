@@ -567,6 +567,11 @@ export default function Assets() {
         <span className="flex flex-1 items-center px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-900">Total</span>
         <span className={`${reCell} font-bold text-neutral-900`}>EUR {money(reTotal)}</span>
       </div>
+      {/* Mortgage payback scenarios: its own sub header under the Property total. */}
+      <div className={reRow} style={{ backgroundColor: HEADER_BG }}>
+        <span className={`flex flex-1 items-center px-2 ${head}`}>Mortgage payback scenarios</span>
+      </div>
+      <div className={reRow} />
     </>
   );
 
