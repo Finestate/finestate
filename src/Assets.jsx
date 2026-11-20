@@ -542,7 +542,7 @@ export default function Assets() {
         atExpiry = bal;
         note = `${months} monthly payments until expiry`;
       }
-      return { id: l.id, name: l.name ? `Mortgage: ${l.name}` : "Mortgage", rate, expires: l.expires || "", owed, monthly, extra, atExpiry, paidOff, note };
+      return { id: l.id, name: l.name ? `Mortgage: ${l.name}` : "Mortgage", rate, expires: l.expires || "", owed, monthly, extra, exp, atExpiry, paidOff, note };
     });
     return {
       rows,
@@ -669,7 +669,10 @@ export default function Assets() {
             <OwedInput key={`${p.id}-${p.owed}`} value={p.owed} onSave={(v) => saveOwed(p.id, v)} />
           </span>
           <span className="flex w-28 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{num(p.monthly) != null ? `EUR ${money(p.monthly)}` : ""}</span>
-          {EXTRA_YEARS.map((y) => (
+          {EXTRA_YEARS.map((y) => p.exp && (y > p.exp.y || (y === p.exp.y && p.exp.m < 11)) ? (
+            // That December falls after the loan expires: nothing to pay, greyed out.
+            <span key={y} className="w-28 shrink-0 border-l border-black bg-neutral-200" title="After this loan expires" />
+          ) : (
             <span key={y} className="flex w-28 shrink-0 items-center border-l border-black px-2">
               <Amount cur="EUR" value={p.extra[y] ?? ""} onChange={(v) => save({ ...doc, mortExtraYears: { ...(doc.mortExtraYears || {}), [p.id]: { ...(doc.mortExtraYears?.[p.id] || {}), [y]: v } } })} />
             </span>
