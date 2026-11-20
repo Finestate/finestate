@@ -482,7 +482,9 @@ export default function Assets() {
       const rate = (() => { const n = parseFloat(String(l.rate ?? "").replace(",", ".")); return Number.isFinite(n) ? n : null; })();
       const exp = parseDate(l.expires);
       const monthly = doc.mortMonthly?.[l.id] ?? "";
-      const pay = num(monthly);
+      const extra = doc.mortExtra?.[l.id] ?? "";
+      // Extra payments: typed per month, on top of the usual payment.
+      const pay = num(monthly) == null ? null : num(monthly) + (num(extra) || 0);
       let atExpiry = null, paidOff = null, note = "";
       if (rate != null && exp && pay != null) {
         const months = Math.max(0, (exp.y - today.getFullYear()) * 12 + (exp.m - today.getMonth()) - (exp.d < today.getDate() ? 1 : 0));
@@ -500,7 +502,7 @@ export default function Assets() {
         atExpiry = bal;
         note = `${months} monthly payments until expiry`;
       }
-      return { id: l.id, name: l.name ? `Mortgage: ${l.name}` : "Mortgage", rate, expires: l.expires || "", owed, monthly, atExpiry, paidOff, note };
+      return { id: l.id, name: l.name ? `Mortgage: ${l.name}` : "Mortgage", rate, expires: l.expires || "", owed, monthly, extra, atExpiry, paidOff, note };
     });
     return {
       rows,
@@ -613,6 +615,7 @@ export default function Assets() {
         <span className={`flex w-24 shrink-0 items-center border-l border-black px-2 ${head}`}>Expires</span>
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed today</span>
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Monthly</span>
+        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Extra payments</span>
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed at expiry</span>
       </div>
       {payback.rows.map((p) => (
@@ -623,6 +626,9 @@ export default function Assets() {
           <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-[#1d4ed8]">EUR {money(p.owed)}</span>
           <span className="flex w-32 shrink-0 items-center border-l border-black px-2">
             <Amount cur="EUR" value={p.monthly} onChange={(v) => save({ ...doc, mortMonthly: { ...(doc.mortMonthly || {}), [p.id]: v } })} />
+          </span>
+          <span className="flex w-32 shrink-0 items-center border-l border-black px-2">
+            <Amount cur="EUR" value={p.extra} onChange={(v) => save({ ...doc, mortExtra: { ...(doc.mortExtra || {}), [p.id]: v } })} />
           </span>
           <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900" title={p.note}>
             {p.atExpiry == null ? "" : p.paidOff ? `Paid off ${p.paidOff}` : `EUR ${money(p.atExpiry)}`}
@@ -635,6 +641,7 @@ export default function Assets() {
           <span className="w-16 shrink-0 border-l border-black" />
           <span className="w-24 shrink-0 border-l border-black" />
           <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(payback.owed)}</span>
+          <span className="w-32 shrink-0 border-l border-black" />
           <span className="w-32 shrink-0 border-l border-black" />
           <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">{payback.done ? `EUR ${money(payback.atExpiry)}` : ""}</span>
         </div>
