@@ -55,6 +55,8 @@ const withParts = (cash) =>
 let _idc = 0;
 const newId = () => "a" + Date.now().toString(36) + "-" + (_idc++);
 
+// The years the payback table takes an extra payment for.
+const EXTRA_YEARS = [2027, 2028, 2029, 2030];
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 // Amounts are kept as typed; on screen they read with thousands commas and two decimals.
@@ -518,9 +520,9 @@ export default function Assets() {
       const rate = (() => { const n = parseFloat(String(l.rate ?? "").replace(",", ".")); return Number.isFinite(n) ? n : null; })();
       const exp = parseDate(l.expires);
       const monthly = doc.mortMonthly?.[l.id] ?? "";
-      // Extra payments: a lump sum a year, paid off the loan each December, starting
-      // this coming December, on top of the usual monthly payment.
-      const extra = doc.mortExtraYear?.[l.id] ?? "";
+      // Extra payments: a lump sum typed for each year, 2027 to 2030, paid off the loan in
+      // December of that year, on top of the usual monthly payment.
+      const extra = doc.mortExtraYears?.[l.id] || {};
       const pay = num(monthly);
       let atExpiry = null, paidOff = null, note = "";
       if (rate != null && exp && pay != null) {
@@ -529,7 +531,7 @@ export default function Assets() {
         let bal = owed;
         for (let i = 1; i <= months; i++) {
           bal = bal * (1 + r) - pay;
-          if ((today.getMonth() + i) % 12 === 11) bal -= num(extra) || 0;
+          if ((today.getMonth() + i) % 12 === 11) bal -= num(extra[today.getFullYear() + Math.floor((today.getMonth() + i) / 12)]) || 0;
           if (bal <= 0) {
             const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
             paidOff = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
@@ -653,7 +655,9 @@ export default function Assets() {
         <span className={`flex w-24 shrink-0 items-center border-l border-black px-2 ${head}`}>Expires</span>
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed today</span>
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Monthly</span>
-        <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`} title="Paid once a year, each December">Extra per year</span>
+        {EXTRA_YEARS.map((y) => (
+          <span key={y} className={`flex w-24 shrink-0 items-center justify-end border-l border-black px-2 ${head}`} title={`Extra paid off in ${y}, counted in December`}>Extra {y}</span>
+        ))}
         <span className={`flex w-32 shrink-0 items-center justify-end border-l border-black px-2 ${head}`}>Owed at expiry</span>
       </div>
       {payback.rows.map((p) => (
@@ -665,9 +669,11 @@ export default function Assets() {
             <OwedInput key={`${p.id}-${p.owed}`} value={p.owed} onSave={(v) => saveOwed(p.id, v)} />
           </span>
           <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] tabular-nums text-neutral-900">{num(p.monthly) != null ? `EUR ${money(p.monthly)}` : ""}</span>
-          <span className="flex w-32 shrink-0 items-center border-l border-black px-2">
-            <Amount cur="EUR" value={p.extra} onChange={(v) => save({ ...doc, mortExtraYear: { ...(doc.mortExtraYear || {}), [p.id]: v } })} />
-          </span>
+          {EXTRA_YEARS.map((y) => (
+            <span key={y} className="flex w-24 shrink-0 items-center border-l border-black px-2">
+              <Amount cur="EUR" value={p.extra[y] ?? ""} onChange={(v) => save({ ...doc, mortExtraYears: { ...(doc.mortExtraYears || {}), [p.id]: { ...(doc.mortExtraYears?.[p.id] || {}), [y]: v } } })} />
+            </span>
+          ))}
           <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900" title={p.note}>
             {p.atExpiry == null ? "" : p.paidOff ? `Paid off ${p.paidOff}` : `EUR ${money(p.atExpiry)}`}
           </span>
@@ -680,7 +686,7 @@ export default function Assets() {
           <span className="w-24 shrink-0 border-l border-black" />
           <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">EUR {money(payback.owed)}</span>
           <span className="w-32 shrink-0 border-l border-black" />
-          <span className="w-32 shrink-0 border-l border-black" />
+          {EXTRA_YEARS.map((y) => <span key={y} className="w-24 shrink-0 border-l border-black" />)}
           <span className="flex w-32 shrink-0 items-center justify-end border-l border-black px-2 text-[11px] font-bold tabular-nums text-neutral-900">{payback.done ? `EUR ${money(payback.atExpiry)}` : ""}</span>
         </div>
       )}
