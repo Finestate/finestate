@@ -168,20 +168,20 @@ export default function MiniTimer() {
         </>
       )}
       {menu && createPortal(
-        <div data-mini-timer className="fixed z-[90] grid grid-cols-4 border border-black bg-white shadow-lg" style={{ top: menu.top, left: menu.left }}>
-          {/* Every 5 minutes up to an hour, then every 15 up to two hours. */}
-          {[...Array.from({ length: 12 }, (_, i) => (i + 1) * 5), 75, 90, 105, 120].map((m, i) => (
+        <div data-mini-timer className="fixed z-[90] grid grid-cols-6 border border-black bg-white shadow-lg" style={{ top: menu.top, left: menu.left }}>
+          {/* Every 5 minutes up to an hour, then every 10 up to two hours: three even rows of six. */}
+          {[...Array.from({ length: 12 }, (_, i) => (i + 1) * 5), 70, 80, 90, 100, 110, 120].map((m, i) => (
             <button
               key={m}
               type="button"
               onClick={() => start(m)}
-              className={`h-[21px] w-[28px] text-[11px] font-bold tabular-nums text-neutral-900 hover:bg-[#FBEFEC] ${i % 4 ? "border-l border-neutral-300" : ""} ${i > 3 ? "border-t border-neutral-300" : ""} ${endAt && mins === m ? "bg-[#FFE4B3]" : ""}`}
+              className={`h-[21px] w-[28px] text-[11px] font-bold tabular-nums text-neutral-900 hover:bg-[#FBEFEC] ${i % 6 ? "border-l border-neutral-300" : ""} ${i > 5 ? "border-t border-neutral-300" : ""} ${endAt && mins === m ? "bg-[#FFE4B3]" : ""}`}
             >
               {m}
             </button>
           ))}
           {(endAt > 0 || pausedLeft > 0) && (
-            <button type="button" onClick={() => start(0)} className="col-span-4 h-[21px] border-t border-neutral-300 text-[11px] text-[#C1440E] hover:bg-[#FBEFEC]">
+            <button type="button" onClick={() => start(0)} className="col-span-6 h-[21px] border-t border-neutral-300 text-[11px] text-[#C1440E] hover:bg-[#FBEFEC]">
               Clear
             </button>
           )}
