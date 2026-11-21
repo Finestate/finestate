@@ -169,7 +169,8 @@ export default function MiniTimer() {
       )}
       {menu && createPortal(
         <div data-mini-timer className="fixed z-[90] grid grid-cols-4 border border-black bg-white shadow-lg" style={{ top: menu.top, left: menu.left }}>
-          {Array.from({ length: 12 }, (_, i) => (i + 1) * 5).map((m, i) => (
+          {/* Every 5 minutes up to an hour, then every 15 up to two hours. */}
+          {[...Array.from({ length: 12 }, (_, i) => (i + 1) * 5), 75, 90, 105, 120].map((m, i) => (
             <button
               key={m}
               type="button"
@@ -179,10 +180,6 @@ export default function MiniTimer() {
               {m}
             </button>
           ))}
-          {/* TEMP for testing: a 1 second timer. Remove once the timer is right. */}
-          <button type="button" onClick={() => start(1 / 60)} className="col-span-4 h-[21px] border-t border-neutral-300 text-[11px] font-bold text-neutral-900 hover:bg-[#FBEFEC]">
-            1 sec (test)
-          </button>
           {(endAt > 0 || pausedLeft > 0) && (
             <button type="button" onClick={() => start(0)} className="col-span-4 h-[21px] border-t border-neutral-300 text-[11px] text-[#C1440E] hover:bg-[#FBEFEC]">
               Clear
