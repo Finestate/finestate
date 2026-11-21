@@ -1750,7 +1750,7 @@ export default function Planning() {
   const renderToday = (first = false) => (
     <>
       <div className={`flex h-[21px] items-center gap-2 px-2 ${first ? "" : "border-t border-black"}`} style={{ backgroundColor: BAR_BG }}>
-        <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today</span>
+        <span className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">Today (use timer to drive tasks)</span>
         {/* Just right of Today: the mini timer. */}
         <MiniTimer />
         <button onClick={downloadBackup} title="Download a backup of the dropdowns" className="ml-auto text-neutral-900 hover:text-[#9c7c33]">
