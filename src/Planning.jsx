@@ -1844,8 +1844,8 @@ export default function Planning() {
               hint={codeBrackets(x.c)}
               onClick={(e) => { e.stopPropagation(); toggleSubOpen(key); }}
               title={subOpen.includes(key) ? "Close the sub list" : "Open the sub list"}
-              // The one whose list is open shows as white on solid purple, so you can see which it is.
-              className={subOpen.includes(key) ? "cursor-pointer rounded-sm bg-[#9D00FF] px-[2px] text-white" : "cursor-pointer text-[#9D00FF]"}
+              // The one whose list is open gets a purple underline, so you can see which it is without it growing.
+              className={subOpen.includes(key) ? "cursor-pointer text-[#9D00FF] underline decoration-[#9D00FF] decoration-2 underline-offset-2" : "cursor-pointer text-[#9D00FF]"}
             >
               {x.s}
             </CodeHint>
