@@ -827,7 +827,7 @@ export default function Planning() {
       type="button"
       onClick={(e) => { e.stopPropagation(); saveCols({ ...cols, reds: { ...(cols.reds || {}), [k]: !isRed(k) } }); }}
       title={isRed(k) ? "Turn this column black" : "Turn this column red"}
-      className={`${inline ? "ml-[6px] shrink-0 self-center" : "absolute right-[3px] top-[3px] z-[1]"} block h-[8px] w-[8px] rounded-[2px] hover:opacity-70`}
+      className={`${inline ? "ml-[6px] shrink-0 self-center" : "absolute right-[3px] top-[3px] z-[1]"} block h-[8px] w-[8px] rounded-full hover:opacity-70`}
       style={{ backgroundColor: isRed(k) ? INK_BLACK : INK_RED }}
     />
   );
