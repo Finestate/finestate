@@ -2107,14 +2107,14 @@ export default function Planning() {
               // non-prios and its department notes.
               // On trial for Finestate: its core points column is set aside, so meetings (left)
               // and the long list (right) share the top row in two equal halves.
-              <div className={`grid ${b === "master" ? "grid-cols-5" : "grid-cols-2"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
+              <div className={`grid ${b === "master" ? "grid-cols-3" : "grid-cols-2"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => { if (drag?.from === "pool") dropPoolMeeting(b); else returnToPool(b); }}
                   onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropM(null); }}
                   // Meetings come first, on the left; the core codes sit in the middle.
-                  className="order-1 flex min-w-0 flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
+                  className="order-1 col-start-1 row-span-3 row-start-1 flex min-w-0 flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
                 >
                   <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-meetings`, "Meetings")}</p>
                   {meetings.map((m, mi) => (
@@ -2197,7 +2197,7 @@ export default function Planning() {
 
                 {/* Finestate: Errands (its own column, right after Meetings), then Y. */}
                 {(b === "master" ? ["errand", "rest"] : ["core", "rest"]).map((col) => { const gi = col === "core" ? 0 : 1; const tail = col === "errand" ? "errand" : "rest"; return (
-                  <div key={col} className={`${col === "rest" ? "order-3" : "order-2"} min-w-0 self-stretch border-[3px] border-[#C1440E] p-1.5`}>
+                  <div key={col} className={`${col === "rest" ? "order-3" : "order-2"} ${b === "master" ? (col === "rest" ? "col-start-2 row-span-3 row-start-1" : "col-start-3 row-start-1") : ""} min-w-0 self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     <div
                       className="flex h-full flex-col gap-1"
                       onDragOver={(e) => {
@@ -2508,7 +2508,7 @@ export default function Planning() {
       <div className="contents">
         {/* General list and HF list, each in its own framed column, side by side. */}
         {TWOCOLS.map(([k, label], ki) => { const hidden = hiddenRows(cols[k]); return (
-          <div key={k} className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+          <div key={k} className={`order-4 col-start-3 ${ki ? "row-start-3" : "row-start-2"} flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5`}>
             <p className="mb-1 flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
               {colTitle(`two-${k}`, label)}
               {hasHeads(cols[k]) && foldLink(anyShut(cols[k]), () => foldAllCol(k))}
