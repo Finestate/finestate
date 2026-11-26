@@ -801,7 +801,7 @@ export default function Planning() {
   // Whether the Notes dropdown at the top of Today is open, kept in this browser.
   const [notesOpen, setNotesOpenRaw] = useState(() => { try { return localStorage.getItem("planning-today-notes-open") === "1"; } catch { return false; } });
   const setNotesOpen = (v) => { setNotesOpenRaw(v); try { localStorage.setItem("planning-today-notes-open", v ? "1" : "0"); } catch {} };
-  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [], temp: "", toplines: [], todayNotes: {}, titles: {} });
+  const [cols, setCols] = useState({ errands: [], hf: [], notes: "", scratch: "", quicks: [], temp: "", toplines: [], todayNotes: {}, titles: {}, reds: {} });
   useEffect(() => {
     supabase
       .from("admin_docs")
@@ -811,13 +811,25 @@ export default function Planning() {
       .then(({ data }) => {
         const d = data?.data;
         // A column added later starts empty rather than undefined.
-        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [], temp: d.temp || "", toplines: Array.isArray(d.toplines) ? d.toplines : [{ id: newId(), text: "" }], todayNotes: d.todayNotes || {}, titles: d.titles || {} });
+        if (d) setCols({ errands: d.errands || [], hf: d.hf || [], notes: d.notes || "", scratch: d.scratch || "", quicks: d.quicks || [], temp: d.temp || "", toplines: Array.isArray(d.toplines) ? d.toplines : [{ id: newId(), text: "" }], todayNotes: d.todayNotes || {}, titles: d.titles || {}, reds: d.reds || {} });
       });
   }, []);
   const saveCols = (next) => {
     setCols(next);
     supabase.from("admin_docs").upsert({ id: TWOCOL_KEY, data: next, updated_at: new Date().toISOString() }).then(() => {});
   };
+  // A column can show all its text in red: the little square at its top right flips it.
+  // The square is red while the text is black, and black while the text is red.
+  const isRed = (k) => !!cols.reds?.[k];
+  const inkToggle = (k) => (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); saveCols({ ...cols, reds: { ...(cols.reds || {}), [k]: !isRed(k) } }); }}
+      title={isRed(k) ? "Turn this column black" : "Turn this column red"}
+      className="absolute right-[3px] top-[3px] z-[1] block h-[9px] w-[9px] rounded-[2px] hover:opacity-70"
+      style={{ backgroundColor: isRed(k) ? INK_BLACK : INK_RED }}
+    />
+  );
   const addColRow = (k, sub = false) => saveCols({ ...cols, [k]: [...cols[k], { id: newId(), text: "", sub }] });
   // The + on a line puts a fresh line straight under it, at the same step in.
   const addColRowAfter = (k, id) => {
@@ -2114,8 +2126,9 @@ export default function Planning() {
                   onDrop={() => { if (drag?.from === "pool") dropPoolMeeting(b); else returnToPool(b); }}
                   onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropM(null); }}
                   // Meetings come first, on the left; the core codes sit in the middle.
-                  className="order-1 col-start-1 row-span-3 row-start-1 flex min-w-0 flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5"
+                  className={`${isRed(`${b}-meetings`) ? "ink-red " : ""}relative order-1 col-start-1 row-span-3 row-start-1 flex min-w-0 flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5`}
                 >
+                  {inkToggle(`${b}-meetings`)}
                   <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-meetings`, "Meetings")}</p>
                   {meetings.map((m, mi) => (
                     <div key={m.id}>
@@ -2136,7 +2149,7 @@ export default function Planning() {
                       {/* The name, then straight after it the date and time code (N25W15).
                           A ticked reminder has no date. */}
                       {/* Name, location, date and time all written together. Click to change them. */}
-                      <button type="button" onClick={(e) => openMeetForm(e, b, m.id)} title="Change this meeting" className="min-w-0 flex-1 whitespace-pre-wrap break-all text-left leading-[15px]">
+                      <button type="button" onClick={(e) => openMeetForm(e, b, m.id)} title="Change this meeting" className="ink-text min-w-0 flex-1 whitespace-pre-wrap break-all text-left leading-[15px]">
                         {meetLabel(m)}
                       </button>
                       <button onClick={(e) => openMeetForm(e, b)} title="Add a meeting" className="flex h-[15px] shrink-0 items-center text-[#0f766e] hover:text-[#0c5e57]">
@@ -2197,7 +2210,8 @@ export default function Planning() {
 
                 {/* Finestate: Errands (its own column, right after Meetings), then Y. */}
                 {(b === "master" ? ["errand", "rest"] : ["core", "rest"]).map((col) => { const gi = col === "core" ? 0 : 1; const tail = col === "errand" ? "errand" : "rest"; return (
-                  <div key={col} className={`${col === "rest" ? "order-3" : "order-2"} ${b === "master" ? (col === "rest" ? "col-start-2 row-span-3 row-start-1" : "col-start-3 row-start-1") : ""} min-w-0 self-stretch border-[3px] border-[#C1440E] p-1.5`}>
+                  <div key={col} className={`${col === "rest" ? "order-3" : "order-2"} ${b === "master" ? (col === "rest" ? "col-start-2 row-span-3 row-start-1" : "col-start-3 row-start-1") : ""} ${isRed(`${b}-${col}`) ? "ink-red" : ""} relative min-w-0 self-stretch border-[3px] border-[#C1440E] p-1.5`}>
+                    {inkToggle(`${b}-${col}`)}
                     <div
                       className="flex h-full flex-col gap-1"
                       onDragOver={(e) => {
@@ -2508,7 +2522,8 @@ export default function Planning() {
       <div className="contents">
         {/* General list and HF list, each in its own framed column, side by side. */}
         {TWOCOLS.map(([k, label], ki) => { const hidden = hiddenRows(cols[k]); return (
-          <div key={k} className={`order-4 col-start-3 ${ki ? "row-start-3" : "row-start-2"} flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5`}>
+          <div key={k} className={`order-4 col-start-3 ${ki ? "row-start-3" : "row-start-2"} ${isRed(`two-${k}`) ? "ink-red" : ""} relative flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5`}>
+            {inkToggle(`two-${k}`)}
             <p className="mb-1 flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
               {colTitle(`two-${k}`, label)}
               {hasHeads(cols[k]) && foldLink(anyShut(cols[k]), () => foldAllCol(k))}
