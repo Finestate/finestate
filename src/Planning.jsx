@@ -2063,7 +2063,14 @@ export default function Planning() {
                       return (
                         <>
                           {/* Meetings keep the top row; everything else runs on together in one row under them. */}
-                          {own.length + rest.length > 0 && <div className={`order-2 ${hasMeet ? rule : ""}`}>{renderCodeLine(b, [...own, ...rest], "#171717", idx, subs)}</div>}
+                          {/* Then Y on its own row, and under it what is ticked in the third column (Reminders), each parted by the rule. */}
+                          {(() => {
+                            const yRow = [...own, ...rest].filter((c) => !errandCol.includes(c));
+                            return (<>
+                              {yRow.length > 0 && <div className={`order-2 ${hasMeet ? rule : ""}`}>{renderCodeLine(b, yRow, "#171717", idx, subs)}</div>}
+                              {errandCol.length > 0 && <div className={`order-3 ${hasMeet || yRow.length ? rule : ""}`}>{renderCodeLine(b, errandCol, "#171717", idx, subs)}</div>}
+                            </>);
+                          })()}
                         </>
                       );
                     })()}
