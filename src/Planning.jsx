@@ -821,12 +821,13 @@ export default function Planning() {
   // A column can show all its text in red: the little square at its top right flips it.
   // The square is red while the text is black, and black while the text is red.
   const isRed = (k) => !!cols.reds?.[k];
-  const inkToggle = (k) => (
+  // Inline, it sits straight after a column title, centred on it; otherwise in the top right corner.
+  const inkToggle = (k, inline = false) => (
     <button
       type="button"
       onClick={(e) => { e.stopPropagation(); saveCols({ ...cols, reds: { ...(cols.reds || {}), [k]: !isRed(k) } }); }}
       title={isRed(k) ? "Turn this column black" : "Turn this column red"}
-      className="absolute right-[3px] top-[3px] z-[1] block h-[9px] w-[9px] rounded-[2px] hover:opacity-70"
+      className={`${inline ? "ml-[6px] shrink-0 self-center" : "absolute right-[3px] top-[3px] z-[1]"} block h-[8px] w-[8px] rounded-[2px] hover:opacity-70`}
       style={{ backgroundColor: isRed(k) ? INK_BLACK : INK_RED }}
     />
   );
@@ -2135,8 +2136,7 @@ export default function Planning() {
                   // Meetings come first, on the left; the core codes sit in the middle.
                   className={`${isRed(`${b}-meetings`) ? "ink-red " : ""}relative order-1 col-start-1 row-span-3 row-start-1 flex min-w-0 flex-col gap-1 self-stretch border-[3px] border-[#C1440E] p-1.5`}
                 >
-                  {inkToggle(`${b}-meetings`)}
-                  <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-meetings`, "Meetings")}</p>
+                  <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-meetings`, "Meetings")}{inkToggle(`${b}-meetings`, true)}</p>
                   {meetings.map((m, mi) => (
                     <div key={m.id}>
                     {/* A red marker shows exactly where the meeting will land. */}
@@ -2218,7 +2218,7 @@ export default function Planning() {
                 {/* Finestate: Errands (its own column, right after Meetings), then Y. */}
                 {(b === "master" ? ["errand", "rest"] : ["core", "rest"]).map((col) => { const gi = col === "core" ? 0 : 1; const tail = col === "errand" ? "errand" : "rest"; return (
                   <div key={col} className={`${col === "rest" ? "order-3" : "order-2"} ${b === "master" ? (col === "rest" ? "col-start-2 row-span-3 row-start-1" : "col-start-3 row-start-1") : ""} ${isRed(`${b}-${col}`) ? "ink-red" : ""} relative min-w-0 self-stretch border-[3px] border-[#C1440E] p-1.5`}>
-                    {inkToggle(`${b}-${col}`)}
+                    {b !== "master" && inkToggle(`${b}-${col}`)}
                     <div
                       className="flex h-full flex-col gap-1"
                       onDragOver={(e) => {
@@ -2238,6 +2238,7 @@ export default function Planning() {
                         if (b === "master") return (
                           <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
                             {colTitle(`${b}-${col}`, col === "errand" ? "Reminders" : "Y")}
+                            {inkToggle(`${b}-${col}`, true)}
                             {lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}
                           </p>
                         );
@@ -2530,9 +2531,9 @@ export default function Planning() {
         {/* General list and HF list, each in its own framed column, side by side. */}
         {TWOCOLS.map(([k, label], ki) => { const hidden = hiddenRows(cols[k]); return (
           <div key={k} className={`order-4 col-start-3 ${ki ? "row-start-3" : "row-start-2"} ${isRed(`two-${k}`) ? "ink-red" : ""} relative flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5`}>
-            {inkToggle(`two-${k}`)}
             <p className="mb-1 flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">
               {colTitle(`two-${k}`, label)}
+              {inkToggle(`two-${k}`, true)}
               {hasHeads(cols[k]) && foldLink(anyShut(cols[k]), () => foldAllCol(k))}
             </p>
             <div
