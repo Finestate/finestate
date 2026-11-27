@@ -2127,7 +2127,7 @@ export default function Planning() {
               // non-prios and its department notes.
               // On trial for Finestate: its core points column is set aside, so meetings (left)
               // and the long list (right) share the top row in two equal halves.
-              <div className={`grid ${b === "master" ? "grid-cols-3" : "grid-cols-2"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
+              <div className={`grid ${b === "master" ? "grid-cols-4" : "grid-cols-3"} items-start gap-1.5 border-t border-[#C1440E] px-2 py-1.5`}>
                 {MEETING_BOARDS.includes(b) && (
                 <div
                   onDragOver={(e) => e.preventDefault()}
@@ -2485,9 +2485,9 @@ export default function Planning() {
                 ); })}
                 {/* Master's personal lists sit at the very bottom of the open picker. */}
                 {MEETING_BOARDS.includes(b) && renderTwoCols(idx)}
-                {/* The department notes column is set aside now that Notes sits at the top of Today; its text stays saved. */}
-                {false && !MEETING_BOARDS.includes(b) && (
-                  <div className="order-3 flex flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+                {/* Each company board keeps its notes field on the far right. */}
+                {!MEETING_BOARDS.includes(b) && (
+                  <div className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
                     {/* The tools sit in their own strip across the top of the field. */}
                     <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
                       {/* The same ribbon as the table rows, acting on these notes. */}
@@ -2627,8 +2627,8 @@ export default function Planning() {
             </div>
           </div>
         ); })}
-        {/* The free field column is set aside now that Notes sits at the top of Today; its text stays saved. */}
-        {false && <div className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+        {/* Master keeps its notes field on the far right. */}
+        {<div className="order-5 col-start-4 row-span-3 row-start-1 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
           <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "bold")} title="Bold the highlighted words" className="-m-1 flex h-6 w-6 items-center justify-center rounded text-neutral-900 hover:bg-black/5">
               <span className="flex h-3 w-3 -translate-y-px items-center justify-center text-[17px] font-black leading-none">B</span>
