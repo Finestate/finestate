@@ -2241,10 +2241,8 @@ export default function Planning() {
                             {lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}
                           </p>
                         );
-                        // A Prios column with no title of its own carries the red dot on this slim row.
-                        const bare = col === "core" && !BRAND_GROUPS[b];
-                        if (!bare && !lists.some(hasHeads)) return null;
-                        return <div className="flex h-[13px] items-center">{bare && <span className="-ml-[4px] flex">{inkToggle(`${b}-${col}`, true)}</span>}{lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}</div>;
+                        if (!lists.some(hasHeads)) return null;
+                        return <div className="flex h-[13px] items-center">{foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}</div>;
                       })()}
                       {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master") && (
                         <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-g${gi}`, GROUP_LABELS[b][gi])}:{inkToggle(`${b}-${col}`, true)}</p>
@@ -2254,7 +2252,7 @@ export default function Planning() {
                       )}
                       {/* A company board's Prios column holds two groups: Hyper-prios on top, then the
                           regular ones; points are dragged between them. */}
-                      {colGroups(b, col).map((g) => {
+                      {colGroups(b, col).map((g, gIdx) => {
                         const list = points[g] || [];
                         return (
                       // Each brand sits in its own thin frame, its name on a slim strip across the top.
@@ -2262,7 +2260,7 @@ export default function Planning() {
                       {BRAND_GROUPS[b] ? (
                         <p className="-mx-1 flex h-[20px] items-center border-b border-[#C1440E] bg-[#F9E1D8] px-1 text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-[#C1440E]">{colTitle(`${b}-${g}`, BRAND_LABELS[g])}:</p>
                       ) : col === "core" && b !== "master" && (
-                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-${g}`, g === "hyper" ? "Hyper-prios" : "Regular prios")}:</p>
+                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-${g}`, g === "hyper" ? "Hyper-prios" : "Regular prios")}:{gIdx === 0 && inkToggle(`${b}-${col}`, true)}</p>
                       )}
                       {/* An empty group still takes a dragged point. */}
                       {list.length === 0 && (
