@@ -11,4 +11,4 @@
 .mt-blink { animation: mt-blink 0.9s steps(1) infinite; }
 
 /* Planning: a column switched to red shows every line of its text in red (not its icons). */
-.ink-red :is(textarea, input:not([type="checkbox"]), [contenteditable], .ink-text) { color: #B01E2F !important; }
+.ink-red :is(textarea, input:not([type="checkbox"]), [contenteditable], [contenteditable] *, .ink-text) { color: #B01E2F !important; }

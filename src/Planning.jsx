@@ -2218,7 +2218,6 @@ export default function Planning() {
                 {/* Finestate: Errands (its own column, right after Meetings), then Y. */}
                 {(b === "master" ? ["errand", "rest"] : ["core", "rest"]).map((col) => { const gi = col === "core" ? 0 : 1; const tail = col === "errand" ? "errand" : "rest"; return (
                   <div key={col} className={`${col === "rest" ? "order-3" : "order-2"} ${b === "master" ? (col === "rest" ? "col-start-2 row-span-3 row-start-1" : "col-start-3 row-start-1") : ""} ${isRed(`${b}-${col}`) ? "ink-red" : ""} relative min-w-0 self-stretch border-[3px] border-[#C1440E] p-1.5`}>
-                    {b !== "master" && inkToggle(`${b}-${col}`)}
                     <div
                       className="flex h-full flex-col gap-1"
                       onDragOver={(e) => {
@@ -2242,14 +2241,16 @@ export default function Planning() {
                             {lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}
                           </p>
                         );
-                        if (!lists.some(hasHeads)) return null;
-                        return <div className="flex h-[13px] items-center">{foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}</div>;
+                        // A Prios column with no title of its own carries the red dot on this slim row.
+                        const bare = col === "core" && !BRAND_GROUPS[b];
+                        if (!bare && !lists.some(hasHeads)) return null;
+                        return <div className="flex h-[13px] items-center">{bare && <span className="-ml-[4px] flex">{inkToggle(`${b}-${col}`, true)}</span>}{lists.some(hasHeads) && foldLink(lists.some(anyShut), () => foldAllPoints(b, groups))}</div>;
                       })()}
                       {(GROUP_LABELS[b] || [])[gi] && !(col === "core" && b !== "master") && (
-                        <p className="pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-g${gi}`, GROUP_LABELS[b][gi])}:</p>
+                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-g${gi}`, GROUP_LABELS[b][gi])}:{inkToggle(`${b}-${col}`, true)}</p>
                       )}
                       {BRAND_GROUPS[b] && col === "core" && (
-                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-hyperprios`, "Hyper-prios")}:</p>
+                        <p className="flex items-center pl-[2px] text-[11px] font-bold uppercase leading-[15px] tracking-[0.06em] text-neutral-900">{colTitle(`${b}-hyperprios`, "Hyper-prios")}:{inkToggle(`${b}-${col}`, true)}</p>
                       )}
                       {/* A company board's Prios column holds two groups: Hyper-prios on top, then the
                           regular ones; points are dragged between them. */}
@@ -2487,7 +2488,7 @@ export default function Planning() {
                 {MEETING_BOARDS.includes(b) && renderTwoCols(idx)}
                 {/* Each company board keeps its notes field on the far right. */}
                 {!MEETING_BOARDS.includes(b) && (
-                  <div className="order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+                  <div className={`${isRed(`note-${b}`) ? "ink-red " : ""}order-4 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5`}>
                     {/* The tools sit in their own strip across the top of the field. */}
                     <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
                       {/* The same ribbon as the table rows, acting on these notes. */}
@@ -2503,6 +2504,7 @@ export default function Planning() {
                       <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "insertUnorderedList")} title="Bullet the selected lines" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><List size={14} strokeWidth={2.75} /></button>
                       <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "outdent")} title="Decrease indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsLeft size={14} strokeWidth={2.75} /></button>
                       <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd(b, "indent")} title="Increase indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsRight size={14} strokeWidth={2.75} /></button>
+                      {inkToggle(`note-${b}`, true)}
                     </div>
                     <RichLine
                       key={`notes-${b}`}
@@ -2628,7 +2630,7 @@ export default function Planning() {
           </div>
         ); })}
         {/* Master keeps its notes field on the far right. */}
-        {<div className="order-5 col-start-4 row-span-3 row-start-1 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5">
+        {<div className={`${isRed("note-scratch") ? "ink-red " : ""}order-5 col-start-4 row-span-3 row-start-1 flex min-w-0 flex-col self-stretch border-[3px] border-[#C1440E] p-1.5`}>
           <div className="mb-1.5 flex items-center gap-1 border-b border-[#C1440E] pb-1">
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "bold")} title="Bold the highlighted words" className="-m-1 flex h-6 w-6 items-center justify-center rounded text-neutral-900 hover:bg-black/5">
               <span className="flex h-3 w-3 -translate-y-px items-center justify-center text-[17px] font-black leading-none">B</span>
@@ -2642,6 +2644,7 @@ export default function Planning() {
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "insertUnorderedList")} title="Bullet the selected lines" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><List size={14} strokeWidth={2.75} /></button>
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "outdent")} title="Decrease indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsLeft size={14} strokeWidth={2.75} /></button>
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => noteCmd("scratch", "indent")} title="Increase indent" className="flex h-4 w-4 items-center justify-center text-neutral-900 hover:text-[#9c7c33]"><ChevronsRight size={14} strokeWidth={2.75} /></button>
+            {inkToggle("note-scratch", true)}
           </div>
           <RichLine
             plainBack
