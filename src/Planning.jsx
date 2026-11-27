@@ -1770,9 +1770,9 @@ export default function Planning() {
           <Download size={12} strokeWidth={2.5} />
         </button>
       </div>
-      {/* Notes: a dropdown at the top of Today, on its own light shade, with a free
-          notes column for each business. Open or shut stays as left after a refresh. */}
-      <div
+      {/* The Notes row at the top of Today is set aside now that each dropdown has its own
+          notes on the right. Its text stays saved. */}
+      {false && <div
         onClick={() => setNotesOpen(!notesOpen)}
         title={notesOpen ? "Close" : "Open"}
         className="flex min-h-[20px] cursor-pointer select-none items-start border-t border-black px-2 pt-[3px] pb-[2px] hover:brightness-[0.98]"
@@ -1780,8 +1780,8 @@ export default function Planning() {
       >
         {/* Styled exactly like the Master, Silx and other lines under it: the whole line is the toggle. */}
         <span style={{ color: MEETING_ICON }} className="inline-flex items-center text-[11px] font-semibold leading-[15px]">Notes</span>
-      </div>
-      {notesOpen && (
+      </div>}
+      {false && notesOpen && (
         <div className="grid grid-cols-5 gap-1.5 border-t border-black p-1.5" style={{ backgroundColor: NOTES_BG }}>
           {TODAY_NOTES.map(([k, label]) => (
             <div key={k} className="flex min-w-0 flex-col border-[3px] border-[#C1440E] p-1.5">
