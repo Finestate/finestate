@@ -26,7 +26,6 @@ import Costs from "./Costs.jsx";
 import Bookmarks from "./Bookmarks.jsx";
 import Assets from "./Assets.jsx";
 import Calculations from "./Calculations.jsx";
-import Funnel from "./Funnel.jsx";
 import HW from "./HW.jsx";
 import { TimerWatcher } from "./MiniTimer.jsx";
 import KnowledgeFeeds from "./KnowledgeFeeds.jsx";
@@ -363,14 +362,13 @@ export default function App() {
             {route === "admin/site-running-costs" && <SiteRunningCosts />}
             {route === "admin/users" && isAdmin && <Logins myId={profile.id} />}
             {route === "admin/integrations" && <Integrations />}
-            {/* Funnel, with the Knowledge table under it. The old Knowledge link lands here too. */}
-            {(route === "investing/funnel" || route === "assets/investing") && (
+            {/* Calculations, with the Knowledge table under it. The old Funnel and Knowledge links land here too. */}
+            {(route === "investing/calculations" || route === "investing/funnel" || route === "assets/investing") && (
               <div className="flex flex-col gap-3">
-                <Funnel />
+                <Calculations />
                 <KnowledgeFeeds />
               </div>
             )}
-            {route === "investing/calculations" && <Calculations />}
             {route === "investing/opportunities" && <Opportunities />}
             {route === "investing/ratios-calcs" && <Investing />}
           </ErrorBoundary>
